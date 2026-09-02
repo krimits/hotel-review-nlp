@@ -75,7 +75,7 @@ locust -f scripts/load_test.py --host http://127.0.0.1:8000 --headless -t 30s
 ### Smoke-test without any data or GPU
 
 ```bash
-make test    # 35 tests, fully offline: LoRA math, label rules, metrics, batching, API contract
+make test    # 37 tests, fully offline: LoRA math, label rules, metrics, batching, API contract
 ```
 
 ## Repo map
@@ -126,7 +126,7 @@ How each expectation this project was built against is covered:
 
 | Area | Evidence in this repo |
 |---|---|
-| Python | typed modules, dataclasses, CLI entry points, CI lint (ruff), 35 offline tests |
+| Python | typed modules, dataclasses, CLI entry points, CI lint (ruff), 37 offline tests |
 | PyTorch | custom Dataset/collate, BiLSTM with packed sequences, hand-written AMP loop, LoRA autograd |
 | Hugging Face | transformers + datasets + peft + trl across three trainers, tokenizer handling, adapter I/O |
 | ML fundamentals | leakage-free vocab/splits, per-class metrics, stratification, early stopping on dev |

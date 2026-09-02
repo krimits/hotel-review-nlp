@@ -65,6 +65,12 @@ def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int =
         base_name = json.load(f)["model"]
 
     tokenizer = AutoTokenizer.from_pretrained(adapter_dir)
+    # Generation needs LEFT padding: with right padding the model continues
+    # from pad tokens instead of the prompt, and the fixed-width slice below
+    # would read the wrong positions. (Training pads right - see train_qlora.)
+    tokenizer.padding_side = "left"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
         base_name, quantization_config=quant, device_map="auto" if device == "cuda" else None,
         torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
@@ -82,6 +88,8 @@ def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int =
                 max_new_tokens=max_new_tokens, do_sample=False,
                 pad_token_id=tokenizer.pad_token_id,
             )
+        # left padding keeps every prompt flush against the generated span,
+        # so one shared offset is valid for the whole batch
         new_tokens = out[:, enc["input_ids"].shape[1]:]
         preds += [parse_label(tokenizer.decode(t, skip_special_tokens=True)) for t in new_tokens]
     return np.array(preds)

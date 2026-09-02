@@ -48,8 +48,15 @@ class TextVocab:
         return cls(itoi)
 
     def encode(self, text: str, max_tokens: int) -> list[int]:
+        """Token ids for ``text``, never empty.
+
+        A review of pure punctuation ("!!!") tokenizes to nothing, and a
+        zero-length row makes ``pack_padded_sequence`` raise. Such rows fall
+        back to a single ``<unk>`` so the batch stays well-formed.
+        """
         unk = self.itoi[UNK]
-        return [self.itoi.get(tok, unk) for tok in tokenize(text)[:max_tokens]]
+        ids = [self.itoi.get(tok, unk) for tok in tokenize(text)[:max_tokens]]
+        return ids or [unk]
 
     def __len__(self) -> int:
         return len(self.itoi)

@@ -77,3 +77,18 @@ def test_restore_order_undoes_the_length_sort():
 
 def test_tokenizer_drops_punctuation():
     assert tokenize("Great hotel!! Really, lovely.") == ["great", "hotel", "really", "lovely"]
+
+
+def test_encode_never_returns_an_empty_sequence():
+    """pack_padded_sequence raises on length 0, so punctuation-only rows
+    must still yield one token."""
+    vocab = _tiny_vocab()
+    assert vocab.encode("!!! ??? ...", max_tokens=8) == [vocab.itoi["<unk>"]]
+
+
+def test_collate_handles_a_punctuation_only_review():
+    vocab = _tiny_vocab()
+    df = pd.DataFrame({"text": ["great room great staff", "!!!"], "label": ["positive", "negative"]})
+    ds = SentimentDataset(df, vocab, 32)
+    batch = collate([ds[i] for i in range(len(ds))])
+    assert batch["lengths"].min().item() >= 1
