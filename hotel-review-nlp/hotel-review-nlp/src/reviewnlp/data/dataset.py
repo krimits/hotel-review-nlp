@@ -85,9 +85,15 @@ def collate(batch: list[tuple[torch.Tensor, int, torch.Tensor]]) -> dict:
 
     Returns inputs sorted by descending length (required by pack_padded_sequence
     when enforce_sorted=True, the faster path we use in training).
+
+    Because that sort reorders the batch, ``"order"`` carries the permutation:
+    row ``j`` of the returned tensors is item ``order[j]`` of the incoming
+    batch. Evaluation uses it (via ``restore_order``) to hand back logits in
+    dataset order - the benchmark caches them against the test parquet rows,
+    so emitting them length-sorted would silently misalign every prediction.
     """
-    batch = sorted(batch, key=lambda item: item[1], reverse=True)
-    ids_list, lengths, labels = zip(*batch, strict=False)
+    order = sorted(range(len(batch)), key=lambda i: batch[i][1], reverse=True)
+    ids_list, lengths, labels = zip(*(batch[i] for i in order), strict=False)
     max_len = lengths[0]
     padded = torch.zeros(len(batch), max_len, dtype=torch.long)  # 0 == <pad>
     for i, ids in enumerate(ids_list):
@@ -96,7 +102,15 @@ def collate(batch: list[tuple[torch.Tensor, int, torch.Tensor]]) -> dict:
         "input_ids": padded,
         "lengths": torch.tensor(lengths, dtype=torch.long),
         "labels": torch.tensor(labels, dtype=torch.long),
+        "order": torch.tensor(order, dtype=torch.long),
     }
+
+
+def restore_order(values: torch.Tensor, order: torch.Tensor) -> torch.Tensor:
+    """Undo the length-sort ``collate`` applied: inverse-permute ``values``."""
+    inverse = torch.empty_like(order)
+    inverse[order] = torch.arange(len(order), device=order.device)
+    return values[inverse]
 
 
 def build_bilstm_datasets(

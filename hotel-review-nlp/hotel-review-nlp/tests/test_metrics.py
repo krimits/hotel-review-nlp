@@ -63,3 +63,30 @@ def test_pairwise_mcnemar_structure():
     assert set(out) == {"m1 vs m2", "m1 vs m3", "m2 vs m3"}
     assert out["m1 vs m3"]["p_value"] == 1.0
     assert out["m1 vs m2"]["n_discordant"] == 20
+
+
+def test_integer_class_ids_match_string_labels():
+    """The torch loops score with ids (0/1); the rest of the repo with strings.
+
+    Both must produce the identical artifact - before this was normalized,
+    sklearn raised "At least one label specified must be in y_true" and every
+    encoder/BiLSTM run died at its first dev evaluation.
+    """
+    gold_str = ["negative", "negative", "positive", "positive", "positive"]
+    pred_str = ["negative", "positive", "positive", "negative", "positive"]
+    gold_ids = [0, 0, 1, 1, 1]
+    pred_ids = [0, 1, 1, 0, 1]
+
+    assert binary_metrics(gold_ids, pred_ids) == binary_metrics(gold_str, pred_str)
+
+
+def test_integer_ids_respect_label_names_order():
+    m = binary_metrics(np.array([0, 1]), np.array([0, 1]))
+    assert m["per_class"]["negative"]["support"] == 1
+    assert m["per_class"]["positive"]["support"] == 1
+    assert m["confusion_matrix"] == [[1, 0], [0, 1]]
+
+
+def test_out_of_range_class_id_raises():
+    with pytest.raises(ValueError, match="out of range"):
+        binary_metrics([0, 2], [0, 1])

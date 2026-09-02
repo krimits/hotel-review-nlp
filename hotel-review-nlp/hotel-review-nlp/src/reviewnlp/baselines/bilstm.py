@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from reviewnlp.data.dataset import TextVocab, build_bilstm_datasets, collate
+from reviewnlp.data.dataset import TextVocab, build_bilstm_datasets, collate, restore_order
 from reviewnlp.evaluation.metrics import binary_metrics
 from reviewnlp.utils.seed import load_config, set_seed
 
@@ -93,9 +93,13 @@ def _evaluate(model: BiLSTMClassifier, loader: DataLoader, device: torch.device)
     with torch.no_grad():
         for batch in loader:
             logits = model(batch["input_ids"].to(device), batch["lengths"].to(device))
-            logits_all.append(logits.float().cpu())
-            preds += logits.argmax(dim=-1).cpu().tolist()
-            golds += batch["labels"].tolist()
+            # collate sorted the batch by length; put rows back in dataset order
+            # so cached logits line up with the benchmark's test parquet.
+            logits = restore_order(logits.float().cpu(), batch["order"])
+            labels = restore_order(batch["labels"], batch["order"])
+            logits_all.append(logits)
+            preds += logits.argmax(dim=-1).tolist()
+            golds += labels.tolist()
     acc = sum(p == g for p, g in zip(preds, golds, strict=False)) / max(1, len(golds))
     metrics = binary_metrics(golds, preds, label_names=("negative", "positive"))
     return acc, metrics, torch.cat(logits_all)
@@ -107,7 +111,9 @@ def train_bilstm(config_path: str) -> dict:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     m, t, d = cfg["model"], cfg["train"], cfg["data"]
-    train_ds, dev_ds, test_ds, vocab = build_bilstm_datasets(d["processed_dir"], cfg["data"]["max_tokens"], t.get("min_freq", 2))
+    train_ds, dev_ds, test_ds, vocab = build_bilstm_datasets(
+        d["processed_dir"], d["max_tokens"], d.get("min_freq", 2)
+    )
     print(f"vocab={len(vocab):,} train={len(train_ds):,} dev={len(dev_ds):,} test={len(test_ds):,} device={device}")
 
     loader_kwargs = dict(batch_size=t["batch_size"], collate_fn=collate, num_workers=2)
@@ -117,15 +123,15 @@ def train_bilstm(config_path: str) -> dict:
 
     model = BiLSTMClassifier(
         vocab_size=len(vocab),
-        embedding_dim=t["embedding_dim"],
+        embedding_dim=d["embedding_dim"],
         hidden_dim=m["hidden_dim"],
         num_layers=m["num_layers"],
         dropout=m["dropout"],
         bidirectional=m["bidirectional"],
         pooling=m["pooling"],
     ).to(device)
-    if cfg["data"].get("glove"):
-        _load_glove(model, vocab, cfg["data"]["glove"], t["embedding_dim"])
+    if d.get("glove"):
+        _load_glove(model, vocab, d["glove"], d["embedding_dim"])
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=t["lr"], weight_decay=t["weight_decay"])
     total_steps = len(train_loader) * t["epochs"]

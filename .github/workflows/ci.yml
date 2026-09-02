@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+# The project lives one level down; keep every step rooted there.
+defaults:
+  run:
+    working-directory: hotel-review-nlp/hotel-review-nlp
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install CPU-only torch
+        # The default wheel pulls the CUDA stack (~2 GB) that CI never uses.
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install the package
+        # [llm] is deliberately omitted: the peft equivalence test skips itself
+        # when peft is absent, keeping the suite fast and GPU-free.
+        run: pip install -e ".[dev,serving]"
+
+      - name: Lint
+        run: ruff check src tests scripts
+
+      - name: Test
+        # The whole suite is offline: no dataset, no pretrained weights, no GPU.
+        run: pytest tests -v

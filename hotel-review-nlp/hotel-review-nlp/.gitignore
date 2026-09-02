@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Experiment outputs and derived data (regenerate with the make targets)
+runs/
+data/processed/
+
+# Raw datasets are downloaded, never committed - see data/raw/README.md.
+# The small unlabeled CSV is the one committed exception.
+data/raw/*
+!data/raw/README.md
+!data/raw/hotel_reviews.csv
+
+# OS noise
+.DS_Store

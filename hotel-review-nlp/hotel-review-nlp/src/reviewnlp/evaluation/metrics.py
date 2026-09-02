@@ -2,6 +2,11 @@
 
 We compute from raw counts (sklearn) but return a plain dict so results are
 JSON-serializable for the benchmark artifact and README tables.
+
+Labels may be passed either as strings ("negative"/"positive", the form the
+classical baselines and the benchmark use) or as integer class ids (0/1, the
+form the torch training loops carry). Integers are mapped onto ``label_names``
+by position, so every model family writes the same string-keyed artifact.
 """
 
 from __future__ import annotations
@@ -12,13 +17,38 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 LABELS = ("negative", "positive")
 
 
+def as_label_names(y, label_names=LABELS) -> np.ndarray:
+    """Normalize class ids to label strings; leave string labels untouched.
+
+    ``sklearn`` is asked for per-class stats with ``labels=label_names``, which
+    fails outright when ``y`` holds integer ids (``confusion_matrix`` raises
+    "At least one label specified must be in y_true"). The torch loops label
+    with ids, so normalize here rather than at every call site.
+    """
+    y = np.asarray(y)
+    if y.dtype.kind not in "iub":  # already strings/objects
+        return y.astype(str)
+    ids = y.astype(int)
+    if ids.size and (ids.min() < 0 or ids.max() >= len(label_names)):
+        raise ValueError(
+            f"class id out of range for label_names={tuple(label_names)}: "
+            f"got ids in [{ids.min()}, {ids.max()}]"
+        )
+    lookup = np.asarray(label_names)
+    return lookup[ids]
+
+
 def binary_metrics(y_true, y_pred, label_names=LABELS) -> dict:
-    """Accuracy, macro/micro/weighted F1, per-class P/R/F1, confusion matrix."""
-    y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+    """Accuracy, macro/micro/weighted F1, per-class P/R/F1, confusion matrix.
+
+    ``y_true``/``y_pred`` accept label strings or integer ids interchangeably.
+    """
     if len(y_true) != len(y_pred):
         raise ValueError(f"length mismatch: {len(y_true)} vs {len(y_pred)}")
     if len(y_true) == 0:
         raise ValueError("empty evaluation set")
+    y_true = as_label_names(y_true, label_names)
+    y_pred = as_label_names(y_pred, label_names)
 
     acc = float((y_true == y_pred).mean())
     p, r, f1, support = precision_recall_fscore_support(

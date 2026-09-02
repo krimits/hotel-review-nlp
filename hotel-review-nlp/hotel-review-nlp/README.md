@@ -7,7 +7,7 @@ One business question - *"is this hotel review positive or negative?"* - solved 
 families under identical data splits and evaluation, with the winning model served behind a
 production-style API. Built to demonstrate the full ML-engineering loop, not just a notebook.
 
-[![CI](https://github.com/<your-user>/hotel-review-nlp/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-user>/hotel-review-nlp/actions)
+[![CI](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml/badge.svg)](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -47,7 +47,7 @@ McNemar's exact test between consecutive rows is included in the artifact
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-user>/hotel-review-nlp
+git clone https://github.com/krimits/hotel-review-nlp
 cd hotel-review-nlp
 make install          # -e .[dev,serving]; add [llm] on a GPU machine
 
@@ -75,7 +75,7 @@ locust -f scripts/load_test.py --host http://127.0.0.1:8000 --headless -t 30s
 ### Smoke-test without any data or GPU
 
 ```bash
-make test    # 27 tests, fully offline: LoRA math, label rules, metrics, API contract
+make test    # 35 tests, fully offline: LoRA math, label rules, metrics, batching, API contract
 ```
 
 ## Repo map
@@ -91,7 +91,7 @@ src/reviewnlp/
 ├── serving/       app.py (FastAPI) · model_wrapper.py · schemas.py
 └── utils/         seed.py (seeding + YAML config)
 tests/             test_lora.py (9 property tests + PEFT equivalence) · test_preprocess.py
-                   test_metrics.py · test_api.py
+                   test_metrics.py · test_dataset.py · test_api.py
 notebooks/         01 EDA · 02 QLoRA on Colab · 03 LLM-as-annotator on the unlabeled CSV
 configs/           one YAML per experiment - every run is reproducible from config
 ```
@@ -126,7 +126,7 @@ How each expectation this project was built against is covered:
 
 | Area | Evidence in this repo |
 |---|---|
-| Python | typed modules, dataclasses, CLI entry points, CI lint (ruff), 27 offline tests |
+| Python | typed modules, dataclasses, CLI entry points, CI lint (ruff), 35 offline tests |
 | PyTorch | custom Dataset/collate, BiLSTM with packed sequences, hand-written AMP loop, LoRA autograd |
 | Hugging Face | transformers + datasets + peft + trl across three trainers, tokenizer handling, adapter I/O |
 | ML fundamentals | leakage-free vocab/splits, per-class metrics, stratification, early stopping on dev |
