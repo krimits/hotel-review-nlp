@@ -1,0 +1,45 @@
+# Classical ML baselines + dataset construction
+seed: 42
+
+data:
+  # Booking.com 515K Hotel Reviews (Kaggle id below) - see data/raw/README.md
+  raw_csv: data/raw/Hotel_Reviews.csv
+  processed_dir: data/processed
+  # A review is labeled positive when only Positive_Review is present
+  # ('No Negative' in the negative slot) and vice versa. This removes any
+  # threshold arbitrariness from the Reviewer_Score.
+  max_chars: 1200        # truncate absurdly long reviews
+  min_chars: 15          # drop empty/too-short texts
+  train_frac: 0.8
+  dev_frac: 0.1
+  # test = 1 - train - dev
+  train_cap: 100000      # per-class cap to keep Colab experiments tractable
+  test_cap: 10000        # per-class cap for the held-out test set
+
+baselines:
+  tfidf_word:
+    max_features: 50000
+    ngram_range: [1, 2]
+    min_df: 2
+    sublinear_tf: true
+  tfidf_char:
+    max_features: 50000
+    ngram_range: [3, 5]
+    min_df: 2
+    sublinear_tf: true
+  models:
+    - name: naive_bayes
+      cls: MultinomialNB
+      params: {alpha: 0.3}
+    - name: lr_sgd
+      cls: SGDClassifier
+      params:
+        loss: log_loss
+        alpha: 0.0001
+        max_iter: 30
+        n_jobs: -1
+        random_state: 42
+
+output:
+  model_dir: runs/classical
+  metrics_path: runs/classical/metrics.json

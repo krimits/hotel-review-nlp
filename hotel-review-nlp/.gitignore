@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Data (raw/processed are downloaded, not committed)
+data/raw/*
+!data/raw/README.md
+!data/raw/hotel_reviews.csv
+data/processed/*
+!data/processed/.gitkeep
+runs/
+artifacts/
+reports/
+
+# Model weights
+*.safetensors
+*.bin
+*.onnx
+*.pt
+*.gguf
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Env
+.env
+*.log
