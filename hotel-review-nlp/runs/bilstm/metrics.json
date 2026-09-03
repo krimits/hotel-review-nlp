@@ -1,0 +1,34 @@
+{
+  "test": {
+    "accuracy": 0.9629,
+    "macro_f1": 0.9503,
+    "macro_precision": 0.9491,
+    "macro_recall": 0.9515,
+    "weighted_f1": 0.963,
+    "per_class": {
+      "0": {
+        "precision": 0.9216,
+        "recall": 0.9289,
+        "f1": 0.9253,
+        "support": 3278
+      },
+      "1": {
+        "precision": 0.9766,
+        "recall": 0.9741,
+        "f1": 0.9754,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        3045,
+        233
+      ],
+      [
+        259,
+        9741
+      ]
+    ]
+  },
+  "best_dev_macro_f1": 0.9493
+}
