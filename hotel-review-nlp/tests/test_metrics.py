@@ -5,7 +5,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from reviewnlp.evaluation.metrics import binary_metrics, discordant_counts
+from reviewnlp.evaluation.metrics import (
+    binary_metrics,
+    discordant_counts,
+    metrics_at_threshold,
+    positive_probabilities,
+    tune_binary_threshold,
+)
 from reviewnlp.evaluation.significance import mcnemar_exact, pairwise_mcnemar
 
 
@@ -33,6 +39,32 @@ def test_known_answer_case():
 def test_metrics_length_mismatch_raises():
     with pytest.raises(ValueError):
         binary_metrics(["negative"], ["negative", "positive"])
+
+
+def test_numeric_labels_use_human_readable_class_names():
+    y = [0, 0, 1, 1]
+    p = [0, 1, 1, 1]
+    m = binary_metrics(y, p, label_names=("negative", "positive"), label_values=(0, 1))
+    assert m["confusion_matrix"] == [[1, 1], [0, 2]]
+    assert m["per_class"]["negative"]["support"] == 2
+    assert m["per_class"]["positive"]["recall"] == 1.0
+
+
+def test_positive_probabilities_are_stable_and_normalized():
+    logits = np.array([[1000.0, 1000.0], [1000.0, 1002.0]])
+    scores = positive_probabilities(logits)
+    assert scores[0] == pytest.approx(0.5)
+    assert 0.5 < scores[1] < 1.0
+
+
+def test_threshold_is_selected_on_macro_f1():
+    y = np.array([0, 0, 0, 1, 1])
+    scores = np.array([0.60, 0.40, 0.20, 0.70, 0.80])
+    default = metrics_at_threshold(y, scores, 0.5)
+    tuned = tune_binary_threshold(y, scores, minimum=0.5, maximum=0.8, step=0.05)
+    assert default["macro_f1"] < 1.0
+    assert tuned["threshold"] == pytest.approx(0.65)
+    assert tuned["dev_metrics"]["macro_f1"] == 1.0
 
 
 def test_mcnemar_known_distribution():

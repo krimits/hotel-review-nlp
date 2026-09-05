@@ -15,12 +15,17 @@ import json
 import os
 import time
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from reviewnlp.data.dataset import TextVocab, build_bilstm_datasets, collate
-from reviewnlp.evaluation.metrics import binary_metrics
+from reviewnlp.evaluation.metrics import (
+    metrics_at_threshold,
+    positive_probabilities,
+    tune_binary_threshold,
+)
 from reviewnlp.utils.seed import load_config, set_seed
 
 
@@ -87,27 +92,87 @@ class BiLSTMClassifier(nn.Module):
         return self.fc(self.dropout(feats))
 
 
-def _evaluate(model: BiLSTMClassifier, loader: DataLoader, device: torch.device) -> tuple[float, dict, torch.Tensor]:
+def _evaluate(
+    model: BiLSTMClassifier,
+    loader: DataLoader,
+    device: torch.device,
+    threshold: float = 0.5,
+) -> tuple[dict, torch.Tensor, np.ndarray]:
     model.eval()
-    logits_all, preds, golds = [], [], []
+    logits_all, golds = [], []
     with torch.no_grad():
         for batch in loader:
             logits = model(batch["input_ids"].to(device), batch["lengths"].to(device))
             logits_all.append(logits.float().cpu())
-            preds += logits.argmax(dim=-1).cpu().tolist()
             golds += batch["labels"].tolist()
-    acc = sum(p == g for p, g in zip(preds, golds, strict=False)) / max(1, len(golds))
-    metrics = binary_metrics(golds, preds, label_names=("negative", "positive"))
-    return acc, metrics, torch.cat(logits_all)
+    logits = torch.cat(logits_all)
+    gold = np.asarray(golds, dtype=np.int64)
+    metrics = metrics_at_threshold(gold, positive_probabilities(logits.numpy()), threshold)
+    return metrics, logits, gold
+
+
+def _threshold_result(gold: np.ndarray, logits: torch.Tensor, cfg: dict) -> dict:
+    tuning = cfg.get("evaluation", {}).get("threshold_tuning", {})
+    if not tuning.get("enabled", False):
+        return {
+            "threshold": 0.5,
+            "dev_metrics": metrics_at_threshold(gold, positive_probabilities(logits.numpy()), 0.5),
+            "objective": "macro_f1",
+        }
+    return tune_binary_threshold(
+        gold,
+        positive_probabilities(logits.numpy()),
+        minimum=float(tuning.get("minimum", 0.05)),
+        maximum=float(tuning.get("maximum", 0.95)),
+        step=float(tuning.get("step", 0.005)),
+    )
+
+
+def _init_wandb(cfg: dict):
+    tracking = cfg.get("tracking", {}).get("wandb", {})
+    if not tracking.get("enabled", False):
+        return None
+    try:
+        import wandb
+    except ImportError as exc:
+        raise RuntimeError(
+            "W&B tracking is enabled; install it with `pip install -e '.[tracking]'`"
+        ) from exc
+
+    kwargs = {
+        "project": tracking.get("project", "hotel-review-nlp"),
+        "name": tracking.get("run_name"),
+        "tags": tracking.get("tags", []),
+        "config": cfg,
+    }
+    if tracking.get("entity"):
+        kwargs["entity"] = tracking["entity"]
+    return wandb.init(**kwargs)
+
+
+def _flatten_metrics(prefix: str, metrics: dict) -> dict:
+    """Flatten all scalar metrics for a complete W&B run summary."""
+    flat = {
+        f"{prefix}/{name}": metrics[name]
+        for name in ("accuracy", "macro_f1", "macro_precision", "macro_recall", "weighted_f1")
+    }
+    for class_name, class_metrics in metrics["per_class"].items():
+        for name, value in class_metrics.items():
+            flat[f"{prefix}/per_class/{class_name}/{name}"] = value
+    flat[f"{prefix}/confusion_matrix"] = metrics["confusion_matrix"]
+    return flat
 
 
 def train_bilstm(config_path: str) -> dict:
     cfg = load_config(config_path)
     set_seed(cfg["seed"])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    wandb_run = _init_wandb(cfg)
 
     m, t, d = cfg["model"], cfg["train"], cfg["data"]
-    train_ds, dev_ds, test_ds, vocab = build_bilstm_datasets(d["processed_dir"], cfg["data"]["max_tokens"], t.get("min_freq", 2))
+    train_ds, dev_ds, test_ds, vocab = build_bilstm_datasets(
+        d["processed_dir"], d["max_tokens"], d.get("min_freq", 2)
+    )
     print(f"vocab={len(vocab):,} train={len(train_ds):,} dev={len(dev_ds):,} test={len(test_ds):,} device={device}")
 
     loader_kwargs = dict(batch_size=t["batch_size"], collate_fn=collate, num_workers=2)
@@ -117,7 +182,7 @@ def train_bilstm(config_path: str) -> dict:
 
     model = BiLSTMClassifier(
         vocab_size=len(vocab),
-        embedding_dim=t["embedding_dim"],
+        embedding_dim=d["embedding_dim"],
         hidden_dim=m["hidden_dim"],
         num_layers=m["num_layers"],
         dropout=m["dropout"],
@@ -125,7 +190,7 @@ def train_bilstm(config_path: str) -> dict:
         pooling=m["pooling"],
     ).to(device)
     if cfg["data"].get("glove"):
-        _load_glove(model, vocab, cfg["data"]["glove"], t["embedding_dim"])
+        _load_glove(model, vocab, cfg["data"]["glove"], d["embedding_dim"])
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=t["lr"], weight_decay=t["weight_decay"])
     total_steps = len(train_loader) * t["epochs"]
@@ -147,14 +212,31 @@ def train_bilstm(config_path: str) -> dict:
             running += loss.item()
             n_batches += 1
 
-        dev_acc, dev_metrics, _ = _evaluate(model, dev_loader, device)
+        dev_default, dev_logits, dev_gold = _evaluate(model, dev_loader, device)
+        threshold_result = _threshold_result(dev_gold, dev_logits, cfg)
+        dev_selected = threshold_result["dev_metrics"]
         print(
             f"epoch {epoch:02d} | loss {running / n_batches:.4f} | "
-            f"dev acc {dev_acc:.4f} | dev macro-F1 {dev_metrics['macro_f1']:.4f} | "
+            f"dev macro-F1@0.5 {dev_default['macro_f1']:.4f} | "
+            f"dev macro-F1@{threshold_result['threshold']:.3f} "
+            f"{dev_selected['macro_f1']:.4f} | "
             f"{time.perf_counter() - t0:.1f}s"
         )
-        if dev_metrics["macro_f1"] > best_f1:
-            best_f1, bad_epochs = dev_metrics["macro_f1"], 0
+        if wandb_run is not None:
+            wandb_run.log(
+                {
+                    "epoch": epoch,
+                    "train/loss": running / n_batches,
+                    "dev/default/accuracy": dev_default["accuracy"],
+                    "dev/default/macro_f1": dev_default["macro_f1"],
+                    "dev/selected/threshold": threshold_result["threshold"],
+                    "dev/selected/accuracy": dev_selected["accuracy"],
+                    "dev/selected/macro_f1": dev_selected["macro_f1"],
+                },
+                step=epoch,
+            )
+        if dev_selected["macro_f1"] > best_f1:
+            best_f1, bad_epochs = dev_selected["macro_f1"], 0
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         else:
             bad_epochs += 1
@@ -163,21 +245,61 @@ def train_bilstm(config_path: str) -> dict:
                 break
 
     model.load_state_dict(best_state)
-    test_acc, test_metrics, test_logits = _evaluate(model, test_loader, device)
-    print(f"TEST  acc={test_acc:.4f} macro-F1={test_metrics['macro_f1']:.4f}")
+    dev_default, dev_logits, dev_gold = _evaluate(model, dev_loader, device)
+    threshold_result = _threshold_result(dev_gold, dev_logits, cfg)
+    selected_threshold = threshold_result["threshold"]
+    dev_selected = threshold_result["dev_metrics"]
+
+    test_default, test_logits, test_gold = _evaluate(model, test_loader, device)
+    test_selected = metrics_at_threshold(
+        test_gold, positive_probabilities(test_logits.numpy()), selected_threshold
+    )
+    print(
+        f"TEST  macro-F1@0.5={test_default['macro_f1']:.4f} | "
+        f"macro-F1@{selected_threshold:.3f}={test_selected['macro_f1']:.4f} | "
+        f"acc={test_selected['accuracy']:.4f}"
+    )
 
     out_dir = cfg["output"]["model_dir"]
     os.makedirs(out_dir, exist_ok=True)
     torch.save(model.state_dict(), os.path.join(out_dir, "bilstm.pt"))
     vocab.save(os.path.join(out_dir, "vocab.json"))
-    # unified-benchmark artifact: same logits/labels format as the encoders
-    import numpy as np
-
+    # Unified-benchmark artifacts plus dev outputs proving that the threshold
+    # was selected without looking at test labels.
+    np.save(os.path.join(out_dir, "dev_logits.npy"), dev_logits.numpy())
+    np.save(os.path.join(out_dir, "dev_labels.npy"), dev_gold)
     np.save(os.path.join(out_dir, "test_logits.npy"), test_logits.numpy())
-    np.save(os.path.join(out_dir, "test_labels.npy"), np.asarray(test_ds.labels))
+    np.save(os.path.join(out_dir, "test_labels.npy"), test_gold)
+    artifact = {
+        "seed": cfg["seed"],
+        "selection_metric": "dev_macro_f1",
+        "selected_threshold": selected_threshold,
+        "best_dev_macro_f1": best_f1,
+        "dev": {
+            "threshold_0_5": dev_default,
+            "selected_threshold": dev_selected,
+        },
+        # `test` stays the canonical final result for backwards compatibility.
+        "test": test_selected,
+        "test_threshold_0_5": test_default,
+    }
     with open(os.path.join(out_dir, "metrics.json"), "w") as f:
-        json.dump({"test": test_metrics, "best_dev_macro_f1": best_f1}, f, indent=2)
-    return test_metrics
+        json.dump(artifact, f, indent=2)
+
+    if wandb_run is not None:
+        summary = {
+            "seed": cfg["seed"],
+            "selection_metric": "dev_macro_f1",
+            "selected_threshold": selected_threshold,
+            "best_dev_macro_f1": best_f1,
+        }
+        summary.update(_flatten_metrics("dev/default", dev_default))
+        summary.update(_flatten_metrics("dev/selected", dev_selected))
+        summary.update(_flatten_metrics("test/default", test_default))
+        summary.update(_flatten_metrics("test/selected", test_selected))
+        wandb_run.summary.update(summary)
+        wandb_run.finish()
+    return test_selected
 
 
 def _load_glove(model: BiLSTMClassifier, vocab: TextVocab, path: str, dim: int) -> None:

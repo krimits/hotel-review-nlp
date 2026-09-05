@@ -1,0 +1,42 @@
+# Controlled follow-up to the seed-100 BiLSTM run.
+# Training is unchanged; only the decision threshold is selected on dev macro-F1.
+seed: 100
+
+data:
+  processed_dir: data/processed
+  max_tokens: 220
+  min_freq: 2
+  embedding_dim: 128
+  glove: null
+
+model:
+  hidden_dim: 128
+  num_layers: 1
+  bidirectional: true
+  dropout: 0.3
+  pooling: last
+
+train:
+  batch_size: 128
+  epochs: 6
+  lr: 0.001
+  weight_decay: 0.0001
+  grad_clip: 5.0
+  patience: 2
+
+evaluation:
+  threshold_tuning:
+    enabled: true
+    minimum: 0.05
+    maximum: 0.95
+    step: 0.005
+
+tracking:
+  wandb:
+    enabled: true
+    project: hotel-review-nlp
+    run_name: bilstm-seed100-dev-threshold
+    tags: [bilstm, seed-100, threshold-tuning, controlled-experiment]
+
+output:
+  model_dir: runs/bilstm_seed100_threshold

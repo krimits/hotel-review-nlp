@@ -195,7 +195,12 @@ def run_encoder_training(
         dev_logits = predict_logits(model, dev_loader, device)
         dev_preds = dev_logits.argmax(-1)
         dev_gold = frames["dev"]["label"].map(_LABEL2ID).values
-        m = binary_metrics(dev_gold, dev_preds)
+        m = binary_metrics(
+            dev_gold,
+            dev_preds,
+            label_names=("negative", "positive"),
+            label_values=(0, 1),
+        )
         print(
             f"epoch {epoch} | loss {running / steps_per_epoch:.4f} | "
             f"dev macro-F1 {m['macro_f1']:.4f} | lr {lr_now:.2e} | {time.perf_counter() - t0:.0f}s"
@@ -208,7 +213,12 @@ def run_encoder_training(
     test_logits = predict_logits(model, test_loader, device)
     test_preds = test_logits.argmax(-1)
     test_gold = frames["test"]["label"].map(_LABEL2ID).values
-    test_metrics = binary_metrics(test_gold, test_preds)
+    test_metrics = binary_metrics(
+        test_gold,
+        test_preds,
+        label_names=("negative", "positive"),
+        label_values=(0, 1),
+    )
     print(f"TEST macro-F1 {test_metrics['macro_f1']:.4f} acc {test_metrics['accuracy']:.4f}")
 
     os.makedirs(out_dir, exist_ok=True)
