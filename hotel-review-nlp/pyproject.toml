@@ -45,6 +45,9 @@ serving = [
     "uvicorn[standard]>=0.29",
     "locust>=2.20",
 ]
+tracking = [
+    "wandb>=0.18",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.5",

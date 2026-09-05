@@ -1,9 +1,9 @@
-.PHONY: install data baselines bilstm distilbert qlora benchmark serve lint test docker
+.PHONY: install data baselines bilstm bilstm-threshold distilbert qlora benchmark serve lint test docker
 
 PY ?= python3
 
 install:
-	$(PY) -m pip install -e ".[dev,serving]"
+	$(PY) -m pip install -e ".[dev,serving,tracking]"
 	$(PY) -m pip install -e ".[llm]" || echo "LLM extras skipped (install on GPU machine)"
 
 ## 1) Build the processed dataset from the raw Kaggle CSV (run once)
@@ -17,6 +17,10 @@ baselines:
 ## 3) Pure-PyTorch BiLSTM baseline (custom training loop)
 bilstm:
 	$(PY) -m reviewnlp.baselines.bilstm --config configs/bilstm.yaml
+
+## 3b) Seed-100 BiLSTM with threshold selected exclusively on the dev set
+bilstm-threshold:
+	$(PY) -m reviewnlp.baselines.bilstm --config configs/bilstm_seed100_threshold.yaml
 
 ## 4) DistilBERT full fine-tune (mid-size transformer baseline)
 distilbert:
