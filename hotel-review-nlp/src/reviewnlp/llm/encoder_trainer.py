@@ -1,15 +1,7 @@
 """Custom PyTorch training loop for encoder sentiment models (DistilBERT).
 
-Deliberately NOT ``transformers.Trainer``: the loop below is hand-written so
-the project demonstrates real PyTorch engineering - manual tokenization into
-Tensors, AdamW with hand-rolled linear warmup+decay, mixed precision via
-``torch.amp``, gradient clipping, dev-based model selection.
-
-It powers two experiments:
-  * ``train_distilbert.py``       - full fine-tune of all parameters
-  * ``train_distilbert_lora.py``  - freezes the encoder and injects the
-    **from-scratch LoRA** from ``reviewnlp.lora`` (paper reproduction,
-    comparable to the HF PEFT route used for Qwen).
+The same loop powers full fine-tuning and the from-scratch LoRA experiment,
+which keeps the data path, checkpoint selection, and evaluation identical.
 """
 
 from __future__ import annotations
@@ -26,11 +18,18 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
 from reviewnlp.evaluation.metrics import binary_metrics
-from reviewnlp.lora.lora import inject_lora, mark_only_lora_trainable
+from reviewnlp.lora.lora import (
+    inject_lora,
+    lora_state_dict,
+    mark_only_lora_trainable,
+    merge_and_unload_lora,
+)
+from reviewnlp.utils.experiments import frame_fingerprint
 from reviewnlp.utils.seed import set_seed
 
 _LABEL2ID = {"negative": 0, "positive": 1}
-_ID2LABEL = {v: k for k, v in _LABEL2ID.items()}
+_ID2LABEL = {value: key for key, value in _LABEL2ID.items()}
+_DEFAULT_HEAD_MODULES = ("pre_classifier", "classifier")
 
 
 @dataclass
@@ -42,39 +41,44 @@ class LoopResult:
 
 
 class EncodedReviews(Dataset):
-    """Tokenized reviews held in memory as int tensors."""
+    """Tokenized reviews held in memory as integer tensors."""
 
     def __init__(self, texts: list[str], labels: list[int], tokenizer, max_length: int):
-        enc = tokenizer(texts, truncation=True, max_length=max_length, padding=False)
-        self.input_ids = [torch.tensor(ids, dtype=torch.long) for ids in enc["input_ids"]]
-        self.attention = [torch.tensor(a, dtype=torch.long) for a in enc["attention_mask"]]
+        encoded = tokenizer(texts, truncation=True, max_length=max_length, padding=False)
+        self.input_ids = [torch.tensor(ids, dtype=torch.long) for ids in encoded["input_ids"]]
+        self.attention = [
+            torch.tensor(mask, dtype=torch.long) for mask in encoded["attention_mask"]
+        ]
         self.labels = torch.tensor(labels, dtype=torch.long)
 
     def __len__(self):
         return len(self.labels)
 
-    def __getitem__(self, idx):
-        return self.input_ids[idx], self.attention[idx], self.labels[idx]
+    def __getitem__(self, index):
+        return self.input_ids[index], self.attention[index], self.labels[index]
 
 
 def pad_collate(batch):
-    """Right-pad (input_ids, attention_mask, labels) to batch max length."""
-    max_len = max(len(b[0]) for b in batch)
-    ids = torch.zeros(len(batch), max_len, dtype=torch.long)
-    mask = torch.zeros(len(batch), max_len, dtype=torch.long)
-    labels = torch.stack([b[2] for b in batch])
-    for i, (input_ids, attn, _label) in enumerate(batch):
-        ids[i, : len(input_ids)] = input_ids
-        mask[i, : len(attn)] = attn
-    return ids, mask, labels
+    """Right-pad ``(input_ids, attention_mask, label)`` tuples."""
+    max_length = max(len(item[0]) for item in batch)
+    input_ids = torch.zeros(len(batch), max_length, dtype=torch.long)
+    attention_mask = torch.zeros(len(batch), max_length, dtype=torch.long)
+    labels = torch.stack([item[2] for item in batch])
+    for row, (ids, mask, _label) in enumerate(batch):
+        input_ids[row, : len(ids)] = ids
+        attention_mask[row, : len(mask)] = mask
+    return input_ids, attention_mask, labels
 
 
 @torch.no_grad()
 def predict_logits(model, loader, device) -> np.ndarray:
     model.eval()
     chunks = []
-    for ids, mask, _ in loader:
-        logits = model(input_ids=ids.to(device), attention_mask=mask.to(device)).logits
+    for input_ids, attention_mask, _labels in loader:
+        logits = model(
+            input_ids=input_ids.to(device),
+            attention_mask=attention_mask.to(device),
+        ).logits
         chunks.append(logits.float().cpu())
     return torch.cat(chunks).numpy()
 
@@ -102,127 +106,262 @@ def run_encoder_training(
     lora: dict | None = None,
     train_cap: int | None = None,
 ) -> LoopResult:
-    """Shared engine for full-FT and from-scratch-LoRA DistilBERT runs."""
+    """Train and evaluate full-FT or from-scratch-LoRA DistilBERT."""
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+    if epochs <= 0:
+        raise ValueError("epochs must be positive")
 
     set_seed(seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     frames = {
         split: pd.read_parquet(os.path.join(processed_dir, f"{split}.parquet"))
         for split in ("train", "dev", "test")
     }
     if train_cap:
-        for split in ("train",):
-            frames[split] = (
-                frames[split].groupby("label", group_keys=False)
-                .apply(lambda g: g.sample(n=min(len(g), train_cap // 2), random_state=seed))
-            )
-            print(f"{split} capped to {len(frames[split]):,} rows")
+        frames["train"] = _stratified_train_cap(frames["train"], train_cap, seed)
+        print(f"train capped to {len(frames['train']):,} rows")
 
-    train_ds = EncodedReviews(
-        frames["train"]["text"].tolist(),
-        frames["train"]["label"].map(_LABEL2ID).tolist(),
-        tokenizer,
-        max_length,
-    )
-    dev_ds = EncodedReviews(
-        frames["dev"]["text"].tolist(),
-        frames["dev"]["label"].map(_LABEL2ID).tolist(),
-        tokenizer,
-        max_length,
-    )
-    test_ds = EncodedReviews(
-        frames["test"]["text"].tolist(),
-        frames["test"]["label"].map(_LABEL2ID).tolist(),
-        tokenizer,
-        max_length,
-    )
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, collate_fn=pad_collate)
-    dev_loader = DataLoader(dev_ds, batch_size=eval_batch_size, collate_fn=pad_collate)
-    test_loader = DataLoader(test_ds, batch_size=eval_batch_size, collate_fn=pad_collate)
-
+    loaders = _build_loaders(frames, tokenizer, max_length, batch_size, eval_batch_size)
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=2, id2label=_ID2LABEL, label2id=_LABEL2ID
+        model_name,
+        num_labels=2,
+        id2label=_ID2LABEL,
+        label2id=_LABEL2ID,
     )
-    if lora:  # from-scratch LoRA (reviewnlp.lora), not peft
+
+    head_modules = tuple((lora or {}).get("modules_to_save", _DEFAULT_HEAD_MODULES))
+    if lora:
         replaced = inject_lora(
-            model, target_modules=lora["target_modules"], r=lora["r"],
-            alpha=lora["alpha"], dropout=lora.get("dropout", 0.0),
+            model,
+            target_modules=lora["target_modules"],
+            r=lora["r"],
+            alpha=lora["alpha"],
+            dropout=lora.get("dropout", 0.0),
         )
-        mark_only_lora_trainable(model)
-        print(f"from-scratch LoRA injected into {len(replaced)} modules (r={lora['r']})")
+        mark_only_lora_trainable(model, modules_to_save=head_modules)
+        print(
+            f"from-scratch LoRA injected into {len(replaced)} modules "
+            f"(r={lora['r']}); task head remains trainable"
+        )
 
     model.to(device)
-    total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"params: {total_params:,} total | {trainable_params:,} trainable ({trainable_params / total_params:.2%})")
+    parameter_counts = _parameter_counts(model, head_modules)
+    print(
+        f"params: {parameter_counts['total_params']:,} total | "
+        f"{parameter_counts['trainable_params']:,} trainable "
+        f"({parameter_counts['trainable_params'] / parameter_counts['total_params']:.2%})"
+    )
 
     optimizer = torch.optim.AdamW(
-        [p for p in model.parameters() if p.requires_grad],
-        lr=lr, weight_decay=weight_decay,
+        [parameter for parameter in model.parameters() if parameter.requires_grad],
+        lr=lr,
+        weight_decay=weight_decay,
     )
-    steps_per_epoch = len(train_loader)
+    steps_per_epoch = len(loaders["train"])
     total_steps = steps_per_epoch * epochs
-    warmup = max(1, int(warmup_ratio * total_steps))
+    warmup_steps = max(1, int(warmup_ratio * total_steps))
     scaler = torch.amp.GradScaler(enabled=fp16 and device.type == "cuda")
     criterion = nn.CrossEntropyLoss()
 
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+    training_started = time.perf_counter()
     best_f1, best_state = -1.0, None
     global_step = 0
+
     for epoch in range(1, epochs + 1):
         model.train()
-        running, t0 = 0.0, time.perf_counter()
-        for ids, mask, labels in train_loader:
-            lr_now = _warmup_cosine(global_step, total_steps, warmup, lr)
-            for g in optimizer.param_groups:
-                g["lr"] = lr_now
+        running_loss, epoch_started = 0.0, time.perf_counter()
+        for input_ids, attention_mask, labels in loaders["train"]:
+            learning_rate = _warmup_cosine(global_step, total_steps, warmup_steps, lr)
+            for group in optimizer.param_groups:
+                group["lr"] = learning_rate
 
             optimizer.zero_grad(set_to_none=True)
             with torch.amp.autocast("cuda", enabled=fp16 and device.type == "cuda"):
-                logits = model(input_ids=ids.to(device), attention_mask=mask.to(device)).logits
+                logits = model(
+                    input_ids=input_ids.to(device),
+                    attention_mask=attention_mask.to(device),
+                ).logits
                 loss = criterion(logits, labels.to(device))
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"non-finite training loss at step {global_step}")
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.0)
+            torch.nn.utils.clip_grad_norm_(
+                [parameter for parameter in model.parameters() if parameter.requires_grad],
+                1.0,
+            )
             scaler.step(optimizer)
             scaler.update()
 
-            running += loss.item()
+            running_loss += loss.item()
             global_step += 1
 
-        dev_logits = predict_logits(model, dev_loader, device)
-        dev_preds = dev_logits.argmax(-1)
-        dev_gold = frames["dev"]["label"].map(_LABEL2ID).values
-        m = binary_metrics(dev_gold, dev_preds)
-        print(
-            f"epoch {epoch} | loss {running / steps_per_epoch:.4f} | "
-            f"dev macro-F1 {m['macro_f1']:.4f} | lr {lr_now:.2e} | {time.perf_counter() - t0:.0f}s"
+        dev_logits = predict_logits(model, loaders["dev"], device)
+        dev_gold = _numeric_labels(frames["dev"])
+        dev_metrics = binary_metrics(
+            dev_gold,
+            dev_logits.argmax(axis=-1),
+            label_names=("negative", "positive"),
+            label_values=(0, 1),
         )
-        if m["macro_f1"] > best_f1:
-            best_f1 = m["macro_f1"]
-            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        print(
+            f"epoch {epoch} | loss {running_loss / steps_per_epoch:.4f} | "
+            f"dev macro-F1 {dev_metrics['macro_f1']:.4f} | "
+            f"lr {learning_rate:.2e} | {time.perf_counter() - epoch_started:.0f}s"
+        )
+        if dev_metrics["macro_f1"] > best_f1:
+            best_f1 = dev_metrics["macro_f1"]
+            best_state = {
+                key: value.detach().cpu().clone() for key, value in model.state_dict().items()
+            }
 
+    training_seconds = time.perf_counter() - training_started
+    if best_state is None:
+        raise RuntimeError("training completed without a checkpoint")
     model.load_state_dict(best_state)
-    test_logits = predict_logits(model, test_loader, device)
-    test_preds = test_logits.argmax(-1)
-    test_gold = frames["test"]["label"].map(_LABEL2ID).values
-    test_metrics = binary_metrics(test_gold, test_preds)
+
+    dev_logits = predict_logits(model, loaders["dev"], device)
+    test_logits = predict_logits(model, loaders["test"], device)
+    dev_gold = _numeric_labels(frames["dev"])
+    test_gold = _numeric_labels(frames["test"])
+    test_metrics = binary_metrics(
+        test_gold,
+        test_logits.argmax(axis=-1),
+        label_names=("negative", "positive"),
+        label_values=(0, 1),
+    )
+    peak_cuda_memory_mb = (
+        torch.cuda.max_memory_allocated(device) / 2**20 if device.type == "cuda" else 0.0
+    )
     print(f"TEST macro-F1 {test_metrics['macro_f1']:.4f} acc {test_metrics['accuracy']:.4f}")
 
-    os.makedirs(out_dir, exist_ok=True)
+    output = os.path.abspath(out_dir)
+    os.makedirs(output, exist_ok=True)
     if lora:
-        from reviewnlp.lora.lora import lora_state_dict
+        head_state = {
+            name: parameter.detach().cpu()
+            for name, parameter in model.named_parameters()
+            if "lora_" not in name and _belongs_to_any(name, head_modules)
+        }
+        torch.save(
+            {"lora": lora_state_dict(model), "head": head_state, "config": lora},
+            os.path.join(output, "lora_scratch.pt"),
+        )
+        with open(
+            os.path.join(output, "lora_scratch_config.json"), "w", encoding="utf-8"
+        ) as file:
+            json.dump(lora, file, indent=2)
+        merged = merge_and_unload_lora(model)
+        print(f"merged and unloaded {len(merged)} LoRA modules for portable inference")
 
-        torch.save(lora_state_dict(model), os.path.join(out_dir, "lora_scratch.pt"))
-        model.save_pretrained(out_dir)  # base + wrapped modules, reloadable
-    else:
-        model.save_pretrained(out_dir)
-    tokenizer.save_pretrained(out_dir)
-    np.save(os.path.join(out_dir, "test_logits.npy"), test_logits)
-    np.save(os.path.join(out_dir, "test_labels.npy"), test_gold)
-    with open(os.path.join(out_dir, "metrics.json"), "w") as f:
-        json.dump({"test": test_metrics, "best_dev_macro_f1": best_f1,
-                   "trainable_params": trainable_params, "total_params": total_params}, f, indent=2)
-    return LoopResult(test_metrics, best_f1, trainable_params, total_params)
+    model.save_pretrained(output)
+    tokenizer.save_pretrained(output)
+    np.save(os.path.join(output, "dev_logits.npy"), dev_logits)
+    np.save(os.path.join(output, "dev_labels.npy"), dev_gold)
+    np.save(os.path.join(output, "test_logits.npy"), test_logits)
+    np.save(os.path.join(output, "test_labels.npy"), test_gold)
+
+    settings = {
+        "model_name": model_name,
+        "processed_dir": os.path.abspath(processed_dir),
+        "seed": seed,
+        "max_length": max_length,
+        "batch_size": batch_size,
+        "eval_batch_size": eval_batch_size,
+        "epochs": epochs,
+        "lr": lr,
+        "weight_decay": weight_decay,
+        "warmup_ratio": warmup_ratio,
+        "fp16": fp16,
+        "lora": lora,
+    }
+    metrics = {
+        "test": test_metrics,
+        "best_dev_macro_f1": best_f1,
+        **parameter_counts,
+        "training_seconds": training_seconds,
+        "peak_cuda_memory_mb": peak_cuda_memory_mb,
+        "data": {split: frame_fingerprint(frame) for split, frame in frames.items()},
+        "settings": settings,
+    }
+    with open(os.path.join(output, "metrics.json"), "w", encoding="utf-8") as file:
+        json.dump(metrics, file, indent=2)
+    return LoopResult(
+        test_metrics,
+        best_f1,
+        parameter_counts["trainable_params"],
+        parameter_counts["total_params"],
+    )
+
+
+def _build_loaders(frames, tokenizer, max_length, batch_size, eval_batch_size):
+    datasets = {
+        split: EncodedReviews(
+            frame["text"].astype(str).tolist(),
+            frame["label"].map(_LABEL2ID).tolist(),
+            tokenizer,
+            max_length,
+        )
+        for split, frame in frames.items()
+    }
+    return {
+        "train": DataLoader(
+            datasets["train"], batch_size=batch_size, shuffle=True, collate_fn=pad_collate
+        ),
+        "dev": DataLoader(
+            datasets["dev"], batch_size=eval_batch_size, collate_fn=pad_collate
+        ),
+        "test": DataLoader(
+            datasets["test"], batch_size=eval_batch_size, collate_fn=pad_collate
+        ),
+    }
+
+
+def _numeric_labels(frame: pd.DataFrame) -> np.ndarray:
+    labels = frame["label"].map(_LABEL2ID)
+    if labels.isna().any():
+        unknown = sorted(frame.loc[labels.isna(), "label"].astype(str).unique())
+        raise ValueError(f"unknown labels: {unknown}")
+    return labels.to_numpy(dtype=np.int64)
+
+
+def _stratified_train_cap(frame: pd.DataFrame, cap: int, seed: int) -> pd.DataFrame:
+    if cap >= len(frame):
+        return frame
+    groups = []
+    for _label, group in frame.groupby("label", sort=True):
+        sample_size = max(1, round(cap * len(group) / len(frame)))
+        groups.append(group.sample(n=min(len(group), sample_size), random_state=seed))
+    return pd.concat(groups).sort_index().head(cap).reset_index(drop=True)
+
+
+def _parameter_counts(model, head_modules: tuple[str, ...]) -> dict[str, int]:
+    named = list(model.named_parameters())
+    return {
+        "trainable_params": sum(
+            parameter.numel() for _, parameter in named if parameter.requires_grad
+        ),
+        "adapter_params": sum(
+            parameter.numel()
+            for name, parameter in named
+            if parameter.requires_grad and "lora_" in name
+        ),
+        "head_params": sum(
+            parameter.numel()
+            for name, parameter in named
+            if parameter.requires_grad and _belongs_to_any(name, head_modules)
+        ),
+        "total_params": sum(parameter.numel() for _, parameter in named),
+    }
+
+
+def _belongs_to_any(parameter_name: str, module_names: tuple[str, ...]) -> bool:
+    return any(
+        parameter_name.startswith(f"{module_name}.")
+        or f".{module_name}." in f".{parameter_name}."
+        for module_name in module_names
+    )

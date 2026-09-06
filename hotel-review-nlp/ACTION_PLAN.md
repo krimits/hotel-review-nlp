@@ -17,7 +17,7 @@ Each week ships something demoable. The `make` targets are the definition of don
 - [ ] `make bilstm` - verify early stopping fires and dev macro-F1 is reported
 - [ ] Read the LoRA paper (§4 is enough) alongside `reviewnlp/lora/lora.py` line by line;
       be ready to explain `kaiming_uniform(a=√5)` and why `B=0` makes ΔW=0 at step 0
-- [ ] `pytest tests/test_lora.py -v` locally; on a machine with peft installed, watch the
+- [x] `pytest tests/test_lora.py -v` locally; on a machine with peft installed, watch the
       equivalence test pass too
 - [ ] `python -m reviewnlp.llm.train_distilbert_lora ...` - first GPU run of the repo
 - [ ] Compare trainable-params and macro-F1 vs the full fine-tune

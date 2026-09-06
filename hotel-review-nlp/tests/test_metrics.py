@@ -35,6 +35,18 @@ def test_metrics_length_mismatch_raises():
         binary_metrics(["negative"], ["negative", "positive"])
 
 
+def test_numeric_labels_keep_human_readable_class_names():
+    metrics = binary_metrics(
+        [0, 0, 1, 1],
+        [0, 1, 1, 1],
+        label_names=("negative", "positive"),
+        label_values=(0, 1),
+    )
+    assert metrics["confusion_matrix"] == [[1, 1], [0, 2]]
+    assert set(metrics["per_class"]) == {"negative", "positive"}
+    assert metrics["per_class"]["negative"]["support"] == 2
+
+
 def test_mcnemar_known_distribution():
     # 0 discordant -> no evidence of difference
     assert mcnemar_exact(0, 0)["p_value"] == 1.0

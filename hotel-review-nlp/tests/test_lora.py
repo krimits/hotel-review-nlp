@@ -18,6 +18,7 @@ from reviewnlp.lora.lora import (
     inject_lora,
     lora_state_dict,
     mark_only_lora_trainable,
+    merge_and_unload_lora,
     merge_lora,
 )
 
@@ -79,6 +80,18 @@ def test_only_lora_params_trainable():
     assert adapter < total * 0.5  # the point of LoRA: far fewer trainable params
 
 
+def test_selected_task_head_remains_trainable():
+    torch.manual_seed(0)
+    model = TinyNet()
+    inject_lora(model, target_modules=["0"], r=2, alpha=4)
+    mark_only_lora_trainable(model, modules_to_save=["head"])
+
+    trainable = {name for name, parameter in model.named_parameters() if parameter.requires_grad}
+    assert any("lora_" in name for name in trainable)
+    assert {"head.weight", "head.bias"} <= trainable
+    assert all("lora_" in name or name.startswith("head.") for name in trainable)
+
+
 def test_gradients_reach_adapter_not_base():
     torch.manual_seed(0)
     model = TinyNet()
@@ -127,6 +140,24 @@ def test_merged_forward_ignores_adapter_path():
     assert layer.merged
     x = torch.randn(3, 4)
     assert torch.allclose(layer(x), layer.base(x))
+
+
+def test_merge_and_unload_restores_plain_linear_modules():
+    torch.manual_seed(0)
+    model = TinyNet()
+    inject_lora(model, target_modules=["0", "1"], r=4, alpha=8, dropout=0.0)
+    with torch.no_grad():
+        for name, parameter in model.named_parameters():
+            if "lora_" in name:
+                parameter.normal_(0, 0.05)
+
+    inputs = torch.randn(6, 16)
+    expected = model(inputs)
+    replaced = merge_and_unload_lora(model)
+
+    assert len(replaced) == 4
+    assert not any(isinstance(module, LoRALinear) for module in model.modules())
+    assert torch.allclose(model(inputs), expected, atol=1e-5)
 
 
 def test_lora_state_dict_is_adapter_only():
@@ -190,6 +221,8 @@ def test_peft_equivalence():
         base,
         peft.LoraConfig(r=4, lora_alpha=8, lora_dropout=0.0, target_modules=targets, bias="none"),
     )
+    ours.eval()
+    peft_model.eval()
     # seed peft's A identically to ours via kaiming_uniform on a fixed generator
     torch.manual_seed(1234)
     for name, p in ours.named_parameters():

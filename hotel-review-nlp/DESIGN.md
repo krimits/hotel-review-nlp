@@ -27,7 +27,7 @@ The benchmark is the deliverable. Each family answers a different engineering qu
 | TF-IDF + NB / LR-SGD | How far do bag-of-words + linear models get? (strong on lexical sentiment cues) |
 | BiLSTM (pure torch) | Can I write the training loop myself - packing, clipping, AMP, early stop? |
 | DistilBERT full FT | What does full transformer fine-tuning buy at 100% trainable params? |
-| DistilBERT + scratch LoRA | Does *my* LoRA implementation match PEFT and preserve quality at ~0.6% params? |
+| DistilBERT + scratch LoRA | Does *my* LoRA implementation match PEFT and preserve quality with ~1.1% trainable params? |
 | Qwen2.5 QLoRA | Does the instruction-tuned LLM route work under free-Tier GPU constraints? |
 
 Comparing them on one frozen test set with McNemar turns opinions into a table.
@@ -41,13 +41,14 @@ Comparing them on one frozen test set with McNemar turns opinions into a table.
   starts exactly at the pretrained function - the tests assert this bit-for-bit;
 - scaling `α/r` applied on the adapter output, dropout on the adapter input only;
 - `merge()` folds `ΔW` into `W0`; `unmerge()` reverses it - both tested for round-trip parity;
-- adapter-only `state_dict()` so checkpoints are megabytes.
+- compact checkpoint containing the adapters plus the newly initialized task head;
+- merged, ordinary Hugging Face checkpoint for wrapper-free inference.
 
 The `peft` equivalence test copies weights between implementations on a locally-constructed
 tiny BERT and requires identical outputs (`atol=1e-5`). "I implemented the paper" is thus a
 tested claim, not a vibe. Applying it to DistilBERT (`train_distilbert_lora.py`) then
-reproduces the paper's practical finding: adapter-only training reaches competitive quality
-with ~2 orders of magnitude fewer trainable parameters.
+tests the paper's practical finding: adapters plus the task head can reach competitive quality
+while training roughly two orders of magnitude fewer parameters than full fine-tuning.
 
 ## 4. QLoRA under free-Colab constraints
 
