@@ -16,10 +16,11 @@ def main() -> None:
     parser.add_argument("--config", default="configs/distilbert.yaml")
     args = parser.parse_args()
     cfg = load_config(args.config)
+    data_cfg = cfg.get("data", {})
 
     run_encoder_training(
         model_name=cfg["model"]["name"],
-        processed_dir="data/processed",
+        processed_dir=data_cfg.get("processed_dir", "data/processed"),
         out_dir=cfg["output"]["model_dir"],
         seed=cfg["seed"],
         max_length=cfg["model"]["max_length"],
@@ -30,6 +31,7 @@ def main() -> None:
         weight_decay=cfg["train"]["weight_decay"],
         warmup_ratio=cfg["train"]["warmup_ratio"],
         fp16=cfg["train"]["fp16"],
+        train_cap=data_cfg.get("train_cap"),
     )
 
 

@@ -143,10 +143,20 @@ def inject_lora(
     return replaced
 
 
-def mark_only_lora_trainable(model: nn.Module) -> None:
-    """Freeze everything except LoRA A/B weights (called post-injection)."""
-    for name, p in model.named_parameters():
-        p.requires_grad_("lora_" in name)
+def mark_only_lora_trainable(
+    model: nn.Module,
+    modules_to_save: Iterable[str] = (),
+) -> None:
+    """Freeze the base while keeping LoRA and selected task heads trainable.
+
+    A pretrained encoder's classification head is newly initialized for this
+    task. Freezing it would make the LoRA comparison invalid, so callers may
+    explicitly retain modules such as ``pre_classifier`` and ``classifier``.
+    """
+    selected = tuple(modules_to_save)
+    for name, parameter in model.named_parameters():
+        keep = "lora_" in name or any(_belongs_to_module(name, module) for module in selected)
+        parameter.requires_grad_(keep)
 
 
 def lora_state_dict(model: nn.Module) -> dict[str, torch.Tensor]:
@@ -160,6 +170,25 @@ def merge_lora(model: nn.Module) -> None:
             module.merge()
 
 
+def merge_and_unload_lora(model: nn.Module) -> list[str]:
+    """Merge every adapter and restore ordinary ``nn.Linear`` modules.
+
+    The returned model can be saved and reloaded by vanilla Hugging Face
+    ``AutoModel`` classes because no custom wrapper keys remain in its state
+    dictionary.
+    """
+    replaced: list[str] = []
+    for name, module in list(model.named_modules()):
+        if not isinstance(module, LoRALinear):
+            continue
+        module.merge()
+        parent = _parent_module(model, name)
+        child_name = name.rsplit(".", 1)[-1]
+        setattr(parent, child_name, module.base)
+        replaced.append(name)
+    return replaced
+
+
 def _parent_module(root: nn.Module, qualified_name: str) -> nn.Module:
     parent_name, _, _ = qualified_name.rpartition(".")
     module = root
@@ -168,3 +197,9 @@ def _parent_module(root: nn.Module, qualified_name: str) -> nn.Module:
             continue
         module = getattr(module, part)
     return module
+
+
+def _belongs_to_module(parameter_name: str, module_name: str) -> bool:
+    return parameter_name.startswith(f"{module_name}.") or f".{module_name}." in (
+        f".{parameter_name}."
+    )

@@ -12,7 +12,7 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 LABELS = ("negative", "positive")
 
 
-def binary_metrics(y_true, y_pred, label_names=LABELS) -> dict:
+def binary_metrics(y_true, y_pred, label_names=LABELS, label_values=None) -> dict:
     """Accuracy, macro/micro/weighted F1, per-class P/R/F1, confusion matrix."""
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
     if len(y_true) != len(y_pred):
@@ -20,17 +20,22 @@ def binary_metrics(y_true, y_pred, label_names=LABELS) -> dict:
     if len(y_true) == 0:
         raise ValueError("empty evaluation set")
 
+    values = list(label_names if label_values is None else label_values)
+    names = list(label_names)
+    if len(values) != len(names):
+        raise ValueError("label_values and label_names must have the same length")
+
     acc = float((y_true == y_pred).mean())
     p, r, f1, support = precision_recall_fscore_support(
-        y_true, y_pred, labels=list(label_names), zero_division=0
+        y_true, y_pred, labels=values, zero_division=0
     )
     macro_p, macro_r, macro_f1, _ = precision_recall_fscore_support(
-        y_true, y_pred, average="macro", zero_division=0
+        y_true, y_pred, labels=values, average="macro", zero_division=0
     )
     weighted_f1 = precision_recall_fscore_support(
-        y_true, y_pred, average="weighted", zero_division=0
+        y_true, y_pred, labels=values, average="weighted", zero_division=0
     )[2]
-    cm = confusion_matrix(y_true, y_pred, labels=list(label_names))
+    cm = confusion_matrix(y_true, y_pred, labels=values)
 
     return {
         "accuracy": round(acc, 4),
@@ -45,7 +50,7 @@ def binary_metrics(y_true, y_pred, label_names=LABELS) -> dict:
                 "f1": round(float(f1[i]), 4),
                 "support": int(support[i]),
             }
-            for i, name in enumerate(label_names)
+            for i, name in enumerate(names)
         },
         "confusion_matrix": cm.tolist(),  # rows = true, cols = predicted
     }
