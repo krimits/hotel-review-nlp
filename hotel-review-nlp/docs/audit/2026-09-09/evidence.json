@@ -270,5 +270,17 @@
     "lora_tests": "12 passed (including PEFT)",
     "local_tests": "31 passed, 1 skipped (PEFT missing), 1 warning",
     "local_lint": "All checks passed"
+  },
+  "sync_completion": {
+    "date": "2026-09-09",
+    "tracked_sample_restored": true,
+    "tracked_sample_rows": 658,
+    "tracked_sample_bytes": 728488,
+    "tracked_sample_sha256": "b5e997afbf7feae28cfd2dbfc5d8fc1ed01911f9b4e619a4deab0ca79beec18b",
+    "tracked_sample_matches_git": true,
+    "booking_bytes": 238154765,
+    "booking_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+    "backup_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+    "booking_ignored": true
   }
 }

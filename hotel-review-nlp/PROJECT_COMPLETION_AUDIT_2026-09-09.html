@@ -905,7 +905,8 @@ CUDA και χωρίς transformers/PEFT. Η τοπική επιτυχία τω�
 ευρήματα και συγκεκριμένες διορθώσεις</h2>
 <h3 id="f01--σύγκρουση-των-δύο-csv-στα-windows">F01 — Σύγκρουση των δύο
 CSV στα Windows</h3>
-<p><strong>Προτεραιότητα: P0 για συμβατότητα δεδομένων.</strong></p>
+<p><strong>Προτεραιότητα: P0 για συμβατότητα δεδομένων. Επιλύθηκε κατά
+τον συγχρονισμό· βλ. §8.</strong></p>
 <p>Στο Git υπάρχει unlabeled <code>hotel_reviews.csv</code> 658 γραμμών
 με στήλες <code>Hotel, Date, Review Title, Review</code>. Το config
 ζητούσε Booking <code>Hotel_Reviews.csv</code>. Στο Windows filesystem
@@ -1302,23 +1303,21 @@ application email. Η αλλαγή σε score-based τρεις κλάσεις π
 φάκελο <code>Downloads/hotel-review-nlp-backup-20260909</code>. Το
 πλήρες CSV και το backup έχουν SHA-256:</p>
 <pre class="text"><code>a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9</code></pre>
-<p><strong>Κατάσταση κατά τη σύνταξη:</strong> Το πλήρες Booking CSV
-διατηρήθηκε επιπλέον ως <code>data/raw/booking_reviews_515k.csv</code>
-με ίδιο SHA-256. Ενημερώθηκαν baseline config, EDA, σχετική οδηγία QLoRA
-και τεκμηρίωση download ώστε τα δύο datasets να έχουν διαφορετικά
-ονόματα. Το νέο μεγάλο αρχείο είναι ignored.</p>
-<p><strong>Εκκρεμής τοπική εξαίρεση:</strong> Το παλιό
-<code>data/raw/hotel_reviews.csv</code> παραμένει κλειδωμένο για εγγραφή
-από άλλη εφαρμογή. Δεν αποκαταστάθηκε ακόμη το μικρό 658-row δείγμα σε
-αυτή τη διαδρομή. Ο συγχρονισμός των πηγαίων αρχείων και της αναφοράς
-μπορεί να ολοκληρωθεί ανεξάρτητα, αλλά το working tree θα δείχνει αυτή
-τη μία τροποποίηση δεδομένων μέχρι να κλείσει το αρχείο. Δεν πρέπει να
-γίνει commit του μεγάλου CSV. Έχει ζητηθεί από τον χρήστη να το κλείσει·
-δεν τερματίστηκε κάποια εφαρμογή του.</p>
-<p>Μετά το κλείσιμο, με επαληθευμένα τα δύο αντίγραφα του Booking CSV, η
-αποκατάσταση του tracked δείγματος από το Git καταργεί τη διαφορά. Το
-annotation/load-test schema σε αυτή τη διαδρομή παραμένει προσωρινά
-μπλοκαρισμένο.</p>
+<p><strong>Ολοκληρώθηκε ο διαχωρισμός και η αποκατάσταση των
+CSV.</strong> Μετά την αποδέσμευση του αρχείου από τον χρήστη,
+επαληθεύτηκαν ξανά τα δύο αντίγραφα του πλήρους Booking dataset με
+SHA-256 και αποκαταστάθηκε από το Git το
+<code>data/raw/hotel_reviews.csv</code>: 658 γραμμές, 728.488 bytes, με
+τις στήλες <code>Hotel, Date, Review Title, Review</code>. Το αρχείο
+ταυτίζεται με το tracked δείγμα και δεν εμφανίζει πλέον τοπική
+διαφορά.</p>
+<p>Το πλήρες Booking CSV παραμένει στο ignored
+<code>data/raw/booking_reviews_515k.csv</code>, 238.154.765 bytes, με
+αμετάβλητο SHA-256. Το επιπλέον backup διατηρείται στον γειτονικό
+φάκελο. Τα baseline config, EDA και οδηγίες download χρησιμοποιούν το
+νέο, διακριτό όνομα. Το annotation/load-test schema του μικρού CSV έχει
+αποκατασταθεί· οι εκτελέσεις και τα παραδοτέα αυτών των εργασιών
+εξακολουθούν να εκκρεμούν.</p>
 <p>Ο τελικός συγχρονισμός κώδικα και αναφοράς ελέγχεται με
 <code>git status --short --branch</code>,
 <code>git rev-parse HEAD</code> και πραγματικό
