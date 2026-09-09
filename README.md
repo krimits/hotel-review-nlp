@@ -1,3 +1,5 @@
+> **Έλεγχος ολοκλήρωσης — 2026-09-09:** [Αναλυτική αναφορά](hotel-review-nlp/PROJECT_COMPLETION_AUDIT_2026-09-09.md) · [HTML](hotel-review-nlp/PROJECT_COMPLETION_AUDIT_2026-09-09.html). Περιλαμβάνει επαληθευμένα αποτελέσματα, περιορισμούς των σημερινών μετρικών και εργασίες μέχρι το v1.0.0.
+
 # Hotel Review NLP Project - Week 1 Progress
 
 ## Dataset Methodology

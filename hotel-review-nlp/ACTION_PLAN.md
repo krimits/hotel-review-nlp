@@ -1,5 +1,7 @@
 # 4-week action plan
 
+> Έλεγχος 2026-09-09: Δείτε την [αναλυτική αναφορά ολοκλήρωσης](PROJECT_COMPLETION_AUDIT_2026-09-09.md) για τεκμηριωμένη κατάσταση και εκκρεμότητες και των 22 σημείων. Τα αρχικά checkboxes διατηρούνται ως ιστορικό πλάνο.
+
 Each week ships something demoable. The `make` targets are the definition of done.
 
 ## Week 1 - data + classical baselines (CPU only)

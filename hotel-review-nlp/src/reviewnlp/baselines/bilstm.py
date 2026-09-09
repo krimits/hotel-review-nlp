@@ -97,7 +97,7 @@ def _evaluate(model: BiLSTMClassifier, loader: DataLoader, device: torch.device)
             preds += logits.argmax(dim=-1).cpu().tolist()
             golds += batch["labels"].tolist()
     acc = sum(p == g for p, g in zip(preds, golds, strict=False)) / max(1, len(golds))
-    metrics = binary_metrics(golds, preds, label_names=("negative", "positive"))
+    metrics = binary_metrics(golds, preds, label_names=(0,1))
     return acc, metrics, torch.cat(logits_all)
 
 

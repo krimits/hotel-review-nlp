@@ -20,18 +20,22 @@ Source: Kaggle dataset **"515k Hotel Reviews Data in Europe"**
 ~515k reviews of 1,493 hotels, each with a positive and a negative free-text
 field plus a 2.5-10 reviewer score.
 
-Two download options:
+Download and extract the Kaggle archive into a **separate temporary directory**,
+then copy its `Hotel_Reviews.csv` into this project as
+`data/raw/booking_reviews_515k.csv`. The baseline config and EDA notebook use that name.
 
-```bash
-# Option A - kaggle CLI (put your kaggle.json in ~/.kaggle/ first)
-kaggle datasets download -d jiashenliu/515k-hotel-reviews-data-in-europe \
-    -p data/raw --unzip
+**Windows:** do not extract `Hotel_Reviews.csv` directly into `data/raw/`.
+Windows treats it as the same filename as the committed `hotel_reviews.csv`,
+which contains a different schema and only 658 unlabeled reviews.
 
-# Option B - manual download from the Kaggle page, then:
-unzip Hotel_Reviews.zip -d data/raw/
+Example after downloading and extracting the archive elsewhere:
+
+```powershell
+Copy-Item -LiteralPath 'C:\path\to\extracted\Hotel_Reviews.csv' -Destination 'data\raw\booking_reviews_515k.csv'
 ```
 
-Expected file after download: `data/raw/Hotel_Reviews.csv`.
+Only the small unlabeled `hotel_reviews.csv` is tracked. The 515K Booking CSV,
+processed parquet files and model weights remain local and are ignored by Git.
 
 ### Label construction (no score-threshold ambiguity)
 

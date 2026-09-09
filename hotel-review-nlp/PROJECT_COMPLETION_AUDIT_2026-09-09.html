@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="el" xml:lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Έλεγχος ολοκλήρωσης Hotel Review NLP</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style>
+  body{font-family:Segoe UI,Arial,sans-serif;max-width:1120px;margin:40px auto;padding:0 28px;color:#172b3a;line-height:1.7;background:#fcfcfd}h1,h2,h3{line-height:1.3;color:#123c58}h1{border-bottom:4px solid #168a99;padding-bottom:20px}h2{margin-top:48px}a{color:#075c9d}table{border-collapse:collapse;width:100%;font-size:.94em;margin:24px 0;display:block;overflow:auto}th,td{border:1px solid #cad6df;padding:11px 13px;text-align:left;vertical-align:top}th{background:#e5f1f4}tr:nth-child(even){background:#f0f5f8}code{font-family:Consolas,monospace;background:#eaf0f4;padding:2px 4px;overflow-wrap:anywhere}pre{background:#eaf0f4;padding:18px;white-space:pre-wrap}pre code{padding:0}nav{background:#eff5f8;border-radius:8px;padding:18px 24px}strong{color:#143e55}@media print{body{font-size:10pt;max-width:none;margin:0;padding:0}nav{display:none}h2,h3{break-after:avoid}table{display:table;font-size:8pt}tr{break-inside:avoid}a{color:inherit}}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Έλεγχος ολοκλήρωσης Hotel Review NLP</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#αναλυτικός-έλεγχος-ολοκλήρωσης-hotel-review-nlp"
+id="toc-αναλυτικός-έλεγχος-ολοκλήρωσης-hotel-review-nlp">Αναλυτικός
+έλεγχος ολοκλήρωσης Hotel Review NLP</a>
+<ul>
+<li><a href="#1-συμπέρασμα" id="toc-1-συμπέρασμα">1. Συμπέρασμα</a></li>
+<li><a href="#2-πώς-διαβάζεται-η-κατάσταση"
+id="toc-2-πώς-διαβάζεται-η-κατάσταση">2. Πώς διαβάζεται η
+κατάσταση</a></li>
+<li><a href="#3-έλεγχος-και-των-22-σημείων-του-action_plan"
+id="toc-3-έλεγχος-και-των-22-σημείων-του-action_plan">3. Έλεγχος και των
+22 σημείων του ACTION_PLAN</a>
+<ul>
+<li><a href="#εβδομάδα-1--δεδομένα-και-classical-baselines"
+id="toc-εβδομάδα-1--δεδομένα-και-classical-baselines">Εβδομάδα 1 —
+δεδομένα και classical baselines</a></li>
+<li><a href="#εβδομάδα-2--bilstm-και-from-scratch-lora"
+id="toc-εβδομάδα-2--bilstm-και-from-scratch-lora">Εβδομάδα 2 — BiLSTM
+και from-scratch LoRA</a></li>
+<li><a href="#εβδομάδα-3--qlora-και-unified-benchmark"
+id="toc-εβδομάδα-3--qlora-και-unified-benchmark">Εβδομάδα 3 — QLoRA και
+unified benchmark</a></li>
+<li><a href="#εβδομάδα-4--serving-quantization-polish"
+id="toc-εβδομάδα-4--serving-quantization-polish">Εβδομάδα 4 — serving,
+quantization, polish</a></li>
+</ul></li>
+<li><a href="#4-τι-έχει-αποδειχθεί-από-τα-πραγματικά-αρχεία"
+id="toc-4-τι-έχει-αποδειχθεί-από-τα-πραγματικά-αρχεία">4. Τι έχει
+αποδειχθεί από τα πραγματικά αρχεία</a>
+<ul>
+<li><a href="#41-δεδομένα-και-αναπαραγωγή"
+id="toc-41-δεδομένα-και-αναπαραγωγή">4.1 Δεδομένα και
+αναπαραγωγή</a></li>
+<li><a href="#42-αποτελέσματα-μοντέλων-και-ισχύς-τεκμηρίων"
+id="toc-42-αποτελέσματα-μοντέλων-και-ισχύς-τεκμηρίων">4.2 Αποτελέσματα
+μοντέλων και ισχύς τεκμηρίων</a></li>
+<li><a href="#43-έλεγχοι-που-εκτελέστηκαν-τώρα"
+id="toc-43-έλεγχοι-που-εκτελέστηκαν-τώρα">4.3 Έλεγχοι που εκτελέστηκαν
+τώρα</a></li>
+</ul></li>
+<li><a href="#5-τεχνικά-ευρήματα-και-συγκεκριμένες-διορθώσεις"
+id="toc-5-τεχνικά-ευρήματα-και-συγκεκριμένες-διορθώσεις">5. Τεχνικά
+ευρήματα και συγκεκριμένες διορθώσεις</a>
+<ul>
+<li><a href="#f01--σύγκρουση-των-δύο-csv-στα-windows"
+id="toc-f01--σύγκρουση-των-δύο-csv-στα-windows">F01 — Σύγκρουση των δύο
+CSV στα Windows</a></li>
+<li><a
+href="#f02--τα-υπάρχοντα-frozen-splits-δεν-περνούν-τον-νεότερο-έλεγχο-overlap"
+id="toc-f02--τα-υπάρχοντα-frozen-splits-δεν-περνούν-τον-νεότερο-έλεγχο-overlap">F02
+— Τα υπάρχοντα frozen splits δεν περνούν τον νεότερο έλεγχο
+overlap</a></li>
+<li><a
+href="#f03--το-character-baseline-είναι-στην-πραγματικότητα-word-baseline"
+id="toc-f03--το-character-baseline-είναι-στην-πραγματικότητα-word-baseline">F03
+— Το character baseline είναι στην πραγματικότητα word baseline</a></li>
+<li><a
+href="#f04--η-επιλογή-του-καλύτερου-classical-μοντέλου-γίνεται-στο-test"
+id="toc-f04--η-επιλογή-του-καλύτερου-classical-μοντέλου-γίνεται-στο-test">F04
+— Η επιλογή του καλύτερου classical μοντέλου γίνεται στο test</a></li>
+<li><a
+href="#f05--bilstm-logits-και-gold-labels-δεν-διατηρούν-κοινή-σειρά"
+id="toc-f05--bilstm-logits-και-gold-labels-δεν-διατηρούν-κοινή-σειρά">F05
+— BiLSTM logits και gold labels δεν διατηρούν κοινή σειρά</a></li>
+<li><a
+href="#f06--το-unified-benchmark-αποτυγχάνει-με-caches-και-δεν-μετρά-πραγματικό-latency"
+id="toc-f06--το-unified-benchmark-αποτυγχάνει-με-caches-και-δεν-μετρά-πραγματικό-latency">F06
+— Το unified benchmark αποτυγχάνει με caches και δεν μετρά πραγματικό
+latency</a></li>
+<li><a href="#f07--ελλιπή-gpu-artifacts-και-αναντιστοιχία-output-paths"
+id="toc-f07--ελλιπή-gpu-artifacts-και-αναντιστοιχία-output-paths">F07 —
+Ελλιπή GPU artifacts και αναντιστοιχία output paths</a></li>
+<li><a
+href="#f08--qlora-χρειάζεται-διορθώσεις-πριν-από-το-πρώτο-αξιόπιστο-run"
+id="toc-f08--qlora-χρειάζεται-διορθώσεις-πριν-από-το-πρώτο-αξιόπιστο-run">F08
+— QLoRA χρειάζεται διορθώσεις πριν από το πρώτο αξιόπιστο run</a></li>
+<li><a
+href="#f09--περιορισμένη-αποδεικτική-ισχύς-του-peft-equivalence-test"
+id="toc-f09--περιορισμένη-αποδεικτική-ισχύς-του-peft-equivalence-test">F09
+— Περιορισμένη αποδεικτική ισχύς του PEFT equivalence test</a></li>
+<li><a href="#f10--quantization-benchmark-δεν-καλύπτει-όσα-υπόσχεται"
+id="toc-f10--quantization-benchmark-δεν-καλύπτει-όσα-υπόσχεται">F10 —
+Quantization benchmark δεν καλύπτει όσα υπόσχεται</a></li>
+<li><a href="#f11--serving-και-μετρήσεις-δεν-έχουν-ολοκληρωθεί"
+id="toc-f11--serving-και-μετρήσεις-δεν-έχουν-ολοκληρωθεί">F11 — Serving
+και μετρήσεις δεν έχουν ολοκληρωθεί</a></li>
+<li><a
+href="#f12--annotation-demo-χωρίς-αποθηκευμένο-και-ελεγμένο-αποτέλεσμα"
+id="toc-f12--annotation-demo-χωρίς-αποθηκευμένο-και-ελεγμένο-αποτέλεσμα">F12
+— Annotation demo χωρίς αποθηκευμένο και ελεγμένο αποτέλεσμα</a></li>
+<li><a
+href="#f13--readme-notebooks-και-κανόνες-αναπαραγωγής-χρειάζονται-ενοποίηση"
+id="toc-f13--readme-notebooks-και-κανόνες-αναπαραγωγής-χρειάζονται-ενοποίηση">F13
+— README, notebooks και κανόνες αναπαραγωγής χρειάζονται
+ενοποίηση</a></li>
+</ul></li>
+<li><a href="#6-προτεινόμενη-σειρά-για-την-ολοκλήρωση"
+id="toc-6-προτεινόμενη-σειρά-για-την-ολοκλήρωση">6. Προτεινόμενη σειρά
+για την ολοκλήρωση</a></li>
+<li><a href="#7-τελική-checklist-αποδοχής-v100"
+id="toc-7-τελική-checklist-αποδοχής-v100">7. Τελική checklist αποδοχής
+v1.0.0</a></li>
+<li><a href="#8-σύγκριση-τοπικού-και-github--συγχρονισμός"
+id="toc-8-σύγκριση-τοπικού-και-github--συγχρονισμός">8. Σύγκριση τοπικού
+και GitHub / συγχρονισμός</a></li>
+<li><a href="#9-εντολές-επανελέγχου" id="toc-9-εντολές-επανελέγχου">9.
+Εντολές επανελέγχου</a></li>
+<li><a href="#10-πηγές-και-όρια" id="toc-10-πηγές-και-όρια">10. Πηγές
+και όρια</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="αναλυτικός-έλεγχος-ολοκλήρωσης-hotel-review-nlp">Αναλυτικός
+έλεγχος ολοκλήρωσης Hotel Review NLP</h1>
+<p>Ημερομηνία ελέγχου: <strong>9 Σεπτεμβρίου 2026</strong></p>
+<p>Αποθετήριο: <a
+href="https://github.com/krimits/hotel-review-nlp">krimits/hotel-review-nlp</a></p>
+<p>Έκδοση αναφοράς:
+<code>e0c3289aa5f95cb130207055e921d03291b4df23</code>, συν τις δύο
+προϋπάρχουσες τοπικές διορθώσεις BiLSTM.</p>
+<p>Βάση αξιολόγησης: <a href="ACTION_PLAN.md">ACTION_PLAN.md</a>,
+κώδικας, notebooks, πραγματικά τοπικά artifacts και GitHub Actions.</p>
+<h2 id="1-συμπέρασμα">1. Συμπέρασμα</h2>
+<p><strong>Το έργο έχει ουσιαστική υλοποίηση και πραγματικά πειράματα,
+αλλά δεν έχει ολοκληρωθεί ως αναπαραγώγιμο, ενιαίο benchmark και τελικό
+παραδοτέο v1.0.0.</strong> Η πρώτη εβδομάδα έχει εκτελεστεί σε μεγάλο
+βαθμό, η δεύτερη έχει σημαντική πρόοδο και δηλωμένα αποτελέσματα
+DistilBERT, ενώ οι εβδομάδες 3–4 παραμένουν κυρίως σε επίπεδο έτοιμου
+κώδικα και οδηγιών.</p>
+<p>Το ACTION_PLAN έχει μόνο ένα σημειωμένο checkbox, επομένως
+<strong>υποτιμά την πραγματική πρόοδο</strong>. Αντίστροφα, ορισμένες
+διατυπώσεις του README υπερβαίνουν όσα αποδεικνύονται από τα διαθέσιμα
+αρχεία. Δεν προκύπτει αξιόπιστο ενιαίο «ποσοστό ολοκλήρωσης» από τα
+κουτάκια, γιατί συνδυάζουν συγγραφή κώδικα, εκτέλεση πειραμάτων,
+προσωπική προετοιμασία και δημοσίευση.</p>
+<p>Οι σημαντικότερες εκκρεμότητες είναι:</p>
+<ol type="1">
+<li>Διόρθωση της διαρροής κοινών κειμένων μεταξύ splits και δημιουργία
+νέας, ρητά εκδομένης βάσης αξιολόγησης.</li>
+<li>Πραγματικό character baseline και επιλογή μοντέλων στο dev.</li>
+<li>Σωστή αντιστοίχιση προβλέψεων–γραμμών και μέτρηση πραγματικού
+inference latency.</li>
+<li>Ανάκτηση των DistilBERT artifacts και πλήρης εκτέλεση QLoRA.</li>
+<li>Ενιαίο benchmark πέντε οικογενειών, McNemar, encoder API, INT8, load
+test, Docker και τελικό portfolio.</li>
+</ol>
+<p>Δεν εκτελέστηκε νέα εκπαίδευση GPU, δεν άλλαξαν τα frozen parquet
+splits και δεν δημιουργήθηκε release. Οι έλεγχοι αναπαραγωγής και API
+περιγράφονται παρακάτω.</p>
+<h2 id="2-πώς-διαβάζεται-η-κατάσταση">2. Πώς διαβάζεται η κατάσταση</h2>
+<table>
+<thead>
+<tr>
+<th>Κατάσταση</th>
+<th>Ερμηνεία</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ολοκληρωμένο</strong></td>
+<td>Υπάρχει συγκεκριμένο παραδοτέο και επαληθεύσιμη ένδειξη ολοκλήρωσης
+του συγκεκριμένου σημείου.</td>
+</tr>
+<tr>
+<td><strong>Μερικό</strong></td>
+<td>Υπάρχει ουσιαστικό μέρος της δουλειάς, αλλά λείπει απαίτηση ή
+υπάρχει εμπόδιο.</td>
+</tr>
+<tr>
+<td><strong>Δηλωμένο</strong></td>
+<td>Υπάρχουν αριθμοί ή περιγραφή εκτέλεσης στο README, αλλά όχι επαρκή
+διαθέσιμα artifacts για ανεξάρτητη αναπαραγωγή.</td>
+</tr>
+<tr>
+<td><strong>Εκκρεμές</strong></td>
+<td>Δεν βρέθηκε ολοκληρωμένο παραδοτέο στο τοπικό έργο ή στο ελεγμένο
+GitHub snapshot. Η ύπαρξη script δεν αρκεί.</td>
+</tr>
+<tr>
+<td><strong>Προσωπική επιβεβαίωση</strong></td>
+<td>Δεν μπορεί να ελεγχθεί από αρχεία, π.χ. αν έχει διαβαστεί και
+κατανοηθεί ένα paper.</td>
+</tr>
+</tbody>
+</table>
+<p>«Δεν βρέθηκε» δεν σημαίνει ότι δεν υπάρχει σε άλλο Colab runtime,
+Drive, W&amp;B ή μη κοινοποιημένο φάκελο. Δεν έγινε έρευνα σε άσχετα
+προσωπικά αρχεία ή εξωτερικά workspaces.</p>
+<h2 id="3-έλεγχος-και-των-22-σημείων-του-action_plan">3. Έλεγχος και των
+22 σημείων του ACTION_PLAN</h2>
+<h3 id="εβδομάδα-1--δεδομένα-και-classical-baselines">Εβδομάδα 1 —
+δεδομένα και classical baselines</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Σημείο πλάνου</th>
+<th>Κατάσταση</th>
+<th>Τεκμήριο και τι απομένει</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W1.1</td>
+<td>GitHub repository, push skeleton, CI badge</td>
+<td><strong>Μερικό</strong></td>
+<td>Repo και ενεργό CI υπάρχουν. Το τελευταίο ελεγμένο CI στο αρχικό
+remote HEAD πέρασε με 32 tests. Δεν βρέθηκε CI badge σε κανένα από τα
+δύο README. Προσθήκη badge και σαφούς quickstart από τον nested project
+φάκελο.</td>
+</tr>
+<tr>
+<td>W1.2</td>
+<td>Download Booking 515K και <code>make data</code></td>
+<td><strong>Ολοκληρωμένο ως εκτέλεση</strong></td>
+<td>Το πλήρες CSV έχει 515.738 γραμμές. Τα τρία τοπικά parquet υπάρχουν
+και αναπαράγονται ακριβώς από το CSV και το config. Ωστόσο, η ποιότητα
+του split χρειάζεται διόρθωση: F02. Η σύγκρουση ονομάτων CSV εξετάζεται
+στο F01.</td>
+</tr>
+<tr>
+<td>W1.3</td>
+<td>EDA: label-source chart και length stats</td>
+<td><strong>Μερικό</strong></td>
+<td>Το notebook υπάρχει, αλλά έχει 0/7 εκτελεσμένα code cells και κανένα
+αποθηκευμένο output. Ο παρών έλεγχος επιβεβαίωσε αριθμούς και μήκη, όχι
+εκτέλεση/αποθήκευση των charts του notebook. Χρειάζεται επιτυχής
+εκτέλεση με σωστό working directory.</td>
+</tr>
+<tr>
+<td>W1.4</td>
+<td>Δύο feature views × δύο μοντέλα</td>
+<td><strong>Μερικό</strong></td>
+<td>Υπάρχουν τέσσερα metrics και ένα αποθηκευμένο pipeline. Το καλύτερο
+pipeline αναπαράγει το δημοσιευμένο score. Όμως το «char» view
+χρησιμοποιεί <code>analyzer="word"</code>: δεν έχουν εκπληρωθεί οι δύο
+διαφορετικές αναπαραστάσεις που ζητά το πλάνο. Διόρθωση F03 και
+επανεκτέλεση.</td>
+</tr>
+<tr>
+<td>W1.5</td>
+<td>Συμπλήρωση πρώτων γραμμών README</td>
+<td><strong>Ολοκληρωμένο ως καταχώριση</strong></td>
+<td>Τα classical αποτελέσματα έχουν γραφτεί και στα δύο README.
+Χρειάζονται ανανέωση μετά τις διορθώσεις, διόρθωση του <code>%%</code>
+και ενιαία παρουσίαση. Η συμπλήρωση πίνακα δεν πιστοποιεί την εγκυρότητα
+όλης της μεθοδολογίας.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="εβδομάδα-2--bilstm-και-from-scratch-lora">Εβδομάδα 2 — BiLSTM
+και from-scratch LoRA</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Σημείο πλάνου</th>
+<th>Κατάσταση</th>
+<th>Τεκμήριο και τι απομένει</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W2.1</td>
+<td>BiLSTM, early stopping, dev macro-F1</td>
+<td><strong>Μερικό</strong></td>
+<td>Υπάρχουν checkpoint, test metrics και dev macro-F1. Το README
+περιγράφει early stopping στο epoch 5, αλλά δεν υπάρχει αντίστοιχο
+τοπικό training log. Λείπουν <code>vocab.json</code>,
+<code>test_logits.npy</code>, <code>test_labels.npy</code>. Τα
+εκτελεσμένα notebooks αφορούν weighted/threshold πειράματα και δεν
+υποκαθιστούν το συγκεκριμένο baseline artifact bundle.</td>
+</tr>
+<tr>
+<td>W2.2</td>
+<td>Κατανόηση LoRA paper / initialization</td>
+<td><strong>Προσωπική επιβεβαίωση</strong></td>
+<td>Η υλοποίηση και το DESIGN εξηγούν <code>A</code>, <code>B=0</code>,
+<code>alpha/r</code>, merge/unmerge. Δεν μπορεί να πιστοποιηθεί αν έχει
+διαβαστεί το paper ή αν μπορεί να εξηγηθεί προφορικά. Χρειάζεται
+προσωπική προετοιμασία και σύντομο τεχνικό walkthrough.</td>
+</tr>
+<tr>
+<td>W2.3</td>
+<td>LoRA tests και PEFT equivalence</td>
+<td><strong>Ολοκληρωμένο ως εκτέλεση tests</strong></td>
+<td>Τοπικά πέρασαν 11 LoRA tests και 1 έγινε skip λόγω απουσίας PEFT.
+Στο ελεγμένο CI πέρασαν και τα 12, μέσα σε συνολικά 32 tests. Υπάρχει
+όμως περιορισμός στο equivalence test με μηδενικό <code>B</code>:
+F09.</td>
+</tr>
+<tr>
+<td>W2.4</td>
+<td>Πρώτη GPU εκπαίδευση DistilBERT LoRA</td>
+<td><strong>Δηλωμένο</strong></td>
+<td>Το root README αναφέρει μετρημένο LoRA run. Το σχετικό notebook και
+ο trainer υπάρχουν, αλλά το notebook έχει 0/11 εκτελεσμένα code cells
+και δεν βρέθηκε τοπικό encoder/adapter checkpoint. Ανάκτηση configs,
+logs, manifest και weights από την πραγματική εκτέλεση.</td>
+</tr>
+<tr>
+<td>W2.5</td>
+<td>Σύγκριση trainable params / F1 με full FT</td>
+<td><strong>Δηλωμένο</strong></td>
+<td>Υπάρχει αναλυτικός πίνακας full FT–LoRA στο root README: 95,80%
+έναντι 94,86% macro-F1, 66.955.010 έναντι 739.586 trainable params. Δεν
+βρέθηκαν <code>distilbert_comparison.csv</code>, δύο
+<code>metrics.json</code> και data manifests. Τα συγκρινόμενα GPU runs
+δηλώνονται ως <code>compare</code> με 20.000 training rows. Απαιτείται
+αποκατάσταση τεκμηρίων και νέα τελική σύγκριση μετά το F02.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="εβδομάδα-3--qlora-και-unified-benchmark">Εβδομάδα 3 — QLoRA και
+unified benchmark</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Σημείο πλάνου</th>
+<th>Κατάσταση</th>
+<th>Τεκμήριο και τι απομένει</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W3.1</td>
+<td>QLoRA notebook σε T4, από αρχή έως τέλος</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Υπάρχουν trainer/config/notebook, αλλά 0/7 εκτελεσμένα code cells,
+χωρίς training log ή Qwen adapter. Διόρθωση F08, έλεγχος pinned
+περιβάλλοντος και επιτυχής GPU εκτέλεση.</td>
+</tr>
+<tr>
+<td>W3.2</td>
+<td>Δύο sanity reviews και λήψη adapter</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Υπάρχει το σχετικό κελί, χωρίς output. Χρειάζονται οι δύο προβλέψεις
+και πλήρες adapter/tokenizer/config bundle που φορτώνεται σε νέο
+runtime.</td>
+</tr>
+<tr>
+<td>W3.3</td>
+<td><code>make benchmark</code> με όλα τα μοντέλα</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Δεν υπάρχουν <code>runs/benchmark/results.json</code>,
+<code>confusion.png</code>, <code>latency.png</code>. Λείπουν τρεις
+οικογένειες μοντέλων τοπικά και τα BiLSTM caches. Ακόμη και μετά την
+προσθήκη τους, τα F04–F06 εμποδίζουν αξιόπιστη εκτέλεση.</td>
+</tr>
+<tr>
+<td>W3.4</td>
+<td>McNemar αποτελέσματα στο README</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Η υλοποίηση και τα unit tests υπάρχουν. Δεν βρέθηκε πραγματικός
+all-pairs πίνακας από ευθυγραμμισμένες προβλέψεις όλων των μοντέλων. Η
+διαφορά δύο macro-F1 δεν αποτελεί από μόνη της τεστ σημαντικότητας.</td>
+</tr>
+<tr>
+<td>W3.5</td>
+<td>LLM annotation demo στο unlabeled CSV</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Notebook 0/6 εκτελεσμένα cells, χωρίς annotated output ή έλεγχο
+ανθρώπινου δείγματος. Πρώτα απαιτείται σωστό CSV schema, μετά εκτέλεση,
+αποθήκευση αποτελεσμάτων και έλεγχος F12.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="εβδομάδα-4--serving-quantization-polish">Εβδομάδα 4 — serving,
+quantization, polish</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Σημείο πλάνου</th>
+<th>Κατάσταση</th>
+<th>Τεκμήριο και τι απομένει</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W4.1</td>
+<td>Εκκίνηση API με πραγματικό encoder</td>
+<td><strong>Μερικό</strong></td>
+<td>API και encoder wrapper υπάρχουν. Τα 5 stub tests πέρασαν και ο
+παρών έλεγχος επιβεβαίωσε classical model σε health/single/batch μέσω
+TestClient. Δεν υπάρχει τοπικό encoder checkpoint ούτε επαληθευμένο
+Uvicorn demo με encoder.</td>
+</tr>
+<tr>
+<td>W4.2</td>
+<td><code>demo_api.sh</code> και screenshot</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Το script υπάρχει. Δεν βρέθηκε screenshot ή καταγεγραμμένη εκτέλεση
+του πραγματικού demo. Εκτέλεση μετά το W4.1 και προσθήκη στο
+README.</td>
+</tr>
+<tr>
+<td>W4.3</td>
+<td>INT8 before/after benchmark</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Script υπάρχει, output όχι. Το Makefile δείχνει σε
+<code>runs/distilbert/best</code>, ενώ ο trainer αποθηκεύει απευθείας
+στο output directory. Χρειάζονται σωστό path, macro-F1 και πραγματικό
+serialized size: F10.</td>
+</tr>
+<tr>
+<td>W4.4</td>
+<td>Locust 20 users / 60s, RPS και p95</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Υπάρχει load-test script, αλλά όχι CSV/logs/πίνακας. Η εντολή του
+ACTION_PLAN χρειάζεται <code>--host</code>. Να μετρηθεί ο δηλωμένος
+πραγματικός server/model με σαφή mix endpoints και failure rate.</td>
+</tr>
+<tr>
+<td>W4.5</td>
+<td>Docker build και stub container smoke</td>
+<td><strong>Μερικό</strong></td>
+<td>Dockerfile και make target υπάρχουν. Docker executable δεν βρέθηκε
+στο PATH και δεν υπάρχει Docker build/run job στο CI. Απαιτούνται
+πραγματικό build, run και health/predict smoke.</td>
+</tr>
+<tr>
+<td>W4.6</td>
+<td>Loom 3–4 λεπτών</td>
+<td><strong>Εκκρεμές</strong></td>
+<td>Δεν βρέθηκε σύνδεσμος Loom ή αντίστοιχο video artifact στα ελεγμένα
+αρχεία. Να εγγραφεί όταν υπάρχουν αναπαραγώγιμα τελικά
+αποτελέσματα.</td>
+</tr>
+<tr>
+<td>W4.7</td>
+<td>README polish, clean runs, tag v1.0.0</td>
+<td><strong>Μερικό</strong></td>
+<td>Υπάρχουν DESIGN, LICENSE και results, αλλά δύο αποκλίνοντα README,
+υπολείμματα συνομιλιών, παλιές αντιφατικές αποφάσεις, metadata
+<code>Your Name</code> και tracked
+<code>runs/bilstm/metrics.json</code>. Δεν βρέθηκε Git tag. Απαιτείται
+ολοκλήρωση των παρακάτω κριτηρίων πριν από release.</td>
+</tr>
+</tbody>
+</table>
+<p>Τα 22 σύνθετα σημεία ταξινομούνται αυστηρά ως <strong>3 ολοκληρωμένα,
+7 μερικά, 2 δηλωμένα, 9 εκκρεμή και 1 προσωπικής επιβεβαίωσης</strong>.
+Αυτό δεν είναι ποσοστό υλοποιημένου κώδικα.</p>
+<h2 id="4-τι-έχει-αποδειχθεί-από-τα-πραγματικά-αρχεία">4. Τι έχει
+αποδειχθεί από τα πραγματικά αρχεία</h2>
+<h3 id="41-δεδομένα-και-αναπαραγωγή">4.1 Δεδομένα και αναπαραγωγή</h3>
+<p>Το πλήρες Booking CSV έχει <strong>515.738 γραμμές</strong> και
+μέγεθος <strong>238.154.765 bytes</strong>. Η επανάληψη των συναρτήσεων
+preprocessing στη μνήμη, χωρίς αντικατάσταση των parquet, αναπαρήγαγε
+και τα τρία splits ακριβώς.</p>
+<table>
+<thead>
+<tr>
+<th>Σύνολο</th>
+<th style="text-align: right;">Γραμμές</th>
+<th style="text-align: right;">Negative</th>
+<th style="text-align: right;">Positive</th>
+<th style="text-align: right;">Μέσο μήκος χαρακτήρων</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Train</td>
+<td style="text-align: right;">118.990</td>
+<td style="text-align: right;">26.232</td>
+<td style="text-align: right;">92.758</td>
+<td style="text-align: right;">119,30</td>
+</tr>
+<tr>
+<td>Dev</td>
+<td style="text-align: right;">14.872</td>
+<td style="text-align: right;">3.278</td>
+<td style="text-align: right;">11.594</td>
+<td style="text-align: right;">117,84</td>
+</tr>
+<tr>
+<td>Test</td>
+<td style="text-align: right;">13.278</td>
+<td style="text-align: right;">3.278</td>
+<td style="text-align: right;">10.000</td>
+<td style="text-align: right;">119,55</td>
+</tr>
+<tr>
+<td>Σύνολο</td>
+<td style="text-align: right;">147.140</td>
+<td style="text-align: right;">32.788</td>
+<td style="text-align: right;">114.352</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p>Η αρχική schema-based εξαγωγή βρίσκει 127.763 positive-only, 35.819
+negative-only, 352.029 mixed και 127 empty εγγραφές. Με φίλτρα μήκους
+και αφαίρεση ακριβών διπλοτύπων προκύπτουν 147.140 labeled reviews. Στο
+train, τα p50/p95/p99 μήκους είναι <strong>14/64/122
+λέξεις</strong>.</p>
+<p>Δεν βρέθηκαν nulls ή ακριβή διπλότυπα μέσα στα splits, ούτε ακριβώς
+ίδια strings μεταξύ splits. Βρέθηκαν όμως overlaps μετά από
+<code>strip().casefold()</code>: F02.</p>
+<p>Τα πλήρη, order-sensitive fingerprints και τα αποτελέσματα των
+ελέγχων περιλαμβάνονται στο <a
+href="docs/audit/2026-09-09/evidence.json">evidence.json</a>.</p>
+<h3 id="42-αποτελέσματα-μοντέλων-και-ισχύς-τεκμηρίων">4.2 Αποτελέσματα
+μοντέλων και ισχύς τεκμηρίων</h3>
+<table>
+<thead>
+<tr>
+<th>Μοντέλο / πείραμα</th>
+<th style="text-align: right;">Test macro-F1</th>
+<th style="text-align: right;">Accuracy</th>
+<th>Τεκμηρίωση</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NB word</td>
+<td style="text-align: right;">0,9345</td>
+<td style="text-align: right;">0,9509</td>
+<td>Τοπικό joblib + metrics. Οι προβλέψεις επανυπολογίστηκαν σε όλα τα
+13.278 test reviews και συμφωνούν.</td>
+</tr>
+<tr>
+<td>LR-SGD word</td>
+<td style="text-align: right;">0,9173</td>
+<td style="text-align: right;">0,9411</td>
+<td>Τοπικό metrics JSON. Δεν υπάρχει ξεχωριστό αποθηκευμένο pipeline για
+ανεξάρτητη επαναφόρτωση.</td>
+</tr>
+<tr>
+<td>NB «char»</td>
+<td style="text-align: right;">0,8545</td>
+<td style="text-align: right;">0,8991</td>
+<td>Τοπικό metrics JSON, αλλά πρόκειται για word 3–5 grams λόγω
+F03.</td>
+</tr>
+<tr>
+<td>LR-SGD «char»</td>
+<td style="text-align: right;">0,5681</td>
+<td style="text-align: right;">0,7887</td>
+<td>Ίδιο πρόβλημα: δεν αποτελεί έγκυρο character baseline.</td>
+</tr>
+<tr>
+<td>BiLSTM, υπάρχον τοπικό baseline</td>
+<td style="text-align: right;">0,9503</td>
+<td style="text-align: right;">0,9629</td>
+<td>Metrics + αναγνώσιμο checkpoint, dev macro-F1 0,9493. Λείπει vocab
+και prediction bundle.</td>
+</tr>
+<tr>
+<td>BiLSTM seed 100, unweighted</td>
+<td style="text-align: right;">0,9521</td>
+<td style="text-align: right;">0,9642</td>
+<td>Αναφέρεται στο root README. Δεν υπάρχει αντίστοιχο τοπικό πλήρες
+artifact bundle.</td>
+</tr>
+<tr>
+<td>BiLSTM weighted</td>
+<td style="text-align: right;">0,9492</td>
+<td style="text-align: right;">0,9614</td>
+<td>Εκτελεσμένα outputs στο root <code>BILSTM.ipynb</code>.</td>
+</tr>
+<tr>
+<td>BiLSTM threshold 0,685</td>
+<td style="text-align: right;">0,9510</td>
+<td style="text-align: right;">0,9629</td>
+<td>Outputs στο πρόσθετο εκτελεσμένο threshold notebook. Το canonical
+notebook είναι καθαρό template.</td>
+</tr>
+<tr>
+<td>DistilBERT full FT, compare mode</td>
+<td style="text-align: right;">0,9580</td>
+<td style="text-align: right;">0,9687</td>
+<td>Root README, χωρίς τοπικά weights/logits/manifest.</td>
+</tr>
+<tr>
+<td>DistilBERT scratch LoRA, compare mode</td>
+<td style="text-align: right;">0,9486</td>
+<td style="text-align: right;">0,9617</td>
+<td>Root README, χωρίς τοπικό adapter/head bundle ή comparison CSV.</td>
+</tr>
+<tr>
+<td>Qwen QLoRA</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td>Δεν βρέθηκαν μετρημένα αποτελέσματα.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Δεν πρόκειται για τελικό leaderboard.</strong> Υπάρχουν
+διαφορετικά training budgets, ελλιπή artifacts και τα μεθοδολογικά
+προβλήματα που ακολουθούν. Τα αναφερόμενα «current best» πρέπει να
+παρουσιάζονται ως ιστορικά αποτελέσματα συγκεκριμένων runs.</p>
+<p>Το BiLSTM checkpoint περιέχει 11 tensors, embedding shape
+<code>[15138, 128]</code> και συνολικά 2.202.370 tensor parameters. Αυτό
+επιβεβαιώνει ότι υπάρχει πραγματικό αναγνώσιμο μοντέλο, όχι πλήρη
+αναπαραγωγιμότητα χωρίς vocab/config provenance.</p>
+<h3 id="43-έλεγχοι-που-εκτελέστηκαν-τώρα">4.3 Έλεγχοι που εκτελέστηκαν
+τώρα</h3>
+<table>
+<thead>
+<tr>
+<th>Έλεγχος</th>
+<th>Αποτέλεσμα</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Τοπικό <code>pytest tests -v -rs -p no:cacheprovider</code></td>
+<td><strong>31 passed, 1 skipped</strong>, 1 warning. Το skip αφορά
+PEFT. Η αρχική sandbox εκτέλεση είχε δύο permission errors σε
+προσωρινούς φακέλους· η επανάληψη εκτός sandbox πέρασε.</td>
+</tr>
+<tr>
+<td><code>ruff check src tests scripts --no-cache</code></td>
+<td><strong>All checks passed</strong>.</td>
+</tr>
+<tr>
+<td>Αρχικό remote HEAD CI</td>
+<td><strong>32 passed</strong>, 1 warning, μαζί με PEFT equivalence. <a
+href="https://github.com/krimits/hotel-review-nlp/actions/runs/34239998385">GitHub
+Actions run</a>.</td>
+</tr>
+<tr>
+<td>Αναπαραγωγή preprocessing</td>
+<td>Και τα 3 DataFrames ίσα με τα υπάρχοντα parquet, με την ίδια
+σειρά.</td>
+</tr>
+<tr>
+<td>Επανεκτίμηση αποθηκευμένου classical pipeline</td>
+<td>Ίδιες μετρικές και confusion matrix με το metrics JSON.</td>
+</tr>
+<tr>
+<td>Classical API μέσω FastAPI TestClient</td>
+<td>Health, single predict και batch επέστρεψαν HTTP 200. Δεν είναι live
+Uvicorn/load test.</td>
+</tr>
+<tr>
+<td>Συνθετικό probe cached predictor</td>
+<td>Δέχθηκε άσχετα κείμενα με ίδιο πλήθος γραμμών. Το latency subset
+προκάλεσε ValueError.</td>
+</tr>
+<tr>
+<td>Συνθετικό probe BiLSTM collate</td>
+<td>Labels <code>[0,1,0]</code> έγιναν <code>[1,0,0]</code> λόγω
+ταξινόμησης κατά μήκος.</td>
+</tr>
+<tr>
+<td>SHA-256 πλήρους CSV και backup</td>
+<td>Ίδιο hash και μέγεθος.</td>
+</tr>
+</tbody>
+</table>
+<p>Το τοπικό περιβάλλον είναι Python 3.13.5, Torch 2.13.0+cpu, χωρίς
+CUDA και χωρίς transformers/PEFT. Η τοπική επιτυχία των CPU tests δεν
+πιστοποιεί GPU training ή HF checkpoint loading.</p>
+<h2 id="5-τεχνικά-ευρήματα-και-συγκεκριμένες-διορθώσεις">5. Τεχνικά
+ευρήματα και συγκεκριμένες διορθώσεις</h2>
+<h3 id="f01--σύγκρουση-των-δύο-csv-στα-windows">F01 — Σύγκρουση των δύο
+CSV στα Windows</h3>
+<p><strong>Προτεραιότητα: P0 για συμβατότητα δεδομένων.</strong></p>
+<p>Στο Git υπάρχει unlabeled <code>hotel_reviews.csv</code> 658 γραμμών
+με στήλες <code>Hotel, Date, Review Title, Review</code>. Το config
+ζητούσε Booking <code>Hotel_Reviews.csv</code>. Στο Windows filesystem
+οι δύο διαδρομές αντιστοιχούσαν στο ίδιο αρχείο, το οποίο τοπικά είχε το
+Booking schema. Έτσι το annotation demo και το load test δεν μπορούσαν
+να βρουν τη στήλη <code>Review</code>.</p>
+<p>Η σωστή διάταξη είναι:</p>
+<ul>
+<li><code>data/raw/hotel_reviews.csv</code>: το μικρό tracked unlabeled
+dataset.</li>
+<li><code>data/raw/booking_reviews_515k.csv</code>: το μεγάλο Booking
+dataset, ignored.</li>
+<li><code>configs/baselines.yaml</code> και EDA: ρητή αναφορά στο
+δεύτερο.</li>
+<li>Download/extract σε ξεχωριστό φάκελο, πριν από αντιγραφή με το νέο
+όνομα.</li>
+</ul>
+<p>Η τελική κατάσταση της διόρθωσης καταγράφεται στην §8.</p>
+<h3
+id="f02--τα-υπάρχοντα-frozen-splits-δεν-περνούν-τον-νεότερο-έλεγχο-overlap">F02
+— Τα υπάρχοντα frozen splits δεν περνούν τον νεότερο έλεγχο overlap</h3>
+<p><strong>Προτεραιότητα: P0 πριν από νέα τελικά runs.</strong></p>
+<p>Ο έλεγχος <code>strip().casefold()</code> βρήκε κοινά μοναδικά
+normalized κείμενα:</p>
+<table>
+<thead>
+<tr>
+<th>Ζεύγος splits</th>
+<th style="text-align: right;">Κοινά normalized κείμενα</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Train / Dev</td>
+<td style="text-align: right;">180</td>
+</tr>
+<tr>
+<td>Train / Test</td>
+<td style="text-align: right;">170</td>
+</tr>
+<tr>
+<td>Dev / Test</td>
+<td style="text-align: right;">24</td>
+</tr>
+</tbody>
+</table>
+<p>Τα πλήθη είναι ανά ζεύγος και δεν πρέπει να αθροιστούν ως συνολικά
+μοναδικά reviews. Το <code>preprocess.py</code> αφαιρεί μόνο ακριβώς
+ίδια strings, ενώ το <code>utils/experiments.py</code> απορρίπτει
+overlaps αγνοώντας πεζά/κεφαλαία. Ο τελευταίος έλεγχος αποτυγχάνει στα
+πραγματικά τοπικά δεδομένα με
+<code>ValueError: review text overlaps between train and dev</code>.</p>
+<p>Αυτό σημαίνει ότι το νεότερο DistilBERT notebook δεν μπορεί να
+θεωρηθεί αναπαραγώγιμο πάνω στα συγκεκριμένα τοπικά frozen αρχεία χωρίς
+επίλυση της ασυνέπειας. Δεν αποδεικνύεται ότι κάποιο προηγούμενο cloud
+run χρησιμοποίησε τα ίδια αρχεία μόνο από τα row counts.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> ενιαίος κανόνας
+canonicalization/deduplication πριν από το split, έλεγχος τυχόν
+conflicting labels, νέα έκδοση dataset/manifest, μηδενικό overlap και
+νέα αποτελέσματα για όλες τις οικογένειες. Να διατηρηθούν τα σημερινά
+splits/metrics ως ιστορικό v1, όχι να αντικατασταθούν σιωπηρά. Η
+επίδραση στα scores πρέπει να μετρηθεί· δεν ποσοτικοποιήθηκε εδώ.</p>
+<h3
+id="f03--το-character-baseline-είναι-στην-πραγματικότητα-word-baseline">F03
+— Το character baseline είναι στην πραγματικότητα word baseline</h3>
+<p><strong>Προτεραιότητα: P0.</strong> <a
+href="src/reviewnlp/baselines/classical.py">classical.py</a></p>
+<p>Το <code>_feature_views()</code> δεν ορίζει <code>analyzer</code> στο
+δεύτερο TfidfVectorizer. Επιβεβαιώθηκε runtime:</p>
+<pre class="text"><code>word: analyzer=word, ngram_range=(1, 2)
+char: analyzer=word, ngram_range=(3, 5)</code></pre>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> ρητή επιλογή
+<code>char</code> ή <code>char_wb</code>, τεκμηρίωση της επιλογής,
+regression test με γνωστά character features και επανεκτέλεση των
+τεσσάρων συνδυασμών. Το «Failed Baseline» του README δεν αποτελεί
+συμπέρασμα για character features με τον σημερινό κώδικα.</p>
+<h3
+id="f04--η-επιλογή-του-καλύτερου-classical-μοντέλου-γίνεται-στο-test">F04
+— Η επιλογή του καλύτερου classical μοντέλου γίνεται στο test</h3>
+<p><strong>Προτεραιότητα: P0.</strong> <a
+href="src/reviewnlp/baselines/classical.py">classical.py</a></p>
+<p>Το <code>dev_df</code> φορτώνεται ως <code>_dev_df</code> και δεν
+χρησιμοποιείται. Το καλύτερο pipeline επιλέγεται από τα test macro-F1.
+Αυτό αντιφάσκει με το DESIGN και δημιουργεί test-set selection bias.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> επιλογή
+feature/model/hyperparameters με dev macro-F1, αποθήκευση της απόφασης
+και αξιολόγηση στο test μετά το κλείδωμα της επιλογής. Προτιμώνται
+artifacts για κάθε candidate και σαφή train/dev/test πεδία metrics. Οι
+ήδη δημοσιευμένοι αριθμοί παραμένουν ιστορικές παρατηρήσεις.</p>
+<h3
+id="f05--bilstm-logits-και-gold-labels-δεν-διατηρούν-κοινή-σειρά">F05 —
+BiLSTM logits και gold labels δεν διατηρούν κοινή σειρά</h3>
+<p><strong>Προτεραιότητα: P0.</strong> <a
+href="src/reviewnlp/data/dataset.py">dataset.py</a>, <a
+href="src/reviewnlp/baselines/bilstm.py">bilstm.py</a></p>
+<p>Το collate ταξινομεί κάθε batch κατά μήκος. Το
+<code>_evaluate()</code> επιστρέφει logits στην ταξινομημένη σειρά, ενώ
+η αποθήκευση χρησιμοποιεί <code>test_ds.labels</code> στην αρχική σειρά.
+Τα εσωτερικά metrics του <code>_evaluate()</code> υπολογίζονται με
+αντίστοιχα ταξινομημένα golds και δεν χαρακτηρίζονται λανθασμένα από
+αυτό το εύρημα. Το πρόβλημα αφορά το εξαγόμενο cache και τη μελλοντική
+σύγκριση με άλλες οικογένειες.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> μεταφορά row IDs/permutation
+και επαναφορά της αρχικής σειράς πριν από την αποθήκευση ή collate που
+διατηρεί σειρά με κατάλληλη χρήση packing. Να αποθηκεύονται row IDs,
+labels, logits και ordered split fingerprint μαζί. Χρειάζεται regression
+test με διαφορετικά μήκη μέσα σε batch.</p>
+<p>Το σημερινό τοπικό bundle περιέχει μόνο <code>bilstm.pt</code> και
+<code>metrics.json</code>. Πρέπει να ανακτηθούν τα αυθεντικά
+vocab/caches ή να παραχθεί νέο πλήρες run.</p>
+<h3
+id="f06--το-unified-benchmark-αποτυγχάνει-με-caches-και-δεν-μετρά-πραγματικό-latency">F06
+— Το unified benchmark αποτυγχάνει με caches και δεν μετρά πραγματικό
+latency</h3>
+<p><strong>Προτεραιότητα: P0.</strong> <a
+href="src/reviewnlp/evaluation/benchmark.py">benchmark.py</a>, <a
+href="src/reviewnlp/llm/predict.py">predict.py</a></p>
+<p>Το <code>cached_logits</code> ελέγχει μόνο <code>len(texts)</code>,
+αγνοεί το περιεχόμενο/σειρά και φορτώνει gold labels χωρίς να τα
+συγκρίνει. Άσχετα κείμενα ίδιου πλήθους έγιναν αποδεκτά στο probe.</p>
+<p>Στη συνέχεια το benchmark καλεί τον ίδιο predictor με
+<code>texts[:64]</code> για latency. Το cache δέχεται μόνο ολόκληρο το
+test set, οπότε προκύπτει ValueError εκτός του αρχικού prediction
+try/except. Αν επιτρεπόταν αυθαίρετο slicing, ο χρόνος lookup cache πάλι
+δεν θα ήταν χρόνος inference.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> διαφορετική διαδρομή για
+cached quality metrics και live model latency, έλεγχος ordered
+fingerprints/labels/IDs, warmup και κοινό πρωτόκολλο με αρκετές
+μετρήσεις. Το p95 τριών μέσων χρόνων batch δεν πρέπει να παρουσιαστεί ως
+p95 πραγματικών HTTP requests. Να υπάρχει τελική strict λειτουργία που
+αποτυγχάνει όταν λείπει οποιαδήποτε από τις πέντε απαιτούμενες
+οικογένειες.</p>
+<h3 id="f07--ελλιπή-gpu-artifacts-και-αναντιστοιχία-output-paths">F07 —
+Ελλιπή GPU artifacts και αναντιστοιχία output paths</h3>
+<p><strong>Προτεραιότητα: P1.</strong></p>
+<p>Δεν βρέθηκαν <code>runs/distilbert</code>,
+<code>runs/distilbert_lora_scratch</code> ή
+<code>runs/qwen_qlora/adapter</code>. Το DistilBERT notebook γράφει σε
+experiment directories στο Drive, ενώ το benchmark αναζητά σταθερά
+τοπικά paths. Άρα η εκτέλεση στο Colab δεν ολοκληρώνει αυτόματα την
+τοπική ενσωμάτωση.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> download/export/import βήμα
+με manifest, ακριβές source commit, package versions, configs, logs,
+tokenizer, weights, prediction arrays και comparison CSV. Πρώτα να
+ελεγχθούν τα αυθεντικά hashes των δηλωμένων runs. Μετά το F02
+απαιτούνται νέα τελικά runs σε κοινή έκδοση test set. Τυχόν μικρότερο
+training budget ανά οικογένεια να δηλώνεται καθαρά.</p>
+<h3
+id="f08--qlora-χρειάζεται-διορθώσεις-πριν-από-το-πρώτο-αξιόπιστο-run">F08
+— QLoRA χρειάζεται διορθώσεις πριν από το πρώτο αξιόπιστο run</h3>
+<p><strong>Προτεραιότητα: P1.</strong> <a
+href="src/reviewnlp/llm/train_qlora.py">train_qlora.py</a>, <a
+href="src/reviewnlp/llm/predict.py">predict.py</a></p>
+<ul>
+<li>Το training περνά <code>bnb_4bit_use_double_quantum=True</code>. Το
+πραγματικό όνομα της ρύθμισης είναι
+<code>bnb_4bit_use_double_quant</code>, με default false. Ο σημερινός
+κώδικας δεν τεκμηριώνει ότι ενεργοποιείται το double quantization. <a
+href="https://huggingface.co/docs/transformers/v4.56.2/en/main_classes/quantization#transformers.BitsAndBytesConfig">Επίσημο
+BitsAndBytesConfig</a>.</li>
+<li>Το inference επιλέγει bfloat16 απλώς επειδή υπάρχει CUDA, ενώ το
+training κάνει capability check. Χρειάζεται κοινή επιλογή dtype για το
+target GPU.</li>
+<li>Το training tokenizer χρησιμοποιεί right padding. Το batched causal
+generation πρέπει να ρυθμίζει ρητά κατάλληλο left padding και pad token
+όταν φορτώνει τον adapter. <a
+href="https://huggingface.co/docs/transformers/llm_tutorial#padding-side">Οδηγός
+generation της Hugging Face</a>.</li>
+<li>Το QLoRA notebook έχει ακόμη clone placeholder και ασαφή nested
+working directory. Το <code>requirements-colab.txt</code> αφορά το
+encoder experiment και δεν κλειδώνει πλήρη στοίβα TRL/bitsandbytes για
+QLoRA.</li>
+<li>Το <code>parse_label()</code> μετατρέπει άκυρη απάντηση σιωπηρά σε
+μία από τις δύο κλάσεις. Χρειάζεται καταγραφή invalid outputs ή
+ελεγχόμενο output contract.</li>
+</ul>
+<p>Απαιτούνται smoke run, επιβεβαίωση πραγματικών quantization settings,
+σταθερό batch inference, τελικό training και reload adapter σε καθαρό
+runtime. Οι χρόνοι «30–45 λεπτά» του πλάνου είναι εκτιμήσεις, όχι
+μετρημένο παραδοτέο.</p>
+<h3
+id="f09--περιορισμένη-αποδεικτική-ισχύς-του-peft-equivalence-test">F09 —
+Περιορισμένη αποδεικτική ισχύς του PEFT equivalence test</h3>
+<p><strong>Προτεραιότητα: P1.</strong> <a
+href="tests/test_lora.py">test_lora.py</a></p>
+<p>Το equivalence test εκτελείται επιτυχώς στο CI, αλλά αντιγράφει
+adapters όταν το <code>B</code> παραμένει μηδενικό. Έτσι οι δύο κλάδοι
+LoRA έχουν μηδενική επίδραση. Υπάρχουν άλλα χρήσιμα tests για scaling,
+gradients και merge, όμως η συγκεκριμένη σύγκριση με PEFT δεν
+αποδεικνύει από μόνη της ισοδυναμία μετά την προσαρμογή.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> σύγκριση με μη μηδενικό
+<code>B</code>, ίσα weights, ενεργό <code>alpha/r</code>, forward και
+gradient checks, και parity μετά από merge/unmerge.</p>
+<h3 id="f10--quantization-benchmark-δεν-καλύπτει-όσα-υπόσχεται">F10 —
+Quantization benchmark δεν καλύπτει όσα υπόσχεται</h3>
+<p><strong>Προτεραιότητα: P1.</strong> <a href="Makefile">Makefile</a>,
+<a href="scripts/quantize_distilbert.py">quantize_distilbert.py</a></p>
+<p>Το target δείχνει σε <code>runs/distilbert/best</code>, ενώ ο encoder
+trainer αποθηκεύει στο <code>runs/distilbert</code>. Το script
+καταγράφει accuracy, όχι macro-F1, παρότι το DESIGN περιγράφει F1
+degradation. Ο υπολογισμός μεγέθους από <code>model.parameters()</code>
+δεν είναι αξιόπιστος για packed dynamic-quantized weights.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> σωστό checkpoint path,
+full-test quality metrics με έμφαση macro-F1/class-0 F1, χωριστό latency
+sample, πραγματική serialized μέτρηση μεγέθους και hardware/protocol
+metadata. Να μην παρουσιαστεί το αναμενόμενο ~2× speedup ως αποτέλεσμα
+πριν μετρηθεί.</p>
+<h3 id="f11--serving-και-μετρήσεις-δεν-έχουν-ολοκληρωθεί">F11 — Serving
+και μετρήσεις δεν έχουν ολοκληρωθεί</h3>
+<p><strong>Προτεραιότητα: P1.</strong> <a
+href="src/reviewnlp/serving/model_wrapper.py">model_wrapper.py</a></p>
+<p>Ο encoder έχει διαδρομή φόρτωσης μία φορά. Ο Qwen wrapper, όμως,
+καλεί predictor που φορτώνει μοντέλο ανά request. Το API description
+αναφέρει BiLSTM, αλλά το wrapper δεν υποστηρίζει
+<code>MODEL_TYPE=bilstm</code>.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> επιλογή του πραγματικού
+μοντέλου που θα παρουσιαστεί, load-once inference για την υποστηριζόμενη
+διαδρομή, ευθυγράμμιση περιγραφής/υποστήριξης και live smoke. Το Qwen
+load-once είναι απαραίτητο εάν διατηρηθεί η δήλωση υποστήριξής του. Το
+υποχρεωτικό encoder demo δεν εξαρτάται από την προσθήκη BiLSTM
+serving.</p>
+<p>Το load test χρειάζεται <code>--host http://127.0.0.1:8000</code>,
+έλεγχο schema του CSV και εξαγωγή CSV. Να καταγραφούν RPS, p50/p95,
+errors, users, spawn rate, endpoint mix, hardware και model path. Docker
+να επαληθευτεί σε μηχάνημα με διαθέσιμο daemon και, ιδανικά, σε CI smoke
+job.</p>
+<h3
+id="f12--annotation-demo-χωρίς-αποθηκευμένο-και-ελεγμένο-αποτέλεσμα">F12
+— Annotation demo χωρίς αποθηκευμένο και ελεγμένο αποτέλεσμα</h3>
+<p><strong>Προτεραιότητα: P2.</strong></p>
+<p>Το notebook χρησιμοποιεί base Qwen, ενώ η περιγραφή του dataset μιλά
+για fine-tuned LLM. Δηλώνει CPU δυνατότητα αλλά φορτώνει υποχρεωτικά
+4-bit configuration χωρίς CPU εναλλακτική. Το confidence είναι τιμή που
+παράγει το ίδιο το LLM, όχι βαθμονομημένη πιθανότητα.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> σαφής επιλογή
+base/fine-tuned μοντέλου και συσκευής, config για sample/threshold,
+ασφαλής επικύρωση JSON/confidence, αποθήκευση annotations και ανθρώπινος
+έλεγχος δείγματος. Να μη συγχωνευθούν αυτόματα pseudo-labels στο frozen
+benchmark dataset.</p>
+<h3
+id="f13--readme-notebooks-και-κανόνες-αναπαραγωγής-χρειάζονται-ενοποίηση">F13
+— README, notebooks και κανόνες αναπαραγωγής χρειάζονται ενοποίηση</h3>
+<p><strong>Προτεραιότητα: P2.</strong></p>
+<p>Το root README περιέχει εκτενές κείμενο αποτελεσμάτων και
+αποσπασμάτων συνομιλίας, ενώ το nested README περιορίζεται στα classical
+baselines. Υπάρχουν παλιές δηλώσεις «μόνο ένα seed / κανένα baseline»
+μαζί με μεταγενέστερα αποτελέσματα πολλών seeds, «current best BiLSTM»
+πριν από το νεότερο DistilBERT και διπλά <code>%%</code>.</p>
+<p>Το root <code>BILSTM.ipynb</code> περιέχει στο stdout και παλαιότερο
+<code>ModuleNotFoundError</code>, παρότι δεν υπάρχει Jupyter error-type
+output. Το εκτελεσμένο threshold notebook βρίσκεται σε πρόσθετο nested
+φάκελο· υπάρχουν δύο canonical notebooks με πρόθεμα <code>04</code>. Η
+παρουσία εκτελεσμένων κελιών δεν πιστοποιεί ότι κάθε shell command
+ολοκληρώθηκε επιτυχώς.</p>
+<p><strong>Απαιτούμενη ολοκλήρωση:</strong> ένα authoritative README με
+installation/quickstart, versioned results και links σε artifacts·
+experiment reports για τα ιστορικά runs· καταγεγραμμένα configs/exit
+codes· καθαροί σύνδεσμοι Colab προς τη σωστή έκδοση· προσωπικά metadata
+και release checklist. Μεταφορά του tracked metrics JSON από
+<code>runs/</code> σε τεκμηρίωση με provenance, χωρίς απώλεια ιστορικών
+αποτελεσμάτων.</p>
+<p>Οι standing rules είναι <strong>μερικώς τηρημένοι</strong>: υπάρχουν
+YAML configs και μικρά commits, αλλά και hardcoded notebook/CLI settings
+και commits τύπου upload. Δεν μπορεί να αποδειχθεί «commit μετά από κάθε
+green run». Δεν βρέθηκε πλήρες, δομημένο αρχείο αποτυχημένων Colab
+runs.</p>
+<h2 id="6-προτεινόμενη-σειρά-για-την-ολοκλήρωση">6. Προτεινόμενη σειρά
+για την ολοκλήρωση</h2>
+<table>
+<thead>
+<tr>
+<th>Σειρά</th>
+<th>Εργασία</th>
+<th>Definition of done</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Δεδομένα και πειραματικό πρωτόκολλο</td>
+<td>F01 λυμένο, νέο versioned split μετά το F02, μηδενικά normalized
+overlaps, manifests και ενημερωμένα expected counts.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Classical και BiLSTM</td>
+<td>F03–F05 λυμένα, επιλογή στο dev, πλήρη artifacts, row-order tests
+και reproducible metrics.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Κλείσιμο encoder/LoRA</td>
+<td>Ανάκτηση ιστορικών GPU bundles, ενισχυμένο PEFT test, νέα
+full-FT/LoRA runs στα νέα κοινά splits, configs/CSV/hashes/reload
+smoke.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>QLoRA</td>
+<td>F08 λυμένο, clean-runtime notebook, adapter export/reload, sanity
+reviews και test predictions με IDs.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Unified benchmark</td>
+<td>Και οι πέντε οικογένειες υποχρεωτικά παρούσες, πραγματικό latency,
+κοινό test fingerprint, <code>results.json</code>, δύο plots και
+McNemar.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Serving / INT8 / load / Docker</td>
+<td>Πραγματικός encoder server, demo capture, FP32–INT8
+quality/latency/size, Locust CSV και επιτυχές container smoke.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Annotation και τελική παρουσίαση</td>
+<td>Αποθηκευμένο annotation demo, ανθρώπινο spot-check, ενιαίο README,
+CI badge, six-line future-work paragraph, Loom και ελεγμένο tag
+v1.0.0.</td>
+</tr>
+</tbody>
+</table>
+<p>Η επανεκπαίδευση όλων των μοντέλων πριν διορθωθούν δεδομένα και
+benchmark θα παρήγαγε νέα artifacts πάνω στα ίδια προβλήματα. Η σειρά
+1–2 προηγείται των νέων GPU runs. Η μελέτη LoRA και η οργάνωση παλαιών
+artifacts μπορούν να γίνονται παράλληλα με τις διορθώσεις.</p>
+<p>Δεν δίνεται αυθαίρετη εκτίμηση ημερών: ο απαιτούμενος χρόνος
+εξαρτάται από τη διαθεσιμότητα των παλιών artifacts, το target hardware
+και την επίλυση των πραγματικών failures.</p>
+<h2 id="7-τελική-checklist-αποδοχής-v100">7. Τελική checklist αποδοχής
+v1.0.0</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Καθαρό checkout εγκαθίσταται από
+τεκμηριωμένες εντολές στο σωστό nested directory.</label></li>
+<li><label><input type="checkbox" />Τα δύο CSV έχουν διαφορετικά ονόματα
+και σωστά schemas σε Windows και Linux.</label></li>
+<li><label><input type="checkbox" />Versioned train/dev/test, χωρίς
+normalized overlap, με αποθηκευμένα fingerprints.</label></li>
+<li><label><input type="checkbox" />Word και character NB/LR-SGD είναι
+πράγματι διαφορετικά feature views· επιλογή με dev.</label></li>
+<li><label><input type="checkbox" />BiLSTM vocab/config/weights και
+predictions είναι πλήρη και ευθυγραμμισμένα με τα test IDs.</label></li>
+<li><label><input type="checkbox" />Full FT, scratch LoRA και QLoRA
+έχουν reloadable artifacts και provenance.</label></li>
+<li><label><input type="checkbox" />Η σύγκριση με PEFT καλύπτει και μη
+μηδενική προσαρμογή.</label></li>
+<li><label><input type="checkbox" />Το benchmark απαιτεί πέντε
+οικογένειες και παράγει JSON, plots, significance και live
+latency.</label></li>
+<li><label><input type="checkbox" />Encoder API, screenshot/demo,
+quantization, load test και Docker έχουν πραγματικά
+τεκμήρια.</label></li>
+<li><label><input type="checkbox" />Annotation demo αποθηκεύει ελεγμένα
+αποτελέσματα χωρίς αλλοίωση του test set.</label></li>
+<li><label><input type="checkbox" />README και DESIGN συμφωνούν με τα
+τελικά δεδομένα· υπάρχει badge, Loom και future-work
+paragraph.</label></li>
+<li><label><input type="checkbox" />Raw μεγάλα δεδομένα και weights
+μένουν εκτός Git· μικρά evidence summaries έχουν
+provenance.</label></li>
+<li><label><input type="checkbox" />CI περνά στο ακριβές release commit
+και το tag δημιουργείται μετά την αποδοχή των παραπάνω.</label></li>
+</ul>
+<p>Το DESIGN §8 ήδη περιέχει τέσσερις ιδέες future work, αλλά δεν
+αποτελεί ακόμη την ζητούμενη τελική παράγραφο έξι γραμμών για το
+application email. Η αλλαγή σε score-based τρεις κλάσεις πρέπει να
+διατυπωθεί ως νέο, διαφορετικό labeling task και όχι ως συνέχεια που
+αναιρεί σιωπηρά τον σημερινό schema-based στόχο.</p>
+<h2 id="8-σύγκριση-τοπικού-και-github--συγχρονισμός">8. Σύγκριση τοπικού
+και GitHub / συγχρονισμός</h2>
+<p>Το πραγματικό Git root είναι ο εξωτερικός φάκελος
+<code>Downloads/hotel-review-nlp</code>. Το Python project είναι ο
+εσωτερικός <code>hotel-review-nlp/</code>.</p>
+<p>Πριν από τον έλεγχο:</p>
+<ul>
+<li>Τοπικό <code>main</code>: <code>1a6cd19</code>.</li>
+<li>Remote <code>main</code> μετά από πραγματικό fetch:
+<code>e0c3289</code>.</li>
+<li>Διαφορά: <strong>8 commits</strong> και 19 αρχεία που ενημερώθηκαν
+με fast-forward.</li>
+<li>Προϋπάρχουσες τοπικές αλλαγές: <code>configs/bilstm.yaml</code>,
+<code>baselines/bilstm.py</code> και το μεγάλο CSV στη θέση του
+μικρού.</li>
+<li>Το fast-forward ολοκληρώθηκε χωρίς conflicts και διατήρησε τις
+τοπικές αλλαγές.</li>
+</ul>
+<p>Οι δύο τοπικές διορθώσεις BiLSTM αφορούν τη θέση του
+<code>embedding_dim</code> στο config και τη χρήση αριθμητικών labels
+στις μετρικές. Περιλαμβάνονται στον έλεγχο και στον συγχρονισμό. Δεν
+αποτελούν επίλυση των υπόλοιπων F02–F13.</p>
+<p>Αντίγραφα των τριών αρχικών τοπικών αρχείων υπάρχουν στον γειτονικό
+φάκελο <code>Downloads/hotel-review-nlp-backup-20260909</code>. Το
+πλήρες CSV και το backup έχουν SHA-256:</p>
+<pre class="text"><code>a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9</code></pre>
+<p><strong>Κατάσταση κατά τη σύνταξη:</strong> Το πλήρες Booking CSV
+διατηρήθηκε επιπλέον ως <code>data/raw/booking_reviews_515k.csv</code>
+με ίδιο SHA-256. Ενημερώθηκαν baseline config, EDA, σχετική οδηγία QLoRA
+και τεκμηρίωση download ώστε τα δύο datasets να έχουν διαφορετικά
+ονόματα. Το νέο μεγάλο αρχείο είναι ignored.</p>
+<p><strong>Εκκρεμής τοπική εξαίρεση:</strong> Το παλιό
+<code>data/raw/hotel_reviews.csv</code> παραμένει κλειδωμένο για εγγραφή
+από άλλη εφαρμογή. Δεν αποκαταστάθηκε ακόμη το μικρό 658-row δείγμα σε
+αυτή τη διαδρομή. Ο συγχρονισμός των πηγαίων αρχείων και της αναφοράς
+μπορεί να ολοκληρωθεί ανεξάρτητα, αλλά το working tree θα δείχνει αυτή
+τη μία τροποποίηση δεδομένων μέχρι να κλείσει το αρχείο. Δεν πρέπει να
+γίνει commit του μεγάλου CSV. Έχει ζητηθεί από τον χρήστη να το κλείσει·
+δεν τερματίστηκε κάποια εφαρμογή του.</p>
+<p>Μετά το κλείσιμο, με επαληθευμένα τα δύο αντίγραφα του Booking CSV, η
+αποκατάσταση του tracked δείγματος από το Git καταργεί τη διαφορά. Το
+annotation/load-test schema σε αυτή τη διαδρομή παραμένει προσωρινά
+μπλοκαρισμένο.</p>
+<p>Ο τελικός συγχρονισμός κώδικα και αναφοράς ελέγχεται με
+<code>git status --short --branch</code>,
+<code>git rev-parse HEAD</code> και πραγματικό
+<code>git ls-remote origin refs/heads/main</code>. Τα ignored datasets,
+parquet, περιβάλλοντα και μεγάλα μοντέλα παραμένουν τοπικά· Git
+synchronization δεν μεταφέρει Colab/Drive/W&amp;B artifacts
+αυτόματα.</p>
+<h2 id="9-εντολές-επανελέγχου">9. Εντολές επανελέγχου</h2>
+<p>Από τον εσωτερικό φάκελο του Python project:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\<span class="op">.</span><span class="fu">venv</span>\Scripts\python<span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>m pytest tests <span class="op">-</span>v <span class="op">-</span>rs <span class="op">-</span>p no<span class="op">:</span>cacheprovider</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\<span class="op">.</span><span class="fu">venv</span>\Scripts\python<span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>m ruff check src tests scripts <span class="op">--</span>no-cache</span></code></pre></div>
+<p>Οι παρακάτω είναι <strong>εντολές για το στάδιο ολοκλήρωσης</strong>,
+αφού διορθωθούν τα σχετικά findings και υπάρχουν τα checkpoints. Δεν
+εκτελέστηκαν ως μέρος του audit:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span><span class="va">MODEL_TYPE</span> <span class="op">=</span> <span class="st">&#39;encoder&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span><span class="va">MODEL_PATH</span> <span class="op">=</span> <span class="st">&#39;runs/distilbert&#39;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\<span class="op">.</span><span class="fu">venv</span>\Scripts\python<span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>m uvicorn reviewnlp<span class="op">.</span><span class="fu">serving</span><span class="op">.</span><span class="fu">app</span><span class="op">:</span>app <span class="op">--</span>host <span class="dv">127.0</span><span class="op">.</span><span class="dv">0.1</span> <span class="op">--</span>port <span class="dv">8000</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Σε δεύτερο terminal:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\<span class="op">.</span><span class="fu">venv</span>\Scripts\python<span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>m locust <span class="op">-</span>f scripts<span class="op">/</span>load_test<span class="op">.</span><span class="fu">py</span> <span class="op">--</span>host http<span class="op">://</span><span class="dv">127.0</span><span class="op">.</span><span class="dv">0.1</span><span class="op">:</span><span class="dv">8000</span> <span class="op">--</span>headless <span class="op">-</span>u <span class="dv">20</span> <span class="op">-</span>r <span class="dv">2</span> <span class="op">-</span>t <span class="dv">60</span><span class="dt">s</span> <span class="op">--</span>only-summary <span class="op">--</span>csv artifacts<span class="op">/</span>serving-load</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">.</span>\<span class="op">.</span><span class="fu">venv</span>\Scripts\python<span class="op">.</span><span class="fu">exe</span> scripts<span class="op">/</span>quantize_distilbert<span class="op">.</span><span class="fu">py</span> <span class="op">--</span>model runs<span class="op">/</span>distilbert <span class="op">--</span>dataset <span class="kw">data</span><span class="op">/</span>processed<span class="op">/</span>test<span class="op">.</span><span class="fu">parquet</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>docker build <span class="op">-</span>f docker<span class="op">/</span>Dockerfile <span class="op">-</span>t hotel-review-nlp<span class="op">:</span>latest <span class="op">.</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>docker run <span class="op">--</span>rm <span class="op">-</span>p <span class="dv">8000</span><span class="op">:</span><span class="dv">8000</span> <span class="op">-</span>e MODEL_TYPE<span class="op">=</span>stub hotel-review-nlp<span class="op">:</span>latest</span></code></pre></div>
+<p>Το <code>make</code> και το <code>docker</code> δεν βρέθηκαν στο PATH
+του ελεγμένου Windows περιβάλλοντος. Οι Python module εντολές του
+Makefile μπορούν να εκτελούνται από το virtual environment· αυτό δεν
+παρακάμπτει τις τεχνικές εκκρεμότητες.</p>
+<h2 id="10-πηγές-και-όρια">10. Πηγές και όρια</h2>
+<p>Πρωτεύον τεκμήριο είναι το <a
+href="https://github.com/krimits/hotel-review-nlp/blob/e0c3289aa5f95cb130207055e921d03291b4df23/hotel-review-nlp/ACTION_PLAN.md">αρχικό
+snapshot του ACTION_PLAN</a>, μαζί με τον αντίστοιχο κώδικα και τα
+τοπικά artifacts. Η διαθέσιμη root README σύγκριση διατηρείται ως
+<strong>δηλωμένη πειραματική τεκμηρίωση</strong>, όχι ως ανεξάρτητη
+επαλήθευση των cloud runs.</p>
+<p>Το <a href="docs/audit/2026-09-09/evidence.json">evidence.json</a>
+περιέχει το snapshot της απογραφής και των ελέγχων πριν από τις αλλαγές
+ονομάτων CSV, μαζί με την επαληθευμένη CI κατάσταση. Δεν περιέχει raw
+review texts ή model weights. Η HTML έκδοση είναι παράλληλη αναγνώσιμη
+απόδοση αυτής της Markdown αναφοράς.</p>
+<p>Η αναφορά προσδιορίζει τι απαιτείται για ολοκλήρωση. Δεν πιστοποιεί
+production deployment, νέα GPU runs ή έτοιμο release.</p>
+</body>
+</html>

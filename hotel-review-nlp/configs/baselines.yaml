@@ -3,7 +3,7 @@ seed: 42
 
 data:
   # Booking.com 515K Hotel Reviews (Kaggle id below) - see data/raw/README.md
-  raw_csv: data/raw/Hotel_Reviews.csv
+  raw_csv: data/raw/booking_reviews_515k.csv
   processed_dir: data/processed
   # A review is labeled positive when only Positive_Review is present
   # ('No Negative' in the negative slot) and vice versa. This removes any
