@@ -1,0 +1,186 @@
+{
+  "experiment_id": "distilbert_legacy_full_v1",
+  "git_commit": "530cf9e14eea7e527a240ea470ae3a8e222c4d3f",
+  "files": [
+    {
+      "path": "data_manifest.json",
+      "bytes": 1021,
+      "sha256": "41255c27e07d6c07c4feabbff0b99fa51c2e7b34fd218e56a902138139dd490c"
+    },
+    {
+      "path": "distilbert/config.json",
+      "bytes": 634,
+      "sha256": "c70c6077460c480419f918fdf5986d4c60a960c3484a9fe8dbe26d88f21b76ce"
+    },
+    {
+      "path": "distilbert/dev_labels.npy",
+      "bytes": 119104,
+      "sha256": "74e93205f2ade10feda5c5bcbf280db2d241aa83c2857c0f79b94f58e423860e"
+    },
+    {
+      "path": "distilbert/dev_logits.npy",
+      "bytes": 119104,
+      "sha256": "995b4dbda530d2cc66c98b7accf6b298fa213441a365bc5d8ec124cfab62edc0"
+    },
+    {
+      "path": "distilbert/metrics.json",
+      "bytes": 1656,
+      "sha256": "4e6bd1b57a3281459697b62a8dc50815a0b1e480ab1b11e4a05d27547be0e502"
+    },
+    {
+      "path": "distilbert/model.safetensors",
+      "bytes": 267832560,
+      "sha256": "f30daa44e795b7015151892ff5ec285e14a916e122902aa0617a15bf96ec54b7"
+    },
+    {
+      "path": "distilbert/request.json",
+      "bytes": 678,
+      "sha256": "77ab7b4ae66521e2ae1110c72a8001e6401ddd09b649218096c9fc1192cdce3e"
+    },
+    {
+      "path": "distilbert/run_config.yaml",
+      "bytes": 381,
+      "sha256": "a6c2e44499d50ec2a13d68e55852f3c7ac0dc3c531ba45b7e8bccf26542b3b20"
+    },
+    {
+      "path": "distilbert/special_tokens_map.json",
+      "bytes": 125,
+      "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "path": "distilbert/test_labels.npy",
+      "bytes": 106352,
+      "sha256": "b29bd18b405b17dfd61548b768085b24eff8acd5019eb381b4c1364ed61096e2"
+    },
+    {
+      "path": "distilbert/test_logits.npy",
+      "bytes": 106352,
+      "sha256": "ed8a89cf72e629cf0aaca031b8af1d724a2aeb715a63820f976710d6768c5c33"
+    },
+    {
+      "path": "distilbert/tokenizer.json",
+      "bytes": 711494,
+      "sha256": "8b79639ec74b46604e730f505186eaafb1006d2fd00f2c4930d168bb7f894680"
+    },
+    {
+      "path": "distilbert/tokenizer_config.json",
+      "bytes": 1227,
+      "sha256": "a3c9410f27554c6e26af779fd147e536c6c5f9e5cb0e6b8f38ddaa25e1b0f6af"
+    },
+    {
+      "path": "distilbert/train.log",
+      "bytes": 893,
+      "sha256": "eddd997f04a0f8b33dcffe5ce9975707ac1887eb1bdb7e2c70e1d7696b14a71c"
+    },
+    {
+      "path": "distilbert/vocab.txt",
+      "bytes": 231508,
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    },
+    {
+      "path": "distilbert_comparison.csv",
+      "bytes": 539,
+      "sha256": "9acd2dc2a38e1f4d086f3484501b1bf838adcdb62f5dfadea5f15311a263aa4e"
+    },
+    {
+      "path": "distilbert_comparison.json",
+      "bytes": 978,
+      "sha256": "188ee68953baaeb5ddb4c235d647c9f424aae9db1c2c2accc80302eb3522d7a5"
+    },
+    {
+      "path": "distilbert_lora_scratch/config.json",
+      "bytes": 634,
+      "sha256": "c70c6077460c480419f918fdf5986d4c60a960c3484a9fe8dbe26d88f21b76ce"
+    },
+    {
+      "path": "distilbert_lora_scratch/dev_labels.npy",
+      "bytes": 119104,
+      "sha256": "74e93205f2ade10feda5c5bcbf280db2d241aa83c2857c0f79b94f58e423860e"
+    },
+    {
+      "path": "distilbert_lora_scratch/dev_logits.npy",
+      "bytes": 119104,
+      "sha256": "991f976b881021e5a4652dac0fc7ffd84d2e849538a95e110c8a2485e99c1dd8"
+    },
+    {
+      "path": "distilbert_lora_scratch/lora_scratch.pt",
+      "bytes": 2968633,
+      "sha256": "9809258545054057704eb6fa03ddf0d4c337b65a0b48f8c1883d899a7e84c719"
+    },
+    {
+      "path": "distilbert_lora_scratch/lora_scratch_config.json",
+      "bytes": 166,
+      "sha256": "587dcbebc8039dfafb2ead7106ed2d4b1087d6888e2a446f49802e7d4e81aff1"
+    },
+    {
+      "path": "distilbert_lora_scratch/metrics.json",
+      "bytes": 1867,
+      "sha256": "0d62cbe667de8fd5282c7e61efcd3b378e196d4f97f9daf785c5c6df19a7b683"
+    },
+    {
+      "path": "distilbert_lora_scratch/model.safetensors",
+      "bytes": 267832560,
+      "sha256": "a1a29f172c68ede01d256d642110ccd52806da81bd1e6ccafe77b3163df01a15"
+    },
+    {
+      "path": "distilbert_lora_scratch/request.json",
+      "bytes": 786,
+      "sha256": "5d75255246f611db263cb2c2ec51d46dd90441499fd4dcc3120f4d8f46cbb156"
+    },
+    {
+      "path": "distilbert_lora_scratch/run_config.yaml",
+      "bytes": 381,
+      "sha256": "a6c2e44499d50ec2a13d68e55852f3c7ac0dc3c531ba45b7e8bccf26542b3b20"
+    },
+    {
+      "path": "distilbert_lora_scratch/special_tokens_map.json",
+      "bytes": 125,
+      "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "path": "distilbert_lora_scratch/test_labels.npy",
+      "bytes": 106352,
+      "sha256": "b29bd18b405b17dfd61548b768085b24eff8acd5019eb381b4c1364ed61096e2"
+    },
+    {
+      "path": "distilbert_lora_scratch/test_logits.npy",
+      "bytes": 106352,
+      "sha256": "eede87fa2e167bac9fb327d956a13f0e86adf1e4931007f46f8f45b6908245a6"
+    },
+    {
+      "path": "distilbert_lora_scratch/tokenizer.json",
+      "bytes": 711494,
+      "sha256": "8b79639ec74b46604e730f505186eaafb1006d2fd00f2c4930d168bb7f894680"
+    },
+    {
+      "path": "distilbert_lora_scratch/tokenizer_config.json",
+      "bytes": 1227,
+      "sha256": "a3c9410f27554c6e26af779fd147e536c6c5f9e5cb0e6b8f38ddaa25e1b0f6af"
+    },
+    {
+      "path": "distilbert_lora_scratch/train.log",
+      "bytes": 1025,
+      "sha256": "1087d6beb02b24f3a1a3b059d1a6ecd9e6ccf7cc0b32f658f69fd823c35f3ae8"
+    },
+    {
+      "path": "distilbert_lora_scratch/vocab.txt",
+      "bytes": 231508,
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 3749,
+      "sha256": "6b0a1753a363b98b0c1d84a5697ea96c3d873f1647f1e79c7c4a80f772697cfc"
+    },
+    {
+      "path": "mcnemar_full_vs_lora.json",
+      "bytes": 177,
+      "sha256": "ed8be1fdd840cfe18ba6b51226c416b2268d55d10476df17f064755a12c54948"
+    },
+    {
+      "path": "trackio_final_metrics.json",
+      "bytes": 390,
+      "sha256": "403d4309578504fd65109cc9f7a9e22ed3147aff76c5c4ae91cc1f460c704b25"
+    }
+  ]
+}

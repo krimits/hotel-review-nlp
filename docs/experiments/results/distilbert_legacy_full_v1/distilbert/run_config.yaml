@@ -1,0 +1,17 @@
+seed: 42
+model:
+  name: distilbert-base-uncased
+  max_length: 256
+data:
+  processed_dir: /content/hotel-review-nlp/data/processed
+  train_cap: null
+train:
+  batch_size: 32
+  eval_batch_size: 64
+  epochs: 2
+  lr: 2.0e-05
+  weight_decay: 0.01
+  warmup_ratio: 0.06
+  fp16: true
+output:
+  model_dir: /content/drive/MyDrive/hotel-review-nlp-results/distilbert_legacy_full_v1/distilbert

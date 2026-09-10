@@ -1,0 +1,12 @@
+{
+  "full_ft/best_dev_macro_f1": 0.9602,
+  "full_ft/test_macro_f1": 0.9634,
+  "full_ft/test_accuracy": 0.9727,
+  "full_ft/training_minutes": 14.54276896661667,
+  "full_ft/peak_cuda_mb": 2534.44091796875,
+  "lora/best_dev_macro_f1": 0.9522,
+  "lora/test_macro_f1": 0.9573,
+  "lora/test_accuracy": 0.968,
+  "lora/training_minutes": 9.452843176933333,
+  "lora/peak_cuda_mb": 1562.98681640625
+}

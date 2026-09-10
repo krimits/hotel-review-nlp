@@ -33,6 +33,7 @@ runs/benchmark/*
 data/processed_v*/
 artifacts/
 reports/
+/distilbert_legacy_full_v1_handoff/
 
 # Model weights
 *.safetensors

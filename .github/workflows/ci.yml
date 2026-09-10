@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -28,3 +30,4 @@ jobs:
       - run: pip install -e ".[dev,serving]"
       - run: pip install transformers==4.56.2 peft==0.17.1 accelerate==1.10.1
       - run: pytest tests -v
+      - run: python scripts/verify_distilbert_handoff.py

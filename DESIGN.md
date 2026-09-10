@@ -70,14 +70,33 @@ not to bake in overkill.
 
 ## 5. Evaluation methodology
 
-- **One test set, never tuned.** Test rows are sampled once by seed and capped per class;
-  every family scores the same ids. Dev is used for early stopping only.
-- **Exact McNemar**, not the chi-square approximation: with 10k test rows, discordant pairs
-  are few and the exact binomial p-value stays valid (Dietterich 1998).
+- **One versioned test set.** Compared models must use the same ordered test rows.
+  Select checkpoints and hyperparameters on dev. Historical classical results predate
+  the fix that moved model selection from test to dev, so they remain legacy evidence.
+- **Exact McNemar** uses the binomial distribution of discordant paired predictions
+  (Dietterich 1998). It tests classification errors, not a macro-F1 difference.
 - **Latency is measured, not guessed**: p50/p95 per text, batch of 64, three repeats after
   warmup - same protocol before/after INT8 quantization.
 - **Artifacts, not screenshots**: `results.json`, `confusion.png`, `latency.png` are
   generated files; the README table is meant to be filled from them.
+
+### Verified full-data encoder runs (2026-09-10)
+
+The [Colab handoff](docs/experiments/results/distilbert_legacy_full_v1/README.md)
+contains predictions for full DistilBERT and scratch LoRA trained on the same 118,990
+reviews. Recomputing scores gives macro-F1 0.9634 / 0.9573 and accuracy 0.9727 / 0.9680.
+Full FT alone is correct on 122 test reviews and LoRA alone on 60; exact McNemar
+p = 5.02808218497859e-06. The effective learning rates differ (2e-5 / 1e-4); both
+runs use seed 42, two epochs, batch size 32, maximum length 256, and FP16 on a T4.
+
+This is a completed full-data encoder comparison. It is not yet the complete
+five-family benchmark or a live-inference latency/quantization result. The handoff
+omits the full weights and tokenizers needed for those inference checks.
+
+The frozen legacy split has 180 normalized train/dev overlaps, 170 train/test
+overlaps, and 24 dev/test overlaps. Preserving it enables historical comparison,
+but the scores are not a leakage-free generalization estimate. The newer deduplicating
+preprocessor creates different splits, requiring a separate version and fresh runs.
 
 ## 6. Serving: boring on purpose
 

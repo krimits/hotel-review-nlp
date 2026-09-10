@@ -1,0 +1,8 @@
+2026-09-10 08:47:22.118874: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: ['classifier.bias', 'classifier.weight', 'pre_classifier.bias', 'pre_classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+params: 66,955,010 total | 66,955,010 trainable (100.00%)
+epoch 1 | loss 0.1237 | dev macro-F1 0.9585 | lr 1.10e-05 | 437s
+epoch 2 | loss 0.0756 | dev macro-F1 0.9602 | lr 1.01e-12 | 435s
+TEST macro-F1 0.9634 acc 0.9727

@@ -1,0 +1,3 @@
+model,git_commit,train_rows,trainable_params,adapter_params,head_params,total_params,trainable_pct,best_dev_macro_f1,test_macro_f1,test_accuracy,training_minutes,peak_cuda_mb,learning_rate
+DistilBERT full FT,530cf9e14eea7e527a240ea470ae3a8e222c4d3f,118990,66955010,0,592130,66955010,100.0,0.9602,0.9634,0.9727,14.54276896661667,2534.44091796875,2e-05
+DistilBERT scratch LoRA + head,530cf9e14eea7e527a240ea470ae3a8e222c4d3f,118990,739586,147456,592130,67102466,1.10217409893699,0.9522,0.9573,0.968,9.452843176933333,1562.98681640625,0.0001

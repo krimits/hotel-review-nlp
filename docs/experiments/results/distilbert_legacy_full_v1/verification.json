@@ -1,0 +1,107 @@
+{
+  "experiment_id": "distilbert_legacy_full_v1",
+  "training_git_commit": "530cf9e14eea7e527a240ea470ae3a8e222c4d3f",
+  "verified_manifest_files": 23,
+  "source_files_matching_training_commit": 29,
+  "local_frozen_parquets_verified": true,
+  "omitted_full_model_files": [
+    "distilbert/config.json",
+    "distilbert/model.safetensors",
+    "distilbert/special_tokens_map.json",
+    "distilbert/tokenizer.json",
+    "distilbert/tokenizer_config.json",
+    "distilbert/vocab.txt",
+    "distilbert_lora_scratch/config.json",
+    "distilbert_lora_scratch/lora_scratch.pt",
+    "distilbert_lora_scratch/model.safetensors",
+    "distilbert_lora_scratch/special_tokens_map.json",
+    "distilbert_lora_scratch/tokenizer.json",
+    "distilbert_lora_scratch/tokenizer_config.json",
+    "distilbert_lora_scratch/vocab.txt"
+  ],
+  "recomputed_test_metrics": {
+    "distilbert": {
+      "accuracy": 0.9727,
+      "macro_f1": 0.9634,
+      "macro_precision": 0.9617,
+      "macro_recall": 0.965,
+      "weighted_f1": 0.9727,
+      "per_class": {
+        "negative": {
+          "precision": 0.9399,
+          "recall": 0.95,
+          "f1": 0.9449,
+          "support": 3278
+        },
+        "positive": {
+          "precision": 0.9835,
+          "recall": 0.9801,
+          "f1": 0.9818,
+          "support": 10000
+        }
+      },
+      "confusion_matrix": [
+        [
+          3114,
+          164
+        ],
+        [
+          199,
+          9801
+        ]
+      ]
+    },
+    "distilbert_lora_scratch": {
+      "accuracy": 0.968,
+      "macro_f1": 0.9573,
+      "macro_precision": 0.9537,
+      "macro_recall": 0.9611,
+      "weighted_f1": 0.9681,
+      "per_class": {
+        "negative": {
+          "precision": 0.9247,
+          "recall": 0.9475,
+          "f1": 0.936,
+          "support": 3278
+        },
+        "positive": {
+          "precision": 0.9827,
+          "recall": 0.9747,
+          "f1": 0.9787,
+          "support": 10000
+        }
+      },
+      "confusion_matrix": [
+        [
+          3106,
+          172
+        ],
+        [
+          253,
+          9747
+        ]
+      ]
+    }
+  },
+  "mcnemar": {
+    "statistic": 60,
+    "p_value": 0.00000502808218497859,
+    "significant_at_0.05": true,
+    "n_discordant": 182,
+    "full_correct_lora_wrong": 122,
+    "full_wrong_lora_correct": 60
+  },
+  "reported_training_cost_comparison": {
+    "gpu": "Tesla T4",
+    "training_time_reduction_pct": 34.999701923116575,
+    "peak_memory_reduction_pct": 38.33011433310824,
+    "macro_f1_difference_pp": -0.6099999999999994,
+    "lora_trainable_pct": 1.10217409893699
+  },
+  "limitations": [
+    "The legacy splits contain the cross-split overlaps recorded in data_manifest.json.",
+    "Training cost and parameter counts are reported run metadata; GPU training was not repeated.",
+    "This handoff omits weights and tokenizers, so checkpoint reload and latency are not verified.",
+    "McNemar compares paired classification errors, not macro-F1 or variation across training seeds."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "purpose": "historical full-data comparison; known cross-split overlap retained",
+  "parquet_file_sha256": {
+    "train": "ce52f8f34003f23c161d0e0a001b1009e80ca094c85a3522232a815748860fac",
+    "dev": "cb6e0cff8fb264cd0c21fd990278c0bb95106572baa1b5512cc23e011ac317d1",
+    "test": "8b37675028c8081951ee0ebd1181aaf484d63058122b7088288266fe992a7be1"
+  },
+  "semantic_fingerprints": {
+    "train": {
+      "rows": 118990,
+      "negative": 26232,
+      "positive": 92758,
+      "sha256": "1a5111176aafc286a7c784c9dec3abc2528b4b94d67fc8e7000ba4df4bfbd627"
+    },
+    "dev": {
+      "rows": 14872,
+      "negative": 3278,
+      "positive": 11594,
+      "sha256": "7c080936decc0b470cec4eb162c121fc1245643ba095fa4d602529bc9baa8e9f"
+    },
+    "test": {
+      "rows": 13278,
+      "negative": 3278,
+      "positive": 10000,
+      "sha256": "a02c21271639640d645d729b959ce666671d4ba4ed5abfd43e6f9b5729245730"
+    }
+  },
+  "normalized_cross_split_overlap": {
+    "train-dev": 180,
+    "train-test": 170,
+    "dev-test": 24
+  }
+}

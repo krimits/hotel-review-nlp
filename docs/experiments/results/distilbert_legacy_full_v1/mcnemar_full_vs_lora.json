@@ -1,0 +1,8 @@
+{
+  "DistilBERT full FT vs DistilBERT scratch LoRA": {
+    "statistic": 60.0,
+    "p_value": 5.02808218497859e-06,
+    "significant_at_0.05": true,
+    "n_discordant": 182
+  }
+}
