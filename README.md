@@ -1,455 +1,88 @@
-> **Έλεγχος ολοκλήρωσης — 2026-09-09:** [Αναλυτική αναφορά](hotel-review-nlp/PROJECT_COMPLETION_AUDIT_2026-09-09.md) · [HTML](hotel-review-nlp/PROJECT_COMPLETION_AUDIT_2026-09-09.html). Περιλαμβάνει επαληθευμένα αποτελέσματα, περιορισμούς των σημερινών μετρικών και εργασίες μέχρι το v1.0.0.
+# Hotel Review NLP
 
-# Hotel Review NLP Project - Week 1 Progress
+[![CI](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml/badge.svg)](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml)
 
-## Dataset Methodology
-The dataset splits and distribution after removing ambiguous reviews:
-* **Total Labeled Reviews:** 147,140
-* **Train Set:** 118,990 rows (92,758 positive / 26,232 negative)
-* **Dev Set:** 14,872 rows (11,594 positive / 3,278 negative)
-* **Test Set:** 13,278 rows (10,000 positive / 3,278 negative)
+An end-to-end sentiment-analysis project that compares classical NLP, a custom PyTorch BiLSTM, full DistilBERT fine-tuning, a from-scratch LoRA implementation, and Qwen2.5 QLoRA on one frozen hotel-review test set. The repository includes data preparation, statistically comparable evaluation, FastAPI serving, Docker support, and reproducible Colab runs.
 
-## Evaluation Results (Week 1)
-Below are the benchmark metrics comparing classical Machine Learning with Deep Learning:
+## Current results
 
-| Model Architecture | Macro-F1 | Accuracy | Status |
-| :--- | :---: | :---: | :--- |
-| **BiLSTM (Pure PyTorch)** | **0.9503** | **96.29%%** | ?? **Current Best** |
-| naive_bayes_word | 0.9345 | 95.09%% | Best Classical Baseline |
-| lr_sgd_word | 0.9173 | 94.11%% | Classical Baseline |
-| naive_bayes_char | 0.8545 | 89.91%% | Classical Baseline |
-| lr_sgd_char | 0.5681 | 78.87%% | Failed Baseline |
+The rows below are backed by preserved local metrics on the frozen legacy test set (13,278 reviews). GPU rows remain explicitly pending until their model outputs, predictions, and metrics are returned from the new Colab notebooks.
 
-The Deep Learning model **BiLSTM** achieved the highest Macro-F1 of **0.9503** on the test set, demonstrating the value of sequential text processing over simple bag-of-words counting.
+| Model | Training rows | Macro-F1 | Accuracy | Evidence status |
+|---|---:|---:|---:|---|
+| TF-IDF word (1-2 grams) + MultinomialNB | 118,990 | 0.9345 | 0.9509 | Local pipeline and metrics preserved |
+| Custom PyTorch BiLSTM | 118,990 | 0.9503 | 0.9629 | Local checkpoint and metrics preserved |
+| DistilBERT full fine-tune | 118,990 | Pending | Pending | Run notebook 05 |
+| DistilBERT + scratch LoRA | 118,990 | Pending | Pending | Run notebook 05 |
+| Qwen2.5-0.5B-Instruct + QLoRA | 20,000 configured | Pending | Pending | Run notebook 06 |
 
-Η weighted δοκιμή ολοκληρώθηκε επιτυχώς τεχνικά, αλλά δεν κέρδισε το baseline: αύξησε το recall της κλάσης 0, όμως μείωσε precision, class-0 F1, συνολικό macro-F1 και accuracy. Θα επαληθεύσω τις τελικές τιμές και το καλύτερο validation checkpoint για να κλείσουμε το πείραμα με σαφές τελικό συμπέρασμα.
+Earlier 20k-review DistilBERT runs reported 0.9580 macro-F1 for full fine-tuning and 0.9486 for LoRA. They are retained in the [experiment log](docs/EXPERIMENT_LOG.md), but are not presented as final benchmark results because their complete artifacts are unavailable and their training set differs from the BiLSTM run.
 
-Θα εξετάσω πρώτα τις δύο εκτελέσεις, τις τελικές μετρικές και τις ρυθμίσεις τους· έπειτα θα συγκρίνω τις καμπύλες εκπαίδευσης ώστε να ξεχωρίσουμε πραγματική βελτίωση από πιθανό overfitting.
+## Quickstart
 
-Η πρώτη εικόνα είναι σαφής: μόνο η νεότερη εκτέλεση κατέγραψε αποτελέσματα, ενώ η παλαιότερη ολοκληρώθηκε χωρίς καμία μετρική μοντέλου. Θα ελέγξω τώρα αν πρόκειται για ουσιαστικά διαφορετικό πείραμα ή για δοκιμαστική/κενή εκτέλεση, και πόσο σταθερή ήταν η εκπαίδευση του επιτυχημένου run.
+```bash
+git clone https://github.com/krimits/hotel-review-nlp.git
+cd hotel-review-nlp
+python -m venv .venv
+# Windows: .venv\Scripts\python -m pip install -e ".[dev,serving]"
+# Linux/macOS: .venv/bin/python -m pip install -e ".[dev,serving]"
+python -m pytest tests -v
+```
 
-Η σύγκριση δείχνει ότι τα configs είναι απολύτως ίδια. Το κενό run διήρκεσε ~8,4 λεπτά αλλά είχε 0% GPU utilization, ενώ το επιτυχημένο ολοκληρώθηκε σε ~2,1 λεπτά με ~47% μέση χρήση GPU—ένδειξη ότι το πρώτο μάλλον σταμάτησε πριν ξεκινήσει η εκπαίδευση. Θα επιβεβαιώσω την αιτία από τα logs και θα ανακτήσω τις ανά-epoch τιμές.
+Download the Booking.com 515K dataset as described in [data/raw/README.md](data/raw/README.md), then run:
 
-## Συμπέρασμα
+```bash
+python -m reviewnlp.data.preprocess --config configs/baselines.yaml
+python -m reviewnlp.baselines.classical --config configs/baselines.yaml
+python -m reviewnlp.baselines.bilstm --config configs/bilstm.yaml
+python -m reviewnlp.evaluation.benchmark --config configs/baselines.yaml
+```
 
-Το έργο περιέχει **2 runs με ίδιο όνομα και ακριβώς ίδιο configuration**, αλλά ουσιαστικά υπάρχει **μόνο ένα έγκυρο πείραμα**. Το πρώτο run δεν ξεκίνησε εκπαίδευση λόγω σφάλματος import, ενώ το δεύτερο εκπαίδευσε επιτυχώς ένα BiLSTM και πέτυχε περίπου **96,3% accuracy** και **95,0% macro-F1** στο test set.
+GPU experiments are designed for Google Colab:
 
-### 1. Επιτυχημένο run — `2aj9tzfv`
+- [DistilBERT full fine-tune and scratch LoRA](notebooks/05_distilbert_full_and_lora_colab.ipynb) uses all 118,990 training rows for a fair comparison.
+- [Qwen2.5 QLoRA](notebooks/06_qwen_qlora_colab.ipynb) trains the instruction model and exports test predictions for the shared benchmark.
 
-**Μοντέλο και δεδομένα**
+Both notebooks verify the exact split fingerprints before training and export a ZIP containing metrics, predictions, configs, and model artifacts.
 
-- BiLSTM, 1 layer, hidden dimension 128
-- Bidirectional: ναι
-- Dropout: 0,3
-- Pooling: τελευταίο hidden state
-- Learning rate: 0,001
-- Batch size: 128
-- Weight decay: 0,0001
-- Seed: 42
-- Train/dev/test: **118.990 / 14.872 / 13.278** δείγματα
-- Vocabulary: **15.138 tokens**
+## Architecture
 
-**Αποτελέσματα test**
+```mermaid
+flowchart LR
+    A[Booking.com CSV] --> B[Deterministic preprocessing]
+    B --> C[Frozen train/dev/test splits]
+    C --> D[Classical TF-IDF]
+    C --> E[PyTorch BiLSTM]
+    C --> F[DistilBERT full FT]
+    C --> G[DistilBERT scratch LoRA]
+    C --> H[Qwen QLoRA]
+    D & E & F & G & H --> I[Unified metrics and McNemar tests]
+    I --> J[FastAPI / Docker serving]
+```
 
-| Μετρική | Τιμή |
-|---|---:|
-| Accuracy | **96,29%** |
-| Macro-F1 | **95,03%** |
+The code follows a `src/` package layout:
 
-Η καλύτερη επίδοση validation εμφανίστηκε στο **3ο epoch**:
+- `reviewnlp.data`: label construction, split generation, and dataset integrity
+- `reviewnlp.baselines`: classical and custom BiLSTM training
+- `reviewnlp.lora`: dependency-free LoRA layers, merge/unmerge, and parity tests
+- `reviewnlp.llm`: DistilBERT and Qwen training/inference
+- `reviewnlp.evaluation`: metrics, plots, and exact McNemar tests
+- `reviewnlp.serving`: FastAPI inference service
 
-- dev accuracy: **96,48%**
-- dev macro-F1: **94,93%**
+## Reproducibility and evaluation
 
-Στη συνέχεια η training loss συνέχισε να μειώνεται, από **0,299 σε 0,076** συνολικά, αλλά οι validation μετρικές υποχώρησαν ελαφρά. Μετά από δύο epochs χωρίς βελτίωση ενεργοποιήθηκε σωστά το **early stopping** στο 5ο epoch. Αυτό δείχνει **ήπιο overfitting μετά το epoch 3**, όχι όμως σοβαρή αστάθεια ή έκρηξη του loss.
-
-Η εκπαίδευση ολοκληρώθηκε σε περίπου **124 δευτερόλεπτα**, με μέση χρήση GPU περίπου **47%**.
-
-### 2. Μη έγκυρο run — `aghjflvu`
-
-Παρότι εμφανίζεται ως `finished`, δεν παρήγαγε μετρικές. Το log δείχνει:
+The legacy frozen split contains 118,990 train, 14,872 development, and 13,278 test rows. Every final model must use the same ordered test fingerprint:
 
 ```text
-ModuleNotFoundError: No module named 'reviewnlp'
+a02c21271639640d645d729b959ce666671d4ba4ed5abfd43e6f9b5729245730
 ```
 
-Άρα το preprocessing δεν ξεκίνησε λόγω λάθους στο Python package/module path. Το run παρέμεινε ενεργό περίπου **501 δευτερόλεπτα**, αλλά η GPU είχε **0% utilization**. Η κατάσταση `finished` είναι παραπλανητική· πιθανότατα το εξωτερικό command απέτυχε, αλλά το wrapper script τερμάτισε με exit code 0.
-Αυτό είναι βελτίωση σε σχέση με τα προηγούμενα test αποτελέσματα και πλέον έχουμε και ανάλυση ανά κλάση. Θα επαληθεύσω ποιο config/seed χρησιμοποίησε το `mlluhlia` και αν οι νέες μετρικές αποθηκεύτηκαν στο W&B summary πριν συγκρίνω τις εκτελέσεις.
+Development data selects checkpoints and hyperparameters; test data is reserved for final scoring. The final benchmark will publish `runs/benchmark/results.json`, confusion matrices, latency measurements based on live inference, and exact paired McNemar p-values. Historical artifacts and investigation notes live under `docs/experiments/`.
 
-Η επαλήθευση δείχνει ότι το `mlluhlia` είναι seed 100 και όντως είναι το καλύτερο από τα τρία μοναδικά seeds. Υπάρχουν όμως διπλότυπα runs για seeds 50 και 100, οπότε θα υπολογίσω τη σταθερότητα μόνο πάνω στα τρία ανεξάρτητα αποτελέσματα.
+## Design notes
 
-## Το seed 100 είναι το καλύτερο αποτέλεσμα μέχρι τώρα
+Read [DESIGN.md](DESIGN.md) for the label rule, model-family rationale, LoRA implementation details, Colab memory budget, evaluation methodology, serving design, and reproducibility decisions. The evidence-backed completion audit is in [PROJECT_COMPLETION_AUDIT_2026-09-09.md](PROJECT_COMPLETION_AUDIT_2026-09-09.md).
 
-Το run `mlluhlia` ολοκληρώθηκε σωστά και πέτυχε:
+## License
 
-- **Accuracy:** 96,42%
-- **Macro-F1:** 95,21%
-- **Weighted-F1:** 96,43%
-- **Σωστές προβλέψεις:** 12.802/13.278
-- **Λάθη:** 476 — error rate 3,58%
-
-### Ανάλυση ανά κλάση
-
-| Κλάση | Support | Precision | Recall | F1 |
-|---|---:|---:|---:|---:|
-| 0 | 3.278 | 91,95% | 93,69% | 92,81% |
-| 1 | 10.000 | 97,92% | 97,31% | 97,61% |
-
-Το dataset έχει αναλογία περίπου **3,05:1** υπέρ της κλάσης 1. Η κλάση 0 παραμένει η δυσκολότερη:
-
-- 207 δείγματα της κλάσης 0 ταξινομήθηκαν ως 1 — ποσοστό λάθους **6,31%**
-- 269 δείγματα της κλάσης 1 ταξινομήθηκαν ως 0 — ποσοστό λάθους **2,69%**
-
-Άρα το ποσοστό λάθους στην κλάση 0 είναι περίπου **2,3 φορές μεγαλύτερο**, παρότι συνολικά η επίδοση είναι πολύ καλή.
-
-## Σταθερότητα μεταξύ seeds
-
-Αφαιρώντας τα διπλότυπα runs, υπάρχουν τρία ανεξάρτητα αποτελέσματα:
-
-| Seed | Test accuracy | Test macro-F1 |
-|---:|---:|---:|
-| 42 | 96,29% | 95,03% |
-| 50 | 96,23% | 94,97% |
-| **100** | **96,42%** | **95,21%** |
-
-Στα τρία seeds:
-
-- Μέση accuracy: **96,31% ± 0,09 ποσοστιαίες μονάδες**
-- Μέσο macro-F1: **95,07% ± 0,12 ποσοστιαίες μονάδες**
-
-Η πολύ μικρή διακύμανση δείχνει ότι το αποτέλεσμα είναι **σταθερό ως προς το seed**. Η βελτίωση του seed 100 είναι πραγματική αριθμητικά, αλλά μικρή—δεν αποτελεί διαφορετικό μοντέλο ή ουσιαστικό άλμα.
-
-Σημείωση: τα `macro_precision`, `macro_recall`, `weighted_f1`, `per_class` και `confusion_matrix` εμφανίστηκαν στην έξοδο, αλλά **δεν αποθηκεύτηκαν στο W&B summary**. Στα επόμενα runs αξίζει να καταγραφούν ώστε να παραμένουν συγκρίσιμα στο workspace.
-
-Η πιο χρήσιμη επόμενη δοκιμή είναι class-weighted loss ή threshold tuning πάνω στο **dev set**, με κύριο objective το macro-F1/κλάση-0 F1· το test set πρέπει να χρησιμοποιηθεί μόνο μετά την επιλογή του threshold.
-
-## Τι σημαίνουν συνολικά τα αποτελέσματα
-
-Το BiLSTM έχει ισχυρό αποτέλεσμα, αλλά δεν μπορούμε ακόμη να εκτιμήσουμε αξιόπιστα τη γενίκευση ή να πούμε ότι είναι η καλύτερη επιλογή, επειδή υπάρχει:
-
-- μόνο **ένα επιτυχημένο seed**,
-- κανένα baseline για σύγκριση,
-- καμία μετρική ανά κλάση ή confusion matrix,
-- καμία δοκιμή άλλων hyperparameters.
-
-Η πιο χρήσιμη επόμενη κίνηση είναι να επαναληφθεί το ίδιο configuration με **3–5 διαφορετικά seeds** και να καταγραφούν mean ± standard deviation για test macro-F1. Έπειτα αξίζει σύγκριση του `pooling="last"` με mean/max pooling και ενός απλού baseline. Επίσης, το training wrapper πρέπει να προωθεί non-zero exit codes ώστε αποτυχημένα commands να σημειώνονται ως `failed` αντί για `finished`.
-
-## Τελικό συμπέρασμα: κρατάμε το **unweighted BiLSTM**
-
-Το weighted cross-entropy **δεν βελτίωσε** τον βασικό στόχο. Σε αυστηρή σύγκριση με ίδιο seed (`100`), ίδιο split και ίδια hyperparameters:
-
-| Seed 100 | Best dev macro-F1 | Test accuracy | Test macro-F1 | Test errors |
-|---|---:|---:|---:|---:|
-| Unweighted baseline | **94.81%** | **96.42%** | **95.21%** | **476** |
-| Weighted CE | 94.52% | 96.14% | 94.92% | 513 |
-| Weighted − baseline | −0.29 pp | −0.28 pp | −0.29 pp | +37 |
-
-### Τι συνέβη στην κλάση 0
-
-Η στάθμιση πέτυχε τον άμεσο στόχο της, δηλαδή μεγαλύτερο minority recall, αλλά με υπερβολικό κόστος σε precision:
-
-| Class 0 | Unweighted | Weighted | Μεταβολή |
-|---|---:|---:|---:|
-| Precision | **91.95%** | 89.51% | −2.44 pp |
-| Recall | 93.69% | **95.55%** | +1.86 pp |
-| F1 | **92.81%** | 92.43% | −0.38 pp |
-
-Η confusion matrix άλλαξε από:
-
-```text
-Unweighted: [[3071, 207],
-             [ 269, 9731]]
-```
-
-σε:
-
-```text
-Weighted:   [[3132, 146],
-             [ 367, 9633]]
-```
-
-Δηλαδή διορθώθηκαν 61 λάθη της κλάσης 0, αλλά δημιουργήθηκαν 98 επιπλέον λάθη στην κλάση 1: καθαρά **37 περισσότερα λάθη**.
-
-## Αποτέλεσμα των τριών baseline seeds
-
-Για το unweighted μοντέλο, τα τρία μοναδικά seeds δίνουν:
-
-- **Test accuracy:** `96.31% ± 0.09 pp`
-- **Test macro-F1:** `95.07% ± 0.13 pp`
-- Καλύτερο run: seed `100`, accuracy `96.42%`, macro-F1 `95.21%`
-
-Η μικρή διακύμανση δείχνει ότι το αποτέλεσμα είναι αρκετά σταθερό. Δεν συνιστώ να ξοδέψεις χρόνο σε δύο ακόμη weighted seeds, επειδή το weighted run έχασε ήδη τόσο στο validation όσο και στο test με ελεγχόμενη σύγκριση ίδιου seed.
-
-
-Θα συγκρίνω τις τρεις ελεγχόμενες εκδοχές του seed‑100 BiLSTM — baseline, weighted loss και threshold tuning — χρησιμοποιώντας τις πραγματικές τελικές μετρικές και τα confusion matrices. Μετά θα διατυπώσω μια σύντομη σύνοψη κατάλληλη για προϊστάμενο, χωρίς περιττή τεχνική ορολογία.
-
-Εντόπισα δύο threshold-tuning runs με το ίδιο όνομα, καθώς και το weighted-loss run. Τώρα απομονώνω το σωστό baseline και ελέγχω ότι οι τρεις συγκρίσεις έχουν ίδιο seed, δεδομένα και αρχιτεκτονική — αλλιώς η σύγκριση θα ήταν παραπλανητική.
-
-Η κρίσιμη διαπίστωση είναι ότι το threshold tuning βελτιώνει ελαφρά το δικό του checkpoint, αλλά δεν ξεπερνά το αρχικό baseline. Θα το αποτυπώσω καθαρά στη σύνοψη, ώστε να μην παρουσιαστεί το +0,08 ως συνολική νίκη έναντι του baseline.
-
-## Συμπέρασμα
-
-Το **αρχικό baseline παραμένει η καλύτερη επιλογή συνολικά**. Το weighted loss και το threshold tuning βελτίωσαν την ισορροπία μεταξύ των κατηγοριών, αλλά δεν ξεπέρασαν το baseline στο τελικό test macro‑F1.
-
-Έλεγξα το W&B summary και τα logs. Το `metrics.json` δεν έχει ανέβει ως ξεχωριστό αρχείο στο W&B, αλλά οι τιμές του threshold experiment έχουν καταγραφεί πλήρως στο run summary και επιβεβαιώνονται στο `output.log`. Τα δύο threshold runs (`2n747pgm` και `06xwpsr9`) έχουν τα ίδια αποτελέσματα.
-
-## Σύγκριση των τριών προσεγγίσεων
-
-| Προσέγγιση | Τι αλλάξαμε | Test accuracy | Test macro‑F1 | Συμπέρασμα |
-|---|---|---:|---:|---|
-| **Baseline** | Απλό unweighted loss, threshold `0.5` | **96,42%** | **95,21%** | Καλύτερο συνολικό αποτέλεσμα |
-| **Weighted loss** | Μεγαλύτερη ποινή στα λάθη της μικρότερης κλάσης | 96,14% | 94,92% | Καλύτερη ευαισθησία στα αρνητικά, αλλά χαμηλότερη συνολική επίδοση |
-| **Threshold tuning** | Dev-selected threshold `0.685` | 96,29% | 95,10% | Καλύτερο από weighted loss, αλλά λίγο χειρότερο από baseline |
-
-### Διαφορές από το baseline
-
-- **Weighted loss:**  
-  - accuracy: **−0,28 ποσοστιαίες μονάδες**
-  - macro‑F1: **−0,29 ποσοστιαίες μονάδες**
-
-- **Threshold tuning:**  
-  - accuracy: **−0,13 ποσοστιαίες μονάδες**
-  - macro‑F1: **−0,11 ποσοστιαίες μονάδες**
-
-Επομένως η κατάταξη είναι:
-
-```text
-Baseline  >  Threshold tuning  >  Weighted loss
-```
-
-## Τι πέτυχε κάθε πείραμα
-
-### 1. Baseline
-
-Το baseline πέτυχε:
-
-- accuracy: **96,42%**
-- macro‑F1: **95,21%**
-
-Παραμένει το καλύτερο αποτέλεσμα χωρίς πρόσθετη πολυπλοκότητα και αποτελεί την προτεινόμενη τελική επιλογή.
-
-### 2. Weighted loss
-
-Στο weighted loss δώσαμε μεγαλύτερο βάρος στα λάθη της αρνητικής, μικρότερης κλάσης:
-
-- βάρος αρνητικής κλάσης: `2.268`
-- βάρος θετικής κλάσης: `0.641`
-
-Αυτό βοήθησε το μοντέλο να αναγνωρίζει περισσότερα αρνητικά reviews:
-
-- negative recall: **95,55%**
-- macro-recall: **95,94%**
-
-Όμως έγινε πιο επιθετικό στην πρόβλεψη της αρνητικής κλάσης και δημιούργησε περισσότερα λάθη σε άλλες περιπτώσεις. Έτσι το macro‑F1 μειώθηκε στο **94,92%**.
-
-Το weighted loss έχει νόημα μόνο αν η επιχειρησιακή προτεραιότητα είναι να μη χάνονται αρνητικά reviews, ακόμη και με κόστος περισσότερων λανθασμένων συναγερμών.
-
-### 3. Threshold tuning
-
-Το threshold επιλέχθηκε μόνο από το development set:
-
-```text
-0.5 → 0.685
-```
-
-Με το ίδιο checkpoint, η αλλαγή του threshold βελτίωσε το test macro‑F1:
-
-```text
-95,02% → 95,10%
-```
-
-Δηλαδή κέρδος:
-
-```text
-+0,08 ποσοστιαίες μονάδες
-```
-
-Το υψηλότερο threshold έκανε το μοντέλο πιο αυστηρό πριν χαρακτηρίσει ένα review ως θετικό:
-
-- false positives: `235 → 167` — **68 λιγότερα**
-- false negatives: `258 → 325` — **67 περισσότερα**
-
-Άρα δεν αύξησε τον συνολικό αριθμό σωστών προβλέψεων· κυρίως ανακατένειμε τα λάθη και βελτίωσε ελαφρά την ισορροπία μεταξύ των κλάσεων.
-
-## Σημαντική τεχνική παρατήρηση
-
-Οι καμπύλες εκπαίδευσης του baseline και του threshold experiment είναι ίδιες, όμως τα logs δείχνουν ότι πιθανότατα επιλέχθηκε διαφορετικό checkpoint:
-
-- το baseline είχε το καλύτερο dev macro‑F1 στο threshold `0.5` στο epoch 5,
-- το threshold experiment βρήκε το καλύτερο dev macro‑F1 με threshold `0.685` στο epoch 6.
-
-Επομένως, η εκπαίδευση παρέμεινε ίδια, αλλά η τελική επιλογή περιλάμβανε ουσιαστικά **συνδυασμό checkpoint και threshold**. Αυτό εξηγεί γιατί το threshold experiment με `0.5` δεν αναπαράγει ακριβώς το τελικό baseline αποτέλεσμα.
-
----
-
-# Έτοιμη τελική σύνοψη για τον προϊστάμενο
-
-> Αξιολογήσαμε τρεις εκδοχές του ίδιου seed‑100 BiLSTM στο ίδιο παγωμένο train/dev/test dataset: το αρχικό baseline, την εκπαίδευση με weighted loss και την επιλογή classification threshold στο development set. Το baseline πέτυχε την καλύτερη συνολική επίδοση, με 96,42% accuracy και 95,21% macro‑F1. Το weighted loss αύξησε την ευαισθησία του μοντέλου στην αρνητική, μικρότερη κλάση, αλλά μείωσε το macro‑F1 στο 94,92%. Το threshold tuning επέλεξε threshold 0,685 αποκλειστικά στο development set και πέτυχε 95,10% test macro‑F1. Παρότι βελτίωσε κατά 0,08 ποσοστιαίες μονάδες το αντίστοιχο αποτέλεσμα του δικού του checkpoint με threshold 0,5, παρέμεινε 0,11 μονάδες χαμηλότερα από το αρχικό baseline. Συνεπώς, προτείνουμε να διατηρήσουμε το baseline ως τελικό μοντέλο. Το weighted loss μπορεί να εξεταστεί μόνο εάν η αναγνώριση όσο το δυνατόν περισσότερων αρνητικών reviews είναι σημαντικότερη από τη συνολική ακρίβεια.
-
-**Προτεινόμενη απόφαση:** διατήρηση του baseline. Πριν θεωρηθεί οριστική, η σύγκριση καλό είναι να επαναληφθεί σε περισσότερα seeds, επειδή τα σημερινά συμπεράσματα βασίζονται στο seed `100`. Αυτή τη στιγμή δεν υπάρχει ενεργό W&B Launch queue, επομένως η επανάληψη χρειάζεται χειροκίνητη εκτέλεση ή πρώτα ρύθμιση Launch για αυτοματοποιημένα multi-seed runs.
-Η διπλή εκτύπωση της γραμμής `vocab=...` είναι απλώς επειδή παρέμειναν δύο ίδια `print()` μέσα στη συνάρτηση· είναι ακίνδυνο και μπορείς να διαγράψεις το ένα.
-Τώρα έχουμε την **πραγματική και δίκαιη σύγκριση** LoRA–full fine-tuning σε `compare` mode. Τα hashes των train/dev/test είναι ακριβώς ίδια και στα δύο runs, άρα η διαφορά προέρχεται από τη μέθοδο εκπαίδευσης.
-
-## Τελική σύγκριση
-
-| Metric | Full fine-tuning | LoRA + head | Διαφορά LoRA |
-|---|---:|---:|---:|
-| Test accuracy | **96,87%** | 96,17% | −0,70 π.μ. |
-| Test macro‑F1 | **95,80%** | 94,86% | −0,94 π.μ. |
-| Macro-precision | **95,74%** | 94,82% | −0,92 π.μ. |
-| Macro-recall | **95,86%** | 94,91% | −0,95 π.μ. |
-| Weighted-F1 | **96,88%** | 96,18% | −0,70 π.μ. |
-| Dev macro‑F1 | **94,59%** | 94,31% | −0,28 π.μ. |
-| Trainable parameters | 66.955.010 | **739.586** | **−98,90%** |
-| Training time | 186 sec | **94 sec** | **−49,4%** |
-| Peak GPU memory | 1.716 MB | **970 MB** | **−43,5%** |
-
-## Τι σημαίνει
-
-Το **full fine-tuning είναι καθαρά καλύτερο σε ποιότητα**:
-
-```text
-Macro‑F1: 95,80% έναντι 94,86%
-Διαφορά: +0,94 ποσοστιαίες μονάδες υπέρ του full FT
-```
-
-Το LoRA, όμως, είναι πολύ οικονομικότερο:
-
-- εκπαιδεύει μόνο το **1,10%** του μοντέλου,
-- χρειάζεται περίπου τον μισό χρόνο,
-- χρησιμοποιεί περίπου 43,5% λιγότερη GPU memory.
-
-Άρα υπάρχει ένας ξεκάθαρος συμβιβασμός:
-
-```text
-Full FT → καλύτερη ποιότητα
-LoRA    → πολύ καλύτερη αποδοτικότητα
-```
-
-## Ανάλυση των λαθών
-
-### Full fine-tuning
-
-```text
-[[3077, 201],
- [ 214, 9786]]
-```
-
-Συνολικά λάθη:
-
-```text
-201 + 214 = 415
-```
-
-### LoRA
-
-```text
-[[3029, 249],
- [ 259, 9741]]
-```
-
-Συνολικά λάθη:
-
-```text
-249 + 259 = 508
-```
-
-Το LoRA έκανε:
-
-```text
-508 − 415 = 93 περισσότερα λάθη
-```
-
-Συγκεκριμένα, σε σχέση με το full FT:
-
-- 48 περισσότερα αρνητικά reviews χαρακτηρίστηκαν λανθασμένα ως θετικά,
-- 45 περισσότερα θετικά reviews χαρακτηρίστηκαν λανθασμένα ως αρνητικά.
-
-Το full fine-tuning ήταν καλύτερο και στις δύο κατηγορίες.
-
-## Απόδοση ανά κατηγορία
-
-| Κατηγορία | Full FT F1 | LoRA F1 | Διαφορά |
-|---|---:|---:|---:|
-| Negative | **93,68%** | 92,26% | −1,42 π.μ. |
-| Positive | **97,92%** | 97,46% | −0,46 π.μ. |
-
-Το μεγαλύτερο μέρος της διαφοράς προέρχεται από την αρνητική, μικρότερη κλάση. Το LoRA δυσκολεύτηκε περισσότερο να προσαρμοστεί στα αρνητικά reviews.
-
-## Τι επιβεβαιώθηκε για το LoRA
-
-Οι παράμετροι είναι ακριβώς οι αναμενόμενες:
-
-```text
-Adapter parameters: 147.456
-Head parameters:    592.130
-Σύνολο trainable:   739.586
-```
-
-Οι adapters εφαρμόστηκαν στα:
-
-```text
-q_lin
-v_lin
-```
-
-με:
-
-```text
-rank = 8
-alpha = 16
-alpha/r = 2
-dropout = 0
-```
-
-Επομένως η υλοποίηση λειτουργεί σωστά. Το χαμηλότερο macro‑F1 δεν φαίνεται να οφείλεται σε τεχνικό σφάλμα· είναι το αποτέλεσμα της πιο περιορισμένης προσαρμογής του μοντέλου.
-
-## Σύγκριση με τα BiLSTM
-
-| Μοντέλο | Test macro‑F1 |
-|---|---:|
-| BiLSTM weighted loss | 94,92% |
-| **DistilBERT LoRA** | 94,86% |
-| BiLSTM threshold tuning | 95,10% |
-| BiLSTM baseline | 95,21% |
-| **DistilBERT full FT** | **95,80%** |
-
-Το LoRA με 20.000 training reviews βρίσκεται περίπου στο επίπεδο του weighted BiLSTM, αλλά δεν ξεπερνά το καλύτερο BiLSTM. Αντίθετα, το DistilBERT full FT είναι το καλύτερο μοντέλο μέχρι στιγμής.
-
-Η σύγκριση με το BiLSTM είναι ενδεικτική, όχι απολύτως ελεγχόμενη, επειδή το BiLSTM χρησιμοποίησε ολόκληρο το training set και διαφορετικό seed.
-
-## Πρόταση
-
-Για το συγκεκριμένο project προτείνω:
-
-> **Να επιλεγεί το DistilBERT full fine-tuning ως κύριος τελικός υποψήφιος.**
-
-Ο λόγος είναι ότι:
-
-- έχει το καλύτερο macro‑F1,
-- έχει 93 λιγότερα λάθη από το LoRA,
-- το full fine-tuning χωρά άνετα στην T4,
-- το compare run χρειάστηκε μόνο περίπου 3 λεπτά,
-- η μέγιστη μνήμη ήταν μόλις 1,7 GB.
-
-Το LoRA θα ήταν προτιμότερο αν υπήρχε ανάγκη για:
-
-- πολλά διαφορετικά task-specific μοντέλα,
-- πολύ μικρά adapter checkpoints,
-- αυστηρό περιορισμό GPU memory,
-- ταχύτερη επανεκπαίδευση,
-- deployment πολλών παραλλαγών πάνω στο ίδιο base model.
-
-## Επόμενο πείραμα
-
-Το επόμενο σωστό βήμα είναι ένα νέο, τελικό experiment:
-
-```python
-MODE = "full"
-EXPERIMENT = "hotel_distilbert_full_v1"
-SEED = 42
-```
-
-Έτσι το DistilBERT full fine-tuning θα εκπαιδευτεί στα **118.990 training reviews** και θα συγκριθεί δικαιότερα με το BiLSTM. Με βάση τη διάρκεια του compare run, μια πρόχειρη γραμμική εκτίμηση είναι περίπου 18–20 λεπτά στην ίδια T4, αλλά ο πραγματικός χρόνος πρέπει να μετρηθεί.
-
-Το test πρέπει να αξιολογηθεί μία φορά μετά την επιλογή των ρυθμίσεων. Δεν χρειάζεται να αλλάξουμε το full-FT learning rate βάσει του σημερινού test αποτελέσματος.
+MIT, copyright Evgenios Krimitsas. See [LICENSE](LICENSE).

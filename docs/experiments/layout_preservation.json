@@ -1,0 +1,15 @@
+{
+  "source_commit": "df321254c5c07fb8d4075b09e41df41fd3e9b61c",
+  "archived_notebooks": [
+    {
+      "source": "BILSTM.ipynb",
+      "archive": "docs\\experiments\\notebooks\\bilstm_weighted_executed.ipynb",
+      "sha256": "20374054de268596a4aeaa77c0939eb0f72632d3b16976acedc577092bd7ccfc"
+    },
+    {
+      "source": "bilstm-threshold-tuning\\hotel-review-nlp\\notebooks\\04_bilstm_threshold_tuning_colab.ipynb",
+      "archive": "docs\\experiments\\notebooks\\bilstm_threshold_tuning_executed.ipynb",
+      "sha256": "e28731d522030d0c4772253ed1c1ad54de56e395a05120552717364bed8992bc"
+    }
+  ]
+}

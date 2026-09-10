@@ -12,6 +12,7 @@ import json
 import os
 import time
 
+import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
@@ -19,6 +20,7 @@ from sklearn.pipeline import Pipeline
 
 from reviewnlp.data.preprocess import load_processed
 from reviewnlp.evaluation.metrics import binary_metrics
+from reviewnlp.utils.experiments import frame_fingerprint
 from reviewnlp.utils.seed import load_config, set_seed
 
 _MODELS = {"MultinomialNB": MultinomialNB, "SGDClassifier": SGDClassifier}
@@ -35,6 +37,7 @@ def _feature_views(cfg: dict) -> dict[str, object]:
             sublinear_tf=w["sublinear_tf"],
         ),
         "char": TfidfVectorizer(
+            analyzer="char",
             max_features=c["max_features"],
             ngram_range=tuple(c["ngram_range"]),
             min_df=c["min_df"],
@@ -53,12 +56,16 @@ def train_classical_baselines(config_path: str, df_override: dict | None = None)
     set_seed(cfg["seed"])
 
     data = df_override or load_processed(cfg["data"]["processed_dir"])
-    train_df, _dev_df, test_df = data["train"], data["dev"], data["test"]
+    train_df, dev_df, test_df = data["train"], data["dev"], data["test"]
     views = _feature_views(cfg)
+    out_dir = cfg["output"]["model_dir"]
+    os.makedirs(out_dir, exist_ok=True)
 
     results: dict = {}
+    pipelines = {}
     for view_name, vectorizer in views.items():
         X_train = vectorizer.fit_transform(train_df["text"])
+        X_dev = vectorizer.transform(dev_df["text"])
         X_test = vectorizer.transform(test_df["text"])
         y_train, y_test = train_df["label"].values, test_df["label"].values
 
@@ -71,33 +78,22 @@ def train_classical_baselines(config_path: str, df_override: dict | None = None)
 
             preds = model.predict(X_test)
             metrics = binary_metrics(y_test, preds)
+            metrics["dev"] = binary_metrics(dev_df["label"].values, model.predict(X_dev))
             metrics["fit_seconds"] = round(fit_s, 2)
             results[name] = metrics
+            pipelines[name] = Pipeline([("tfidf", vectorizer), ("clf", model)])
+            joblib.dump(pipelines[name], os.path.join(out_dir, f"{name}.joblib"))
             print(f"[{name:>22}] macro-F1={metrics['macro_f1']:.4f} acc={metrics['accuracy']:.4f}")
 
-    # Persist the best-per-view pipelines for the unified benchmark/serving.
-    out_dir = cfg["output"]["model_dir"]
-    os.makedirs(out_dir, exist_ok=True)
-
-    import joblib
-
-    best = (-1.0, None, None)
-    for view_name, vectorizer in views.items():
-        X_train = vectorizer.fit_transform(train_df["text"])
-        y_train = train_df["label"].values
-        for model_cfg in cfg["baselines"]["models"]:
-            name = f"{model_cfg['name']}_{view_name}"
-            if results[name]["macro_f1"] > best[0]:
-                model = _MODELS[model_cfg["cls"]](**model_cfg["params"]).fit(X_train, y_train)
-                best = (results[name]["macro_f1"], name, (vectorizer, model))
-    f1, name, (vectorizer, model) = best
-    pipe = Pipeline([("tfidf", vectorizer), ("clf", model)])
-    joblib.dump(pipe, os.path.join(out_dir, "best_classical.joblib"))
-
-    results["_best"] = {"name": name, "macro_f1": f1, "path": os.path.join(out_dir, "best_classical.joblib")}
+    # Select once on development data and save that exact fitted pipeline.
+    name = max(results, key=lambda candidate: results[candidate]["dev"]["macro_f1"])
+    f1 = results[name]["dev"]["macro_f1"]
+    joblib.dump(pipelines[name], os.path.join(out_dir, "best_classical.joblib"))
+    results["_best"] = {"name": name, "dev_macro_f1": f1, "selection_split": "dev", "path": os.path.join(out_dir, "best_classical.joblib")}
+    results["_data"] = {split: frame_fingerprint(frame) for split, frame in data.items()}
     with open(cfg["output"]["metrics_path"], "w") as f:
         json.dump(results, f, indent=2)
-    print(f"Best classical: {name} (macro-F1={f1:.4f}) -> {out_dir}/best_classical.joblib")
+    print(f"Best classical: {name} (dev macro-F1={f1:.4f}) -> {out_dir}/best_classical.joblib")
     return results
 
 

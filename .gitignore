@@ -22,7 +22,15 @@ data/raw/*
 !data/raw/hotel_reviews.csv
 data/processed/*
 !data/processed/.gitkeep
-runs/
+runs/*
+!runs/benchmark/
+runs/benchmark/*
+!runs/benchmark/results.json
+!runs/benchmark/confusion.png
+!runs/benchmark/latency.png
+!runs/benchmark/README.md
+!runs/benchmark/predictions.npz
+data/processed_v*/
 artifacts/
 reports/
 
@@ -40,4 +48,7 @@ reports/
 
 # Env
 .env
+.env.*
+!.env.example
 *.log
+*.zip

@@ -1,0 +1,32 @@
+{
+  "name": "legacy-frozen-comparison-splits",
+  "purpose": "Final like-for-like comparison on the original 118,990-row training split",
+  "fingerprint_algorithm": "reviewnlp.utils.experiments.frame_fingerprint",
+  "splits": {
+    "train": {
+      "rows": 118990,
+      "negative": 26232,
+      "positive": 92758,
+      "content_sha256": "1a5111176aafc286a7c784c9dec3abc2528b4b94d67fc8e7000ba4df4bfbd627",
+      "file_sha256": "ce52f8f34003f23c161d0e0a001b1009e80ca094c85a3522232a815748860fac"
+    },
+    "dev": {
+      "rows": 14872,
+      "negative": 3278,
+      "positive": 11594,
+      "content_sha256": "7c080936decc0b470cec4eb162c121fc1245643ba095fa4d602529bc9baa8e9f",
+      "file_sha256": "cb6e0cff8fb264cd0c21fd990278c0bb95106572baa1b5512cc23e011ac317d1"
+    },
+    "test": {
+      "rows": 13278,
+      "negative": 3278,
+      "positive": 10000,
+      "content_sha256": "a02c21271639640d645d729b959ce666671d4ba4ed5abfd43e6f9b5729245730",
+      "file_sha256": "8b37675028c8081951ee0ebd1181aaf484d63058122b7088288266fe992a7be1"
+    }
+  },
+  "known_limitations": [
+    "The legacy splits predate normalized-text deduplication and contain a small number of normalized cross-split overlaps.",
+    "These fingerprints are retained specifically to make the new 118,990-row DistilBERT runs comparable with the historical BiLSTM and classical runs. Dataset v2 is a separate future benchmark generation."
+  ]
+}

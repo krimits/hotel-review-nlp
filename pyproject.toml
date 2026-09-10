@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "End-to-end hotel review sentiment analysis: classical ML baselines, pure-PyTorch BiLSTM, LoRA implemented from scratch, Qwen2.5 QLoRA fine-tuning, unified benchmarking and FastAPI serving."
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [{ name = "Your Name" }]
+authors = [{ name = "Evgenios Krimitsas" }]
 requires-python = ">=3.10"
 keywords = ["nlp", "sentiment-analysis", "lora", "qlora", "pytorch", "huggingface"]
 classifiers = [

@@ -28,6 +28,7 @@ import re
 
 import pandas as pd
 
+from reviewnlp.data.integrity import canonical_text, review_id
 from reviewnlp.utils.seed import load_config, set_seed
 
 NO_POSITIVE = "No Positive"
@@ -46,11 +47,11 @@ def clean_text(text: str, max_chars: int) -> str:
 
 def extract_labeled_reviews(df: pd.DataFrame, max_chars: int, min_chars: int) -> pd.DataFrame:
     """Turn the two-field Booking schema into (text, label) rows."""
-    pos = df["Positive_Review"].astype(str).str.strip()
-    neg = df["Negative_Review"].astype(str).str.strip()
+    pos = df["Positive_Review"].fillna("").astype(str).str.strip()
+    neg = df["Negative_Review"].fillna("").astype(str).str.strip()
 
-    is_pos = (pos != NO_POSITIVE) & (neg == NO_NEGATIVE)
-    is_neg = (pos == NO_POSITIVE) & (neg != NO_NEGATIVE)
+    is_pos = pos.ne("") & pos.ne(NO_POSITIVE) & neg.eq(NO_NEGATIVE)
+    is_neg = pos.eq(NO_POSITIVE) & neg.ne(NO_NEGATIVE) & neg.ne("")
 
     out = pd.concat(
         [
@@ -60,7 +61,10 @@ def extract_labeled_reviews(df: pd.DataFrame, max_chars: int, min_chars: int) ->
     )
     out["text"] = out["text"].map(lambda t: clean_text(t, max_chars))
     out = out[out["text"].str.len() >= min_chars]
-    out = out.drop_duplicates(subset="text").reset_index(drop=True)
+    label_counts = out.groupby(out["text"].map(canonical_text))["label"].transform("nunique")
+    out = out.loc[label_counts.eq(1)]
+    out = out.loc[~out["text"].map(canonical_text).duplicated()].reset_index(drop=True)
+    out["review_id"] = out["text"].map(review_id)
     return out
 
 
@@ -72,17 +76,25 @@ def split_and_cap(
     train_cap: int,
     test_cap: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Stratified 80/10/10 split, then cap per-class sizes for tractability.
+    """Stratified split using configured fractions, then per-class caps.
 
     The test split is capped first (it must stay fixed across all model
-    comparisons), then train/dev are capped together from the remainder.
+    comparisons), then dev is sampled from the remainder and train is capped.
+    A zero cap means unlimited. Each class must appear in all three splits.
     """
+    if not (0 < train_frac < 1 and 0 < dev_frac < 1 and train_frac + dev_frac < 1):
+        raise ValueError("train/dev fractions must be positive and sum to less than one")
+    if train_cap < 0 or test_cap < 0:
+        raise ValueError("split caps must be non-negative; zero means unlimited")
     df = df.sample(frac=1.0, random_state=seed).reset_index(drop=True)
 
     test_parts, rest_parts = [], []
     for _, grp in df.groupby("label"):
         grp = grp.reset_index(drop=True)
-        test_n = min(test_cap, len(grp) // 10)
+        test_frac = round(1.0 - train_frac - dev_frac, 10)
+        test_n = min(len(grp) - 2, max(1, int(len(grp) * test_frac)))
+        if test_cap > 0:
+            test_n = min(test_n, test_cap)
         test_parts.append(grp.iloc[:test_n])
         rest_parts.append(grp.iloc[test_n:])
 
@@ -94,7 +106,7 @@ def split_and_cap(
         grp = grp.reset_index(drop=True)
         # dev gets dev_frac/(train_frac+dev_frac) of the post-test remainder,
         # keeping dev and test statistically comparable
-        dev_n = min(max(1, int(len(grp) * dev_frac / (train_frac + dev_frac))), len(grp) // 2)
+        dev_n = min(max(1, int(len(grp) * dev_frac / (train_frac + dev_frac))), len(grp) - 1)
         dev_parts.append(grp.iloc[:dev_n])
         train_parts.append(grp.iloc[dev_n:])
 

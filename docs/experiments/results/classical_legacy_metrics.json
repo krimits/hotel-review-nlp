@@ -1,0 +1,135 @@
+{
+  "naive_bayes_word": {
+    "accuracy": 0.9509,
+    "macro_f1": 0.9345,
+    "macro_precision": 0.9309,
+    "macro_recall": 0.9384,
+    "weighted_f1": 0.9511,
+    "per_class": {
+      "negative": {
+        "precision": 0.8903,
+        "recall": 0.9137,
+        "f1": 0.9018,
+        "support": 3278
+      },
+      "positive": {
+        "precision": 0.9715,
+        "recall": 0.9631,
+        "f1": 0.9673,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        2995,
+        283
+      ],
+      [
+        369,
+        9631
+      ]
+    ],
+    "fit_seconds": 0.37
+  },
+  "lr_sgd_word": {
+    "accuracy": 0.9411,
+    "macro_f1": 0.9173,
+    "macro_precision": 0.9387,
+    "macro_recall": 0.9,
+    "weighted_f1": 0.9397,
+    "per_class": {
+      "negative": {
+        "precision": 0.9345,
+        "recall": 0.8188,
+        "f1": 0.8728,
+        "support": 3278
+      },
+      "positive": {
+        "precision": 0.9429,
+        "recall": 0.9812,
+        "f1": 0.9617,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        2684,
+        594
+      ],
+      [
+        188,
+        9812
+      ]
+    ],
+    "fit_seconds": 0.5
+  },
+  "naive_bayes_char": {
+    "accuracy": 0.8991,
+    "macro_f1": 0.8545,
+    "macro_precision": 0.8864,
+    "macro_recall": 0.8322,
+    "weighted_f1": 0.8953,
+    "per_class": {
+      "negative": {
+        "precision": 0.8654,
+        "recall": 0.7001,
+        "f1": 0.774,
+        "support": 3278
+      },
+      "positive": {
+        "precision": 0.9075,
+        "recall": 0.9643,
+        "f1": 0.935,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        2295,
+        983
+      ],
+      [
+        357,
+        9643
+      ]
+    ],
+    "fit_seconds": 0.38
+  },
+  "lr_sgd_char": {
+    "accuracy": 0.7887,
+    "macro_f1": 0.5681,
+    "macro_precision": 0.8732,
+    "macro_recall": 0.574,
+    "weighted_f1": 0.7244,
+    "per_class": {
+      "negative": {
+        "precision": 0.9646,
+        "recall": 0.1498,
+        "f1": 0.2593,
+        "support": 3278
+      },
+      "positive": {
+        "precision": 0.7817,
+        "recall": 0.9982,
+        "f1": 0.8768,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        491,
+        2787
+      ],
+      [
+        18,
+        9982
+      ]
+    ],
+    "fit_seconds": 0.41
+  },
+  "_best": {
+    "name": "naive_bayes_word",
+    "macro_f1": 0.9345,
+    "path": "runs/classical\\best_classical.joblib"
+  }
+}
