@@ -65,6 +65,7 @@ def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int =
         base_name = json.load(f)["model"]
 
     tokenizer = AutoTokenizer.from_pretrained(adapter_dir)
+  tokenizer.padding_side = "left"  
     model = AutoModelForCausalLM.from_pretrained(
         base_name, quantization_config=quant, device_map="auto" if device == "cuda" else None,
         torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
