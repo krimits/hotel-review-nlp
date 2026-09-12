@@ -17,7 +17,7 @@ The legacy frozen test set contains **13,278 reviews: 10,000 positive and 3,278 
 | BiLSTM, pure PyTorch, seed 42 | 118,990 | 0.9503 | 96.29% | All weights |
 | **DistilBERT full fine-tune** | 118,990 | **0.9634** | **97.27%** | 66,955,010 (100%) |
 | **DistilBERT + scratch LoRA** | 118,990 | **0.9573** | **96.80%** | **739,586 (1.10%)** |
-| Qwen2.5-0.5B QLoRA | 20,000 configured | 0.9571 
+| Qwen2.5-0.5B QLoRA | 20,000 configured | 0.9571      | **96.71%** | **Adapter**|
 Throughput (Locust, 20 users, CPU): ~20.5 RPS
 Latency p50 / p95 / p99 (single /predict): 360 ms / 1.2 s / 2.2 s
 Failures: 0 / 873
@@ -116,6 +116,25 @@ These commands require the full model/tokenizer bundle and the relevant dependen
 [The scratch implementation](src/reviewnlp/lora/lora.py) uses torch only and follows [Hu et al. (2021)](https://arxiv.org/abs/2106.09685): `h = W0x + (alpha/r) * B(A(x))`. It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and dropout on the adapter path, and supports merge/unmerge.
 
 [tests/test_lora.py](tests/test_lora.py) checks initial behavior, gradient flow, frozen base weights, merge/unmerge, and numerical agreement with PEFT on a locally constructed tiny BERT after copying weights. The equivalence result applies to the covered configuration. CI installs `transformers==4.56.2`, `peft==0.17.1`, and `accelerate==1.10.1` and runs lint, the full test suite, and archived-result verification. The PEFT test is optional in local environments that do not install PEFT.
+## Serving benchmark
+
+CPU inference on the exported DistilBERT encoder (FastAPI + uvicorn), measured with Locust (20 concurrent users, 60 s):
+
+| Metric | Value |
+| :--- | ---: |
+| Throughput (Aggregated) | **20.5 req/s** |
+| `/predict` p50 / p95 / p99 | 360 ms / 1.2 s / 2.2 s |
+| Failures | 0 / 873 requests |
+
+## Quantization
+
+Dynamic INT8 quantization (`torch.ao.quantization.quantize_dynamic`) on CPU, n=32 sample:
+
+| Metric | FP32 | INT8 | Δ |
+| :--- | ---: | ---: | ---: |
+| p50 latency / text | 101.4 ms | 73.5 ms | **1.38× faster** |
+| Model size | 255.4 MB | 91.0 MB | **−64%** |
+| Accuracy | 100% | 100% | 0 pp |
 
 ## Architecture
 
@@ -150,10 +169,10 @@ DESIGN.md          design decisions and evaluation methodology
 
 ## Remaining work
 
-- Return and verify the Qwen QLoRA run from notebook 06.
+
 - Re-run the corrected character baselines and collect individual BiLSTM seed artifacts.
 - Publish the complete five-family benchmark, confusion matrices, and paired comparisons.
-- Retrieve full model bundles and measure live-inference latency and INT8 quality/latency changes.
+
 - Run all model families on one deduplicated dataset version to replace the legacy comparison.
 
 The full-data DistilBERT/LoRA comparison is complete. Larger-model QLoRA, score-based three-class labels, calibration, and distillation are future extensions in [DESIGN.md §8](DESIGN.md#8-what-i-would-do-with-more-compute).
