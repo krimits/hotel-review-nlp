@@ -17,7 +17,7 @@ The legacy frozen test set contains **13,278 reviews: 10,000 positive and 3,278 
 | BiLSTM, pure PyTorch, seed 42 | 118,990 | 0.9503 | 96.29% | All weights |
 | **DistilBERT full fine-tune** | 118,990 | **0.9634** | **97.27%** | 66,955,010 (100%) |
 | **DistilBERT + scratch LoRA** | 118,990 | **0.9573** | **96.80%** | **739,586 (1.10%)** |
-| Qwen2.5-0.5B QLoRA | 20,000 configured | Pending | Pending | Pending |
+| Qwen2.5-0.5B QLoRA | 20,000 configured | 0.9571 
 Throughput (Locust, 20 users, CPU): ~20.5 RPS
 Latency p50 / p95 / p99 (single /predict): 360 ms / 1.2 s / 2.2 s
 Failures: 0 / 873
