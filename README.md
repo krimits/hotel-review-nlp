@@ -21,6 +21,16 @@ The legacy frozen test set contains **13,278 reviews: 10,000 positive and 3,278 
 Throughput (Locust, 20 users, CPU): ~20.5 RPS
 Latency p50 / p95 / p99 (single /predict): 360 ms / 1.2 s / 2.2 s
 Failures: 0 / 873
+## Quantization
+
+Dynamic INT8 quantization (`torch.ao.quantization.quantize_dynamic`) on CPU, n=32 sample:
+
+| Metric | FP32 | INT8 | Διαφορά |
+|---|---:|---:|---:|
+| p50 latency / text | 101.38 ms | 73.46 ms | **1.38× faster** |
+| p95 latency / text | 102.30 ms | 82.00 ms | 1.25× faster |
+| Model size | 255.4 MB | 91.0 MB | **−64%** |
+| Accuracy | 100% | 100% | 0 pp |
 
 Evidence: [classical metrics](docs/experiments/results/classical_legacy_metrics.json), [BiLSTM metrics](docs/experiments/results/bilstm_legacy_metrics.json), and the [verified DistilBERT comparison](docs/experiments/results/distilbert_legacy_full_v1/README.md). The classical rows are preserved historical runs, preceding the fix that moved classical model selection to dev. The old `*_char` rows used the wrong analyzer and require a rerun before publication as character n-gram baselines. The experiment log reports additional BiLSTM seeds, but their individual run artifacts are not included in this comparison.
 
