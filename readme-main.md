@@ -24,6 +24,17 @@ One frozen test set (13,278 reviews, 10,000 positive / 3,278 negative), never tu
 
 Unified benchmark on the frozen 13,278-row test set: every model family — classical, BiLSTM, both DistilBERT variants, Qwen QLoRA — scored on the identical ordered rows, with exact McNemar tests for all 10 pairs. Nine of ten differences are significant at α=0.05; the one exception: **scratch-LoRA vs Qwen QLoRA is statistically indistinguishable (p = 0.525)** — 739K trainable params on a 67M encoder matches a 0.5B decoder LLM fine-tuned via QLoRA on this task. Full numbers and p-values: [`runs/benchmark/results.json`](https://huggingface.co/datasets/krimits/hotel-review-nlp-frozen-splits/blob/main/runs/benchmark/results.json).
 
+## Quantization
+
+Dynamic INT8 quantization (`torch.ao.quantization.quantize_dynamic`) on CPU, n=32 sample:
+
+| Metric | FP32 | INT8 | Διαφορά |
+|---|---:|---:|---:|
+| p50 latency / text | 101.38 ms | 73.46 ms | **1.38× faster** |
+| p95 latency / text | 102.30 ms | 82.00 ms | 1.25× faster |
+| Model size | 255.4 MB | 91.0 MB | **−64%** |
+| Accuracy | 100% | 100% | 0 pp |
+
 LoRA vs full fine-tune on the identical 20k subset: LoRA trains 1.10% of parameters, in half the wall-clock (94 s vs 186 s) at 43.5% less peak GPU memory (970 MB vs 1,716 MB), for −0.94 pp macro-F1. Full-data full-FT comparison and McNemar significance tests: see [Methodology](DESIGN.md).
 
 ## Labels from the schema, not a score threshold
