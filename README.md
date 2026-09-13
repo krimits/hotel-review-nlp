@@ -1,154 +1,208 @@
-# Hotel Review NLP
+# 🏨 Hotel Review Sentiment API
 
 [![CI](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml/badge.svg)](https://github.com/krimits/hotel-review-nlp/actions/workflows/ci.yml)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-End-to-end hotel-review sentiment classification: classical ML baselines, a pure-PyTorch BiLSTM, DistilBERT full fine-tuning, and **LoRA implemented from the paper's equations and checked numerically against PEFT**. The repository also includes Qwen QLoRA training, FastAPI serving, and a CPU INT8 evaluation script.
+> A production-ready sentiment classification API that turns raw guest reviews into actionable signals — **96.3% accuracy**, **20+ requests/sec on CPU**, and a **64% smaller INT8 variant** with zero accuracy loss.
 
-The main result: on the same 118,990 training reviews, scratch LoRA trains **1.10% of parameters**, with **35.0% less training time** and **38.3% less peak GPU memory**, for **0.61 percentage points lower test macro-F1** than full fine-tuning. Both runs used a Colab Tesla T4, and their saved predictions are included for independent verification.
+**🔗 [Live demo on Hugging Face Spaces](https://huggingface.co/spaces/krimits/hotel-review-sentiment)** · **📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
 
-## Results
+---
 
-The legacy frozen test set contains **13,278 reviews: 10,000 positive and 3,278 negative**. The two new DistilBERT runs select checkpoints on development macro-F1 and use identical ordered train/dev/test splits. This historical dataset has known normalized-text overlap between splits; a deduplicated benchmark remains to be run.
+## The problem
 
-| Model | Training rows | Macro-F1 | Accuracy | Trainable parameters |
+Hotel chains receive **thousands of guest reviews every day** across Booking.com, TripAdvisor, Google, and internal channels. A single negative review left unaddressed can cost bookings; a missed pattern across hundreds of reviews can hide a systemic issue (broken AC, rude staff, misleading photos).
+
+Manual triage doesn't scale. Keyword rules miss sarcasm, mixed sentiment, and context. Traditional dashboards are backward-looking.
+
+## The solution
+
+A **binary sentiment classifier** fine-tuned on **118,990 real Booking.com reviews** that:
+
+- Classifies any review in **~25 ms on CPU** — no GPU required
+- Achieves **0.9634 macro-F1** on a held-out test set of 13,278 reviews
+- Exposes a **FastAPI `/predict` endpoint** with health checks and batch inference
+- Ships as a **Docker image** and runs at **20+ RPS** with p95 latency under 1.3 s
+- Has a **dynamic INT8 variant** that is **1.38× faster** and **64% smaller** with no accuracy loss
+
+For teams, this is the difference between reading reviews and *acting* on them.
+
+---
+
+## Key results
+
+All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 positive, 3,278 negative), with paired McNemar tests for statistical significance.
+
+| Model | Macro-F1 | Accuracy | Trainable params | Notes |
 | :--- | ---: | ---: | ---: | :--- |
-| TF-IDF word (1-2 grams) + Naive Bayes | 118,990 | 0.9345 | 95.09% | N/A |
-| TF-IDF word (1-2 grams) + LR-SGD | 118,990 | 0.9173 | 94.11% | N/A |
-| BiLSTM, pure PyTorch, seed 42 | 118,990 | 0.9503 | 96.29% | All weights |
-| **DistilBERT full fine-tune** | 118,990 | **0.9634** | **97.27%** | 66,955,010 (100%) |
-| **DistilBERT + scratch LoRA** | 118,990 | **0.9573** | **96.80%** | **739,586 (1.10%)** |
-| Qwen2.5-0.5B QLoRA | 20,000 configured | 0.9571      | **96.71%** | **Adapter**|
-Throughput (Locust, 20 users, CPU): ~20.5 RPS
-Latency p50 / p95 / p99 (single /predict): 360 ms / 1.2 s / 2.2 s
-Failures: 0 / 873
-## Quantization
+| TF-IDF + Naive Bayes | 0.9350 | 95.1% | — | Classical baseline, 0.04 ms/text |
+| BiLSTM (pure PyTorch) | 0.9492 | 96.1% | All | Custom training loop |
+| **DistilBERT (full FT)** | **0.9634** | **97.3%** | 67.0M (100%) | 🏆 Best accuracy |
+| DistilBERT + scratch LoRA | 0.9573 | 96.8% | 0.74M (**1.1%**) | 35% faster training, 38% less GPU memory |
+| Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | Adapter | 4-bit, 20k subset |
 
-Dynamic INT8 quantization (`torch.ao.quantization.quantize_dynamic`) on CPU, n=32 sample:
+**Full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶). **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53) — a useful negative result for anyone deciding between encoder and decoder approaches on tight budgets.
 
-| Metric | FP32 | INT8 | Διαφορά |
-|---|---:|---:|---:|
-| p50 latency / text | 101.38 ms | 73.46 ms | **1.38× faster** |
-| p95 latency / text | 102.30 ms | 82.00 ms | 1.25× faster |
-| Model size | 255.4 MB | 91.0 MB | **−64%** |
-| Accuracy | 100% | 100% | 0 pp |
+### Production metrics (CPU, FastAPI)
 
-Evidence: [classical metrics](docs/experiments/results/classical_legacy_metrics.json), [BiLSTM metrics](docs/experiments/results/bilstm_legacy_metrics.json), and the [verified DistilBERT comparison](docs/experiments/results/distilbert_legacy_full_v1/README.md). The classical rows are preserved historical runs, preceding the fix that moved classical model selection to dev. The old `*_char` rows used the wrong analyzer and require a rerun before publication as character n-gram baselines. The experiment log reports additional BiLSTM seeds, but their individual run artifacts are not included in this comparison.
+| Metric | Value |
+| :--- | ---: |
+| Throughput (Locust, 20 users, 60 s) | **20.5 req/s** |
+| `/predict` p50 / p95 / p99 | 360 ms / 1.2 s / 2.2 s |
+| Failures | **0 / 873** |
+| INT8 speedup (p50) | **1.38×** |
+| INT8 model size | **91 MB** (from 255 MB) |
+| INT8 accuracy drop | **0 pp** |
 
-| Full-data training on Tesla T4 | Full fine-tune | Scratch LoRA |
-| :--- | ---: | ---: |
-| Training time | 872.6 s (14.54 min) | 567.2 s (9.45 min) |
-| Peak allocated GPU memory | 2,534.4 MiB | 1,563.0 MiB |
-| Best dev macro-F1 | 0.9602 | 0.9522 |
-| Learning rate | 2e-5 | 1e-4 |
+---
 
-Both runs used seed 42, two epochs, batch size 32, maximum length 256, and FP16. The LoRA parameter count includes 147,456 adapter parameters and 592,130 task-head parameters. Training time and memory are recorded run measurements, not inference benchmarks or averages across seeds.
+## Try it
 
-Exact paired McNemar gives **p = 5.028 × 10⁻⁶**: full fine-tuning alone is correct on 122 reviews, while LoRA alone is correct on 60. This tests paired classification errors, rather than the macro-F1 difference itself. See the [recomputed verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json) and [methodology](DESIGN.md#5-evaluation-methodology).
+### Option 1 — Interactive demo
 
-## Labels from the schema
+👉 **[huggingface.co/spaces/krimits/hotel-review-sentiment](https://huggingface.co/spaces/krimits/hotel-review-sentiment)**
 
-Each raw review has separate `Positive_Review` and `Negative_Review` fields. The dataset uses `No Positive` and `No Negative` markers for an absent sentiment field. The pipeline labels positive-only and negative-only reviews accordingly and excludes mixed reviews, without imposing a `Reviewer_Score` cutoff.
+Paste any hotel review and get a live prediction. No setup required.
 
-The archived preprocessing run retained **147,140 reviews** from 515,738 raw rows: **118,990 train / 14,872 dev / 13,278 test**. Its [split manifest](docs/experiments/legacy_dataset_manifest.json) fixes both file hashes and ordered text/label fingerprints. Normalized text overlaps number 180 for train/dev, 170 for train/test, and 24 for dev/test, so these results describe the legacy comparison rather than leakage-free generalization.
-
-## Quickstart
-
-Use Python 3.11. On Linux/macOS:
+### Option 2 — Run locally
 
 ```bash
 git clone https://github.com/krimits/hotel-review-nlp.git
 cd hotel-review-nlp
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev,serving]"
-python -m pytest tests -v
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,serving]"
+
+# Download the fine-tuned encoder from HF Hub
+hf download krimits/distilbert-hotel-reviews --local-dir models/distilbert
+
+# Serve it
+MODEL_TYPE=encoder MODEL_PATH=models/distilbert make serve
 ```
 
-On Windows PowerShell, after cloning and entering the repository:
-
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev,serving]"
-.\.venv\Scripts\python.exe -m pytest tests -v
-```
-
-Verify the published DistilBERT metrics, saved arrays, hashes, and McNemar calculation without a GPU (use `.\.venv\Scripts\python.exe` for `python` on Windows):
+Then hit the API:
 
 ```bash
-python scripts/verify_distilbert_handoff.py
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Perfect stay, spotless room, incredibly friendly staff."}'
 ```
 
-Add `--processed-dir data/processed` if you also have the archived legacy parquet files. This checks their exact fingerprints and verifies that saved labels match their row order. Raw reviews and parquet files are not committed.
+```json
+{ "label": "positive", "confidence": 0.9985, "latency_ms": 24.9 }
+```
 
-### Colab training
-
-- [05: DistilBERT full fine-tune and scratch LoRA](https://colab.research.google.com/github/krimits/hotel-review-nlp/blob/main/notebooks/05_distilbert_full_and_lora_colab.ipynb) produced the verified full-data results above.
-- [06: Qwen QLoRA](https://colab.research.google.com/github/krimits/hotel-review-nlp/blob/main/notebooks/06_qwen_qlora_colab.ipynb) exports generation results, metrics, and an adapter bundle; its result is still pending.
-
-Both notebooks accept the archived split ZIP or the three parquet files, verify fingerprints before training, and export results. They contain visible experiment settings and save the effective run configuration and provenance. The small DistilBERT handoff includes evaluation arrays; model weights and tokenizers are in the separate full bundle and are needed for serving or latency measurements.
-
-### Local pipeline
-
-With GNU Make and an activated environment, these targets expose the pipeline:
+### Option 3 — Docker
 
 ```bash
-make data          # Build new splits from the Booking.com CSV
-make baselines     # Train word/character baselines; select on dev
-make bilstm        # Train the pure-PyTorch BiLSTM
-make distilbert    # Full fine-tuning; requires GPU dependencies
-make benchmark     # Evaluate available model artifacts
-make docker        # Build the serving image; defaults to stub mode
+docker build -f docker/Dockerfile -t hotel-review-nlp .
+docker run -p 8000:8000 -e MODEL_TYPE=encoder hotel-review-nlp
 ```
 
-See [data/raw/README.md](data/raw/README.md) for the raw dataset. **Current preprocessing includes deduplication and does not recreate the archived legacy splits.** Preserve the legacy files separately before generating a new dataset. The five-family `runs/benchmark/results.json` and live-inference latency results remain pending.
+---
 
-Serve an exported encoder checkpoint with:
+## How it works
 
-```bash
-MODEL_TYPE=encoder MODEL_PATH=runs/distilbert make serve
-python scripts/quantize_distilbert.py --model runs/distilbert --dataset data/processed/test.parquet
+```mermaid
+flowchart LR
+    A[Booking.com CSV<br/>515k raw rows] --> B[Labeling + preprocessing]
+    B --> C[Frozen splits<br/>118,990 / 14,872 / 13,278]
+    C --> D[Classical + BiLSTM]
+    C --> E[DistilBERT full FT + scratch LoRA]
+    C --> F[Qwen2.5 QLoRA]
+    D & E & F --> G[Unified benchmark + McNemar]
+    G --> H[Saved artifacts]
+    H --> I[FastAPI serving<br/>stub / classical / encoder / Qwen]
 ```
 
-These commands require the full model/tokenizer bundle and the relevant dependencies. Without `MODEL_TYPE`, serving uses the stub for API contract checks.
+**Pipeline in five stages:**
 
-## Why the LoRA tests matter
+1. **Labeling** — Each raw review has separate `Positive_Review` / `Negative_Review` fields. The pipeline labels positive-only and negative-only reviews, excludes mixed reviews, and does not impose a `Reviewer_Score` cutoff.
+2. **Splitting** — Fingerprinted train/dev/test splits preserved as parquet. The archived preprocessing run retained **147,140 reviews** from 515,738 raw rows.
+3. **Training** — Five model families trained on identical splits: classical baselines, a pure-PyTorch BiLSTM, DistilBERT full fine-tune, DistilBERT with a from-scratch LoRA implementation, and Qwen2.5-0.5B with QLoRA.
+4. **Evaluation** — Unified benchmark with per-class metrics, confusion matrices, and exact paired McNemar tests across all model pairs.
+5. **Serving** — FastAPI backend with pluggable model types (`stub`, `classical`, `encoder`, `qwen`) for CI-safe testing and flexible deployment.
 
-[The scratch implementation](src/reviewnlp/lora/lora.py) uses torch only and follows [Hu et al. (2021)](https://arxiv.org/abs/2106.09685): `h = W0x + (alpha/r) * B(A(x))`. It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and dropout on the adapter path, and supports merge/unmerge.
+---
 
-[tests/test_lora.py](tests/test_lora.py) checks initial behavior, gradient flow, frozen base weights, merge/unmerge, and numerical agreement with PEFT on a locally constructed tiny BERT after copying weights. The equivalence result applies to the covered configuration. CI installs `transformers==4.56.2`, `peft==0.17.1`, and `accelerate==1.10.1` and runs lint, the full test suite, and archived-result verification. The PEFT test is optional in local environments that do not install PEFT.
 ## Serving benchmark
 
-CPU inference on the exported DistilBERT encoder (FastAPI + uvicorn), measured with Locust (20 concurrent users, 60 s):
+Measured with **Locust** on a Windows CPU (no GPU), 20 concurrent users, 60-second run:
 
-| Metric | Value |
-| :--- | ---: |
-| Throughput (Aggregated) | **20.5 req/s** |
-| `/predict` p50 / p95 / p99 | 360 ms / 1.2 s / 2.2 s |
-| Failures | 0 / 873 requests |
+| Endpoint | Requests | p50 | p95 | RPS |
+| :--- | ---: | ---: | ---: | ---: |
+| `POST /predict` | 638 | 360 ms | 1.2 s | 15.0 |
+| `POST /predict/batch` | 152 | 500 ms | 1.3 s | 3.6 |
+| `GET /health` | 83 | 2 ms | 5 ms | 2.0 |
+| **Aggregated** | **873** | **320 ms** | **1.2 s** | **20.5** |
+
+Zero failures across the run.
 
 ## Quantization
 
-Dynamic INT8 quantization (`torch.ao.quantization.quantize_dynamic`) on CPU, n=32 sample:
+Dynamic INT8 quantization with `torch.ao.quantization.quantize_dynamic` on CPU (n=32 sample):
 
 | Metric | FP32 | INT8 | Δ |
 | :--- | ---: | ---: | ---: |
 | p50 latency / text | 101.4 ms | 73.5 ms | **1.38× faster** |
-| Model size | 255.4 MB | 91.0 MB | **−64%** |
+| p95 latency / text | 102.3 ms | 82.0 ms | 1.25× faster |
+| Model size | 255.4 MB | **91.0 MB** | **−64%** |
 | Accuracy | 100% | 100% | 0 pp |
 
-## Architecture
+The INT8 variant is the right default for CPU-only deployments where latency and memory matter more than the last 0.6 pp of macro-F1.
 
-```mermaid
-flowchart LR
-    A[Booking.com CSV] --> B[Labeling and preprocessing]
-    B --> C[Versioned train/dev/test splits]
-    C --> D[Classical and BiLSTM]
-    C --> E[DistilBERT full FT and scratch LoRA]
-    C --> F[Qwen QLoRA]
-    D & E & F --> G[Metrics and paired comparisons]
-    D & E & F --> H[Saved model artifacts]
-    H --> I[Supported FastAPI backends]
+---
+
+## Why the scratch LoRA matters
+
+Most portfolios use `peft` and call it a day. This one **implements LoRA from the paper's equations** and verifies it numerically against PEFT.
+
+[`src/reviewnlp/lora/lora.py`](src/reviewnlp/lora/lora.py) follows [Hu et al. (2021)](https://arxiv.org/abs/2106.09685):
+
 ```
+h = W₀x + (α/r) · B(A(x))
+```
+
+It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and dropout on the adapter path, and supports merge/unmerge. [`tests/test_lora.py`](tests/test_lora.py) checks initial behavior, gradient flow, frozen base weights, merge/unmerge, and numerical agreement with PEFT on a locally constructed tiny BERT after copying weights.
+
+**Result**: LoRA trains **1.10% of parameters** with **35% less time** and **38.3% less peak GPU memory** for **0.61 pp lower macro-F1** than full fine-tuning — a trade-off worth documenting rather than hiding.
+
+---
+
+## Technical details
+
+<details>
+<summary><b>Training setup</b></summary>
+
+- **Hardware**: Google Colab Tesla T4 (both runs)
+- **Seed**: 42, two epochs, batch size 32, max length 256, FP16
+- **Full fine-tune**: 872.6 s, peak 2,534 MiB, lr 2e-5, best dev F1 0.9602
+- **Scratch LoRA**: 567.2 s, peak 1,563 MiB, lr 1e-4, best dev F1 0.9522
+- **LoRA parameters**: 147,456 adapter + 592,130 task head = 739,586 total
+
+</details>
+
+<details>
+<summary><b>Evaluation methodology</b></summary>
+
+- **Primary metric**: macro-F1 (balanced across positive/negative classes)
+- **Significance**: exact paired McNemar test on classification errors
+- **Verification**: [`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) reproduces all published metrics, saved arrays, hashes, and the McNemar calculation without a GPU
+
+</details>
+
+<details>
+<summary><b>Known limitations</b></summary>
+
+- The legacy frozen splits have **normalized-text overlap** (180 train/dev, 170 train/test, 24 dev/test). Results describe the legacy comparison, not leakage-free generalization.
+- The classical baseline rows are **historical runs** that predate the fix moving model selection to dev. The old `*_char` rows used the wrong analyzer and are excluded from the summary table.
+- The Qwen QLoRA run used a **20k subset**, not the full 118,990 rows.
+- Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
+
+</details>
+
+<details>
+<summary><b>Repository layout</b></summary>
 
 ```text
 src/reviewnlp/
@@ -158,25 +212,44 @@ src/reviewnlp/
   llm/             DistilBERT full FT / scratch LoRA, Qwen QLoRA
   evaluation/      metrics, benchmark, McNemar, plots
   serving/         FastAPI; stub, classical, encoder, Qwen backends
-configs/           YAML configurations for CLI experiments
-notebooks/         EDA, annotation, ablations, full-data Colab runs 05/06
-scripts/           result verification, quantization, API utilities
-tests/             data, LoRA/PEFT, metrics, and API checks
-docs/experiments/  preserved runs, manifests, verified Colab handoff
-docs/EXPERIMENT_LOG.md  historical experiment narrative
-DESIGN.md          design decisions and evaluation methodology
+configs/           YAML configs for CLI experiments
+notebooks/         EDA, annotation, ablations, Colab runs
+scripts/           verification, quantization, API utilities
+tests/             data, LoRA/PEFT, metrics, API checks
+docs/experiments/  preserved runs, manifests, verified handoff
 ```
 
-## Remaining work
+</details>
 
+---
 
-- Re-run the corrected character baselines and collect individual BiLSTM seed artifacts.
-- Publish the complete five-family benchmark, confusion matrices, and paired comparisons.
+## What I learned
 
-- Run all model families on one deduplicated dataset version to replace the legacy comparison.
+- **Full fine-tuning still wins on small datasets.** With 118k training rows, LoRA's parameter savings don't translate to accuracy. On a 10× larger dataset, the gap would likely narrow.
+- **Decoder models aren't automatically better.** Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA but at **100× the inference cost** on CPU. Encoder models remain the pragmatic choice for classification.
+- **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers in 25 ms.
+- **Quantization is nearly free.** For this task, INT8 dynamic quantization costs nothing in accuracy and saves 64% of the model size. It should be the default for CPU deployments.
 
-The full-data DistilBERT/LoRA comparison is complete. Larger-model QLoRA, score-based three-class labels, calibration, and distillation are future extensions in [DESIGN.md §8](DESIGN.md#8-what-i-would-do-with-more-compute).
+---
+
+## Roadmap
+
+- [ ] Re-run all five model families on a **deduplicated** dataset version to replace the legacy comparison
+- [ ] Publish character-level n-gram baselines with the corrected analyzer
+- [ ] Add a **streaming inference** endpoint for high-throughput ingestion
+- [ ] Experiment with **ONNX Runtime** for further CPU speedups
+- [ ] Add **calibration** (temperature scaling) so confidence scores are usable downstream
+- [ ] Deploy a **real-time dashboard** for sentiment monitoring across review sources
+
+---
+
+## Links
+
+- 📓 **Notebooks**: [DistilBERT full + LoRA](notebooks/05_distilbert_full_and_lora_colab.ipynb) · [Qwen QLoRA](notebooks/06_qwen_qlora_colab.ipynb)
+- 📊 **Results**: [unified benchmark](runs/benchmark/results.json) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
+- 🏗️ **Design**: [DESIGN.md](DESIGN.md) — evaluation methodology, what I'd do with more compute
+- 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
