@@ -41,6 +41,25 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
 | **DistilBERT (full FT)** | **0.9634** | **97.3%** | 67.0M (100%) | 🏆 Best accuracy |
 | DistilBERT + scratch LoRA | 0.9573 | 96.8% | 0.74M (**1.1%**) | 35% faster training, 38% less GPU memory |
 | Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | Adapter | 4-bit, 20k subset |
+<details>
+<summary><b>Pairwise McNemar tests (exact, on classification errors)</b></summary>
+
+| Pair | Discordant | p-value | Significant at 0.05 |
+| :--- | ---: | ---: | :---: |
+| Classical vs BiLSTM | 542 | 9.4 × 10⁻⁹ | ✅ |
+| Classical vs DistilBERT full | 506 | 2.3 × 10⁻³⁸ | ✅ |
+| Classical vs DistilBERT LoRA | 510 | 2.5 × 10⁻²³ | ✅ |
+| Classical vs Qwen QLoRA | 544 | 1.1 × 10⁻¹⁹ | ✅ |
+| BiLSTM vs DistilBERT full | 366 | 2.8 × 10⁻¹⁵ | ✅ |
+| BiLSTM vs DistilBERT LoRA | 374 | 6.2 × 10⁻⁶ | ✅ |
+| BiLSTM vs Qwen QLoRA | 380 | 1.1 × 10⁻⁴ | ✅ |
+| DistilBERT full vs LoRA | 182 | 5.0 × 10⁻⁶ | ✅ |
+| DistilBERT full vs Qwen | 320 | 4.2 × 10⁻⁵ | ✅ |
+| **DistilBERT LoRA vs Qwen QLoRA** | **300** | **0.53** | ❌ |
+
+**9 of 10 pairwise differences are statistically significant.** LoRA and QLoRA are indistinguishable on this task — 739K adapter parameters match a 0.5B LLM fine-tuned with 4-bit quantization.
+
+</details>
 
 **Full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶). **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53) — a useful negative result for anyone deciding between encoder and decoder approaches on tight budgets.
 
