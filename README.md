@@ -62,6 +62,7 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
 ### Option 1 — Interactive demo
 
 👉 **[huggingface.co/spaces/krimits/hotel-review-sentiment](https://huggingface.co/spaces/krimits/hotel-review-sentiment)**
+![HF Space demo](docs/images/space_demo.png)
 
 Paste any hotel review and get a live prediction. No setup required.
 
@@ -128,6 +129,7 @@ flowchart LR
 ## Serving benchmark
 
 Measured with **Locust** on a Windows CPU (no GPU), 20 concurrent users, 60-second run:
+![Serving demo](docs/images/serving_demo.png)
 
 | Endpoint | Requests | p50 | p95 | RPS |
 | :--- | ---: | ---: | ---: | ---: |
