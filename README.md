@@ -82,7 +82,14 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
 
 👉 **[huggingface.co/spaces/krimits/hotel-review-sentiment](https://huggingface.co/spaces/krimits/hotel-review-sentiment)**
 ![HF Space demo](docs/images/space_demo.png)
+Try the deployed models interactively:
 
+- **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)** —
+  DistilBERT (25 ms) vs Qwen2.5-0.5B QLoRA (~1–3 s) vs GreekBERT (86 ms), three tabs
+  on one review text.
+- **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** —
+  dedicated Greek-language demo (GreekBERT, single tab).
+  
 Paste any hotel review and get a live prediction. No setup required.
 
 ### Option 2 — Run locally
@@ -111,13 +118,7 @@ curl -X POST http://localhost:8000/predict \
 ```json
 { "label": "positive", "confidence": 0.9985, "latency_ms": 24.9 }
 ```
-Try the deployed models interactively:
 
-- **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)** —
-  DistilBERT (25 ms) vs Qwen2.5-0.5B QLoRA (~1–3 s) vs GreekBERT (86 ms), three tabs
-  on one review text.
-- **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** —
-  dedicated Greek-language demo (GreekBERT, single tab).
 ### Option 3 — Docker
 
 ```bash
