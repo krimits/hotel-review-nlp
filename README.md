@@ -6,7 +6,7 @@
 
 > A production-ready sentiment classification API that turns raw guest reviews into actionable signals — **96.3% accuracy**, **20+ requests/sec on CPU**, and a **64% smaller INT8 variant** with zero accuracy loss.
 
-**🔗 [Live demo on Hugging Face Spaces](https://huggingface.co/spaces/krimits/hotel-review-sentiment)** · **📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
+ **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)**  · **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** .**📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
 
 ---
 
@@ -80,9 +80,7 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
 
 ### Option 1 — Interactive demo
 
-👉 **[huggingface.co/spaces/krimits/hotel-review-sentiment](https://huggingface.co/spaces/krimits/hotel-review-sentiment)**
-![HF Space demo](docs/images/space_demo.png)
-Try the deployed models interactively:
+👉 Try the deployed models interactively:
 
 - **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)** —
   DistilBERT (25 ms) vs Qwen2.5-0.5B QLoRA (~1–3 s) vs GreekBERT (86 ms), three tabs
