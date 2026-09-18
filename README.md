@@ -159,6 +159,35 @@ Measured with **Locust** on a Windows CPU (no GPU), 20 concurrent users, 60-seco
 
 Zero failures across the run.
 
+Pushed run (6aab7f5a)
+Baseline (6aaa773d)
+
+
+
+Test macro-F1
+0.9086
+0.9150
+
+
+Test accuracy
+0.9087
+0.9153
+
+
+Best dev macro-F1
+0.9008
+0.8903
+
+
+Sanity (2 προφανείς κριτικές)
+✅ [positive, negative]
+—
+
+
+Training (T4)
+175.8 s
+235.7 s
+
 ## Quantization
 
 Dynamic INT8 quantization with `torch.ao.quantization.quantize_dynamic` on CPU (n=32 sample):
