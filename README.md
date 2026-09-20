@@ -249,7 +249,7 @@ src/reviewnlp/
   evaluation/      metrics, benchmark, McNemar, plots
   serving/         FastAPI; stub, classical, encoder, Qwen backends
 configs/           YAML configs for CLI experiments
-notebooks/         EDA, annotation, ablations, Colab runs
+notebooks/         Colab templates (no saved outputs — see notebooks/README.md)
 scripts/           verification, quantization, API utilities
 tests/             data, LoRA/PEFT, metrics, API checks
 docs/experiments/  preserved runs, manifests, verified handoff
@@ -281,7 +281,7 @@ docs/experiments/  preserved runs, manifests, verified handoff
 
 ## Links
 
-- 📓 **Notebooks**: [DistilBERT full + LoRA](notebooks/05_distilbert_full_and_lora_colab.ipynb) · [Qwen QLoRA](notebooks/06_qwen_qlora_colab.ipynb)
+- 📓 **Notebooks**: [executed runs with outputs](docs/experiments/notebooks/) · [Colab templates](notebooks/) ([what each needs](notebooks/README.md)) — the templates are committed without outputs and are meant to be run, not read as results
 - 📊 **Results**: [preserved run artifacts](docs/experiments/results/) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
 - 🏗️ **Design**: [DESIGN.md](DESIGN.md) — evaluation methodology, what I'd do with more compute
 - 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
