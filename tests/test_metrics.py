@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pytest
 
+from reviewnlp.evaluation.compare import matches
 from reviewnlp.evaluation.metrics import binary_metrics, discordant_counts
 from reviewnlp.evaluation.significance import mcnemar_exact, pairwise_mcnemar
 
@@ -75,3 +78,42 @@ def test_pairwise_mcnemar_structure():
     assert set(out) == {"m1 vs m2", "m1 vs m3", "m2 vs m3"}
     assert out["m1 vs m3"]["p_value"] == 1.0
     assert out["m1 vs m2"]["n_discordant"] == 20
+
+
+def test_matches_tolerates_ulp_drift():
+    # The exact pair that broke scripts/verify_distilbert_handoff.py: the same
+    # binomtest expression evaluated by two SciPy builds.
+    recorded = {"statistic": 60.0, "p_value": 5.02808218497859e-06,
+                "significant_at_0.05": True, "n_discordant": 182}
+    recomputed = dict(recorded, p_value=5.028082184978545e-06)
+    assert matches(recomputed, recorded)
+
+
+def test_matches_rejects_real_differences():
+    # Full FT vs scratch LoRA macro-F1: a difference that must never pass.
+    assert not matches({"macro_f1": 0.9634}, {"macro_f1": 0.9573})
+    assert not matches(5.02808e-06, 6.0e-06)
+
+
+def test_matches_does_not_confuse_bools_with_ints():
+    # bool subclasses int, so a naive numeric comparison would accept these.
+    assert not matches(True, 1)
+    assert not matches({"significant_at_0.05": False}, {"significant_at_0.05": 0})
+    assert matches({"significant_at_0.05": True}, {"significant_at_0.05": True})
+
+
+def test_matches_walks_the_binary_metrics_shape():
+    recorded = binary_metrics(["negative", "positive", "positive"],
+                              ["negative", "positive", "negative"])
+    recomputed = json.loads(json.dumps(recorded))  # round-trip, as the script does
+    assert matches(recomputed, recorded)
+    # Nested leaves are reached: per_class and confusion_matrix included.
+    recomputed["per_class"]["negative"]["support"] = 99
+    assert not matches(recomputed, recorded)
+
+
+def test_matches_requires_identical_structure():
+    assert not matches({"a": 1.0}, {"a": 1.0, "b": 2.0})  # extra key
+    assert not matches({"a": 1.0}, {"b": 1.0})            # renamed key
+    assert not matches([1.0, 2.0], [1.0, 2.0, 3.0])       # length
+    assert not matches(1.0, "1.0")                        # type

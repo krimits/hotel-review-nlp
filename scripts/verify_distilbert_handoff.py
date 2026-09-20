@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from reviewnlp.evaluation.compare import matches
 from reviewnlp.evaluation.metrics import binary_metrics
 from reviewnlp.evaluation.significance import pairwise_mcnemar
 from reviewnlp.utils.experiments import frame_fingerprint
@@ -123,16 +124,23 @@ def verify(bundle: Path, processed_dir: Path | None = None) -> dict:
                 labels, logits.argmax(1), label_names=("negative", "positive"), label_values=(0, 1),
             )
             if split == "dev":
-                require(measured["macro_f1"] == record["best_dev_macro_f1"],
-                        f"Dev score mismatch: {name}")
+                require(matches(measured["macro_f1"], record["best_dev_macro_f1"]),
+                        f"Dev score mismatch: {name}: recomputed "
+                        f"{measured['macro_f1']} vs recorded {record['best_dev_macro_f1']}")
             else:
-                require(measured == record["test"], f"Test metrics mismatch: {name}")
+                require(matches(measured, record["test"]),
+                        f"Test metrics mismatch: {name}: recomputed "
+                        f"{json.dumps(measured)} vs recorded {json.dumps(record['test'])}")
                 recomputed[name] = measured
                 predictions[name] = logits.argmax(1)
 
     paired = pairwise_mcnemar(labels_by_split["test"], predictions)
     saved_paired = read_json(bundle / "mcnemar_full_vs_lora.json")
-    require(list(paired.values()) == list(saved_paired.values()), "McNemar mismatch")
+    # Compare values only: the saved file labels the pair with display names
+    # ("DistilBERT full FT vs ...") while pairwise_mcnemar keys it by directory.
+    require(matches(list(paired.values()), list(saved_paired.values())),
+            f"McNemar mismatch: recomputed {json.dumps(list(paired.values()))} "
+            f"vs recorded {json.dumps(list(saved_paired.values()))}")
     full_correct = predictions[MODELS[0]] == labels_by_split["test"]
     lora_correct = predictions[MODELS[1]] == labels_by_split["test"]
     full, lora = (records[name] for name in MODELS)
