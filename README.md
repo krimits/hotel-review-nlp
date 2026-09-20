@@ -32,12 +32,12 @@ For teams, this is the difference between reading reviews and *acting* on them.
 
 ## Key results
 
-All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 positive, 3,278 negative), with paired McNemar tests for statistical significance.
+All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 positive, 3,278 negative), with paired McNemar tests for statistical significance. Every row is the number recorded in the preserved run artifacts under [`docs/experiments/results/`](docs/experiments/results/) — the DistilBERT pair is additionally recomputed from saved logits by [`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) on every CI run.
 
 | Model | Macro-F1 | Accuracy | Trainable params | Notes |
 | :--- | ---: | ---: | ---: | :--- |
-| TF-IDF + Naive Bayes | 0.9350 | 95.1% | — | Classical baseline, 0.04 ms/text |
-| BiLSTM (pure PyTorch) | 0.9492 | 96.1% | All | Custom training loop |
+| TF-IDF + Naive Bayes | 0.9345 | 95.09% | — | Classical baseline, 0.04 ms/text |
+| BiLSTM (pure PyTorch) | 0.9503 | 96.29% | All | Custom training loop, seed 42 |
 | **DistilBERT (full FT)** | **0.9634** | **97.3%** | 67.0M (100%) | 🏆 Best accuracy |
 | DistilBERT + scratch LoRA | 0.9573 | 96.8% | 0.74M (**1.1%**) | 35% faster training, 38% less GPU memory |
 | Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | Adapter | 4-bit, 20k subset |
@@ -90,6 +90,8 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
   
 Paste any hotel review and get a live prediction. No setup required.
 
+![The hotel-review-demo Space comparing DistilBERT and Qwen QLoRA on one review](docs/images/space_demo.png)
+
 ### Option 2 — Run locally
 
 ```bash
@@ -116,6 +118,11 @@ curl -X POST http://localhost:8000/predict \
 ```json
 { "label": "positive", "confidence": 0.9985, "latency_ms": 24.9 }
 ```
+
+`bash scripts/demo_api.sh` exercises `/health`, both `/predict` paths and `/predict/batch` against a
+real encoder checkpoint:
+
+![Terminal output of scripts/demo_api.sh against the DistilBERT checkpoint](docs/images/api_demo.png)
 
 ### Option 3 — Docker
 
@@ -153,7 +160,6 @@ flowchart LR
 ## Serving benchmark
 
 Measured with **Locust** on a Windows CPU (no GPU), 20 concurrent users, 60-second run:
-![Serving demo](docs/images/serving_demo.png)
 
 | Endpoint | Requests | p50 | p95 | RPS |
 | :--- | ---: | ---: | ---: | ---: |
@@ -164,34 +170,7 @@ Measured with **Locust** on a Windows CPU (no GPU), 20 concurrent users, 60-seco
 
 Zero failures across the run.
 
-Pushed run (6aab7f5a)
-Baseline (6aaa773d)
-
-
-
-Test macro-F1
-0.9086
-0.9150
-
-
-Test accuracy
-0.9087
-0.9153
-
-
-Best dev macro-F1
-0.9008
-0.8903
-
-
-Sanity (2 προφανείς κριτικές)
-✅ [positive, negative]
-—
-
-
-Training (T4)
-175.8 s
-235.7 s
+---
 
 ## Quantization
 
@@ -253,6 +232,8 @@ It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and 
 - The classical baseline rows are **historical runs** that predate the fix moving model selection to dev. The old `*_char` rows used the wrong analyzer and are excluded from the summary table.
 - The Qwen QLoRA run used a **20k subset**, not the full 118,990 rows.
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
+- The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
+- The unified five-family `results.json` is **not published yet**: the McNemar table above is transcribed from the benchmark run rather than regenerated from a committed artifact. Only the DistilBERT pair is machine-verified.
 
 </details>
 
@@ -301,7 +282,7 @@ docs/experiments/  preserved runs, manifests, verified handoff
 ## Links
 
 - 📓 **Notebooks**: [DistilBERT full + LoRA](notebooks/05_distilbert_full_and_lora_colab.ipynb) · [Qwen QLoRA](notebooks/06_qwen_qlora_colab.ipynb)
-- 📊 **Results**: [unified benchmark](runs/benchmark/results.json) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
+- 📊 **Results**: [preserved run artifacts](docs/experiments/results/) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
 - 🏗️ **Design**: [DESIGN.md](DESIGN.md) — evaluation methodology, what I'd do with more compute
 - 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
 
