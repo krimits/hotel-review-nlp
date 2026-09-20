@@ -35,7 +35,10 @@ def main() -> None:
 
     predictions = predict_texts(texts, args.model_dir, max_length=args.max_length)
     print(json.dumps(
-        [{"text": text, "sentiment": label} for text, label in zip(texts, predictions)],
+        [
+            {"text": text, "sentiment": label}
+            for text, label in zip(texts, predictions, strict=True)
+        ],
         ensure_ascii=False,
         indent=2,
     ))
