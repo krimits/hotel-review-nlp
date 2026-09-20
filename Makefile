@@ -1,4 +1,4 @@
-.PHONY: install data baselines bilstm distilbert qlora benchmark serve lint test docker
+.PHONY: install data baselines bilstm distilbert qlora greek greek-eval benchmark serve quantbench lint test docker
 
 PY ?= python3
 
@@ -25,6 +25,14 @@ distilbert:
 ## 5) Qwen2.5-0.5B-Instruct + QLoRA (run on Colab GPU)
 qlora:
 	$(PY) -m reviewnlp.llm.train_qlora --config configs/qlora_qwen.yaml
+
+## 5b) GreekBERT on the pinned greek_sa corpus (domain-transfer demo, GPU)
+greek:
+	$(PY) scripts/train_greek.py --config configs/greek_bert.yaml
+
+## 5c) Score a saved Greek checkpoint on the same configured splits
+greek-eval:
+	$(PY) scripts/evaluate_greek.py --config configs/greek_bert.yaml --model-dir runs/greek_bert
 
 ## 6) Unified benchmark: all models on the identical test set + McNemar tests
 benchmark:
