@@ -1,7 +1,9 @@
 # CPU inference image for the sentiment API.
 # Build:  docker build -f docker/Dockerfile -t hotel-review-nlp .
 # Run:    docker run -p 8000:8000 -e MODEL_TYPE=stub hotel-review-nlp
-#         (mount runs/ and set MODEL_TYPE=encoder MODEL_PATH=/models/distilbert for the real model)
+#         Real weights are mounted, never baked in:
+#         docker run -p 8000:8000 -v "$(pwd)/models:/models:ro" \
+#             -e MODEL_TYPE=encoder -e MODEL_PATH=/models/distilbert hotel-review-nlp
 
 FROM python:3.11-slim
 
@@ -17,7 +19,9 @@ RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install -e ".[serving]" && pip install transformers accelerate
+# Pinned to the versions CI tests against, so an image rebuilt months from now
+# serves the same model code that produced the published numbers.
+RUN pip install -e ".[serving]" && pip install transformers==4.56.2 accelerate==1.10.1
 
 # models are mounted at runtime, never baked into the image
 RUN mkdir -p /models

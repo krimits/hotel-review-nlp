@@ -128,8 +128,25 @@ real encoder checkpoint:
 
 ```bash
 docker build -f docker/Dockerfile -t hotel-review-nlp .
-docker run -p 8000:8000 -e MODEL_TYPE=encoder hotel-review-nlp
+
+# Smoke-test the API contract with no weights at all
+docker run -p 8000:8000 -e MODEL_TYPE=stub hotel-review-nlp
 ```
+
+Weights are **never baked into the image** — mount them and point `MODEL_PATH` at the
+mount, or the container exits at startup:
+
+```bash
+hf download krimits/distilbert-hotel-reviews --local-dir models/distilbert
+
+docker run -p 8000:8000 \
+  -v "$(pwd)/models:/models:ro" \
+  -e MODEL_TYPE=encoder -e MODEL_PATH=/models/distilbert \
+  hotel-review-nlp
+```
+
+`MODEL_TYPE` accepts `stub`, `classical`, `encoder` or `qwen_qlora`; everything except
+`stub` requires `MODEL_PATH`.
 
 ---
 
