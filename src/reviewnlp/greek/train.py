@@ -108,7 +108,7 @@ def train_from_config(config_path: str) -> dict:
     )
 
     started = time.perf_counter()
-    train_result = trainer.train()
+    trainer.train()
     training_seconds = time.perf_counter() - started
 
     model.save_pretrained(output_dir)
