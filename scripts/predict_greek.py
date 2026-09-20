@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from reviewnlp.greek.config import GreekConfig  # noqa: E402
 from reviewnlp.greek.predict import predict_texts  # noqa: E402
 
 
@@ -20,8 +21,17 @@ def main() -> None:
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--text", action="append", default=[], help="Repeatable")
     parser.add_argument("--file", help="One review per line")
-    parser.add_argument("--max-length", type=int, default=160)
+    parser.add_argument("--config", default="configs/greek_bert.yaml")
+    parser.add_argument(
+        "--max-length", type=int,
+        help="Defaults to data.max_length from --config, so inference truncates "
+             "exactly as training did.",
+    )
     args = parser.parse_args()
+
+    max_length = args.max_length
+    if max_length is None:
+        max_length = GreekConfig.from_yaml(args.config).data.max_length
 
     texts = list(args.text)
     if args.file:
@@ -33,7 +43,7 @@ def main() -> None:
     if not texts:
         parser.error("provide --text or --file")
 
-    predictions = predict_texts(texts, args.model_dir, max_length=args.max_length)
+    predictions = predict_texts(texts, args.model_dir, max_length=max_length)
     print(json.dumps(
         [
             {"text": text, "sentiment": label}
