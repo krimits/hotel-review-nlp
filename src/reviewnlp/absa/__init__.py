@@ -1,0 +1,1 @@
+"""ABSA prototype: aspect extraction with Qwen2.5-0.5B (base vs adapter A/B)."""
