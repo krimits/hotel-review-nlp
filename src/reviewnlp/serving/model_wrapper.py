@@ -32,6 +32,22 @@ class ModelWrapper:
         self._loaded = False
         self._obj = None
 
+    def _require_model_path(self) -> None:
+        """Every family but `stub` needs weights; say so before loading them.
+
+        Without this the empty default reaches the loader and surfaces as
+        `HFValidationError: Repo id must use alphanumeric chars ... : ''`,
+        which names neither MODEL_PATH nor the container flag that sets it.
+        """
+        if not self.model_path:
+            raise ValueError(
+                f"MODEL_TYPE={self.model_type} needs MODEL_PATH pointing at the "
+                f"checkpoint, but it is empty. Mount the weights and set it, e.g. "
+                f"`docker run -v $(pwd)/models:/models -e MODEL_TYPE={self.model_type} "
+                f"-e MODEL_PATH=/models/distilbert ...`, or use MODEL_TYPE=stub to "
+                f"run the API without weights."
+            )
+
     def load(self) -> None:
         with self._lock:
             if self._loaded:
@@ -39,10 +55,12 @@ class ModelWrapper:
             if self.model_type == "stub":
                 self._obj = None
             elif self.model_type == "classical":
+                self._require_model_path()
                 import joblib
 
                 self._obj = joblib.load(self.model_path)
             elif self.model_type in {"encoder", "qwen_qlora"}:
+                self._require_model_path()
                 # heavy models load here once; predict_* functions re-load per
                 # call in offline use, so we keep a dedicated fast path below
                 self._obj = _load_heavy(self.model_type, self.model_path)

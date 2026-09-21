@@ -53,3 +53,26 @@ def test_batch_predict_roundtrip(client):
 def test_batch_rejects_empty(client):
     r = client.post("/predict/batch", json={"texts": []})
     assert r.status_code == 422
+
+
+@pytest.mark.parametrize("model_type", ["classical", "encoder", "qwen_qlora"])
+def test_missing_model_path_is_reported_before_loading(model_type):
+    """The image ships no weights and MODEL_PATH defaults to empty. Without
+    this guard the empty string reached the loader and surfaced as
+    `HFValidationError: Repo id must use alphanumeric chars ... : ''`, which
+    named neither MODEL_PATH nor the docker flag that sets it."""
+    wrapper = ModelWrapper(model_type=model_type, model_path="")
+    with pytest.raises(ValueError, match="needs MODEL_PATH") as excinfo:
+        wrapper.load()
+    message = str(excinfo.value)
+    assert model_type in message
+    assert "MODEL_TYPE=stub" in message  # the way out is in the message
+
+
+def test_stub_needs_no_model_path():
+    """The documented smoke test must keep working with no weights present."""
+    wrapper = ModelWrapper(model_type="stub", model_path="")
+    wrapper.load()
+    label, confidence = wrapper.predict("Perfect stay, spotless room.")
+    assert label in {"positive", "negative"}
+    assert 0.5 <= confidence <= 1.0
