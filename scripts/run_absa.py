@@ -116,7 +116,7 @@ def main() -> None:
     records = extract_aspects_batch(
         sampled["text"].tolist(), adapter_dir=adapter_local, batch_size=8
     )
-    for record, (_, row) in zip(records, sampled.iterrows()):
+    for record, (_, row) in zip(records, sampled.iterrows(), strict=True):
         record["row_id"] = int(row["row_id"])
         record["gold"] = row["gold"]
 
@@ -126,7 +126,7 @@ def main() -> None:
     conditional = {}
     for cls in ("positive", "negative"):
         total = sum(1 for g in gold if g == cls)
-        ok = sum(1 for v, g in zip(votes, gold) if g == cls and v == cls)
+        ok = sum(1 for v, g in zip(votes, gold, strict=True) if g == cls and v == cls)
         conditional[cls] = {
             "ok": ok,
             "total": total,
@@ -143,7 +143,7 @@ def main() -> None:
         "generation_hit_token_budget",
     )
     n = len(records)
-    agree = sum(1 for v, g in zip(votes, gold) if v == g)
+    agree = sum(1 for v, g in zip(votes, gold, strict=True) if v == g)
     summary = {
         "schema_version": 9,
         "code_sha256": code_sha256(),

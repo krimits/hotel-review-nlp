@@ -64,7 +64,7 @@ def extract_aspects_batch(texts, adapter_dir=None, batch_size=8, device=None):
         new_tokens = generated[:, batch["input_ids"].shape[1] :]
         budget_hit = new_tokens.shape[1] == MAX_NEW_TOKENS  # EOS never emitted
         decoded = tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
-        for text, raw in zip(chunk, decoded):
+        for text, raw in zip(chunk, decoded, strict=True):
             parsed = parse_absa_output(raw, review=text)
             records.append({
                 "text": text,
