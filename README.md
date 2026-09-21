@@ -203,6 +203,69 @@ It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and 
 
 ---
 
+## Aspect-based sentiment (prototype)
+
+A binary label answers "was this review good?". A hotel manager needs "good at
+what?" — *"the sheets were dirty, but the staff were wonderful and the view was
+stunning"* is one `positive` that hides the only line worth acting on.
+
+[`src/reviewnlp/absa/`](src/reviewnlp/absa/) extracts one record per aspect
+instead:
+
+```json
+[
+  {"aspect": "cleanliness", "sentiment": "negative", "quote": "sheets were dirty"},
+  {"aspect": "staff",       "sentiment": "positive", "quote": "staff were wonderful"},
+  {"aspect": "location",    "sentiment": "positive", "quote": "the view was stunning"}
+]
+```
+
+The taxonomy is **fixed at eight aspects** (cleanliness, staff, location, room,
+food, noise, value, facilities) rather than free-form, so that counts are
+comparable from one week to the next. Unrecognized aspect strings are dropped
+and counted, never coerced onto the nearest name — a coerced aspect invents
+evidence for something the review never said.
+
+**Two models, two roles.** Extraction runs on the **base**
+`Qwen2.5-0.5B-Instruct`, zero-shot; the QLoRA adapter stays on binary scoring
+where it was trained. The adapter was fine-tuned completion-only on
+single-word targets, and asked for JSON it emits that trained single-word loop
+instead — the instruction-following the task needs is what the fine-tune traded
+away. `--variant base|adapter` keeps the comparison runnable rather than
+asserted, and the failure mode itself is pinned in
+[`tests/test_absa.py`](tests/test_absa.py).
+
+```bash
+# Per-aspect records + summary.json for a sample of the frozen test split
+python scripts/run_absa.py --variant base \
+    --test-parquet data/processed/test.parquet \
+    --output-dir runs/absa_base
+```
+
+Every generation is parsed strictly: JSON recovered from surrounding prose is
+flagged as `salvaged` rather than counted as compliant, quotes are checked
+against the source review, and each summary carries a `code_sha256` over the
+ABSA package so results stay matchable to the code that produced them.
+
+**Prototype status — what this section does not claim:**
+
+- **No accuracy numbers are published here.** Runs land in git-ignored `runs/`,
+  and no ABSA artifact is committed under `docs/experiments/`. As with the
+  five-family benchmark above, the README publishes figures only once the
+  artifact backing them is in the repository.
+- **The overall vote abstains on genuinely mixed reviews.** One aspect positive
+  and one negative returns no label rather than a coin flip. That is a declared
+  behaviour, but it means any headline agreement score is bounded by how many
+  reviews are mixed — a real open problem in ABSA, not a bug to tune away.
+- **Zero-shot, with no supervised ABSA baseline** to compare against, and no
+  gold aspect annotations — only the binary gold label the frozen split
+  carries, which can check the aggregate vote but not the aspects themselves.
+- **The generation loop is not covered offline.** `absa/pipeline.py` needs a
+  model download, so CI exercises the taxonomy, parser, vote and runner helpers
+  around it, not the batched `generate` call.
+
+---
+
 ## Technical details
 
 <details>
@@ -248,10 +311,12 @@ src/reviewnlp/
   llm/             DistilBERT full FT / scratch LoRA, Qwen QLoRA
   evaluation/      metrics, benchmark, McNemar, plots
   serving/         FastAPI; stub, classical, encoder, Qwen backends
+  greek/           Greek fine-tune: config, splits, baseline, evaluation
+  absa/            aspect taxonomy, strict JSON parser, per-aspect vote
 configs/           YAML configs for CLI experiments
 notebooks/         Colab templates (no saved outputs — see notebooks/README.md)
 scripts/           verification, quantization, API utilities
-tests/             data, LoRA/PEFT, metrics, API checks
+tests/             data, LoRA/PEFT, metrics, API, Greek, ABSA checks
 docs/experiments/  preserved runs, manifests, verified handoff
 ```
 

@@ -52,7 +52,7 @@ def parse_absa_output(raw: str, review: str | None = None) -> dict:
     """Strict parse with evidence tracking.
 
     Returns: json_valid, salvaged (extra text around the array), entries_total,
-    entries_kept, entries_dropped, quote_absent (no quote given), 
+    entries_kept, entries_dropped, quote_absent (no quote given),
     quote_not_in_review (quote not found in source), quote_truncated,
     empty_valid (valid JSON, zero valid entries — a legitimate outcome that
     v8 could not distinguish from all-entries-rejected), aspects, error.
