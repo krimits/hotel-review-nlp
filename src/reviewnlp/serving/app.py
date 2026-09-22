@@ -26,16 +26,22 @@ from reviewnlp.serving.schemas import (
     PredictRequest,
     PredictResponse,
 )
+from reviewnlp.serving.absa_router import router as absa_router
+from reviewnlp.serving.analytics_router import router as analytics_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("reviewnlp.serving")
 
 app = FastAPI(
     title="Hotel Review Sentiment API",
-    description="Serves the benchmarked sentiment models (NB/LR-SGD, BiLSTM, DistilBERT, Qwen-QLoRA).",
+    description="Serves the benchmarked sentiment models (NB/LR-SGD, BiLSTM, DistilBERT, Qwen-QLoRA) and ABSA analysis.",
     version="0.1.0",
 )
 wrapper = ModelWrapper()
+
+# Include ABSA and analytics routers
+app.include_router(absa_router)
+app.include_router(analytics_router)
 
 
 @app.on_event("startup")
