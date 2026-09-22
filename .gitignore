@@ -1,55 +1,62 @@
-# Python
+```
+# Compiled Python files
+*.pyc
 __pycache__/
-*.py[cod]
-*.egg-info/
-.eggs/
-build/
-dist/
+
+# Dependencies
 .venv/
 venv/
-.python-version
+.env
+.env.local
+*.env.*
 
-# Tooling
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+# Build/dist directories
+dist/
+build/
+target/
+
+# Logs
+*.log
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
 .coverage
+coverage/
 htmlcov/
 
-# Data (raw/processed are downloaded, not committed)
-data/raw/*
-!data/raw/README.md
-!data/raw/hotel_reviews.csv
-data/processed/*
-!data/processed/.gitkeep
-runs/*
-!runs/benchmark/
-runs/benchmark/*
-!runs/benchmark/results.json
-!runs/benchmark/confusion.png
-!runs/benchmark/latency.png
-!runs/benchmark/README.md
-!runs/benchmark/predictions.npz
-data/processed_v*/
-artifacts/
-reports/
-/distilbert_legacy_full_v1_handoff/
+# Python specific
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
 
-# Model weights
-*.safetensors
-*.bin
-*.onnx
-*.pt
-*.gguf
-
-# OS / IDE
-.DS_Store
-.idea/
-.vscode/
-
-# Env
-.env
-.env.*
-!.env.example
-*.log
+# Compressed files
 *.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+```
