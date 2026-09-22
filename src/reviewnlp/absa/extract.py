@@ -54,14 +54,17 @@ def parse_absa_output(raw: str, review: str | None = None) -> dict:
     Returns: json_valid, salvaged (extra text around the array), entries_total,
     entries_kept, entries_dropped, quote_absent (no quote given),
     quote_not_in_review (quote not found in source), quote_truncated,
-    empty_valid (valid JSON, zero valid entries — a legitimate outcome that
-    v8 could not distinguish from all-entries-rejected), aspects, error.
+    empty_valid (valid JSON holding an empty array — the model stated there is
+    nothing to extract, which v8 could not tell apart from every entry being
+    rejected; both leave aspects empty, but only one is the model working),
+    aspects, error.
     """
     text = str(raw).strip()
     out = {
         "json_valid": False, "salvaged": False,
         "entries_total": 0, "entries_kept": 0, "entries_dropped": 0,
         "quote_absent": 0, "quote_not_in_review": 0, "quote_truncated": 0,
+        "empty_valid": False,
         "aspects": [], "error": None,
     }
     if not text:
@@ -83,6 +86,7 @@ def parse_absa_output(raw: str, review: str | None = None) -> dict:
 
     out["json_valid"] = True
     out["entries_total"] = len(items)
+    out["empty_valid"] = not items
     review_norm = review_key(review) if review is not None else None
     for item in items:
         if not isinstance(item, dict):

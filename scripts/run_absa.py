@@ -139,7 +139,7 @@ def main() -> None:
 
     parse_fields = (
         "json_valid", "salvaged", "entries_total", "entries_dropped",
-        "quote_absent", "quote_not_in_review", "quote_truncated",
+        "empty_valid", "quote_absent", "quote_not_in_review", "quote_truncated",
         "generation_hit_token_budget",
     )
     n = len(records)
