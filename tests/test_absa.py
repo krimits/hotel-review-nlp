@@ -113,6 +113,7 @@ def test_clean_array_parses_with_the_quote_checked_against_the_review():
     assert out["json_valid"] is True
     assert out["salvaged"] is False
     assert (out["entries_total"], out["entries_kept"], out["entries_dropped"]) == (2, 2, 0)
+    assert out["empty_valid"] is False
     assert out["quote_absent"] == out["quote_not_in_review"] == out["quote_truncated"] == 0
     assert out["aspects"] == [
         {"aspect": "cleanliness", "sentiment": "negative", "quote": "sheets were dirty"},
@@ -146,6 +147,7 @@ def test_unparseable_generations_report_why_and_keep_nothing(raw, expected_error
     assert out["json_valid"] is False
     assert out["aspects"] == []
     assert out["entries_kept"] == 0
+    assert out["empty_valid"] is False  # no array at all is not an empty array
     assert out["error"].startswith(expected_error)
 
 
@@ -163,6 +165,49 @@ def test_invalid_entries_are_dropped_and_counted_not_folded_into_the_parse_flag(
     assert out["json_valid"] is True
     assert (out["entries_total"], out["entries_kept"], out["entries_dropped"]) == (4, 1, 3)
     assert [a["aspect"] for a in out["aspects"]] == ["cleanliness"]
+
+
+def test_empty_array_is_marked_valid_and_empty():
+    # The model saying "nothing to extract" is a real answer, not a failure.
+    out = parse_absa_output("[]", review="Stayed one night.")
+
+    assert out["json_valid"] is True
+    assert out["empty_valid"] is True
+    assert (out["entries_total"], out["entries_kept"], out["entries_dropped"]) == (0, 0, 0)
+    assert out["aspects"] == []
+    assert out["error"] is None
+
+
+def test_empty_valid_separates_a_silent_model_from_a_rejected_one():
+    # Both records end with aspects == [] and json_valid True. Without
+    # empty_valid the summary cannot tell "the model found nothing" from
+    # "the model produced only garbage" — one is a quiet corpus, the other is
+    # extraction failing, and they need opposite responses.
+    silent = parse_absa_output("[]", review="Fine.")
+    rejected = parse_absa_output(
+        '[{"aspect": "weather", "sentiment": "negative", "quote": "rain"},'
+        ' {"aspect": "staff", "sentiment": "mixed", "quote": "ok"}]',
+        review="It rained and the staff were ok.",
+    )
+
+    assert silent["aspects"] == rejected["aspects"] == []
+    assert silent["json_valid"] == rejected["json_valid"] is True
+    assert silent["empty_valid"] is True
+    assert rejected["empty_valid"] is False
+    assert (rejected["entries_total"], rejected["entries_dropped"]) == (2, 2)
+
+
+def test_every_return_path_carries_the_documented_keys():
+    # empty_valid was documented for a release before it was implemented.
+    # Callers read these keys unguarded, so a missing one is a KeyError in a
+    # batch run, not a missing number.
+    documented = {
+        "json_valid", "salvaged", "entries_total", "entries_kept",
+        "entries_dropped", "quote_absent", "quote_not_in_review",
+        "quote_truncated", "empty_valid", "aspects", "error",
+    }
+    for raw in ("", "no json here", "[oops", "[]", '[{"aspect": "staff", "sentiment": "positive"}]'):
+        assert set(parse_absa_output(raw, review="staff")) == documented, raw
 
 
 def test_quote_problems_are_counted_without_rejecting_the_entry():
