@@ -35,8 +35,14 @@ def load_absa_model(adapter_dir: str | None = None, device=None):
     return tokenizer, model, variant
 
 
-def extract_aspects_batch(texts, adapter_dir=None, batch_size=8, device=None):
-    tokenizer, model, variant = load_absa_model(adapter_dir, device)
+def generate_aspect_records(tokenizer, model, texts, batch_size: int = 8) -> list[dict]:
+    """Generate and parse ABSA records with an already-loaded tokenizer and model.
+
+    Split out of extract_aspects_batch so a long-lived caller - the serving
+    model manager - can reuse one loaded model across requests and still get
+    real batched generation with left padding, instead of reimplementing the
+    loop one review at a time.
+    """
     records = []
     for start in range(0, len(texts), batch_size):
         chunk = [" ".join(str(t).split())[:4000] for t in texts[start : start + batch_size]]
@@ -62,14 +68,30 @@ def extract_aspects_batch(texts, adapter_dir=None, batch_size=8, device=None):
                 eos_token_id=tokenizer.eos_token_id,
             )
         new_tokens = generated[:, batch["input_ids"].shape[1] :]
-        budget_hit = new_tokens.shape[1] == MAX_NEW_TOKENS  # EOS never emitted
         decoded = tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
-        for text, raw in zip(chunk, decoded, strict=True):
+        for row, text, raw in zip(new_tokens, chunk, decoded, strict=True):
             parsed = parse_absa_output(raw, review=text)
             records.append({
                 "text": text,
                 "raw_generation": raw,
-                "generation_hit_token_budget": bool(budget_hit),
+                # Per row, not per chunk: generation runs until every row in the
+                # batch is done, so a chunk-wide check flagged rows that had
+                # emitted EOS long before. A row that never emitted it is the
+                # one that was actually cut off.
+                "generation_hit_token_budget": _hit_token_budget(row, tokenizer.eos_token_id),
                 **parsed,
             })
     return records
+
+
+def _hit_token_budget(row, eos_token_id) -> bool:
+    """True when this row never emitted EOS, so its output was cut off."""
+    if eos_token_id is None:
+        return True
+    return not bool((row == eos_token_id).any())
+
+
+def extract_aspects_batch(texts, adapter_dir=None, batch_size=8, device=None):
+    """Load a model and run generate_aspect_records over texts."""
+    tokenizer, model, _variant = load_absa_model(adapter_dir, device)
+    return generate_aspect_records(tokenizer, model, texts, batch_size=batch_size)

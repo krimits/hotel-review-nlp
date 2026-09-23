@@ -37,7 +37,14 @@ class AbsaResponse(BaseModel):
     json_valid: bool
     salvaged: bool
     entries_dropped: int
-    processing_time_ms: float
+    processing_time_ms: float | None = Field(
+        default=None,
+        description=(
+            "Wall time for this review, when it was generated on its own. "
+            "Null inside a batch: the batch is one padded forward pass, so no "
+            "per-review share of it was measured - see total_processing_time_ms."
+        ),
+    )
 
 
 class AspectAnalytics(BaseModel):
