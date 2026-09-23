@@ -17,6 +17,10 @@ Try English hotel reviews one at a time, inspect quoted aspect findings and
 session-scoped complaint recommendations. Uses the base Qwen2.5-0.5B-Instruct
 model and the parsing and recommendation code from the pinned
 [`hotel-review-nlp` commit](https://github.com/krimits/hotel-review-nlp/tree/b153785776562d323bf7dbd7ffcb77fac35c01a7).
+If a model answer has extra text around a valid list, only quoted aspects
+found verbatim in the review are counted, with a visible notice. A malformed
+answer gets one additional attempt with explicit formatting instructions;
+reviews without grounded results are excluded from totals.
 
 This is a demonstration, not a verified production hotel system. Aspect
 accuracy has not been measured against human annotations. Data is held in
