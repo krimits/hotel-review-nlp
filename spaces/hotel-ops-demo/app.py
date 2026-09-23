@@ -7,11 +7,12 @@ from threading import Lock
 
 import gradio as gr
 import torch
+from inference import analyze_review
 from logic import SENTIMENT_NAMES, accept_record, render
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from reviewnlp.absa.extract import overall_from_aspects
-from reviewnlp.absa.pipeline import BASE_MODEL, generate_aspect_records
+from reviewnlp.absa.pipeline import BASE_MODEL
 
 MAX_INPUT_CHARS = 1200
 _inference_lock = Lock()
@@ -41,7 +42,7 @@ def analyze(text: str, history: list[dict] | None):
     try:
         with _inference_lock:
             tokenizer, model = _load_model()
-            result = generate_aspect_records(tokenizer, model, [clean_text], batch_size=1)[0]
+            result = analyze_review(tokenizer, model, clean_text)
     except Exception as exc:
         raise gr.Error("Το μοντέλο δεν μπόρεσε να ολοκληρώσει την ανάλυση. Δοκιμάστε ξανά.") from exc
 
@@ -51,14 +52,25 @@ def analyze(text: str, history: list[dict] | None):
     if accepted:
         label = SENTIMENT_NAMES[overall_from_aspects(aspects)]
         status = f"**Ανάλυση ολοκληρώθηκε.** Συνολική ένδειξη από τις πτυχές: **{label}**."
+        if result.get("salvaged"):
+            status += " Η απάντηση περιείχε επιπλέον κείμενο· μετρήθηκαν μόνο πτυχές με αυτούσια αποσπάσματα."
         if result.get("entries_dropped"):
             status += " Κάποιες αναφορές απορρίφθηκαν επειδή δεν πληρούσαν τους κανόνες ελέγχου."
     elif result.get("generation_hit_token_budget"):
         status = "Η απάντηση του μοντέλου κόπηκε. Η κριτική δεν προστέθηκε στα σύνολα."
-    elif not result.get("json_valid") or result.get("salvaged"):
-        status = "Η απάντηση δεν ήταν έγκυρα δομημένη. Η κριτική δεν προστέθηκε στα σύνολα."
+    elif not result.get("json_valid"):
+        error = str(result.get("error") or "")
+        if error == "empty generation":
+            detail = "Δεν παρήχθη απάντηση."
+        elif error == "no JSON array found":
+            detail = "Δεν βρέθηκε λίστα πτυχών."
+        else:
+            detail = "Η λίστα πτυχών δεν μπορούσε να διαβαστεί."
+        status = f"{detail} Η κριτική δεν προστέθηκε στα σύνολα."
+    elif result.get("quote_absent") or result.get("quote_not_in_review"):
+        status = "Δεν βρέθηκαν αυτούσια αποσπάσματα που να στηρίζουν τις πτυχές. Η κριτική δεν προστέθηκε στα σύνολα."
     else:
-        status = "Δεν βρέθηκε τεκμηριωμένη πτυχή. Η κριτική δεν προστέθηκε στα σύνολα."
+        status = "Δεν εντοπίστηκε πτυχή ξενοδοχείου στην κριτική. Η κριτική δεν προστέθηκε στα σύνολα."
     aspect_rows, review_rows, complaints, evidence = render(
         updated, {"aspects": aspects} if accepted else None
     )
