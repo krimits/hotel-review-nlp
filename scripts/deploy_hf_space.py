@@ -13,12 +13,12 @@ from huggingface_hub import HfApi
 
 OWNER = "krimits"
 REPO_ID = f"{OWNER}/hotel-review-operations-demo"
-FILES = ["README.md", "app.py", "logic.py", "requirements.txt"]
+FILES = ["README.md", "app.py", "inference.py", "logic.py", "requirements.txt"]
 DEMO_DIR = Path(__file__).resolve().parents[1] / "spaces" / "hotel-ops-demo"
 
 
 def deploy(api: HfApi, *, resume: bool = False, demo_dir: Path = DEMO_DIR) -> str:
-    """Publish only the four audited demo files to the intended HF account."""
+    """Publish only the five audited demo files to the intended HF account."""
     signed_in = api.whoami()["name"]
     if signed_in != OWNER:
         raise RuntimeError(
