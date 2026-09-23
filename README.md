@@ -22,7 +22,7 @@ A **binary sentiment classifier** fine-tuned on **118,990 real Booking.com revie
 
 - Classifies any review in **~25 ms on CPU** — no GPU required
 - Achieves **0.9634 macro-F1** on a held-out test set of 13,278 reviews
-- Exposes a **FastAPI `/predict` endpoint** with health checks and batch inference
+- Exposes a **FastAPI service** — `/predict` for scoring, `/absa` for per-aspect extraction — with health checks and batch paths for both
 - Ships as a **Docker image** and runs at **20+ RPS** with p95 latency under 1.3 s
 - Has a **dynamic INT8 variant** that is **1.38× faster** and **64% smaller** with no accuracy loss
 
@@ -147,6 +147,113 @@ docker run -p 8000:8000 \
 
 `MODEL_TYPE` accepts `stub`, `classical`, `encoder` or `qwen_qlora`; everything except
 `stub` requires `MODEL_PATH`.
+
+---
+
+## API endpoints
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `/health` | Liveness plus the loaded model's info |
+| `POST` | `/predict` | One review → label, confidence, latency |
+| `POST` | `/predict/batch` | Up to 256 reviews |
+| `POST` | `/absa` | One review → aspects, sentiments, supporting quotes |
+| `POST` | `/absa/batch` | Up to 256 reviews, one padded forward pass per batch |
+| `GET` | `/hotels/{hotel_id}/recommendations` | Stored aspects for a hotel, worst first |
+
+Interactive docs are at `/docs` once the service is running.
+
+The `/absa` paths load `Qwen2.5-0.5B-Instruct` on first use and keep it for the
+process, so the first request pays for the load and the rest do not. Configure
+with `ABSA_ADAPTER_DIR` (omit for the base model, which is what the prototype
+uses), `ABSA_DEVICE` and `ABSA_BATCH_SIZE`.
+
+<details>
+<summary><b>POST /absa</b> — aspects from one review</summary>
+
+```bash
+curl -X POST http://localhost:8000/absa \
+  -H "Content-Type: application/json" \
+  -d '{"hotel_id": "acme-athens", "review_id": "r-1042",
+       "text": "The room was fine but it was very loud all night."}'
+```
+
+```json
+{
+  "hotel_id": "acme-athens",
+  "review_id": "r-1042",
+  "aspects": [
+    {"aspect": "noise", "sentiment": "negative", "quote": "very loud", "confidence": null}
+  ],
+  "overall_sentiment": "negative",
+  "json_valid": true,
+  "salvaged": false,
+  "entries_dropped": 0,
+  "processing_time_ms": 39.82
+}
+```
+
+`overall_sentiment` is `null` for a genuinely mixed review rather than a coin
+flip — see the abstention note in the ABSA section. `json_valid`, `salvaged`
+and `entries_dropped` describe how well the model followed the JSON
+instruction, so a caller can tell a clean extraction from a salvaged one.
+
+</details>
+
+<details>
+<summary><b>POST /absa/batch</b> — many reviews in one forward pass</summary>
+
+```json
+{
+  "hotel_id": "acme-athens",
+  "results": [
+    {
+      "hotel_id": "acme-athens",
+      "review_id": "r-1",
+      "aspects": [
+        {"aspect": "staff", "sentiment": "positive", "quote": "kind staff", "confidence": null}
+      ],
+      "overall_sentiment": "positive",
+      "json_valid": true,
+      "salvaged": false,
+      "entries_dropped": 0,
+      "processing_time_ms": null
+    }
+  ],
+  "total_processing_time_ms": 0.69
+}
+```
+
+Per-review `processing_time_ms` is **`null` in a batch**, on purpose. The
+reviews are generated together in one padded pass, so no per-review share of
+that time was measured; `total_processing_time_ms` is the figure that was.
+A single `/absa` call is generated on its own, so there it is a real number.
+
+</details>
+
+<details>
+<summary><b>GET /hotels/{hotel_id}/recommendations</b> — aspects worth acting on</summary>
+
+Every figure is computed from stored aspect rows for that hotel and window.
+There is no persistence layer in this repository yet, so it answers **501**
+rather than serving examples:
+
+```json
+{
+  "detail": "No aspect store is configured, so there are no recommendations to serve. This endpoint reports what has been extracted and stored; it never generates example figures. Implement AspectStore in reviewnlp.analytics.store against the tables in scripts/schema.sql and return it from get_aspect_store()."
+}
+```
+
+With a store wired up it returns each aspect's counts, negative rate, trend
+against the previous window and a priority score, sorted worst first. An empty
+store is a different answer from no store: `200` with an empty list.
+
+</details>
+
+> The millisecond figures above come from the offline test harness, which drives
+> the endpoints with a fake model. They show the response shape, not latency.
+> `/predict` has benchmarked numbers in [Serving benchmark](#serving-benchmark);
+> ABSA does not.
 
 ---
 
