@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from reviewnlp.data.integrity import canonical_text
+
 SPLITS = ("train", "dev", "test")
 LABELS = ("negative", "positive")
 
@@ -54,8 +56,6 @@ def prepare_experiment_splits(
     """
     source = Path(source_dir)
     destination = Path(destination_dir)
-    destination.mkdir(parents=True, exist_ok=True)
-
     unknown = set(caps) - set(SPLITS)
     if unknown:
         raise ValueError(f"unknown split caps: {sorted(unknown)}")
@@ -74,10 +74,13 @@ def prepare_experiment_splits(
         if cap is not None and cap <= 0:
             raise ValueError(f"{split} cap must be positive or None")
         selected = _stratified_cap(frame, cap, seed + split_index)
-        selected.to_parquet(destination / f"{split}.parquet", index=False)
         experiment_frames[split] = selected
 
     _validate_no_cross_split_overlap(source_frames)
+    _validate_no_cross_split_overlap(experiment_frames)
+    destination.mkdir(parents=True, exist_ok=True)
+    for split, frame in experiment_frames.items():
+        frame.to_parquet(destination / f"{split}.parquet", index=False)
 
     manifest = {
         "seed": int(seed),
@@ -135,9 +138,19 @@ def _validate_frame(frame: pd.DataFrame) -> None:
 def _validate_no_cross_split_overlap(frames: dict[str, pd.DataFrame]) -> None:
     seen: dict[str, str] = {}
     for split in SPLITS:
-        normalized = frames[split]["text"].astype(str).str.strip().str.casefold()
+        _validate_frame(frames[split])
+        normalized = frames[split]["text"].astype(str).map(canonical_text)
         for text in normalized:
             previous = seen.get(text)
             if previous is not None and previous != split:
                 raise ValueError(f"review text overlaps between {previous} and {split}")
             seen[text] = split
+
+
+def assert_clean_splits(frames: dict[str, pd.DataFrame]) -> None:
+    """Refuse cross-split leakage and ambiguous duplicate IDs before publishing a run."""
+    _validate_no_cross_split_overlap(frames)
+    for split in SPLITS:
+        ids = frames[split]["text"].map(canonical_text)
+        if ids.duplicated().any():
+            raise ValueError(f"duplicate normalized review text inside {split}")

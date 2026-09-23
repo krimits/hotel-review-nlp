@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import json
 
 import pandas as pd
 import pytest
 
-from reviewnlp.data.preprocess import clean_text, extract_labeled_reviews, split_and_cap
+from reviewnlp.data.preprocess import (
+    build_dataset,
+    clean_text,
+    extract_labeled_reviews,
+    split_and_cap,
+)
 
 
 def test_label_rule_uses_only_unambiguous_rows(tiny_reviews):
@@ -140,6 +146,24 @@ def test_split_honors_fractions_and_zero_means_unlimited_cap():
     splits = split_and_cap(reviews, seed=42, train_frac=0.6, dev_frac=0.2, train_cap=0, test_cap=0)
 
     assert [len(frame) for frame in splits] == [120, 40, 40]
+
+
+def test_clean_dataset_writes_a_verifiable_manifest(tmp_path, tiny_reviews):
+    raw = tmp_path / "source.csv"
+    tiny_reviews.to_csv(raw, index=False)
+    output = tmp_path / "processed"
+    config = tmp_path / "config.yaml"
+    config.write_text(
+        "seed: 42\n"
+        f"data:\n  raw_csv: {raw}\n  processed_dir: {output}\n"
+        "  max_chars: 1200\n  min_chars: 5\n  train_frac: 0.5\n"
+        "  dev_frac: 0.25\n  train_cap: 0\n  test_cap: 0\n"
+    )
+    build_dataset(str(config))
+    manifest = json.loads((output / "data_manifest.json").read_text())
+    assert manifest["schema_version"] == 2
+    assert manifest["raw_csv_sha256"] == hashlib.sha256(raw.read_bytes()).hexdigest()
+    assert manifest["cross_split_overlap"]["train_test"] == 0
 
 
 @pytest.mark.parametrize(

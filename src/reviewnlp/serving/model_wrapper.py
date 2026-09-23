@@ -90,7 +90,7 @@ class ModelWrapper:
             if self.model_type == "encoder":
                 return _predict_encoder_fast(self._obj, texts)
             if self.model_type == "qwen_qlora":
-                labels = predict_qwen_qlora(self.model_path, texts)
+                labels = predict_qwen_qlora(self.model_path, texts, bundle=self._obj)
                 return [(str(lbl), None) for lbl in labels]
         raise RuntimeError("unreachable")
 
@@ -107,7 +107,9 @@ def _load_heavy(model_type: str, path: str):
         tokenizer = AutoTokenizer.from_pretrained(path)
         model = AutoModelForSequenceClassification.from_pretrained(path).to(DEVICE).eval()
         return {"tokenizer": tokenizer, "model": model}
-    return None  # qwen_qlora loads inside predict via peft
+    from reviewnlp.llm.predict import load_qwen_qlora
+
+    return load_qwen_qlora(path)
 
 
 def _predict_encoder_fast(bundle: dict, texts: list[str]) -> list[tuple[str, float | None]]:

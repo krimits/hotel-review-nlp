@@ -100,12 +100,15 @@ def parse_absa_output(raw: str, review: str | None = None) -> dict:
         quote = " ".join(str(item.get("quote", "")).split())
         if not quote or quote.casefold() == "none":
             out["quote_absent"] += 1
-        else:
-            if len(quote) > 200:
-                quote = quote[:200]
-                out["quote_truncated"] += 1
-            if review_norm is not None and quote.casefold() not in review_norm:
-                out["quote_not_in_review"] += 1
+            out["entries_dropped"] += 1
+            continue
+        if len(quote) > 200:
+            quote = quote[:200]
+            out["quote_truncated"] += 1
+        if review_norm is not None and quote.casefold() not in review_norm:
+            out["quote_not_in_review"] += 1
+            out["entries_dropped"] += 1
+            continue
         out["aspects"].append({"aspect": aspect, "sentiment": sentiment, "quote": quote})
         out["entries_kept"] += 1
     return out

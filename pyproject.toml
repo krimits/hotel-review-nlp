@@ -54,6 +54,9 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"reviewnlp.serving" = ["dashboard.html"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

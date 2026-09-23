@@ -1,6 +1,10 @@
 # ABSA Product Implementation Guide
 
-This document describes how to transform the ABSA prototype into a production-ready product.
+This document records the original product design. For the implemented local
+pilot, API keys, SQLite storage, dashboard and current evaluation requirements,
+see [docs/PRODUCT_SETUP.md](../docs/PRODUCT_SETUP.md). This file's SQL schema
+is a PostgreSQL-oriented design reference; the executable pilot schema lives
+in `reviewnlp.analytics.store`. Neither is an evaluated ABSA production claim.
 
 ## Architecture Overview
 
@@ -91,8 +95,8 @@ Track these Prometheus-style metrics:
 
 ## Next Steps (Phase 2+)
 
-1. Implement database repository layer
-2. Add authentication and multi-tenancy
+1. Evaluate ABSA against independently labeled hotel aspects
+2. Move the SQLite pilot to managed storage and managed authentication for multiple workers
 3. Implement PII redaction for quotes
 4. Add batch ingestion from CSV/API providers
 5. Build dashboard with trends and alerts

@@ -183,8 +183,7 @@ def test_recommendations_report_501_when_no_store_is_configured(client):
 
     assert response.status_code == 501
     detail = response.json()["detail"]
-    assert "AspectStore" in detail  # the message names the seam to implement
-    assert "schema.sql" in detail
+    assert "REVIEWNLP_DB_PATH" in detail
 
 
 def test_recommendations_serve_only_what_the_store_holds(client):

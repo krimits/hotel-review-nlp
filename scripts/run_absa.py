@@ -1,4 +1,4 @@
-"""ABSA v9 runner: A/B (base | adapter) over frozen-test sample, full provenance.
+"""ABSA runner: A/B (base | adapter) on legacy or verified clean test splits.
 
 Fixes vs v8: adapter optional (--variant), strict gold mapping (hard fail on
 unknown labels), metrics condition on the denominator, per-review aspect
@@ -44,7 +44,11 @@ def code_sha256() -> str:
     """Hash the ABSA code as it lives in the repository — this is the stamp
     that goes into the summary, making code <-> results matchable."""
     digest = hashlib.sha256()
-    for path in sorted(ABSA_CODE_DIR.rglob("*.py")):
+    sources = list(ABSA_CODE_DIR.rglob("*.py"))
+    runner_path = REPO_ROOT / "scripts" / "run_absa.py"
+    if runner_path.is_file():
+        sources.append(runner_path)
+    for path in sorted(sources):
         digest.update(str(path.relative_to(REPO_ROOT)).encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())
@@ -69,18 +73,25 @@ def map_gold(value) -> str:
 
 
 def parse_summary_fields(records: list[dict], parse_fields: tuple, n: int) -> dict:
-    fields = {field: int(sum(1 for r in records if r.get(field))) for field in parse_fields}
-    fields["json_valid_rate"] = round(fields["json_valid"] / n, 4)
-    fields["salvaged_rate"] = round(fields["salvaged"] / n, 4)
+    boolean_fields = {"json_valid", "salvaged", "empty_valid", "generation_hit_token_budget"}
+    fields = {
+        field: int(sum(bool(r.get(field)) if field in boolean_fields else int(r.get(field, 0))
+                       for r in records))
+        for field in parse_fields
+    }
+    fields["json_valid_rate"] = round(fields["json_valid"] / n, 4) if n else None
+    fields["salvaged_rate"] = round(fields["salvaged"] / n, 4) if n else None
     return fields
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ABSA v9 A/B runner")
+    parser = argparse.ArgumentParser(description="ABSA base/adapter runner")
     parser.add_argument("--variant", choices=("base", "adapter"), required=True)
     parser.add_argument("--test-parquet", required=True, help="Path to frozen test.parquet")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--sample-per-class", type=int, default=25)
+    parser.add_argument("--data-manifest", type=Path,
+                        help="manifest from make data; required for new clean splits")
     args = parser.parse_args()
 
     from huggingface_hub import snapshot_download
@@ -91,9 +102,33 @@ def main() -> None:
     # --- data: frozen test, row_ids preserved, strict gold mapping ---
     test_path = Path(args.test_parquet)
     assert test_path.is_file(), f"missing {test_path}"
-    assert (
-        hashlib.sha256(test_path.read_bytes()).hexdigest() == TEST_PARQUET_SHA256
-    ), "frozen test parquet hash mismatch — aborting"
+    test_sha = hashlib.sha256(test_path.read_bytes()).hexdigest()
+    if args.data_manifest:
+        from reviewnlp.data.preprocess import load_processed
+        from reviewnlp.utils.experiments import (
+            assert_clean_splits,
+            fingerprint_splits,
+            frame_fingerprint,
+        )
+
+        manifest = json.loads(args.data_manifest.read_text(encoding="utf-8"))
+        if manifest.get("schema_version") not in (2, 3):
+            raise ValueError("a clean, versioned data manifest is required")
+        if manifest["schema_version"] == 3 and manifest.get("source_type") != "uploaded_processed_parquets_without_raw_csv":
+            raise ValueError("unknown uploaded data provenance")
+        directory = test_path.parent
+        assert_clean_splits(load_processed(str(directory)))
+        if fingerprint_splits(directory) != manifest["splits"]:
+            raise ValueError("ABSA data splits differ from the clean manifest")
+        expected_test = manifest["splits"]["test"]
+        actual_test = frame_fingerprint(pd.read_parquet(test_path))
+        if actual_test != expected_test:
+            raise ValueError("ABSA test split differs from the clean data manifest")
+        dataset_source = "local clean splits"
+    else:
+        if test_sha != TEST_PARQUET_SHA256:
+            raise ValueError("legacy frozen test parquet hash mismatch; pass --data-manifest for new splits")
+        dataset_source = REPO
     frame = pd.read_parquet(test_path).reset_index().rename(columns={"index": "row_id"})
     frame["gold"] = frame["label"].map(map_gold)
     sampled = pd.concat([
@@ -145,7 +180,7 @@ def main() -> None:
     n = len(records)
     agree = sum(1 for v, g in zip(votes, gold, strict=True) if v == g)
     summary = {
-        "schema_version": 9,
+        "schema_version": 10,
         "code_sha256": code_sha256(),
         "model": BASE_MODEL,
         "variant": args.variant,
@@ -153,8 +188,9 @@ def main() -> None:
         "prompt": "apply_chat_template(system+user, add_generation_prompt=True)",
         "max_new_tokens": 320,
         "dataset": {
-            "repo": REPO,
-            "test_parquet_sha256": TEST_PARQUET_SHA256,
+            "repo": dataset_source,
+            "test_parquet_sha256": test_sha,
+            "data_manifest": str(args.data_manifest) if args.data_manifest else None,
             "selection": f"first {args.sample_per_class} per class in frozen order",
             "gold_split": {
                 "positive": gold.count("positive"),

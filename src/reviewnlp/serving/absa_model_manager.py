@@ -25,6 +25,7 @@ class AbsaModelManager:
         self.device = os.getenv("ABSA_DEVICE")
         self.batch_size = batch_size or int(os.getenv("ABSA_BATCH_SIZE", DEFAULT_BATCH_SIZE))
         self._lock = threading.Lock()
+        self._inference_lock = threading.Lock()
         self._loaded = False
         self.tokenizer: Any = None
         self.model: Any = None
@@ -62,9 +63,10 @@ class AbsaModelManager:
             One record per input text, in the order given.
         """
         self.load()
-        return generate_aspect_records(
-            self.tokenizer,
-            self.model,
-            texts,
-            batch_size=batch_size or self.batch_size,
-        )
+        with self._inference_lock:
+            return generate_aspect_records(
+                self.tokenizer,
+                self.model,
+                texts,
+                batch_size=batch_size or self.batch_size,
+            )

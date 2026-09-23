@@ -9,6 +9,7 @@ implemented here against the same config that produced the splits.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -17,7 +18,7 @@ import pandas as pd
 
 from reviewnlp.evaluation.metrics import binary_metrics
 from reviewnlp.greek.config import GreekConfig
-from reviewnlp.greek.data import LABEL_NAMES, dataset_manifest, load_greek_splits
+from reviewnlp.greek.data import LABEL_NAMES, dataset_manifest, group_key, load_greek_splits
 
 LABEL_VALUES = tuple(range(len(LABEL_NAMES)))
 
@@ -97,6 +98,47 @@ def evaluate_checkpoint(
         **scores,
     }
     (output_dir / "metrics.json").write_text(
+        json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return report
+
+
+def evaluate_hotel_csv(model_dir: str, csv_path: str | Path, output_dir: str | Path,
+                       max_length: int = 128, batch_size: int = 64) -> dict:
+    """Evaluate on independently labeled Greek hotel reviews (never train on them).
+
+    `text,label` with positive/negative or 1/0. Until such a reviewed CSV is
+    supplied, the trained Greek tweets score is not a hotel-domain benchmark.
+    """
+    path = Path(csv_path)
+    frame = pd.read_csv(path)
+    if not {"text", "label"} <= set(frame):
+        raise ValueError("Greek hotel test CSV needs text and label columns")
+    labels = frame["label"].astype(str).str.strip().str.lower().map(
+        {"negative": 0, "positive": 1, "0": 0, "1": 1}
+    )
+    if labels.isna().any() or set(labels.unique()) != {0, 1}:
+        raise ValueError("Greek hotel test requires both positive and negative reviewed labels")
+    if frame["text"].isna().any() or frame["text"].astype(str).str.strip().eq("").any():
+        raise ValueError("Greek hotel test contains an empty review")
+    if frame["text"].astype(str).map(group_key).duplicated().any():
+        raise ValueError("Greek hotel test has duplicate normalized reviews")
+    logits = predict_logits(model_dir, frame["text"].tolist(), max_length, batch_size)
+    if logits.shape != (len(frame), 2):
+        raise ValueError("model predictions do not align with hotel test data")
+    scored = pd.DataFrame({"label": labels.astype(int)})
+    report = {
+        "dataset_domain": "independently labeled Greek hotel reviews",
+        "source_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "rows": len(frame),
+        "model_dir": model_dir,
+        "test": score_split(scored, logits),
+    }
+    output = Path(output_dir)
+    output.mkdir(parents=True, exist_ok=True)
+    np.save(output / "test_logits.npy", logits)
+    np.save(output / "test_labels.npy", labels.to_numpy(dtype=np.int64))
+    (output / "metrics.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     return report

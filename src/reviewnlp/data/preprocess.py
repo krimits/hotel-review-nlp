@@ -22,6 +22,7 @@ Run:  python -m reviewnlp.data.preprocess --config configs/baselines.yaml
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -125,6 +126,10 @@ def _cap_per_class(df: pd.DataFrame, cap: int, seed: int) -> pd.DataFrame:
 
 
 def build_dataset(config_path: str) -> dict:
+    # Keep the experiment import local: experiments imports data.integrity,
+    # and importing the data package initializes this module.
+    from reviewnlp.utils.experiments import assert_clean_splits, frame_fingerprint
+
     cfg = load_config(config_path)
     set_seed(cfg["seed"])
 
@@ -150,6 +155,9 @@ def build_dataset(config_path: str) -> dict:
         test_cap=d["test_cap"],
     )
 
+    frames = {"train": train_df, "dev": dev_df, "test": test_df}
+    assert_clean_splits(frames)
+
     os.makedirs(d["processed_dir"], exist_ok=True)
     train_df.to_parquet(os.path.join(d["processed_dir"], "train.parquet"))
     dev_df.to_parquet(os.path.join(d["processed_dir"], "dev.parquet"))
@@ -166,6 +174,23 @@ def build_dataset(config_path: str) -> dict:
     }
     with open(os.path.join(d["processed_dir"], "label_stats.json"), "w") as f:
         json.dump(stats, f, indent=2)
+
+    # A new split is a new experiment. Keep its provenance next to the parquet
+    # files so a cached prediction cannot silently be compared to another test.
+    digest = hashlib.sha256()
+    with open(raw_csv, "rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    manifest = {
+        "schema_version": 2,
+        "raw_csv_sha256": digest.hexdigest(),
+        "config": {"seed": cfg["seed"], **d},
+        "split_policy": "deduplicate canonical review text globally before stratified split",
+        "splits": {split: frame_fingerprint(frame) for split, frame in frames.items()},
+        "cross_split_overlap": {"train_dev": 0, "train_test": 0, "dev_test": 0},
+    }
+    with open(os.path.join(d["processed_dir"], "data_manifest.json"), "w") as f:
+        json.dump(manifest, f, indent=2)
 
     print(json.dumps(stats, indent=2))
     return stats

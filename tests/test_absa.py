@@ -210,7 +210,7 @@ def test_every_return_path_carries_the_documented_keys():
         assert set(parse_absa_output(raw, review="staff")) == documented, raw
 
 
-def test_quote_problems_are_counted_without_rejecting_the_entry():
+def test_quote_problems_are_counted_and_unsubstantiated_aspects_are_rejected():
     review = "The room was fine."
     raw = (
         '[{"aspect": "room", "sentiment": "neutral", "quote": ""},'
@@ -219,7 +219,8 @@ def test_quote_problems_are_counted_without_rejecting_the_entry():
     )
     out = parse_absa_output(raw, review=review)
 
-    assert out["entries_kept"] == 3  # sentiment is still usable evidence
+    assert out["entries_kept"] == 0
+    assert out["entries_dropped"] == 3
     assert out["quote_absent"] == 2  # "" and the literal "None"
     assert out["quote_not_in_review"] == 1  # hallucinated span
 
@@ -321,7 +322,7 @@ def test_summary_counts_and_rates_use_the_record_count_as_denominator():
     )
     assert fields["json_valid"] == 3
     assert fields["salvaged"] == 1
-    assert fields["entries_dropped"] == 2  # records with drops, not entries dropped
+    assert fields["entries_dropped"] == 3  # count the rejected entries
     assert fields["json_valid_rate"] == 0.75  # over all records, not over parsed ones
     assert fields["salvaged_rate"] == 0.25
 

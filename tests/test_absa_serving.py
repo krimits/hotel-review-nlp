@@ -115,10 +115,10 @@ def test_texts_are_generated_in_batches_not_one_at_a_time():
 def test_records_come_back_in_the_order_the_texts_went_in():
     tokenizer, model = _pair([CLEAN, NEGATIVE], [(0, True), (1, True)])
     records = generate_aspect_records(
-        tokenizer, model, ["staff were kind", "it was very loud"], batch_size=2
+        tokenizer, model, ["kind staff", "it was very loud"], batch_size=2
     )
 
-    assert [r["text"] for r in records] == ["staff were kind", "it was very loud"]
+    assert [r["text"] for r in records] == ["kind staff", "it was very loud"]
     assert [r["aspects"][0]["aspect"] for r in records] == ["staff", "noise"]
 
 
@@ -318,3 +318,9 @@ def test_batch_endpoint_still_enforces_its_limits(client):
 
     short = client.post("/absa", json={"hotel_id": "acme", "text": "no"})
     assert short.status_code == 422  # min_length=3
+
+    # Greek sentiment has a separate endpoint; unverified Greek aspect
+    # extraction must never enter the hotel complaint reports.
+    greek = client.post("/absa", json={"hotel_id": "acme", "text": "Άψογο προσωπικό", "language": "el"})
+    assert greek.status_code == 422
+    assert _model.call_sizes == []

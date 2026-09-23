@@ -1,0 +1,120 @@
+{
+  "n_test": 13270,
+  "test_fingerprint": {
+    "rows": 13270,
+    "negative": 3277,
+    "positive": 9993,
+    "sha256": "a933e0e1a485274a60abe0121fa88c4c1e43adc49fb3be04febd721143a518e2"
+  },
+  "data_manifest": {
+    "schema_version": 3,
+    "source_type": "uploaded_processed_parquets_without_raw_csv",
+    "source_files_sha256": {
+      "train": "ef06a351edc557906f8d0013ba071a97e12f0fb54aa2e8d9a3f3c02062868ce3",
+      "dev": "6892d9a821f308beeeae8f2641642cf1ef10b9406bbc254299098591bb7af7af",
+      "test": "8b37675028c8081951ee0ebd1181aaf484d63058122b7088288266fe992a7be1"
+    },
+    "source_audit": {
+      "train": {
+        "sha256": "ef06a351edc557906f8d0013ba071a97e12f0fb54aa2e8d9a3f3c02062868ce3",
+        "input_rows": 118561,
+        "conflicting_label_groups": 19,
+        "conflicting_rows_removed": 41,
+        "duplicate_rows_removed": 630
+      },
+      "dev": {
+        "sha256": "6892d9a821f308beeeae8f2641642cf1ef10b9406bbc254299098591bb7af7af",
+        "input_rows": 14846,
+        "conflicting_label_groups": 0,
+        "conflicting_rows_removed": 0,
+        "duplicate_rows_removed": 16
+      },
+      "test": {
+        "sha256": "8b37675028c8081951ee0ebd1181aaf484d63058122b7088288266fe992a7be1",
+        "input_rows": 13278,
+        "conflicting_label_groups": 0,
+        "conflicting_rows_removed": 0,
+        "duplicate_rows_removed": 8
+      }
+    },
+    "split_policy": "preserve the original split assignment and row order; drop conflicting labels, then keep the first copy of a normalized review within each split",
+    "splits": {
+      "train": {
+        "rows": 117890,
+        "negative": 26096,
+        "positive": 91794,
+        "sha256": "7fb727dbf597bfbb11f6a1b51e059cb0bae5d59b2a307754e821a6ecfbc2efaa"
+      },
+      "dev": {
+        "rows": 14830,
+        "negative": 3273,
+        "positive": 11557,
+        "sha256": "fe6dc44ce9b76e6aa5e369d1bbab1480e05317c42710c073daead04e6e16629e"
+      },
+      "test": {
+        "rows": 13270,
+        "negative": 3277,
+        "positive": 9993,
+        "sha256": "a933e0e1a485274a60abe0121fa88c4c1e43adc49fb3be04febd721143a518e2"
+      }
+    },
+    "cross_split_overlap": {
+      "train_dev": 0,
+      "train_test": 0,
+      "dev_test": 0
+    },
+    "raw_csv_provenance_available": false
+  },
+  "data_source_type": "uploaded_processed_parquets_without_raw_csv",
+  "latency_protocol": {
+    "batch_size": 64,
+    "repeats": 3,
+    "model_preloaded": true,
+    "includes_http": false
+  },
+  "results": {
+    "Best classical (NB/LR-SGD)": {
+      "accuracy": 0.951,
+      "macro_f1": 0.9347,
+      "macro_precision": 0.9313,
+      "macro_recall": 0.9383,
+      "weighted_f1": 0.9512,
+      "per_class": {
+        "negative": {
+          "precision": 0.8913,
+          "recall": 0.913,
+          "f1": 0.902,
+          "support": 3277
+        },
+        "positive": {
+          "precision": 0.9712,
+          "recall": 0.9635,
+          "f1": 0.9673,
+          "support": 9993
+        }
+      },
+      "confusion_matrix": [
+        [
+          2992,
+          285
+        ],
+        [
+          365,
+          9628
+        ]
+      ],
+      "wall_seconds": 0.38,
+      "latency": {
+        "p50_ms_per_text": 0.06,
+        "p95_ms_per_text": 0.08
+      }
+    }
+  },
+  "mcnemar": {},
+  "skipped": {
+    "BiLSTM": "checkpoint not found",
+    "DistilBERT (full FT)": "checkpoint not found",
+    "DistilBERT + scratch LoRA": "checkpoint not found",
+    "Qwen2.5-0.5B + QLoRA": "checkpoint not found"
+  }
+}
