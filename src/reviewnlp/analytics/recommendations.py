@@ -99,3 +99,76 @@ def normalize_volume(mention_count: int, max_count: int) -> float:
     if max_count == 0:
         return 0.0
     return min(1.0, mention_count / max_count)
+
+
+def _count_by_aspect(rows) -> dict[str, dict[str, int]]:
+    """Tally sentiments per aspect, counting each aspect once per review.
+
+    A review that mentions cleanliness three times is one negative signal, not
+    three - the same rule overall_from_aspects and run_absa.py already apply.
+    Rows without a review_id cannot be deduplicated and are counted as given.
+    """
+    seen: set[tuple] = set()
+    counts: dict[str, dict[str, int]] = {}
+    for row in rows:
+        aspect = row.get("aspect")
+        sentiment = row.get("sentiment")
+        if aspect is None or sentiment not in ("positive", "negative", "neutral"):
+            continue
+        review_id = row.get("review_id")
+        if review_id is not None:
+            key = (review_id, aspect)
+            if key in seen:
+                continue
+            seen.add(key)
+        tally = counts.setdefault(
+            aspect, {"positive": 0, "negative": 0, "neutral": 0, "total": 0}
+        )
+        tally[sentiment] += 1
+        tally["total"] += 1
+    return counts
+
+
+def build_analytics(rows, previous_rows=None) -> list[dict]:
+    """Aggregate aspect rows into per-aspect analytics, worst first.
+
+    Every number here is computed from `rows`. There is no fallback and no
+    placeholder: no rows means an empty list, which is a truthful answer to
+    "what should this hotel fix" when nothing has been analyzed yet.
+
+    trend is the change in negative rate against `previous_rows` - positive
+    means the aspect is getting worse. An aspect absent from the previous
+    period has no trend (None) and contributes nothing to its priority, rather
+    than being treated as a sudden regression.
+    """
+    counts = _count_by_aspect(rows)
+    if not counts:
+        return []
+    previous = _count_by_aspect(previous_rows or [])
+    max_total = max(tally["total"] for tally in counts.values())
+
+    analytics = []
+    for aspect, tally in counts.items():
+        negative_rate = tally["negative"] / tally["total"]
+        before = previous.get(aspect)
+        trend = None
+        if before is not None and before["total"]:
+            trend = round(negative_rate - before["negative"] / before["total"], 4)
+        analytics.append({
+            "aspect": aspect,
+            "review_count": tally["total"],
+            "positive_count": tally["positive"],
+            "negative_count": tally["negative"],
+            "neutral_count": tally["neutral"],
+            "negative_rate": round(negative_rate, 4),
+            "trend": trend,
+            "priority_score": calculate_priority_score(
+                negative_rate=negative_rate,
+                normalized_volume=normalize_volume(tally["total"], max_total),
+                negative_trend=trend or 0.0,
+            ),
+            "recommendation": build_recommendation(aspect),
+        })
+    # Aspect name breaks ties so the ordering is stable run to run.
+    analytics.sort(key=lambda item: (-item["priority_score"], item["aspect"]))
+    return analytics
