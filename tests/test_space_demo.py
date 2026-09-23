@@ -5,6 +5,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import yaml
+
 _PATH = Path(__file__).resolve().parents[1] / "spaces" / "hotel-ops-demo" / "logic.py"
 _SPEC = importlib.util.spec_from_file_location("hotel_demo_logic", _PATH)
 logic = importlib.util.module_from_spec(_SPEC)
@@ -48,3 +50,12 @@ def test_demo_conflicting_aspect_votes_are_neutral_and_cannot_forge_quote():
         {"aspect": "room", "sentiment": "neutral", "quote": "room was lovely"}
     ]
     assert logic.render(history)[2:] == ([], [])
+
+
+def test_space_builder_and_requirements_agree_on_gradio_version():
+    space_dir = _PATH.parent
+    readme = (space_dir / "README.md").read_text(encoding="utf-8")
+    metadata = yaml.safe_load(readme.split("---", 2)[1])
+    requirements = (space_dir / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    assert metadata["sdk"] == "gradio"
+    assert f"gradio=={metadata['sdk_version']}" in requirements
