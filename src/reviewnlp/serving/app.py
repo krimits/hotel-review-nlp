@@ -18,6 +18,8 @@ import logging
 
 from fastapi import FastAPI, HTTPException
 
+from reviewnlp.serving.absa_router import router as absa_router
+from reviewnlp.serving.analytics_router import router as analytics_router
 from reviewnlp.serving.model_wrapper import ModelWrapper, timed_predict
 from reviewnlp.serving.schemas import (
     BatchPredictRequest,
@@ -26,8 +28,6 @@ from reviewnlp.serving.schemas import (
     PredictRequest,
     PredictResponse,
 )
-from reviewnlp.serving.absa_router import router as absa_router
-from reviewnlp.serving.analytics_router import router as analytics_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("reviewnlp.serving")

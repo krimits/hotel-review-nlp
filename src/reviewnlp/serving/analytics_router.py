@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
+from reviewnlp.analytics.recommendations import build_recommendation
 from reviewnlp.serving.absa_schemas import (
     AspectAnalytics,
     RecommendationResponse,
 )
-from reviewnlp.analytics.recommendations import build_recommendation
 
 router = APIRouter(tags=["Analytics"])
 
@@ -22,18 +22,18 @@ def get_recommendations(
     days: int = Query(default=30, ge=7, le=365, description="Number of days to analyze"),
 ) -> RecommendationResponse:
     """Get prioritized recommendations for a hotel based on aspect analytics.
-    
+
     This endpoint analyzes reviews from the specified period and returns
     aspects sorted by priority score, along with actionable recommendations.
-    
+
     In production, this would query aggregated metrics from PostgreSQL,
     calculate trends against previous periods, and return only the highest-
     priority aspects.
-    
+
     Args:
         hotel_id: Unique hotel identifier
         days: Number of days to look back (default: 30, min: 7, max: 365)
-        
+
     Returns:
         List of aspect analytics with recommendations, sorted by priority
     """

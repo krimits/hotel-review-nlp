@@ -45,19 +45,19 @@ def calculate_priority_score(
     business_weight: float = 0.5,
 ) -> float:
     """Calculate priority score for an aspect based on multiple factors.
-    
+
     The scoring formula weights:
     - 45% negative rate (proportion of negative mentions)
     - 25% normalized volume (how frequently the aspect is mentioned)
     - 20% negative trend (whether the aspect is getting worse)
     - 10% business weight (domain-specific importance)
-    
+
     Args:
         negative_rate: Proportion of negative mentions (0.0 to 1.0)
         normalized_volume: Normalized mention volume (0.0 to 1.0)
         negative_trend: Trend in negative sentiment (-1.0 to 1.0)
         business_weight: Domain-specific importance (0.0 to 1.0)
-        
+
     Returns:
         Priority score between 0.0 and 1.0
     """
@@ -73,10 +73,10 @@ def calculate_priority_score(
 
 def build_recommendation(aspect: str) -> str:
     """Get a predefined recommendation text for an aspect.
-    
+
     Args:
         aspect: The aspect category (e.g., 'cleanliness', 'staff')
-        
+
     Returns:
         Recommendation text in Greek, or a generic fallback
     """
@@ -88,11 +88,11 @@ def build_recommendation(aspect: str) -> str:
 
 def normalize_volume(mention_count: int, max_count: int) -> float:
     """Normalize mention count to a 0-1 scale.
-    
+
     Args:
         mention_count: Number of mentions for this aspect
         max_count: Maximum mention count across all aspects
-        
+
     Returns:
         Normalized volume between 0.0 and 1.0
     """
