@@ -23,3 +23,9 @@ temporary Gradio session state and is not durable. Avoid personal guest data.
 Greek hotel reviews are not supported by this ABSA demo.
 
 Source and development history: https://github.com/krimits/hotel-review-nlp/pull/16
+
+To create this private Space from a machine authenticated as `krimits` with
+`hf auth login`, run `python scripts/deploy_hf_space.py` from the repository
+root. If the Space was created but an interrupted upload needs retrying, run
+`python scripts/deploy_hf_space.py --resume`. This command never reads or
+uploads the project's training/test datasets or hotel guest records.
