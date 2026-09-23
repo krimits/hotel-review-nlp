@@ -2,92 +2,62 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from typing import Annotated
 
-from reviewnlp.analytics.recommendations import build_recommendation
-from reviewnlp.serving.absa_schemas import (
-    AspectAnalytics,
-    RecommendationResponse,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from reviewnlp.analytics.recommendations import build_analytics
+from reviewnlp.analytics.store import AspectStore, get_aspect_store
+from reviewnlp.serving.absa_schemas import AspectAnalytics, RecommendationResponse
 
 router = APIRouter(tags=["Analytics"])
+
+NO_STORE_DETAIL = (
+    "No aspect store is configured, so there are no recommendations to serve. "
+    "This endpoint reports what has been extracted and stored; it never "
+    "generates example figures. Implement AspectStore in "
+    "reviewnlp.analytics.store against the tables in scripts/schema.sql and "
+    "return it from get_aspect_store()."
+)
 
 
 @router.get(
     "/hotels/{hotel_id}/recommendations",
     response_model=RecommendationResponse,
+    responses={501: {"description": "No aspect store is configured"}},
 )
 def get_recommendations(
     hotel_id: str,
+    store: Annotated[AspectStore | None, Depends(get_aspect_store)],
     days: int = Query(default=30, ge=7, le=365, description="Number of days to analyze"),
 ) -> RecommendationResponse:
-    """Get prioritized recommendations for a hotel based on aspect analytics.
+    """Aspects for one hotel, worst first, with a recommendation for each.
 
-    This endpoint analyzes reviews from the specified period and returns
-    aspects sorted by priority score, along with actionable recommendations.
-
-    In production, this would query aggregated metrics from PostgreSQL,
-    calculate trends against previous periods, and return only the highest-
-    priority aspects.
+    Every figure returned is computed from the stored aspect rows for this
+    hotel and window. When no store is configured the endpoint fails with 501
+    instead of answering with examples: a caller cannot tell an invented number
+    from a measured one, so it must never receive one.
 
     Args:
         hotel_id: Unique hotel identifier
+        store: Aspect row source; None when no persistence layer is wired up
         days: Number of days to look back (default: 30, min: 7, max: 365)
 
     Returns:
-        List of aspect analytics with recommendations, sorted by priority
+        Aspect analytics sorted by priority score, highest first
+
+    Raises:
+        HTTPException: 501 when there is no store to read from
     """
-    # Production implementation:
-    # 1. query aggregated metrics from PostgreSQL
-    # 2. calculate trend against the previous period
-    # 3. calculate priority_score
-    # 4. return only the highest-priority aspects
+    if store is None:
+        raise HTTPException(status_code=501, detail=NO_STORE_DETAIL)
 
-    # Placeholder data for demonstration
-    metrics = [
-        {
-            "aspect": "cleanliness",
-            "review_count": 182,
-            "positive_count": 91,
-            "negative_count": 71,
-            "neutral_count": 20,
-            "negative_rate": 71 / 182,
-            "trend": 0.12,
-            "priority_score": 0.86,
-        },
-        {
-            "aspect": "staff",
-            "review_count": 210,
-            "positive_count": 170,
-            "negative_count": 25,
-            "neutral_count": 15,
-            "negative_rate": 25 / 210,
-            "trend": -0.03,
-            "priority_score": 0.29,
-        },
-    ]
-
-    recommendations = [
-        AspectAnalytics(
-            aspect=item["aspect"],
-            review_count=item["review_count"],
-            positive_count=item["positive_count"],
-            negative_count=item["negative_count"],
-            neutral_count=item["neutral_count"],
-            negative_rate=round(item["negative_rate"], 4),
-            trend=item["trend"],
-            priority_score=item["priority_score"],
-            recommendation=build_recommendation(item["aspect"]),
-        )
-        for item in sorted(
-            metrics,
-            key=lambda item: item["priority_score"],
-            reverse=True,
-        )
-    ]
-
+    analytics = build_analytics(
+        store.aspect_rows(hotel_id, days),
+        store.previous_period_rows(hotel_id, days),
+    )
     return RecommendationResponse(
         hotel_id=hotel_id,
         period_days=days,
-        recommendations=recommendations,
+        recommendations=[AspectAnalytics(**item) for item in analytics],
     )
