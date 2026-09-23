@@ -29,13 +29,13 @@ SENTIMENT_NAMES = {
 
 
 def accept_record(history: list[dict] | None, text: str, record: dict) -> list[dict]:
-    """Add one review only when generation produced valid structured output.
+    """Add one review only when a complete generation has grounded aspects.
 
-Reject incomplete generations and outputs repaired from surrounding prose.
-An empty, valid JSON array is also excluded from the complaint counts.
-"""
-    if (not record.get("json_valid") or record.get("salvaged")
-            or record.get("generation_hit_token_budget")):
+    Extra prose around a valid JSON array is reported to the user, but does not
+    erase quotes that are literally present in the review. An empty, valid
+    array is excluded from complaint counts.
+    """
+    if not record.get("json_valid") or record.get("generation_hit_token_budget"):
         return list(history or [])
     grouped: dict[str, list[dict]] = {}
     for aspect in record.get("aspects") or []:
