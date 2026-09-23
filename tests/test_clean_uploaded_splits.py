@@ -1,13 +1,22 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
 from reviewnlp.data.preprocess import load_processed
 from reviewnlp.utils.experiments import assert_clean_splits, fingerprint_splits
-from scripts.clean_uploaded_splits import clean_uploaded_splits
+
+
+def _clean_uploaded_splits(source: Path, output: Path) -> dict:
+    script = Path(__file__).resolve().parents[1] / "scripts" / "clean_uploaded_splits.py"
+    spec = importlib.util.spec_from_file_location("clean_uploaded_splits", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.clean_uploaded_splits(source, output)
 
 
 def _uploaded(tmp_path):
@@ -30,7 +39,7 @@ def test_cleaning_keeps_legacy_files_and_removes_conflicting_labels(tmp_path):
     source = _uploaded(tmp_path)
     before = hashlib.sha256((source / "train.parquet").read_bytes()).hexdigest()
     output = tmp_path / "clean"
-    manifest = clean_uploaded_splits(source, output)
+    manifest = _clean_uploaded_splits(source, output)
     assert manifest["source_files_sha256"]["train"] == before
     assert hashlib.sha256((source / "train.parquet").read_bytes()).hexdigest() == before
     assert manifest["source_audit"]["train"]["conflicting_rows_removed"] == 2
@@ -40,7 +49,7 @@ def test_cleaning_keeps_legacy_files_and_removes_conflicting_labels(tmp_path):
     assert fingerprint_splits(output) == manifest["splits"]
     assert len(pd.read_parquet(output / "train.parquet")) == 2
     with pytest.raises(ValueError, match="new directory"):
-        clean_uploaded_splits(source, output)
+        _clean_uploaded_splits(source, output)
 
 
 def test_cleaning_refuses_cross_split_leak_before_writing(tmp_path):
@@ -49,5 +58,5 @@ def test_cleaning_refuses_cross_split_leak_before_writing(tmp_path):
                   "label": ["positive", "negative"]}).to_parquet(source / "dev.parquet")
     output = tmp_path / "clean"
     with pytest.raises(ValueError, match="overlaps"):
-        clean_uploaded_splits(source, output)
+        _clean_uploaded_splits(source, output)
     assert not output.exists()

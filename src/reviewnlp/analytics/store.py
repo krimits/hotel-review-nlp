@@ -19,6 +19,8 @@ class AspectStore(Protocol):
 
     def previous_period_rows(self, hotel_id: str, days: int) -> list[dict]: ...
 
+    def aspect_evidence(self, hotel_id: str, aspect: str, days: int, limit: int) -> list[dict]: ...
+
     def save_review(
         self, *, hotel_id: str, review_id: str, source: str, text: str,
         language: str, review_date: datetime | None, record: dict,
@@ -146,6 +148,22 @@ class SqliteAspectStore:
     def previous_period_rows(self, hotel_id: str, days: int) -> list[dict]:
         now = datetime.now(timezone.utc)
         return self._rows(hotel_id, now - timedelta(days=days * 2), now - timedelta(days=days))
+
+    def aspect_evidence(self, hotel_id: str, aspect: str, days: int, limit: int) -> list[dict]:
+        """Recent negative quote spans, with original source IDs for manual review."""
+        now = datetime.now(timezone.utc)
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT h.source, h.external_review_id AS review_id,
+                          h.review_date, a.quote
+                   FROM hotel_reviews AS h JOIN review_aspects AS a ON a.review_pk=h.id
+                   WHERE h.hotel_id=? AND a.aspect=? AND a.sentiment='negative'
+                     AND h.review_date>=? AND h.review_date<?
+                   ORDER BY h.review_date DESC, h.id DESC LIMIT ?""",
+                (hotel_id, aspect, (now - timedelta(days=days)).isoformat(),
+                 now.isoformat(), limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def delete_review(self, hotel_id: str, source: str, review_id: str) -> bool:
         with self._connection() as connection:

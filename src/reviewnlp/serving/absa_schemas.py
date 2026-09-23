@@ -74,6 +74,20 @@ class RecommendationResponse(BaseModel):
     recommendations: list[AspectAnalytics]
 
 
+class EvidenceExample(BaseModel):
+    source: str
+    review_id: str
+    review_date: datetime
+    quote: str
+
+
+class EvidenceResponse(BaseModel):
+    hotel_id: str
+    aspect: str
+    period_days: int
+    examples: list[EvidenceExample]
+
+
 class BatchAbsaRequest(BaseModel):
     """Request schema for batch ABSA analysis."""
 

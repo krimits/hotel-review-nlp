@@ -57,9 +57,9 @@
     </section>
     <section class="panel" aria-labelledby="insights-title">
       <h2 id="insights-title">Πού χρειάζεται προσοχή</h2>
-      <p class="hint">Εμφανίζονται πτυχές με τουλάχιστον μία αρνητική αναφορά. Η προτεραιότητα είναι ευρετική, όχι εκτίμηση οικονομικού οφέλους. Οι αριθμοί προκύπτουν αποκλειστικά από αποθηκευμένες κριτικές του ξενοδοχείου· η τάση συγκρίνει με την αμέσως προηγούμενη περίοδο ίσης διάρκειας.</p>
+      <p class="hint">Εμφανίζονται πτυχές με τουλάχιστον μία αρνητική αναφορά. Η προτεραιότητα είναι ευρετική, όχι εκτίμηση οικονομικού οφέλους. Οι αριθμοί προκύπτουν αποκλειστικά από αποθηκευμένες κριτικές του ξενοδοχείου· η τάση συγκρίνει με την αμέσως προηγούμενη περίοδο ίσης διάρκειας. Τα αποσπάσματα βοηθούν στον χειροκίνητο έλεγχο κάθε προβλήματος.</p>
       <div id="summary" class="summary" hidden></div>
-      <div class="table-wrap"><table><thead><tr><th>Πτυχή</th><th>Κριτικές</th><th>Αρνητικές</th><th>Τάση</th><th>Ενέργεια</th></tr></thead><tbody id="rows"><tr><td colspan="5">Επίλεξε ξενοδοχείο για να φορτώσεις τα πραγματικά δεδομένα.</td></tr></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Πτυχή</th><th>Κριτικές</th><th>Αρνητικές</th><th>Τάση</th><th>Ενέργεια</th><th>Τεκμήρια</th></tr></thead><tbody id="rows"><tr><td colspan="6">Επίλεξε ξενοδοχείο για να φορτώσεις τα πραγματικά δεδομένα.</td></tr></tbody></table></div>
     </section>
     <section class="panel" aria-labelledby="review-title">
       <h2 id="review-title">Ανάλυση νέας κριτικής</h2>
@@ -86,13 +86,31 @@
       if (!response.ok) { const error = await response.json().catch(() => ({})); throw Error(typeof error.detail === 'string' ? error.detail : `HTTP ${response.status}`); }
       return response.json();
     }
+    async function showEvidence(button, hotelId, days, aspect) {
+      button.disabled=true; button.textContent='Φόρτωση...';
+      try {
+        const data=await request(`/hotels/${encodeURIComponent(hotelId)}/aspects/${encodeURIComponent(aspect)}/evidence?days=${days}&limit=3`);
+        const container=button.parentElement; container.replaceChildren();
+        if (!data.examples.length) { container.textContent='Δεν υπάρχουν διαθέσιμα αποσπάσματα.'; return; }
+        for (const example of data.examples) {
+          const block=document.createElement('small');
+          block.textContent=`«${example.quote}» — ${example.source} / ${example.review_id}`;
+          container.append(block);
+        }
+      } catch(error) {
+        button.disabled=false; button.textContent='Δοκίμασε ξανά';
+        const note=document.createElement('small'); note.className='error'; note.textContent=error.message;
+        button.parentElement.append(note);
+      }
+    }
     async function refresh() {
       const status = $('status'); status.className='status'; status.textContent='Φόρτωση...'; $('refresh').disabled=true;
       try {
-        const data = await request(`/hotels/${encodeURIComponent(hotel())}/recommendations?days=${$('days').value}`);
+        const hotelId=hotel(), days=$('days').value;
+        const data = await request(`/hotels/${encodeURIComponent(hotelId)}/recommendations?days=${days}`);
         const rows = $('rows'); rows.replaceChildren(); const summary = $('summary'); summary.replaceChildren();
         if (!data.recommendations.length) {
-          const tr = rows.insertRow(); cell(tr, 'Δεν έχουν αποθηκευτεί πτυχές σε αυτή την περίοδο.', ''); tr.firstChild.colSpan=5; summary.hidden=true;
+          const tr = rows.insertRow(); cell(tr, 'Δεν έχουν αποθηκευτεί πτυχές σε αυτή την περίοδο.', ''); tr.firstChild.colSpan=6; summary.hidden=true;
         } else {
           const total = data.recommendations.reduce((sum, item) => sum + item.review_count, 0);
           for (const [number, title] of [[data.recommendations.length,'Πτυχές'], [total,'Αναφορές πτυχών'], [data.recommendations[0].negative_count,'Αρνητικές στην πρώτη προτεραιότητα']]) {
@@ -104,6 +122,10 @@
             cell(tr,`${item.negative_count} (${percent(item.negative_rate)})`,'negative');
             cell(tr,item.trend===null?'Χωρίς προηγούμενα δεδομένα':`${item.trend>0?'+':''}${percent(item.trend)}`);
             cell(tr,`${item.recommendation}${item.review_count<5?' (Μικρό δείγμα: ελέγξτε τις κριτικές πριν αποφασίσετε.)':''}`);
+            const evidence=tr.insertCell(), button=document.createElement('button');
+            button.type='button'; button.textContent='Δες αποσπάσματα';
+            button.addEventListener('click',()=>showEvidence(button,hotelId,days,item.aspect));
+            evidence.append(button);
           }
         }
         status.textContent=`Δεδομένα ${data.period_days} ημερών. Οι προτεραιότητες εμφανίζονται από την υψηλότερη προς τη χαμηλότερη.`;

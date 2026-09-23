@@ -6,9 +6,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
+from reviewnlp.absa.aspects import ASPECTS
 from reviewnlp.analytics.recommendations import build_analytics
 from reviewnlp.analytics.store import AspectStore, get_aspect_store
-from reviewnlp.serving.absa_schemas import AspectAnalytics, RecommendationResponse
+from reviewnlp.serving.absa_schemas import (
+    AspectAnalytics,
+    EvidenceExample,
+    EvidenceResponse,
+    RecommendationResponse,
+)
 from reviewnlp.serving.security import authorize_hotel
 
 router = APIRouter(tags=["Analytics"])
@@ -63,6 +69,28 @@ def get_recommendations(
         hotel_id=hotel_id,
         period_days=days,
         recommendations=[AspectAnalytics(**item) for item in analytics],
+    )
+
+
+@router.get("/hotels/{hotel_id}/aspects/{aspect}/evidence", response_model=EvidenceResponse)
+def get_aspect_evidence(
+    hotel_id: str,
+    aspect: str,
+    store: Annotated[AspectStore | None, Depends(get_aspect_store)],
+    days: int = Query(default=30, ge=7, le=365),
+    limit: int = Query(default=5, ge=1, le=20),
+    x_api_key: str | None = Header(default=None),
+) -> EvidenceResponse:
+    """Provide review-linked evidence for a hotel's negative aspect counts."""
+    authorize_hotel(hotel_id, x_api_key)
+    if aspect not in ASPECTS:
+        raise HTTPException(status_code=422, detail="unknown aspect")
+    if store is None:
+        raise HTTPException(status_code=501, detail=NO_STORE_DETAIL)
+    examples = store.aspect_evidence(hotel_id, aspect, days, limit)
+    return EvidenceResponse(
+        hotel_id=hotel_id, aspect=aspect, period_days=days,
+        examples=[EvidenceExample(**item) for item in examples],
     )
 
 

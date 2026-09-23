@@ -169,6 +169,7 @@ docker run -p 8000:8000 \
 | `POST` | `/absa` | One review → aspects, sentiments, supporting quotes |
 | `POST` | `/absa/batch` | Up to 256 reviews, one padded forward pass per batch |
 | `GET` | `/hotels/{hotel_id}/recommendations` | Stored aspects for a hotel, worst first |
+| `GET` | `/hotels/{hotel_id}/aspects/{aspect}/evidence` | Recent negative quote spans and review source IDs, hotel scoped |
 | `DELETE` | `/hotels/{hotel_id}/reviews/{review_id}` | Delete a stored review and its extracted quotes |
 | `POST` | `/greek/predict`, `/greek/predict/batch` | Greek sentiment (requires `GREEK_MODEL_PATH`; trained on tweets) |
 | `GET` | `/dashboard` | Hotel operations view over stored review aspects |

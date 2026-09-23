@@ -31,6 +31,8 @@ def test_store_scopes_upserts_and_deletes(tmp_path):
                       language="en", review_date=None, record=_record("staff", "positive", "kind staff"))
     assert [r["aspect"] for r in store.aspect_rows("a", 30)] == ["staff"]
     assert [r["aspect"] for r in store.aspect_rows("b", 30)] == ["cleanliness"]
+    assert store.aspect_evidence("a", "cleanliness", 30, 5) == []
+    assert store.aspect_evidence("b", "cleanliness", 30, 5)[0]["quote"] == "dirty room"
     assert not store.delete_review("c", "booking", "same-id")
     assert store.delete_review("a", "booking", "same-id")
     assert store.aspect_rows("a", 30) == []
@@ -53,6 +55,7 @@ def test_store_compares_equal_length_windows(tmp_path):
                           record=_record())
     assert len(store.aspect_rows("h", 30)) == 1
     assert len(store.previous_period_rows("h", 30)) == 1
+    assert [row["review_id"] for row in store.aspect_evidence("h", "cleanliness", 30, 5)] == ["recent"]
 
 
 def test_hotel_scoped_api_refuses_cross_hotel_access(tmp_path, monkeypatch):
@@ -88,6 +91,14 @@ def test_hotel_scoped_api_refuses_cross_hotel_access(tmp_path, monkeypatch):
             assert saved.json()["stored"] is True
             assert client.get("/hotels/hotel-a/recommendations", headers=allowed).json()[
                 "recommendations"][0]["aspect"] == "cleanliness"
+            evidence_url = "/hotels/hotel-a/aspects/cleanliness/evidence"
+            evidence = client.get(evidence_url, headers=allowed)
+            assert evidence.status_code == 200
+            assert evidence.json()["examples"][0]["quote"] == "dirty room"
+            assert evidence.json()["examples"][0]["review_id"] == "r1"
+            assert client.get(evidence_url).status_code == 401
+            assert client.get("/hotels/hotel-b/aspects/cleanliness/evidence", headers=allowed).status_code == 403
+            assert client.get("/hotels/hotel-a/aspects/weather/evidence", headers=allowed).status_code == 422
             assert client.get("/hotels/hotel-b/recommendations", headers=allowed).status_code == 403
             bad_batch = {"hotel_id": "hotel-a", "reviews": [
                 {"hotel_id": "hotel-b", "text": "dirty room"}]}
@@ -95,6 +106,7 @@ def test_hotel_scoped_api_refuses_cross_hotel_access(tmp_path, monkeypatch):
             assert client.delete("/hotels/hotel-a/reviews/r1", headers=allowed).status_code == 204
             assert client.get("/hotels/hotel-a/recommendations", headers=allowed).json()[
                 "recommendations"] == []
+            assert client.get(evidence_url, headers=allowed).json()["examples"] == []
     finally:
         app.dependency_overrides.clear()
 

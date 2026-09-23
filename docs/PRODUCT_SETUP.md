@@ -79,6 +79,20 @@ a heuristic, not a measured estimate of revenue. Check low-volume topics
 against individual reviews before acting. The dashboard never fabricates
 examples when the database is empty.
 
+To examine the evidence behind a complaint, click **«Δες αποσπάσματα»** in
+the dashboard or request a few recent negative quotes and their original
+source IDs with the same hotel-scoped key:
+
+```bash
+curl -H 'X-API-Key: YOUR_RAW_KEY' \
+  'http://127.0.0.1:8000/hotels/hotel-athens-01/aspects/cleanliness/evidence?days=30&limit=5'
+```
+
+The source ID lets a manager locate the original review. The quote is only a
+literal substring recognized by the extractor; a human still needs to verify
+that its aspect and sentiment are correct. Deleting the review also removes
+its evidence. Treat quotes as potentially identifying guest data.
+
 To remove an incorrectly imported review and its quotes:
 
 ```bash
