@@ -6,13 +6,13 @@ import os
 import threading
 from typing import Any
 
-from reviewnlp.absa.pipeline import load_absa_model
 from reviewnlp.absa.extract import format_absa_messages, parse_absa_output
+from reviewnlp.absa.pipeline import load_absa_model
 
 
 class AbsaModelManager:
     """Thread-safe singleton that loads the ABSA model once and serves inference requests.
-    
+
     This prevents reloading the model on every request, which is critical for production
     latency and throughput.
     """
@@ -40,10 +40,10 @@ class AbsaModelManager:
 
     def analyze(self, text: str) -> dict:
         """Analyze a single review text and return parsed aspects.
-        
+
         Args:
             text: The review text to analyze
-            
+
         Returns:
             Dictionary with aspects list and metadata (json_valid, salvaged, etc.)
         """
@@ -88,10 +88,10 @@ class AbsaModelManager:
 
     def analyze_batch(self, texts: list[str]) -> list[dict]:
         """Analyze multiple review texts in a batch.
-        
+
         Args:
             texts: List of review texts to analyze
-            
+
         Returns:
             List of dictionaries with aspects and metadata for each review
         """

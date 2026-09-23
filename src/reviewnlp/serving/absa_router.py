@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
@@ -29,10 +30,10 @@ def get_absa_model() -> AbsaModelManager:
 @router.post("", response_model=AbsaResponse)
 def analyze_review(
     request: AbsaRequest,
-    model: AbsaModelManager = Depends(get_absa_model),
+    model: Annotated[AbsaModelManager, Depends(get_absa_model)],
 ) -> AbsaResponse:
     """Analyze a single hotel review and extract aspects with sentiments.
-    
+
     This endpoint accepts a hotel review and returns structured aspect-based
     sentiment analysis including aspect category, sentiment polarity, and
     supporting quotes from the review text.
@@ -69,10 +70,10 @@ def analyze_review(
 @router.post("/batch", response_model=BatchAbsaResponse)
 def analyze_reviews_batch(
     request: BatchAbsaRequest,
-    model: AbsaModelManager = Depends(get_absa_model),
+    model: Annotated[AbsaModelManager, Depends(get_absa_model)],
 ) -> BatchAbsaResponse:
     """Analyze multiple hotel reviews in a batch.
-    
+
     This endpoint processes multiple reviews for a hotel in a single request,
     which is more efficient than making individual requests.
     """
