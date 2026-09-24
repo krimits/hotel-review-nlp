@@ -20,6 +20,8 @@ SAMPLE_BATCH = "\n\n".join([
     "Very quiet room, comfortable beds and a friendly doorman. Parking was expensive.",
 ])
 _model_lock = Lock()
+# Tables hold prose (quotes, advice): use the text font, not the monospace default.
+CSS = ".owner-table * { font-family: var(--font) !important; }"
 
 
 @lru_cache(maxsize=1)
@@ -62,11 +64,11 @@ def analyze(text, upload, progress=gr.Progress()):  # noqa: B008 - Gradio inject
     )
 
 
-with gr.Blocks(title="Hotel Review Triage") as demo:
+with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
     gr.Markdown("# 🏨 Τι λένε οι επισκέπτες σας")
     gr.Markdown(
-        "Επικολλήστε κριτικές στα αγγλικά (μία ανά παράγραφο, με κενή γραμμή ανάμεσα) ή "
-        "ανεβάστε αρχείο. Θα δείτε **τι να διορθώσετε πρώτα**, **τι εκτιμούν οι επισκέπτες** "
+        "Επικολλήστε έως 100 κριτικές στα αγγλικά (μία ανά παράγραφο, με κενή γραμμή ανάμεσα) "
+        "ή ανεβάστε αρχείο. Θα δείτε **τι να διορθώσετε πρώτα**, **τι εκτιμούν οι επισκέπτες** "
         "και, για κάθε εύρημα, **τη φράση της κριτικής** από την οποία προέκυψε."
     )
     with gr.Row():
@@ -88,24 +90,27 @@ with gr.Blocks(title="Hotel Review Triage") as demo:
     summary = gr.Markdown()
     gr.Markdown("### Τι να διορθώσετε πρώτα")
     fix_first = gr.Dataframe(
-        headers=["Πτυχή", "Κριτικές με παράπονο", "% κριτικών", "Τι γράφουν",
-                 "Τι μπορείτε να κάνετε"],
-        interactive=False, wrap=True,
+        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν", "Τι μπορείτε να κάνετε"],
+        column_widths=["13%", "9%", "10%", "38%", "30%"], max_height=1200,
+        interactive=False, wrap=True, elem_classes="owner-table",
     )
     gr.Markdown("### Τι εκτιμούν οι επισκέπτες")
     strengths = gr.Dataframe(
-        headers=["Πτυχή", "Κριτικές με έπαινο", "% κριτικών", "Τι γράφουν"],
-        interactive=False, wrap=True,
+        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν"],
+        column_widths=["13%", "9%", "10%", "68%"], max_height=1200,
+        interactive=False, wrap=True, elem_classes="owner-table",
     )
     with gr.Accordion("Όλα τα ευρήματα, με τη φράση της κριτικής", open=False):
         findings = gr.Dataframe(
             headers=["Κριτική", "Πτυχή", "Συναίσθημα", "Λέξη", "Φράση της κριτικής"],
-            interactive=False, wrap=True,
+            column_widths=["8%", "14%", "11%", "12%", "55%"],
+            interactive=False, wrap=True, elem_classes="owner-table",
         )
     with gr.Accordion("Ανά κριτική", open=False):
         per_review = gr.Dataframe(
             headers=["Κριτική", "Παράπονα", "Έπαινοι", "Σημείωση", "Κείμενο"],
-            interactive=False, wrap=True,
+            column_widths=["8%", "20%", "20%", "14%", "38%"],
+            interactive=False, wrap=True, elem_classes="owner-table",
         )
     download = gr.File(label="Λήψη όλων των ευρημάτων (CSV για Excel)")
     gr.Markdown(

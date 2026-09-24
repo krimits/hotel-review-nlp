@@ -59,8 +59,9 @@ RECOMMENDATIONS = {
     ),
 }
 
-MAX_REVIEWS = 200
-MAX_TOTAL_CHARS = 200_000
+# About a minute of CPU time at the measured ~0.5-1 s per review.
+MAX_REVIEWS = 100
+MAX_TOTAL_CHARS = 150_000
 QUOTE_PREVIEW = 160
 _REVIEW_COLUMN = re.compile(r"review|text|comment|content|feedback|κριτικ|σχόλι", re.I)
 

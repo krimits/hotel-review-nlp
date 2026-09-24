@@ -51,7 +51,7 @@ approaches ran on the same 30 reviews, on the same CPU class as this Space:
 | complaints reported that are real | **80%** (32/40) | 41% (9/22) | 50% (3/6) |
 | aspect named correctly | **98%** | 69% | 63% |
 | praise found / real | 88% / 95% | 45% / 73% | 9% / 64% |
-| time per review (CPU) | about 0.5 s | about 22 s | about 22 s |
+| time per review (CPU) | 0.5–1 s | about 22 s | about 22 s |
 
 It still misses or invents some complaints. The main causes are:
 
