@@ -1,136 +1,138 @@
-"""Try real English hotel-review aspect extraction in a private session."""
+"""Hotel review triage for owners: paste reviews, see what to fix first, with the quotes."""
 
 from __future__ import annotations
 
 from functools import lru_cache
-from threading import Lock
+from threading import Lock, Thread
 
 import gradio as gr
-import torch
-from inference import analyze_review
-from logic import SENTIMENT_NAMES, accept_record, render
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import logic
+import triage
 
-from reviewnlp.absa.extract import overall_from_aspects
-from reviewnlp.absa.pipeline import BASE_MODEL
-
-MAX_INPUT_CHARS = 1200
-_inference_lock = Lock()
+# Invented examples, not real guests' reviews.
+SAMPLE_BATCH = "\n\n".join([
+    "The room was spotless and the staff were kind, but breakfast was cold.",
+    "The Wi-Fi kept disconnecting. We loved the sea view, but the bathroom was dirty.",
+    "Great location, five minutes from the metro. The room was tiny and the air conditioning "
+    "was noisy all night.",
+    "Reception staff were rude when we asked for a late check-out. The pool was lovely though.",
+    "Good value for money. Breakfast had little choice and the coffee was awful.",
+    "Very quiet room, comfortable beds and a friendly doorman. Parking was expensive.",
+])
+_model_lock = Lock()
+_load_lock = Lock()
+# Tables hold prose (quotes, advice): use the text font, not the monospace default.
+CSS = ".owner-table * { font-family: var(--font) !important; }"
 
 
 @lru_cache(maxsize=1)
-def _load_model():
-    # CPU Basic is the default Space hardware. Float32 avoids relying on
-    # bfloat16 CPU support; the small Qwen model is loaded only on first use.
-    torch.set_num_threads(min(torch.get_num_threads(), 4))
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "left"
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.float16 if device == "cuda" else torch.float32
-    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, torch_dtype=dtype)
-    model.to(device).eval()
-    return tokenizer, model
+def _cached_model() -> triage.AbsaModel:
+    return triage.AbsaModel()
 
 
-def analyze(text: str, history: list[dict] | None):
-    clean_text = " ".join(str(text or "").split())
-    if not clean_text:
-        raise gr.Error("Γράψτε μία κριτική στα αγγλικά.")
-    if len(clean_text) > MAX_INPUT_CHARS:
-        raise gr.Error(f"Η κριτική πρέπει να έχει έως {MAX_INPUT_CHARS} χαρακτήρες.")
+def _load_model() -> triage.AbsaModel:
+    with _load_lock:  # the start-up warm-up and a first request must not load it twice
+        return _cached_model()
+
+
+def score_pairs(pairs, progress=None):
+    """The model call, at module level so tests can replace it."""
+    return _load_model()(pairs, progress=progress)
+
+
+def analyze(text, upload, progress=gr.Progress()):  # noqa: B008 - Gradio injects the tracker
     try:
-        with _inference_lock:
-            tokenizer, model = _load_model()
-            result = analyze_review(tokenizer, model, clean_text)
+        reviews = logic.collect_reviews(text, upload)
+    except logic.InputError as exc:
+        raise gr.Error(str(exc)) from exc
+    skipped = {n for n, review in enumerate(reviews, start=1) if not triage.looks_english(review)}
+    english = [review for n, review in enumerate(reviews, start=1) if n not in skipped]
+
+    progress(0, desc="Φόρτωση μοντέλου (μόνο την πρώτη φορά)…")
+    try:
+        with _model_lock:
+            found = triage.analyze(english, lambda pairs: score_pairs(
+                pairs, lambda done: progress(done, desc="Ανάλυση φράσεων…")))
     except Exception as exc:
-        raise gr.Error("Το μοντέλο δεν μπόρεσε να ολοκληρώσει την ανάλυση. Δοκιμάστε ξανά.") from exc
+        raise gr.Error("Το μοντέλο δεν ολοκλήρωσε την ανάλυση. Δοκιμάστε ξανά σε λίγο.") from exc
 
-    updated = accept_record(history, clean_text, result)
-    accepted = len(updated) > len(history or [])
-    aspects = updated[-1]["aspects"] if accepted else []
-    if accepted:
-        label = SENTIMENT_NAMES[overall_from_aspects(aspects)]
-        status = f"**Ανάλυση ολοκληρώθηκε.** Συνολική ένδειξη από τις πτυχές: **{label}**."
-        if result.get("salvaged"):
-            status += " Η απάντηση περιείχε επιπλέον κείμενο· μετρήθηκαν μόνο πτυχές με αυτούσια αποσπάσματα."
-        if result.get("entries_dropped"):
-            status += " Κάποιες αναφορές απορρίφθηκαν επειδή δεν πληρούσαν τους κανόνες ελέγχου."
-    elif result.get("generation_hit_token_budget"):
-        status = "Η απάντηση του μοντέλου κόπηκε. Η κριτική δεν προστέθηκε στα σύνολα."
-    elif not result.get("json_valid"):
-        error = str(result.get("error") or "")
-        if error == "empty generation":
-            detail = "Δεν παρήχθη απάντηση."
-        elif error == "no JSON array found":
-            detail = "Δεν βρέθηκε λίστα πτυχών."
-        else:
-            detail = "Η λίστα πτυχών δεν μπορούσε να διαβαστεί."
-        status = f"{detail} Η κριτική δεν προστέθηκε στα σύνολα."
-    elif result.get("quote_absent") or result.get("quote_not_in_review"):
-        status = "Δεν βρέθηκαν αυτούσια αποσπάσματα που να στηρίζουν τις πτυχές. Η κριτική δεν προστέθηκε στα σύνολα."
-    else:
-        status = "Δεν εντοπίστηκε πτυχή ξενοδοχείου στην κριτική. Η κριτική δεν προστέθηκε στα σύνολα."
-    aspect_rows, review_rows, complaints, evidence = render(
-        updated, {"aspects": aspects} if accepted else None
+    in_order = iter(found)
+    findings = [[] if n in skipped else next(in_order) for n in range(1, len(reviews) + 1)]
+    summary = logic.summarize(findings)
+    analysed = len(english)
+    return (
+        logic.summary_markdown(len(reviews), skipped, summary),
+        logic.fix_first_rows(summary, analysed) if analysed else [],
+        logic.strength_rows(summary, analysed) if analysed else [],
+        logic.finding_rows(findings),
+        logic.review_rows(reviews, findings, skipped),
+        logic.write_csv(reviews, findings),
     )
-    return updated, status, aspect_rows, review_rows, complaints, evidence
 
 
-def clear():
-    return [], "Η συνεδρία καθαρίστηκε.", [], [], [], []
-
-
-with gr.Blocks(title="Hotel Review Operations · Demo") as demo:
-    gr.Markdown("# 🏨 Hotel Review Operations")
+with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
+    gr.Markdown("# 🏨 Τι λένε οι επισκέπτες σας")
     gr.Markdown(
-        "**Δοκιμαστική λειτουργία για ξενοδόχους:** εντοπίστε συγκεκριμένα παράπονα "
-        "σε αγγλικές κριτικές και δείτε τα αποσπάσματα που στηρίζουν τις προτάσεις. "
-        "Τα αποτελέσματα προέρχονται από πραγματική εκτέλεση του Qwen2.5-0.5B-Instruct "
-        "χωρίς εκπαίδευση για πτυχές ξενοδοχείων. Ελέγξτε τα πριν πάρετε αποφάσεις."
+        "Επικολλήστε έως 100 κριτικές στα αγγλικά (μία ανά παράγραφο, με κενή γραμμή ανάμεσα) "
+        "ή ανεβάστε αρχείο. Θα δείτε **τι να διορθώσετε πρώτα**, **τι εκτιμούν οι επισκέπτες** "
+        "και, για κάθε εύρημα, **τη φράση της κριτικής** από την οποία προέκυψε."
     )
-    gr.Markdown(
-        "Οι κριτικές αυτής της δοκιμής διατηρούνται προσωρινά στη συνεδρία και χάνονται "
-        "με επανεκκίνηση της εφαρμογής. Μην καταχωρείτε προσωπικά στοιχεία επισκεπτών. "
-        "Η ανάλυση ελληνικών κριτικών δεν έχει ακόμη επαληθευτεί."
-    )
-    state = gr.State([])
     with gr.Row():
-        review = gr.Textbox(
-            label="Αγγλική κριτική", lines=4,
-            placeholder="The staff were friendly, but the bathroom was dirty and breakfast was cold.",
-            max_length=MAX_INPUT_CHARS,
-        )
-    with gr.Row():
-        submit = gr.Button("Ανάλυση και προσθήκη", variant="primary")
-        reset = gr.Button("Καθαρισμός συνεδρίας")
+        with gr.Column(scale=3):
+            reviews = gr.Textbox(
+                label="Κριτικές στα αγγλικά, μία ανά παράγραφο", lines=12,
+                placeholder="The staff were friendly, but the bathroom was dirty.\n\n"
+                            "Great location, although breakfast was expensive.",
+            )
+        with gr.Column(scale=1):
+            upload = gr.File(label="…ή αρχείο .csv (στήλη κριτικών) ή .txt",
+                             file_types=[".csv", ".txt"], type="filepath")
+            run = gr.Button("Ανάλυση", variant="primary")
+            clear = gr.ClearButton(value="Καθαρισμός")
     gr.Examples(
-        examples=[
-            ["The room was spotless and the staff were kind, but breakfast was cold."],
-            ["The Wi-Fi kept disconnecting. We loved the sea view, but the bathroom was dirty."],
-        ], inputs=review, label="Ενδεικτικές κριτικές (συνθετικές)",
+        examples=[[SAMPLE_BATCH]], inputs=reviews,
+        label="Δοκιμάστε με 6 ενδεικτικές κριτικές (συνθετικές)",
     )
-    status = gr.Markdown("Προσθέστε μία κριτική για να δείτε πραγματική ανάλυση.")
-    aspects = gr.Dataframe(
-        headers=["Πτυχή", "Συναίσθημα", "Αυτούσιο απόσπασμα"],
-        label="Πτυχές της τελευταίας κριτικής", interactive=False,
+    summary = gr.Markdown()
+    gr.Markdown("### Τι να διορθώσετε πρώτα")
+    fix_first = gr.Dataframe(
+        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν", "Τι μπορείτε να κάνετε"],
+        column_widths=["13%", "9%", "10%", "38%", "30%"], max_height=1200,
+        interactive=False, wrap=True, elem_classes="owner-table",
     )
-    gr.Markdown("### Παράπονα και ενέργειες για τη συνεδρία")
-    complaints = gr.Dataframe(
-        headers=["Πτυχή", "Αρνητικές κριτικές", "Σύνολο αναφορών", "Αρνητικές %", "Προτεινόμενη ενέργεια"],
-        label="Ταξινομημένα παράπονα — πραγματικά πλήθη από τις κριτικές σας", interactive=False,
+    gr.Markdown("### Τι εκτιμούν οι επισκέπτες")
+    strengths = gr.Dataframe(
+        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν"],
+        column_widths=["13%", "9%", "10%", "68%"], max_height=1200,
+        interactive=False, wrap=True, elem_classes="owner-table",
     )
-    evidence = gr.Dataframe(
-        headers=["Αριθμός κριτικής", "Πτυχή", "Αυτούσιο αρνητικό απόσπασμα"],
-        label="Στοιχεία πίσω από τα παράπονα", interactive=False,
+    with gr.Accordion("Όλα τα ευρήματα, με τη φράση της κριτικής", open=False):
+        findings = gr.Dataframe(
+            headers=["Κριτική", "Πτυχή", "Συναίσθημα", "Λέξη", "Φράση της κριτικής"],
+            column_widths=["8%", "14%", "11%", "12%", "55%"],
+            interactive=False, wrap=True, elem_classes="owner-table",
+        )
+    with gr.Accordion("Ανά κριτική", open=False):
+        per_review = gr.Dataframe(
+            headers=["Κριτική", "Παράπονα", "Έπαινοι", "Σημείωση", "Κείμενο"],
+            column_widths=["8%", "20%", "20%", "14%", "38%"],
+            interactive=False, wrap=True, elem_classes="owner-table",
+        )
+    download = gr.File(label="Λήψη όλων των ευρημάτων (CSV για Excel)")
+    gr.Markdown(
+        "**Πόσο αξιόπιστο είναι:** σε 30 πραγματικές αγγλικές κριτικές ξενοδοχείων, "
+        "χαρακτηρισμένες με το χέρι πριν τρέξει το σύστημα, εντόπισε το 82% των παραπόνων "
+        "και το 80% των παραπόνων που ανέφερε ήταν πραγματικά. Κάνει λάθη σε ειρωνεία, "
+        "αρνήσεις και σε θέματα εκτός των 8 πτυχών, γι' αυτό κάθε εύρημα δείχνει τη φράση "
+        "της κριτικής: ελέγξτε την πριν αποφασίσετε.  \n"
+        "Οι κριτικές δεν αποθηκεύονται. Μην επικολλάτε προσωπικά στοιχεία επισκεπτών."
     )
-    reviews = gr.Dataframe(
-        headers=["Αριθμός κριτικής", "Ένδειξη από πτυχές", "Πτυχές"],
-        label="Κριτικές της συνεδρίας", interactive=False,
-    )
-    submit.click(analyze, inputs=[review, state], outputs=[state, status, aspects, reviews, complaints, evidence])
-    reset.click(clear, outputs=[state, status, aspects, reviews, complaints, evidence])
+    outputs = [summary, fix_first, strengths, findings, per_review, download]
+    run.click(analyze, inputs=[reviews, upload], outputs=outputs)
+    clear.add([reviews, upload, *outputs])
 
 demo.queue(default_concurrency_limit=1)
 if __name__ == "__main__":
+    # Download and load the model while the page starts, not on the first click.
+    Thread(target=_load_model, daemon=True).start()
     demo.launch()
