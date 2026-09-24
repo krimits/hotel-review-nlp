@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -14,7 +15,7 @@ class AbsaRequest(BaseModel):
     review_id: str | None = Field(default=None, max_length=200, description="Optional external review ID")
     text: str = Field(..., min_length=3, max_length=8000, description="Review text to analyze")
     source: str | None = Field(default=None, max_length=100, description="Review source (e.g., booking.com)")
-    language: str = Field(default="en", max_length=10, description="Review language code")
+    language: Literal["en"] = Field(default="en", description="English ABSA only; Greek hotel aspects have not been evaluated")
     review_date: datetime | None = Field(default=None, description="Date of the review")
 
 
@@ -32,11 +33,15 @@ class AbsaResponse(BaseModel):
 
     hotel_id: str
     review_id: str | None
+    stored: bool = Field(default=False, description="Whether this review was saved for hotel analytics")
     aspects: list[AbsaAspect]
     overall_sentiment: str | None
     json_valid: bool
     salvaged: bool
     entries_dropped: int
+    quote_absent: int
+    quote_not_in_review: int
+    generation_hit_token_budget: bool
     processing_time_ms: float | None = Field(
         default=None,
         description=(
@@ -67,6 +72,20 @@ class RecommendationResponse(BaseModel):
     hotel_id: str
     period_days: int
     recommendations: list[AspectAnalytics]
+
+
+class EvidenceExample(BaseModel):
+    source: str
+    review_id: str
+    review_date: datetime
+    quote: str
+
+
+class EvidenceResponse(BaseModel):
+    hotel_id: str
+    aspect: str
+    period_days: int
+    examples: list[EvidenceExample]
 
 
 class BatchAbsaRequest(BaseModel):

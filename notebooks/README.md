@@ -22,6 +22,7 @@ saved outputs.
 | `04_distilbert_lora_colab.ipynb` | processed parquet + GPU | Colab T4 |
 | `05_distilbert_full_and_lora_colab.ipynb` | processed parquet + GPU | Colab T4 |
 | `06_qwen_qlora_colab.ipynb` | processed parquet + GPU | Colab T4 |
+| `07_greek_sentiment_colab.ipynb` | pinned Greek tweets dataset + GPU; separately labeled Greek hotel CSV for domain test | Colab GPU |
 
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.

@@ -48,13 +48,11 @@ def predict_encoder(checkpoint_dir: str, texts: list[str], max_length: int = 256
     return np.array([id2label[p] for p in preds])
 
 
-def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int = 4, batch_size: int = 16) -> np.ndarray:
-    """Fine-tuned Qwen adapter (4-bit base) -> label strings via generation."""
+def load_qwen_qlora(adapter_dir: str):
+    """Load tokenizer, base and adapter once for a long-lived serving worker."""
     import torch
     from peft import PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-
-    from reviewnlp.llm.prompt_format import format_prompt
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     quant = None
@@ -72,6 +70,17 @@ def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int =
     )
     model = PeftModel.from_pretrained(model, adapter_dir)
     model.eval()
+    return tokenizer, model
+
+
+def predict_qwen_qlora(adapter_dir: str, texts: list[str], max_new_tokens: int = 4,
+                       batch_size: int = 16, bundle=None) -> np.ndarray:
+    """Fine-tuned Qwen adapter -> labels; reuse a preloaded bundle in the API."""
+    import torch
+
+    from reviewnlp.llm.prompt_format import format_prompt
+
+    tokenizer, model = bundle if bundle is not None else load_qwen_qlora(adapter_dir)
 
     preds = []
     for start in range(0, len(texts), batch_size):
@@ -98,7 +107,8 @@ def load_predict_fn(model_type: str, path: str) -> Callable[[list[str]], np.ndar
     if model_type == "encoder":
         return lambda texts: predict_encoder(path, texts)
     if model_type == "qwen_qlora":
-        return lambda texts: predict_qwen_qlora(path, texts)
+        bundle = load_qwen_qlora(path)
+        return lambda texts: predict_qwen_qlora(path, texts, bundle=bundle)
     if model_type == "cached_logits":
         # models already evaluated by their training scripts: reload saved logits
         logits = np.load(f"{path}/test_logits.npy")

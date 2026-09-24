@@ -13,6 +13,7 @@ Run:  python scripts/quantize_distilbert.py --model runs/distilbert \
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import time
@@ -44,7 +45,7 @@ def measure(model, tokenizer, texts: list[str], repeats: int = 3) -> dict:
     }
 
 
-def accuracy(model, tokenizer, texts: list[str], labels: list[int]) -> float:
+def predict_ids(model, tokenizer, texts: list[str]) -> np.ndarray:
     preds = []
     for start in range(0, len(texts), 64):
         enc = tokenizer(texts[start : start + 64], truncation=True, max_length=256,
@@ -52,19 +53,23 @@ def accuracy(model, tokenizer, texts: list[str], labels: list[int]) -> float:
         with torch.no_grad():
             logits = model(**enc).logits
         preds += logits.argmax(-1).tolist()
-    return float(np.mean(np.asarray(preds) == np.asarray(labels)))
+    return np.asarray(preds)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default="runs/distilbert")
     parser.add_argument("--dataset", default="data/processed/test.parquet")
-    parser.add_argument("--n", type=int, default=256, help="sample size for the benchmark")
+    parser.add_argument("--n", type=int, default=0, help="accuracy sample (0 means the full test set)")
+    parser.add_argument("--latency-n", type=int, default=32, help="common batch size for latency")
     parser.add_argument("--out", default="runs/quantization/benchmark.json")
     args = parser.parse_args()
 
     device = "cpu"  # dynamic int8 targets CPU deployments
-    df = pd.read_parquet(args.dataset).sample(n=args.n, random_state=42)
+    if args.n < 0 or args.latency_n <= 0:
+        parser.error("--n must be non-negative and --latency-n positive")
+    frame = pd.read_parquet(args.dataset)
+    df = frame.sample(n=args.n or len(frame), random_state=42)
     label2id = {"negative": 0, "positive": 1}
     texts = df["text"].tolist()
     labels = df["label"].map(label2id).tolist()
@@ -72,18 +77,22 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(args.model)
     fp32 = AutoModelForSequenceClassification.from_pretrained(args.model).to(device).eval()
 
-    fp32_latency = measure(fp32, tokenizer, texts)
-    fp32_acc = accuracy(fp32, tokenizer, texts, labels)
+    sample = texts[: args.latency_n]
+    fp32_latency = measure(fp32, tokenizer, sample)
+    fp32_preds = predict_ids(fp32, tokenizer, texts)
 
     int8_model = quantize_dynamic(fp32, {torch.nn.Linear}, dtype=torch.qint8)
-    int8_latency = measure(int8_model, tokenizer, texts)
-    int8_acc = accuracy(int8_model, tokenizer, texts, labels)
+    int8_latency = measure(int8_model, tokenizer, sample)
+    int8_preds = predict_ids(int8_model, tokenizer, texts)
 
     result = {
         "n_sample": len(texts),
-        "fp32": {"latency": fp32_latency, "accuracy": round(fp32_acc, 4),
+        "latency_batch_size": len(sample),
+        "accuracy_definition": "fraction correct on n_sample; different from API latency",
+        "prediction_agreement": round(float(np.mean(fp32_preds == int8_preds)), 4),
+        "fp32": {"latency": fp32_latency, "accuracy": round(float(np.mean(fp32_preds == labels)), 4),
                  "size_mb": round(_model_size_mb(fp32), 1)},
-        "int8_dynamic": {"latency": int8_latency, "accuracy": round(int8_acc, 4),
+        "int8_dynamic": {"latency": int8_latency, "accuracy": round(float(np.mean(int8_preds == labels)), 4),
                          "size_mb": round(_model_size_mb(int8_model), 1)},
         "speedup_p50": round(fp32_latency["p50_ms_per_text"] / max(1e-9, int8_latency["p50_ms_per_text"]), 2),
     }
@@ -94,13 +103,10 @@ def main() -> None:
 
 
 def _model_size_mb(model) -> float:
-    """On-disk-equivalent parameter footprint in MB."""
-    total = sum(p.numel() for p in model.parameters())
-    # assume mixed dtypes; approximate fp32=4B, int8=1B per param
-    bytes_total = 0
-    for p in model.parameters():
-        bytes_total += p.numel() * (1 if p.dtype == torch.qint8 else 4)
-    return bytes_total / 1024 / 1024 if bytes_total else total * 4 / 1024 / 1024
+    """Actual serialized state_dict bytes, including packed quantized weights."""
+    buffer = io.BytesIO()
+    torch.save(model.state_dict(), buffer)
+    return buffer.tell() / (1024 * 1024)
 
 
 if __name__ == "__main__":

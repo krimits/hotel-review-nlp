@@ -176,7 +176,15 @@ def train_bilstm(config_path: str) -> dict:
     np.save(os.path.join(out_dir, "test_logits.npy"), test_logits.numpy())
     np.save(os.path.join(out_dir, "test_labels.npy"), np.asarray(test_ds.labels))
     with open(os.path.join(out_dir, "metrics.json"), "w") as f:
-        json.dump({"test": test_metrics, "best_dev_macro_f1": best_f1}, f, indent=2)
+        from reviewnlp.data.preprocess import load_processed
+        from reviewnlp.utils.experiments import frame_fingerprint
+
+        data_fingerprints = {
+            split: frame_fingerprint(frame)
+            for split, frame in load_processed(d["processed_dir"]).items()
+        }
+        json.dump({"test": test_metrics, "best_dev_macro_f1": best_f1,
+                   "data": data_fingerprints}, f, indent=2)
     return test_metrics
 
 

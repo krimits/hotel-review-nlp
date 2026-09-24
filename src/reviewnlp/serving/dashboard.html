@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hotel Review Operations</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #142735; background: #f4f7f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #113846; color: white; padding: 27px max(20px, calc((100% - 1100px)/2)); }
+    header h1 { margin: 0 0 7px; font-size: clamp(1.4rem, 3vw, 2rem); }
+    header p { margin: 0; color: #d5e6e8; }
+    main { max-width: 1100px; margin: 26px auto; padding: 0 20px 50px; }
+    .panel { background: white; border: 1px solid #dce5e7; border-radius: 12px; padding: 22px; margin-bottom: 18px; box-shadow: 0 2px 11px #1438460a; }
+    h2 { margin: 0 0 14px; font-size: 1.2rem; }
+    .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    label { font-weight: 650; font-size: .9rem; display: block; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; border: 1px solid #a8bbbf; border-radius: 7px; padding: 10px; font: inherit; background: white; }
+    textarea { min-height: 105px; resize: vertical; }
+    button { background: #067c75; color: white; border: 0; border-radius: 7px; padding: 11px 18px; font: inherit; font-weight: 650; cursor: pointer; }
+    button:hover, button:focus-visible { background: #005951; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .hint { color: #536a72; font-size: .88rem; line-height: 1.5; }
+    .status { min-height: 1.4em; color: #365964; margin: 13px 0 0; }
+    .error { color: #9b2f35; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+    .summary div { padding: 16px; background: #eaf2f2; border-radius: 8px; }
+    .summary strong { display: block; font-size: 1.55rem; }
+    .summary span { color: #445b63; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    th, td { padding: 12px 9px; border-bottom: 1px solid #dce5e7; text-align: left; vertical-align: top; }
+    th { color: #435d65; font-size: .85rem; }
+    td small { display: block; color: #536a72; margin-top: 5px; }
+    .negative { color: #aa333c; font-weight: 700; }
+    .positive { color: #08776b; font-weight: 700; }
+    .pill { display: inline-block; border-radius: 20px; background: #eef3f5; padding: 4px 9px; margin: 4px 4px 0 0; }
+    .notice { padding: 12px 15px; border-left: 4px solid #bb7e10; background: #fffaed; }
+    @media (max-width: 680px) { .fields, .fields.two, .summary { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><h1>Hotel Review Operations</h1><p>Από τις κριτικές στις προτεραιότητες βελτίωσης</p></header>
+  <main>
+    <section class="panel" aria-labelledby="access-title">
+      <h2 id="access-title">Ξενοδοχείο και πρόσβαση</h2>
+      <div class="fields">
+        <div><label for="hotel">Κωδικός ξενοδοχείου</label><input id="hotel" autocomplete="off" placeholder="hotel-athens-01"></div>
+        <div><label for="key">API key</label><input id="key" type="password" autocomplete="off" placeholder="Κλειδί πρόσβασης"></div>
+        <div><label for="days">Περίοδος</label><select id="days"><option value="7">7 ημέρες</option><option value="30" selected>30 ημέρες</option><option value="90">90 ημέρες</option><option value="365">365 ημέρες</option></select></div>
+      </div>
+      <p class="hint">Το κλειδί μένει μόνο στη μνήμη της ανοιχτής σελίδας. Δεν αποθηκεύεται στον browser.</p>
+      <button id="refresh" type="button">Εμφάνιση συστάσεων</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="insights-title">
+      <h2 id="insights-title">Πού χρειάζεται προσοχή</h2>
+      <p class="hint">Εμφανίζονται πτυχές με τουλάχιστον μία αρνητική αναφορά. Η προτεραιότητα είναι ευρετική, όχι εκτίμηση οικονομικού οφέλους. Οι αριθμοί προκύπτουν αποκλειστικά από αποθηκευμένες κριτικές του ξενοδοχείου· η τάση συγκρίνει με την αμέσως προηγούμενη περίοδο ίσης διάρκειας. Τα αποσπάσματα βοηθούν στον χειροκίνητο έλεγχο κάθε προβλήματος.</p>
+      <div id="summary" class="summary" hidden></div>
+      <div class="table-wrap"><table><thead><tr><th>Πτυχή</th><th>Κριτικές</th><th>Αρνητικές</th><th>Τάση</th><th>Ενέργεια</th><th>Τεκμήρια</th></tr></thead><tbody id="rows"><tr><td colspan="6">Επίλεξε ξενοδοχείο για να φορτώσεις τα πραγματικά δεδομένα.</td></tr></tbody></table></div>
+    </section>
+    <section class="panel" aria-labelledby="review-title">
+      <h2 id="review-title">Ανάλυση νέας κριτικής</h2>
+      <p class="notice">Η εξαγωγή πτυχών είναι πρωτότυπο για αγγλικές κριτικές. Μην χρησιμοποιείς τις συστάσεις ως αυτοματοποιημένη απόφαση χωρίς έλεγχο πραγματικών παραδειγμάτων.</p>
+      <div class="fields two">
+        <div><label for="review-id">Εξωτερικό ID κριτικής</label><input id="review-id" autocomplete="off" placeholder="π.χ. booking-123"></div>
+        <div><label for="source">Πηγή</label><input id="source" value="manual" autocomplete="off"></div>
+      </div>
+      <p><label for="review">Κείμενο κριτικής στα αγγλικά</label><textarea id="review" maxlength="8000" placeholder="The staff were great but the room was dirty..."></textarea></p>
+      <button id="analyze" type="button">Ανάλυση και αποθήκευση</button>
+      <p id="review-status" class="status" role="status" aria-live="polite"></p>
+      <div id="aspects" aria-live="polite"></div>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const names = {cleanliness:'Καθαριότητα',staff:'Προσωπικό',location:'Τοποθεσία',room:'Δωμάτιο',food:'Φαγητό',noise:'Θόρυβος',value:'Σχέση τιμής/αξίας',facilities:'Παροχές'};
+    const percent = n => `${Math.round(n * 100)}%`;
+    function cell(row, value, className) { const element = row.insertCell(); element.textContent = value; if (className) element.className = className; return element; }
+    function hotel() { const value = $('hotel').value.trim(); if (!value) throw Error('Συμπλήρωσε τον κωδικό ξενοδοχείου.'); return value; }
+    async function request(path, options={}) {
+      const headers = {'X-API-Key': $('key').value, ...(options.headers || {})};
+      const response = await fetch(path, {...options, headers});
+      if (!response.ok) { const error = await response.json().catch(() => ({})); throw Error(typeof error.detail === 'string' ? error.detail : `HTTP ${response.status}`); }
+      return response.json();
+    }
+    async function showEvidence(button, hotelId, days, aspect) {
+      button.disabled=true; button.textContent='Φόρτωση...';
+      try {
+        const data=await request(`/hotels/${encodeURIComponent(hotelId)}/aspects/${encodeURIComponent(aspect)}/evidence?days=${days}&limit=3`);
+        const container=button.parentElement; container.replaceChildren();
+        if (!data.examples.length) { container.textContent='Δεν υπάρχουν διαθέσιμα αποσπάσματα.'; return; }
+        for (const example of data.examples) {
+          const block=document.createElement('small');
+          block.textContent=`«${example.quote}» — ${example.source} / ${example.review_id}`;
+          container.append(block);
+        }
+      } catch(error) {
+        button.disabled=false; button.textContent='Δοκίμασε ξανά';
+        const note=document.createElement('small'); note.className='error'; note.textContent=error.message;
+        button.parentElement.append(note);
+      }
+    }
+    async function refresh() {
+      const status = $('status'); status.className='status'; status.textContent='Φόρτωση...'; $('refresh').disabled=true;
+      try {
+        const hotelId=hotel(), days=$('days').value;
+        const data = await request(`/hotels/${encodeURIComponent(hotelId)}/recommendations?days=${days}`);
+        const rows = $('rows'); rows.replaceChildren(); const summary = $('summary'); summary.replaceChildren();
+        if (!data.recommendations.length) {
+          const tr = rows.insertRow(); cell(tr, 'Δεν έχουν αποθηκευτεί πτυχές σε αυτή την περίοδο.', ''); tr.firstChild.colSpan=6; summary.hidden=true;
+        } else {
+          const total = data.recommendations.reduce((sum, item) => sum + item.review_count, 0);
+          for (const [number, title] of [[data.recommendations.length,'Πτυχές'], [total,'Αναφορές πτυχών'], [data.recommendations[0].negative_count,'Αρνητικές στην πρώτη προτεραιότητα']]) {
+            const box=document.createElement('div'), strong=document.createElement('strong'), label=document.createElement('span'); strong.textContent=number; label.textContent=title; box.append(strong,label); summary.append(box);
+          }
+          summary.hidden=false;
+          for (const item of data.recommendations) {
+            const tr=rows.insertRow(); cell(tr,names[item.aspect]||item.aspect); cell(tr,item.review_count);
+            cell(tr,`${item.negative_count} (${percent(item.negative_rate)})`,'negative');
+            cell(tr,item.trend===null?'Χωρίς προηγούμενα δεδομένα':`${item.trend>0?'+':''}${percent(item.trend)}`);
+            cell(tr,`${item.recommendation}${item.review_count<5?' (Μικρό δείγμα: ελέγξτε τις κριτικές πριν αποφασίσετε.)':''}`);
+            const evidence=tr.insertCell(), button=document.createElement('button');
+            button.type='button'; button.textContent='Δες αποσπάσματα';
+            button.addEventListener('click',()=>showEvidence(button,hotelId,days,item.aspect));
+            evidence.append(button);
+          }
+        }
+        status.textContent=`Δεδομένα ${data.period_days} ημερών. Οι προτεραιότητες εμφανίζονται από την υψηλότερη προς τη χαμηλότερη.`;
+      } catch(error) { status.className='status error'; status.textContent=error.message; }
+      finally { $('refresh').disabled=false; }
+    }
+    async function analyze() {
+      const status=$('review-status'); status.className='status'; status.textContent='Ανάλυση...'; $('analyze').disabled=true;
+      try {
+        const payload={hotel_id:hotel(),review_id:$('review-id').value.trim()||null,source:$('source').value.trim()||'manual',language:'en',text:$('review').value.trim()};
+        const data=await request('/absa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        status.textContent=data.stored?`Αποθηκεύτηκε η κριτική ${data.review_id}.`:'Η ανάλυση δεν αποθηκεύτηκε: δεν έχει ρυθμιστεί βάση.';
+        const output=$('aspects'); output.replaceChildren();
+        if (!data.json_valid || data.generation_hit_token_budget || data.entries_dropped) {
+          const note=document.createElement('p'); note.className='notice'; note.textContent='Επιθεώρησε αυτή την εξαγωγή: υπήρξε αποτυχία μορφής, όριο παραγωγής ή απορριφθέν στοιχείο.'; output.append(note);
+        }
+        for (const item of data.aspects) { const entry=document.createElement('p'); entry.className='pill'; entry.textContent=`${names[item.aspect]||item.aspect}: ${item.sentiment} — «${item.quote}»`; output.append(entry); }
+        await refresh();
+      } catch(error) { status.className='status error'; status.textContent=error.message; }
+      finally { $('analyze').disabled=false; }
+    }
+    $('refresh').addEventListener('click', refresh); $('analyze').addEventListener('click', analyze);
+  </script>
+</body>
+</html>

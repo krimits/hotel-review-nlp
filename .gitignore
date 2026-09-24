@@ -32,6 +32,7 @@ runs/benchmark/*
 !runs/benchmark/README.md
 !runs/benchmark/predictions.npz
 data/processed_v*/
+data/processed_clean/
 artifacts/
 reports/
 /distilbert_legacy_full_v1_handoff/

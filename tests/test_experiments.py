@@ -53,3 +53,15 @@ def test_prepare_experiment_splits_rejects_cross_split_overlap(tmp_path):
             {"train": None, "dev": None, "test": None},
             seed=42,
         )
+    assert not destination.exists()  # invalid data must not leave an apparent run
+
+
+def test_unicode_equivalent_text_does_not_pass_clean_split_gate(tmp_path):
+    source = tmp_path / "source"
+    destination = tmp_path / "out" / "data"
+    _write_splits(source)
+    dev = pd.read_parquet(source / "dev.parquet")
+    dev.loc[0, "text"] = "ＴＲＡＩＮ REVIEW 0"
+    dev.to_parquet(source / "dev.parquet", index=False)
+    with pytest.raises(ValueError, match="overlaps"):
+        prepare_experiment_splits(source, destination, {}, seed=1)
