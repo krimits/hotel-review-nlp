@@ -13,12 +13,16 @@ from huggingface_hub import HfApi
 
 OWNER = "krimits"
 REPO_ID = f"{OWNER}/hotel-review-operations-demo"
-FILES = ["README.md", "app.py", "inference.py", "logic.py", "requirements.txt"]
+FILES = ["README.md", "app.py", "logic.py", "requirements.txt", "triage.py"]
 DEMO_DIR = Path(__file__).resolve().parents[1] / "spaces" / "hotel-ops-demo"
 
 
 def deploy(api: HfApi, *, resume: bool = False, demo_dir: Path = DEMO_DIR) -> str:
-    """Publish only the five audited demo files to the intended HF account."""
+    """Publish exactly the audited demo files to the intended HF account.
+
+    Any other file already in the Space (such as a module from an older
+    version) is removed in the same commit; `.gitattributes` is always kept.
+    """
     signed_in = api.whoami()["name"]
     if signed_in != OWNER:
         raise RuntimeError(
@@ -36,7 +40,8 @@ def deploy(api: HfApi, *, resume: bool = False, demo_dir: Path = DEMO_DIR) -> st
                         private=True, exist_ok=False)
 
     api.upload_folder(repo_id=REPO_ID, repo_type="space", folder_path=str(demo_dir),
-                      allow_patterns=FILES, commit_message="Deploy hotel review operations demo")
+                      allow_patterns=FILES, delete_patterns=["*"],
+                      commit_message="Deploy hotel review operations demo")
     return f"https://huggingface.co/spaces/{REPO_ID}"
 
 

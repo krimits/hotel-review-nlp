@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install ruff
-      - run: ruff check src tests scripts
+      - run: ruff check src tests scripts spaces
 
   test:
     runs-on: ubuntu-latest
@@ -29,5 +29,7 @@ jobs:
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -e ".[dev,serving]"
       - run: pip install transformers==4.56.2 peft==0.17.1 accelerate==1.10.1
+      # The Space demo's app is imported and run end to end with a stub model.
+      - run: pip install gradio==5.49.1
       - run: pytest tests -v
       - run: python scripts/verify_distilbert_handoff.py

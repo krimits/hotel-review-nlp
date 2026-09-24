@@ -45,5 +45,7 @@ def test_private_space_and_only_source_files_uploaded():
     })
     assert api.calls[1][0] == "upload"
     assert api.calls[1][1]["allow_patterns"] == [
-        "README.md", "app.py", "inference.py", "logic.py", "requirements.txt",
+        "README.md", "app.py", "logic.py", "requirements.txt", "triage.py",
     ]
+    # Files of an older version, such as inference.py, must not linger in the Space.
+    assert api.calls[1][1]["delete_patterns"] == ["*"]
