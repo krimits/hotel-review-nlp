@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from threading import Lock
+from threading import Lock, Thread
 
 import gradio as gr
 import logic
@@ -20,13 +20,19 @@ SAMPLE_BATCH = "\n\n".join([
     "Very quiet room, comfortable beds and a friendly doorman. Parking was expensive.",
 ])
 _model_lock = Lock()
+_load_lock = Lock()
 # Tables hold prose (quotes, advice): use the text font, not the monospace default.
 CSS = ".owner-table * { font-family: var(--font) !important; }"
 
 
 @lru_cache(maxsize=1)
-def _load_model() -> triage.AbsaModel:
+def _cached_model() -> triage.AbsaModel:
     return triage.AbsaModel()
+
+
+def _load_model() -> triage.AbsaModel:
+    with _load_lock:  # the start-up warm-up and a first request must not load it twice
+        return _cached_model()
 
 
 def score_pairs(pairs, progress=None):
@@ -127,4 +133,6 @@ with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
 
 demo.queue(default_concurrency_limit=1)
 if __name__ == "__main__":
+    # Download and load the model while the page starts, not on the first click.
+    Thread(target=_load_model, daemon=True).start()
     demo.launch()
