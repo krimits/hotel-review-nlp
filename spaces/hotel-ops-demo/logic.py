@@ -1,6 +1,6 @@
-"""What the owner sees: read the reviews, rank complaints and strengths, keep the evidence.
+"""What the owner sees: read the reviews, rank the topics to fix and to keep, show the evidence.
 
-Everything here is plain Python over the findings produced by `triage.analyze`,
+Everything here is plain Python over the mentions produced by `triage.analyze`,
 so it is tested without a model.
 """
 
@@ -13,15 +13,53 @@ from pathlib import Path
 
 ASPECT_NAMES = {
     "cleanliness": "Καθαριότητα",
-    "staff": "Προσωπικό",
+    "staff": "Εξυπηρέτηση",
     "location": "Τοποθεσία",
     "room": "Δωμάτιο",
-    "food": "Φαγητό / πρωινό",
+    "food": "Φαγητό",
     "noise": "Θόρυβος",
-    "value": "Σχέση τιμής-αξίας",
+    "value": "Τιμή",
     "facilities": "Παροχές",
 }
+TOPIC_NAMES = {
+    "cleanliness.general": "Καθαριότητα › Γενική",
+    "cleanliness.linen": "Καθαριότητα › Ιματισμός & πετσέτες",
+    "cleanliness.odour": "Καθαριότητα › Οσμές",
+    "cleanliness.pests": "Καθαριότητα › Έντομα",
+    "staff.people": "Εξυπηρέτηση › Προσωπικό / οικοδεσπότης",
+    "staff.response": "Εξυπηρέτηση › Ανταπόκριση & επικοινωνία",
+    "staff.resolution": "Εξυπηρέτηση › Επίλυση προβλημάτων",
+    "staff.checkin": "Εξυπηρέτηση › Check-in / check-out",
+    "location.general": "Τοποθεσία",
+    "room.general": "Δωμάτιο › Γενικά",
+    "room.comfort": "Δωμάτιο › Άνεση",
+    "room.size": "Δωμάτιο › Μέγεθος",
+    "room.bed": "Δωμάτιο › Κρεβάτι",
+    "room.climate": "Δωμάτιο › Κλιματισμός & αερισμός",
+    "room.bathroom": "Δωμάτιο › Μπάνιο & ντους",
+    "room.storage": "Δωμάτιο › Ντουλάπα & αποθήκευση",
+    "room.equipment": "Δωμάτιο › Εξοπλισμός & έπιπλα",
+    "room.view": "Δωμάτιο › Θέα & μπαλκόνι",
+    "food.breakfast": "Φαγητό › Πρωινό",
+    "food.dining": "Φαγητό › Εστιατόριο, μπαρ & καφές",
+    "noise.general": "Θόρυβος",
+    "value.price": "Τιμή › Τιμή & αξία",
+    "value.charges": "Τιμή › Επιπλέον χρεώσεις & εγγύηση",
+    "facilities.access": "Παροχές › Ανελκυστήρας & σκάλες",
+    "facilities.wifi": "Παροχές › Wi-Fi",
+    "facilities.parking": "Παροχές › Στάθμευση",
+    "facilities.kitchen": "Παροχές › Κουζίνα & πλυντήριο",
+    "facilities.family": "Παροχές › Βρέφη & παιδιά",
+    "facilities.leisure": "Παροχές › Πισίνα, σπα & γυμναστήριο",
+    "facilities.common": "Παροχές › Κοινόχρηστοι χώροι",
+}
 SENTIMENT_NAMES = {"positive": "Θετικό", "negative": "Αρνητικό"}
+FLAG_NAMES = {
+    "unresolved": "ανεπίλυτο",
+    "suggestion": "πρόταση βελτίωσης",
+    "typo": "πιθανό τυπογραφικό",
+    "check": "ελέγξτε",
+}
 # Same text as reviewnlp.analytics.recommendations.RECOMMENDATION_TEXT; a test
 # keeps the two in step, and the Space stays free of a pinned package install.
 RECOMMENDATIONS = {
@@ -58,6 +96,37 @@ RECOMMENDATIONS = {
         "για Wi-Fi, πισίνα, parking και λοιπές παροχές."
     ),
 }
+# Topics whose category text above is too general to act on.
+TOPIC_RECOMMENDATIONS = {
+    "cleanliness.linen": "Ελέγξτε τη διαχείριση και την τελική επιθεώρηση του ιματισμού (πετσέτες, σεντόνια) "
+                         "πριν από κάθε άφιξη.",
+    "cleanliness.odour": "Διερευνήστε από πού έρχεται η οσμή (αποχέτευση, υγρασία, αερισμός) και ζητήστε τεχνικό "
+                         "έλεγχο όπου χρειάζεται.",
+    "cleanliness.pests": "Κάντε άμεσο έλεγχο και απεντόμωση και καταγράψτε τι έγινε.",
+    "staff.response": "Ορίστε σαφές κανάλι επικοινωνίας και χρόνο απάντησης σε μηνύματα και αιτήματα.",
+    "staff.resolution": "Επανελέγξτε ό,τι έμεινε ανεπίλυτο και επιβεβαιώστε με τον επισκέπτη ότι λύθηκε.",
+    "staff.checkin": "Ελέγξτε πόσο σαφείς είναι οι οδηγίες check-in και αν υπάρχει υποστήριξη κατά την άφιξη.",
+    "room.comfort": "Ελέγξτε την άνεση του χώρου: φωτισμό, καθίσματα, θερμοκρασία, μικρές λεπτομέρειες.",
+    "room.size": "Περιγράψτε με ακρίβεια το μέγεθος του δωματίου στην αγγελία και αξιοποιήστε καλύτερα τον χώρο.",
+    "room.bed": "Ελέγξτε μέγεθος και κατάσταση κρεβατιών και στρωμάτων και γράψτε τις διαστάσεις στην αγγελία.",
+    "room.climate": "Συντηρήστε και ελέγξτε κλιματισμό και αερισμό σε κάθε δωμάτιο, ιδίως πριν από την περίοδο "
+                    "αιχμής.",
+    "room.bathroom": "Ελέγξτε ντους, ζεστό νερό, πίεση νερού και αποχέτευση στο μπάνιο.",
+    "room.storage": "Προσθέστε κρεμάστρες, ντουλάπα ή ράφια για ρούχα και βρεγμένες πετσέτες.",
+    "room.equipment": "Ελέγξτε και αντικαταστήστε ό,τι λείπει ή έχει φθαρεί στον εξοπλισμό και στα έπιπλα.",
+    "room.view": "Περιγράψτε με ακρίβεια θέα και μπαλκόνι στην αγγελία.",
+    "food.dining": "Εξετάστε ποιότητα, τιμές και εξυπηρέτηση σε εστιατόριο, μπαρ και καφέ.",
+    "value.charges": "Αναφέρετε από πριν όλες τις χρεώσεις, την εγγύηση και τον φόρο διαμονής.",
+    "facilities.access": "Ενημερώστε σαφώς για όροφο, σκάλες και ανελκυστήρα πριν από την κράτηση και εξετάστε "
+                         "βοήθεια με τις αποσκευές.",
+    "facilities.wifi": "Ελέγξτε την κάλυψη και την ταχύτητα του Wi-Fi σε όλους τους χώρους.",
+    "facilities.parking": "Δώστε σαφείς πληροφορίες για τη στάθμευση: θέση, κόστος και διαθεσιμότητα.",
+    "facilities.kitchen": "Ελέγξτε εξοπλισμό κουζίνας και συσκευές (κουζινικά, πλυντήριο) πριν από κάθε άφιξη.",
+    "facilities.family": "Αναφέρετε αν υπάρχουν βρεφική κούνια και καρεκλάκι φαγητού και ετοιμάστε τα όταν η "
+                         "κράτηση περιλαμβάνει παιδιά.",
+    "facilities.leisure": "Ελέγξτε διαθεσιμότητα, καθαριότητα και ωράριο πισίνας, σπα και γυμναστηρίου.",
+    "facilities.common": "Ελέγξτε είσοδο, διαδρόμους, φωτισμό και ασφάλεια των κοινόχρηστων χώρων.",
+}
 
 # About a minute of CPU time at the measured ~0.5-1 s per review.
 MAX_REVIEWS = 100
@@ -68,6 +137,10 @@ _REVIEW_COLUMN = re.compile(r"review|text|comment|content|feedback|κριτικ|
 
 class InputError(ValueError):
     """A problem with what the owner pasted or uploaded, worded for the owner."""
+
+
+def recommendation(topic: str) -> str:
+    return TOPIC_RECOMMENDATIONS.get(topic) or RECOMMENDATIONS[topic.split(".", 1)[0]]
 
 
 def split_pasted(text: str | None) -> list[str]:
@@ -116,73 +189,121 @@ def collect_reviews(text: str | None, upload: str | Path | None) -> list[str]:
 
 
 def _preview(quote: str) -> str:
+    quote = " ".join(quote.split())
     return quote if len(quote) <= QUOTE_PREVIEW else quote[:QUOTE_PREVIEW - 1].rstrip() + "…"
 
 
-def summarize(findings: list[list[dict]]) -> dict[str, dict]:
-    """Per aspect: which reviews complain or praise it, with their quotes.
+def group(mentions: list[list[dict]]) -> list[dict]:
+    """One finding per (review, topic, sentiment), with every quote it rests on.
 
-    Counts are reviews, not sentences: one guest writing about the breakfast
-    three times is one guest. An aspect a review both praises and criticises
-    counts on both sides, so a complaint is never hidden behind a compliment.
+    A guest who writes about the small bed three times is one complaint with
+    three quotes, not three complaints. "check" stays only if no quote of the
+    finding was read with confidence; the other flags carry over from any quote.
+    """
+    findings: dict[tuple, dict] = {}
+    for review, items in enumerate(mentions, start=1):
+        for item in items:
+            key = (review, item["topic"], item["sentiment"])
+            finding = findings.setdefault(key, {
+                "review": review, "aspect": item["aspect"], "topic": item["topic"],
+                "sentiment": item["sentiment"], "quotes": [], "flags": set(), "sure": False,
+            })
+            if item["quote"] not in finding["quotes"]:
+                finding["quotes"].append(item["quote"])
+            finding["flags"] |= set(item["flags"]) - {"check"}
+            finding["sure"] |= "check" not in item["flags"]
+    for finding in findings.values():
+        if not finding.pop("sure"):
+            finding["flags"].add("check")
+    return list(findings.values())
+
+
+def summarize(findings: list[dict]) -> dict[str, dict]:
+    """Per topic, the reviews that complain about it and the reviews that praise it.
+
+    Counts are reviews: a review that both praises and criticises a topic counts
+    on both sides, so a complaint is never hidden behind a compliment.
     """
     summary: dict[str, dict] = {}
-    for review, items in enumerate(findings, start=1):
-        for item in items:
-            side = "complaints" if item["sentiment"] == "negative" else "praise"
-            entry = summary.setdefault(item["aspect"], {"complaints": {}, "praise": {}})
-            entry[side].setdefault(review, item["quote"])
+    for finding in findings:
+        side = "complaints" if finding["sentiment"] == "negative" else "praise"
+        summary.setdefault(finding["topic"], {"complaints": {}, "praise": {}})[side][finding["review"]] = finding
     return summary
 
 
 def _ranked(summary: dict, side: str) -> list[tuple[str, dict]]:
-    rows = [(aspect, entry[side]) for aspect, entry in summary.items() if entry[side]]
-    return sorted(rows, key=lambda row: (-len(row[1]), row[0]))
+    rows = [(topic, entry[side]) for topic, entry in summary.items() if entry[side]]
+    return sorted(rows, key=lambda row: (-len(row[1]), -_mentions(row[1]), row[0]))
 
 
-def _examples(quotes: dict[int, str], limit: int = 2) -> str:
-    shortest = sorted(quotes.items(), key=lambda item: len(item[1]))[:limit]
-    return " · ".join(f"#{review}: «{_preview(quote)}»" for review, quote in sorted(shortest))
+def _mentions(by_review: dict) -> int:
+    return sum(len(finding["quotes"]) for finding in by_review.values())
+
+
+def _examples(by_review: dict, limit: int = 2) -> str:
+    shortest = {review: min(finding["quotes"], key=len) for review, finding in by_review.items()}
+    chosen = sorted(shortest.items(), key=lambda item: len(item[1]))[:limit]
+    return " · ".join(f"#{review}: «{_preview(quote)}»" for review, quote in sorted(chosen))
+
+
+def _notes(by_review: dict, other_side: dict) -> str:
+    notes = []
+    for flag in ("unresolved", "suggestion", "typo", "check"):
+        count = sum(flag in finding["flags"] for finding in by_review.values())
+        if count:
+            notes.append(f"{FLAG_NAMES[flag]}: {count}")
+    mixed = len(by_review.keys() & other_side.keys())
+    if mixed:
+        notes.append(f"και θετικά στην ίδια κριτική: {mixed}")
+    return " · ".join(notes)
 
 
 def fix_first_rows(summary: dict, analysed: int) -> list[list]:
     return [
-        [ASPECT_NAMES[aspect], len(reviews), f"{len(reviews) / analysed:.0%}",
-         _examples(reviews), RECOMMENDATIONS[aspect]]
-        for aspect, reviews in _ranked(summary, "complaints")
+        [TOPIC_NAMES[topic], len(reviews), f"{len(reviews) / analysed:.0%}", _mentions(reviews),
+         _notes(reviews, summary[topic]["praise"]), _examples(reviews), recommendation(topic)]
+        for topic, reviews in _ranked(summary, "complaints")
     ]
 
 
 def strength_rows(summary: dict, analysed: int) -> list[list]:
     return [
-        [ASPECT_NAMES[aspect], len(reviews), f"{len(reviews) / analysed:.0%}", _examples(reviews)]
-        for aspect, reviews in _ranked(summary, "praise")
+        [TOPIC_NAMES[topic], len(reviews), f"{len(reviews) / analysed:.0%}", _mentions(reviews),
+         _examples(reviews)]
+        for topic, reviews in _ranked(summary, "praise")
     ]
 
 
-def finding_rows(findings: list[list[dict]]) -> list[list]:
-    """Every finding, complaints first, with the verbatim clause it rests on."""
-    rows = [
-        [review, ASPECT_NAMES[item["aspect"]], SENTIMENT_NAMES[item["sentiment"]], item["term"],
-         item["quote"]]
-        for review, items in enumerate(findings, start=1) for item in items
+def _flag_text(finding: dict) -> str:
+    return ", ".join(FLAG_NAMES[flag] for flag in FLAG_NAMES if flag in finding["flags"])
+
+
+def finding_rows(findings: list[dict]) -> list[list]:
+    """Every finding, complaints first, with all the clauses it rests on."""
+    ordered = sorted(findings, key=lambda f: (f["sentiment"] != "negative", f["review"],
+                                              list(TOPIC_NAMES).index(f["topic"])))
+    return [
+        [f["review"], TOPIC_NAMES[f["topic"]], SENTIMENT_NAMES[f["sentiment"]], len(f["quotes"]), _flag_text(f),
+         " | ".join(_preview(quote) for quote in f["quotes"])]
+        for f in ordered
     ]
-    return sorted(rows, key=lambda row: (row[2] != SENTIMENT_NAMES["negative"], row[0]))
 
 
-def review_rows(reviews: list[str], findings: list[list[dict]], skipped: set[int]) -> list[list]:
+def review_rows(reviews: list[str], findings: list[dict], skipped: set[int]) -> list[list]:
+    by_review: dict[int, list[dict]] = {}
+    for finding in findings:
+        by_review.setdefault(finding["review"], []).append(finding)
     rows = []
-    for review, (text, items) in enumerate(zip(reviews, findings, strict=True), start=1):
+    for review, text in enumerate(reviews, start=1):
+        items = by_review.get(review, [])
         if review in skipped:
             complaints = praise = "—"
             status = "Δεν αναλύθηκε: δεν φαίνεται αγγλική"
         else:
-            complaints = ", ".join(sorted({ASPECT_NAMES[i["aspect"]] for i in items
-                                           if i["sentiment"] == "negative"})) or "—"
-            praise = ", ".join(sorted({ASPECT_NAMES[i["aspect"]] for i in items
-                                       if i["sentiment"] == "positive"})) or "—"
+            complaints = ", ".join(TOPIC_NAMES[f["topic"]] for f in items if f["sentiment"] == "negative") or "—"
+            praise = ", ".join(TOPIC_NAMES[f["topic"]] for f in items if f["sentiment"] == "positive") or "—"
             status = "" if items else "Καμία πτυχή με σαφή γνώμη"
-        rows.append([review, complaints, praise, status, _preview(" ".join(text.split()))])
+        rows.append([review, complaints, praise, status, _preview(text)])
     return rows
 
 
@@ -195,28 +316,37 @@ def summary_markdown(total: int, skipped: set[int], summary: dict) -> str:
         numbers = ", ".join(f"#{n}" for n in sorted(skipped))
         lines.append(f"Δεν αναλύθηκαν ({numbers}): υποστηρίζονται μόνο αγγλικές κριτικές.")
     if complaints:
-        aspect, reviews = complaints[0]
-        lines.append(f"Συχνότερο παράπονο: **{ASPECT_NAMES[aspect]}** "
-                     f"σε {len(reviews)} από {analysed} κριτικές.")
+        topic, reviews = complaints[0]
+        lines.append(f"Συχνότερο παράπονο: **{TOPIC_NAMES[topic]}** σε {len(reviews)} από {analysed} κριτικές.")
     elif analysed:
         lines.append("Δεν εντοπίστηκε κανένα παράπονο.")
     if praise:
-        aspect, reviews = praise[0]
-        lines.append(f"Ό,τι επαινείται περισσότερο: **{ASPECT_NAMES[aspect]}** "
-                     f"σε {len(reviews)} από {analysed} κριτικές.")
+        topic, reviews = praise[0]
+        lines.append(f"Ό,τι επαινείται περισσότερο: **{TOPIC_NAMES[topic]}** σε {len(reviews)} από {analysed} "
+                     "κριτικές.")
+    unresolved = {review for entry in summary.values() for review, finding in entry["complaints"].items()
+                  if "unresolved" in finding["flags"]}
+    if unresolved:
+        numbers = ", ".join(f"#{n}" for n in sorted(unresolved))
+        lines.append(f"**Πρόβλημα που αναφέρθηκε και δεν λύθηκε:** κριτική {numbers}.")
+    if analysed:
+        lines.append("Οι αριθμοί μετρούν κριτικές: κάθε κριτική μετρά μία φορά ανά θέμα, όσες φορές κι αν το "
+                     "αναφέρει.")
     return "  \n".join(lines)
 
 
-def write_csv(reviews: list[str], findings: list[list[dict]]) -> str:
-    """All findings as a UTF-8 CSV the owner can open in Excel."""
+def write_csv(reviews: list[str], findings: list[dict]) -> str:
+    """All findings as a UTF-8 CSV the owner can open in Excel, one row per review and topic."""
     handle = tempfile.NamedTemporaryFile(
         "w", suffix=".csv", prefix="review-findings-", delete=False, encoding="utf-8-sig", newline=""
     )
+    ordered = sorted(findings, key=lambda f: (f["review"], list(TOPIC_NAMES).index(f["topic"]), f["sentiment"]))
     with handle:
         writer = csv.writer(handle)
-        writer.writerow(["review", "aspect", "sentiment", "word", "quote", "review_text"])
-        for review, (text, items) in enumerate(zip(reviews, findings, strict=True), start=1):
-            for item in items:
-                writer.writerow([review, ASPECT_NAMES[item["aspect"]],
-                                 SENTIMENT_NAMES[item["sentiment"]], item["term"], item["quote"], text])
+        writer.writerow(["review", "category", "topic", "sentiment", "mentions", "notes", "quotes", "review_text"])
+        for f in ordered:
+            writer.writerow([f["review"], ASPECT_NAMES[f["aspect"]], TOPIC_NAMES[f["topic"]],
+                             SENTIMENT_NAMES[f["sentiment"]], len(f["quotes"]), _flag_text(f),
+                             " | ".join(" ".join(quote.split()) for quote in f["quotes"]),
+                             reviews[f["review"] - 1]])
     return handle.name

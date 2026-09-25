@@ -1,0 +1,16 @@
+{
+  "_role": "Set B: Booking.com reviews in which each guest wrote what they liked and what they disliked in separate fields. DEV (150 reviews) is used to tune the lexicon, the rules and the confidence threshold; TEST (300 reviews from other properties) is run once at the end; 'label' is 40 TEST reviews the project owner labels by topic (set C). scripts/eval_space_triage.py rebuilds the split from the pinned dataset revision and checks it against the hashes below.",
+  "_source": {
+    "repo": "crawlfeeds/Booking-Hotel-Reviews-Dataset",
+    "revision": "f39ceeede7b9d8a824909ebe88a7723ad31fa6c5",
+    "file": "Crawlfeeds_booking-italy-hotel-reviews__limit-100000_language-en_after-2025-06_reviewer_country-3-items_20260410_063921.csv",
+    "license": "CC BY-NC 4.0 (research and non-commercial use; texts are downloaded by the script, not stored in this repository)"
+  },
+  "_rule": "English rows with at least one substantive field (3+ words, not 'nothing'); properties shuffled with the seed, at most 3 reviews per property; DEV takes properties until 150 reviews, TEST the next ones until 300; 'label' is 28 TEST reviews with a substantive 'disliked' text and 12 without.",
+  "seed": 20260925,
+  "sha256": {
+    "dev": "505ec2130f7cd62ff34461bb304809c13ebd201f987dcbcdb25cbe2b23419864",
+    "test": "e751142078f341acb6f8e3cddfd324a9b7bc8c9152482a4e3d34d6bf3dd02944",
+    "label": "38d1921977093d0090cac0df0a0ea7dc66a817426b4535e5b53a3aa4ea1b07e6"
+  }
+}
