@@ -139,7 +139,8 @@ NOUNS = {
     "facilities.kitchen": r"kitchen\w*|cook(?:ing|er)?|stoves?|hobs?|ovens?|pans|pots|utensils|cutlery"
                           r"|dishwashers?|washing\s+machines?|washers?|dryers?|laundry|detergent|toasters?"
                           r"|microwaves?",
-    "facilities.family": r"cots?|cribs?|travel\s+cots?|high\s?chairs?|bab(?:y|ies)|infants?|toddlers?|children"
+    "facilities.family": r"cots?|cribs?|(?:travel|baby)\s+(?:cots?|beds?|cribs?)|high\s?chairs?|bab(?:y|ies)|infants?"
+                         r"|toddlers?|children"
                          r"|kids?|famil(?:y|ies)|strollers?|prams?|pushchairs?",
     "facilities.leisure": r"pools?|swimming|spas?|saunas?|jacuzzis?|hot\s?tubs?|gym|fitness|wellness|massages?"
                           r"|steam\s?rooms?|hammam",
@@ -259,6 +260,9 @@ _CHEAP_QUALITY = _phrase(r"(?:poor|tacky|nasty|shabby|flimsy)\s+and\s+cheap"
                          r"|cheap\s+and\s+(?:nasty|poor|tacky|shabby|flimsy)"
                          r"|cheap(?:ly)?\s+(?:made|looking|quality|materials?|feel\w*)"
                          r"|(?:feels?|felt|looks?|looked)\s+cheap")
+# Children themselves: a topic only when the clause is about them ("great for
+# families"), not when they are context ("even without a baby the bed is small").
+_CHILDREN = re.compile(r"bab(?:y|ies)|infants?|toddlers?|children|kids?|famil(?:y|ies)", re.I)
 # "No cod for the baby" is a cot.
 _COD = _phrase(r"cods?")
 _BABY = _phrase(r"bab(?:y|ies)|infants?|toddlers?|child|children|kids?|son|daughter")
@@ -493,6 +497,8 @@ def _apply_rules(clause: str, terms: list[Term]) -> list[Term]:
                 continue  # "moving furniture upstairs" is noise
             if term.aspect == "food" and _VENUE.fullmatch(term.text) and (location or noise):
                 continue  # "loads of restaurants nearby", "noise from the bars"
+            if _CHILDREN.fullmatch(term.text) and any(t.topic != "facilities.family" for t in nouns):
+                continue  # "we had a baby, the bed was too small": the bed
         kept.append(term)
     return kept
 

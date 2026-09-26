@@ -98,6 +98,8 @@ def test_demo_examples_name_the_right_topics():
     ("the noise from the bars below was really bad", ["noise.general"]),
     ("For me this is just very poor and cheap, normal you send your passport", ["staff.checkin"]),
     ("The bed was too small, we had a baby, there was no cod", ["room.bed", "facilities.family"]),
+    ("140cm bed meaning even without a baby it’s actually small for two adults", ["room.bed"]),
+    ("Great for families with small kids.", ["facilities.family"]),
     ("the shower area was very small.", ["room.bathroom"]),
     ("Below you see the hair in my towel", ["cleanliness.linen"]),
     ("The room was very clean, not much of a view.", ["cleanliness.general", "room.view"]),
