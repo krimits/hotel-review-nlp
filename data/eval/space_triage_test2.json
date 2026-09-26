@@ -1,6 +1,6 @@
 {
   "_role": "TEST2 set: held out until the final rule was fixed on DEV. Report numbers from this set.",
-  "_note": "TEST2 set, labelled BEFORE any model or rule was run on these reviews, after the TEST1 error analysis. Sample: 30 reviews <=2000 chars, excluding the 24 DEV and 30 TEST1 rows, pandas .sample(n=30, random_state=20260926) after html.unescape + whitespace collapse. Same scheme as space_triage_dev.json and space_triage_test1.json.",
+  "_note": "TEST2 set, labelled by Claude, the AI assistant that wrote the demo (no independent person labelled them), BEFORE any model or rule was run on these reviews, after the TEST1 error analysis. Sample: 30 reviews <=2000 chars, excluding the 24 DEV and 30 TEST1 rows, pandas .sample(n=30, random_state=20260926) after html.unescape + whitespace collapse. Same scheme as space_triage_dev.json and space_triage_test1.json.",
   "_scheme": "gold: aspect -> pos|neg|neu|mixed for clear mentions; optional: defensible but ambiguous aspects, never required and never counted as an error. Aspects: cleanliness, staff, location, room, food, noise, value, facilities. row: 0-based row of data/raw/hotel_reviews.csv; text = html.unescape + whitespace collapse of its Review column.",
   "U01": {"row": 170, "gold": {"cleanliness": "neg", "room": "neg"}, "optional": ["facilities"]},
   "U02": {"row": 586, "gold": {"value": "pos", "staff": "pos", "room": "pos", "cleanliness": "pos", "location": "pos"}, "optional": ["food"]},
