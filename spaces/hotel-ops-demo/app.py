@@ -11,13 +11,14 @@ import triage
 
 # Invented examples, not real guests' reviews.
 SAMPLE_BATCH = "\n\n".join([
-    "The room was spotless and the staff were kind, but breakfast was cold.",
+    "The room was spotless and the host was kind, but breakfast was cold.",
     "The Wi-Fi kept disconnecting. We loved the sea view, but the bathroom was dirty.",
-    "Great location, five minutes from the metro. The room was tiny and the air conditioning "
-    "was noisy all night.",
-    "Reception staff were rude when we asked for a late check-out. The pool was lovely though.",
-    "Good value for money. Breakfast had little choice and the coffee was awful.",
-    "Very quiet room, comfortable beds and a friendly doorman. Parking was expensive.",
+    "Great location, five minutes from the metro. The bed was tiny and the air conditioning was noisy all night.",
+    "Self check-in was confusing and nobody answered the phone. There is no lift, so we carried our bags "
+    "to the fourth floor.",
+    "We reported the smell in the bathroom and the owner came quickly, but it did not help. "
+    "The air conditioning should be serviced.",
+    "Very quiet apartment, comfortable bed and a friendly doorman. There were no hangers in the wardrobe.",
 ])
 _model_lock = Lock()
 _load_lock = Lock()
@@ -57,7 +58,8 @@ def analyze(text, upload, progress=gr.Progress()):  # noqa: B008 - Gradio inject
         raise gr.Error("Το μοντέλο δεν ολοκλήρωσε την ανάλυση. Δοκιμάστε ξανά σε λίγο.") from exc
 
     in_order = iter(found)
-    findings = [[] if n in skipped else next(in_order) for n in range(1, len(reviews) + 1)]
+    mentions = [[] if n in skipped else next(in_order) for n in range(1, len(reviews) + 1)]
+    findings = logic.group(mentions)
     summary = logic.summarize(findings)
     analysed = len(english)
     return (
@@ -96,20 +98,20 @@ with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
     summary = gr.Markdown()
     gr.Markdown("### Τι να διορθώσετε πρώτα")
     fix_first = gr.Dataframe(
-        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν", "Τι μπορείτε να κάνετε"],
-        column_widths=["13%", "9%", "10%", "38%", "30%"], max_height=1200,
+        headers=["Θέμα", "Κριτικές", "%", "Αναφορές", "Σημειώσεις", "Τι γράφουν", "Τι μπορείτε να κάνετε"],
+        column_widths=["15%", "8%", "6%", "8%", "12%", "29%", "22%"], max_height=1200,
         interactive=False, wrap=True, elem_classes="owner-table",
     )
     gr.Markdown("### Τι εκτιμούν οι επισκέπτες")
     strengths = gr.Dataframe(
-        headers=["Πτυχή", "Κριτικές", "% κριτικών", "Τι γράφουν"],
-        column_widths=["13%", "9%", "10%", "68%"], max_height=1200,
+        headers=["Θέμα", "Κριτικές", "%", "Αναφορές", "Τι γράφουν"],
+        column_widths=["18%", "8%", "6%", "8%", "60%"], max_height=1200,
         interactive=False, wrap=True, elem_classes="owner-table",
     )
-    with gr.Accordion("Όλα τα ευρήματα, με τη φράση της κριτικής", open=False):
+    with gr.Accordion("Όλα τα ευρήματα ανά κριτική και θέμα, με τις φράσεις της κριτικής", open=False):
         findings = gr.Dataframe(
-            headers=["Κριτική", "Πτυχή", "Συναίσθημα", "Λέξη", "Φράση της κριτικής"],
-            column_widths=["8%", "14%", "11%", "12%", "55%"],
+            headers=["Κριτική", "Θέμα", "Συναίσθημα", "Αναφορές", "Σημειώσεις", "Φράσεις της κριτικής"],
+            column_widths=["7%", "18%", "11%", "8%", "12%", "44%"],
             interactive=False, wrap=True, elem_classes="owner-table",
         )
     with gr.Accordion("Ανά κριτική", open=False):
@@ -120,11 +122,14 @@ with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
         )
     download = gr.File(label="Λήψη όλων των ευρημάτων (CSV για Excel)")
     gr.Markdown(
-        "**Πόσο αξιόπιστο είναι:** σε 30 πραγματικές αγγλικές κριτικές ξενοδοχείων, "
-        "χαρακτηρισμένες με το χέρι πριν τρέξει το σύστημα, εντόπισε το 82% των παραπόνων "
-        "και το 80% των παραπόνων που ανέφερε ήταν πραγματικά. Κάνει λάθη σε ειρωνεία, "
-        "αρνήσεις και σε θέματα εκτός των 8 πτυχών, γι' αυτό κάθε εύρημα δείχνει τη φράση "
-        "της κριτικής: ελέγξτε την πριν αποφασίσετε.  \n"
+        "**Πόσο αξιόπιστο είναι:** δοκιμάστηκε σε 300 κριτικές Booking, από καταλύματα που δεν "
+        "χρησιμοποιήθηκαν για τη ρύθμισή του. Σε αυτές οι ίδιοι οι επισκέπτες είχαν γράψει χωριστά "
+        "τι τους άρεσε και τι όχι. Βρήκε παράπονο στο 77% των κριτικών που είχαν παράπονο "
+        "(η προηγούμενη έκδοση: 65%). Από τα παράπονα που ανέφερε, το 87% ήταν σε όσα ο επισκέπτης "
+        "έγραψε ότι δεν του άρεσαν. Κάνει λάθη σε ειρωνεία, σε ορθογραφικά λάθη και σε θέματα "
+        "εκτός των 30 που αναγνωρίζει. Γι' αυτό κάθε εύρημα δείχνει τις φράσεις της κριτικής: "
+        "ελέγξτε τες πριν αποφασίσετε. Η σημείωση «ελέγξτε» σημαίνει ότι το μοντέλο ήταν λιγότερο "
+        "σίγουρο. Αυτό δεν κάνει τα υπόλοιπα ευρήματα αλάνθαστα.  \n"
         "Οι κριτικές δεν αποθηκεύονται. Μην επικολλάτε προσωπικά στοιχεία επισκεπτών."
     )
     outputs = [summary, fix_first, strengths, findings, per_review, download]

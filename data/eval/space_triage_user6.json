@@ -1,0 +1,44 @@
+{
+  "_role": "Acceptance set A. Six apartment reviews that the project owner ran through the deployed demo (commit fe250b8) and then assessed finding by finding. Every error they found is listed here as something the demo must or must not report.",
+  "_scheme": "must / must_not are [topic, sentiment] pairs, topics as in spaces/hotel-ops-demo/triage.py TOPICS. flags: topic and sentiment -> flags the finding must carry. target: expected but may miss, reported separately. evidence: topic and sentiment -> a phrase one of the finding's quotes must contain.",
+  "reviews": [
+    {
+      "text": "Very very spacious and very well located right in the middle of a beautiful church, from there you can do anything by foot. Very helpful host with all of the instructions and recommendations. 10/10 overall!",
+      "must": [["room.size", "positive"], ["location.general", "positive"], ["staff.people", "positive"]],
+      "must_not": []
+    },
+    {
+      "text": "It was not stated that there is no lift. I got the room at 3rd floor without lift with baggages. Not recomended for those with alot of luggage. Airconds provided but all not cold. We had misserable nights during summer in Aug 2026. Call the hose the answer given aircond is running it's just weather asthough we have not used airconds in our country.\nNo lift. Highest floor. Airconds should be well service before you sell your rooms.",
+      "must": [["facilities.access", "negative"], ["room.climate", "negative"]],
+      "must_not": [["staff.people", "positive"], ["room.general", "negative"], ["room.climate", "positive"]],
+      "flags": {"room.climate negative": ["suggestion"]},
+      "target": [["staff.response", "negative"]],
+      "evidence": {"room.climate negative": "Airconds provided but all not cold"}
+    },
+    {
+      "text": "We had a wonderful stay at this apartment in Florence. The location was excellent and made exploring the city very easy. Public transportation was easily accessible, and many restaurants, attractions, and important places were nearby. The apartment itself was clean, quiet, comfortable, and very welcoming. It had everything we needed for a relaxing stay, and we truly appreciated the thoughtful details and comfortable atmosphere. After busy days of exploring the city, it was the perfect place to come back to and rest.\nThe combination of a great location, easy access to transportation, and a comfortable, well-maintained apartment made our trip much more enjoyable. We highly recommend this place and would happily stay here again!",
+      "must": [["location.general", "positive"], ["cleanliness.general", "positive"], ["noise.general", "positive"], ["room.comfort", "positive"]],
+      "must_not": [["staff.people", "positive"]]
+    },
+    {
+      "text": "The apartment was clean, comfortable, and in a convenient location for exploring Florence. It was easy to walk to many of the main attractions, restaurants, and cafés.\nCommunication was clear, and the self check-in process was straightforward, although we never met the host in person. One thing to be aware of is that there are several flights of stairs to reach the apartment, so it may not be the best choice for travelers with heavy luggage or limited mobility.\nOverall, we had a pleasant stay and found it to be a good base for exploring the city",
+      "must": [["cleanliness.general", "positive"], ["room.comfort", "positive"], ["location.general", "positive"], ["staff.response", "positive"], ["staff.checkin", "positive"], ["facilities.access", "negative"]],
+      "must_not": [["staff.people", "negative"]]
+    },
+    {
+      "text": "The location is amazing very close to groceries and all the main sights.\nThe staff was very responsive too.\nParking is 7 min walk also fine\nThe biggest issue was the check-in where the host asked us to do it ourselves. For me this is just very poor and cheap, normal you send your passport and they do the registrations. For me that’s not acceptable, we are not at IKEA.\nThe bed was too small, we had a baby, there was no cod, so he slept with us and it was just too small, I believe it’s. 140cm bed meaning even without a baby it’s actually small for two adults - just get a 160cm bed like hotels do - not so hard.\nAnother very big issue is there was not a single place to put your cloths, neither in the rooms nor in the bathroom. Put some hangers to people can out the wet towels or cloths - it’s very annoying to pay for a room and the host is saving on hangers.\nBelow you see the hair in my towel… can happen but should never happen when you pay for a room",
+      "must": [["location.general", "positive"], ["staff.response", "positive"], ["staff.checkin", "negative"], ["room.bed", "negative"], ["facilities.family", "negative"], ["room.storage", "negative"], ["cleanliness.linen", "negative"]],
+      "must_not": [["room.size", "negative"], ["staff.people", "positive"]],
+      "flags": {"facilities.family negative": ["check", "typo"]},
+      "not_from": {"value.price negative": "cheap"},
+      "target": [["facilities.parking", "positive"]],
+      "evidence": {"cleanliness.linen negative": "hair in my towel"}
+    },
+    {
+      "text": "The room was spacious and comfortable. Francesco was extremely friendly and helpful — whenever I had an issue, he responded quickly and took care of it responsibly.\nThe location was excellent. Most major attractions in Florence were within a 30-minute walking distance. There were plenty of restaurants nearby that stayed open late, and there was even a Carrefour just a 1-minute walk away that stayed open until midnight. The area felt very safe, even when walking back late at night.\nIf you’re sensitive to smells, I honestly wouldn’t recommend this place. Since it’s located in an old building, there’s a strong and unpleasant odor as soon as you open the door, especially the smell of sewage, which filled the entire apartment. I had to keep the windows open for ventilation the whole time. Even after I reported the issue, and Francesco kindly came with tools to clean, it didn’t make any real difference. Showering was the most uncomfortable part of each day because the bathroom smelled terrible, and the shower area was very small.\nDue to the building’s age, noise from upstairs was also a big issue. I don’t think it was intentional, but the sounds of walking or moving furniture were extremely loud, and even late at night I could clearly hear noise from tourists on the street below.\nLastly, there’s no elevator in the building, so you have to carry all your luggage upstairs by yourself — which can be quite inconvenient if you have heavy or multiple bags.",
+      "must": [["room.size", "positive"], ["room.comfort", "positive"], ["staff.people", "positive"], ["staff.response", "positive"], ["staff.resolution", "negative"], ["location.general", "positive"], ["cleanliness.odour", "negative"], ["room.bathroom", "negative"], ["noise.general", "negative"], ["facilities.access", "negative"]],
+      "must_not": [["room.equipment", "negative"], ["room.general", "negative"], ["location.general", "negative"]],
+      "flags": {"staff.resolution negative": ["unresolved"]}
+    }
+  ]
+}
