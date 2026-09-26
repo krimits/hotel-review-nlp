@@ -82,9 +82,58 @@ Guests sometimes write a criticism under "liked", so the second row is a lower b
 TEST was run twice. The first run used the rules as frozen after tuning (77% and 88%).
 The second used this version, after two fixes found in set A (77% and 87%).
 
-**Set C: the owner's topic labels.** The project owner is labelling 40 TEST reviews
-by topic, without seeing the output. This will measure precision and recall per topic.
-The results are pending.
+**Set C: the owner's topic labels.** The project owner labelled 40 TEST reviews by
+topic, on a page that did not show the demo's output. There are 263 topic and
+sentiment pairs, 68 of them complaints (`data/eval/space_triage_booking_labels.json`).
+Two measures are used:
+
+- *right* is the share of the demo's findings that the owner labelled;
+- *found* is the share of the owner's labels that the demo reports.
+
+| 40 reviews | right, 30 topics | found, 30 topics | right, 8 categories | found, 8 categories |
+|---|---|---|---|---|
+| complaints | 53% (31/59) | 46% (31/68) | 63% (29/46) | **83%** (29/35) |
+| praise | 66% (63/96) | 32% (63/195) | 74% (62/84) | 69% (62/90) |
+
+The previous version names only the 8 categories. On those, its complaints were
+68% right (25/37) and it found 71% (25/35). Its praise was 70% right (54/77) and
+it found 60% (54/90).
+
+**Why the topic level is lower.** For a general remark ("friendly staff"), the owner
+often ticked every sub-topic of the category. In 21 reviews they ticked three or four of
+the four staff sub-topics, and in one review all 30 topics. The demo names a single
+sub-topic, so the topic level undercounts what it finds. Of the 37 labelled complaints
+it misses at the topic level, it reported another topic of the same category for 31.
+
+**Complaints the owner did not label.** The demo reports 17 complaint categories that
+the owner did not label.
+
+- In 8 of them, the guest does complain about that category. Examples are "small ants
+  inside", beds that were "very noisy", and "a fee for parking our bicycles".
+- The other 9 are errors:
+  - "not a big deal" was read as a price complaint, twice;
+  - "hair dryer" was read as hair found;
+  - the building's door was read as room equipment, twice;
+  - dinner options in the nearby town, construction materials, a floor number in the
+    instructions and missing signage were read as complaints about the property.
+
+**Complaints it misses.** These are terse or implicit:
+
+- "Calling to get in.";
+- "two single beds stuck together with a crack";
+- "could not find anyone to purchase extra coffee";
+- "considering the standards and the price paid";
+- a suggestion worded "Would suggest they add more chairs".
+
+**Praise.** Much of the praise it reports but the owner did not label is explicit
+("The room was very clean.", "quiet street"). The main praise it misses is about the
+location without the word itself, such as "close to everything" or "convenient to
+the airport, a 5 min walk".
+
+**The "unsure" note.** It marked 2 complaints, and both were wrong.
+
+Set C has now been examined review by review, so it can no longer measure later
+versions blindly. A change prompted by these errors needs new labels to be measured.
 
 **TripAdvisor sets labelled by Claude.** The labels in
 `data/eval/space_triage_{dev,test1,test2}.json` were made by Claude, the AI assistant
