@@ -10,7 +10,7 @@
     {
       "text": "It was not stated that there is no lift. I got the room at 3rd floor without lift with baggages. Not recomended for those with alot of luggage. Airconds provided but all not cold. We had misserable nights during summer in Aug 2026. Call the hose the answer given aircond is running it's just weather asthough we have not used airconds in our country.\nNo lift. Highest floor. Airconds should be well service before you sell your rooms.",
       "must": [["facilities.access", "negative"], ["room.climate", "negative"]],
-      "must_not": [["staff.people", "positive"], ["room.general", "negative"]],
+      "must_not": [["staff.people", "positive"], ["room.general", "negative"], ["room.climate", "positive"]],
       "flags": {"room.climate negative": ["suggestion"]},
       "target": [["staff.response", "negative"]]
     },
@@ -26,10 +26,11 @@
     },
     {
       "text": "The location is amazing very close to groceries and all the main sights.\nThe staff was very responsive too.\nParking is 7 min walk also fine\nThe biggest issue was the check-in where the host asked us to do it ourselves. For me this is just very poor and cheap, normal you send your passport and they do the registrations. For me that’s not acceptable, we are not at IKEA.\nThe bed was too small, we had a baby, there was no cod, so he slept with us and it was just too small, I believe it’s. 140cm bed meaning even without a baby it’s actually small for two adults - just get a 160cm bed like hotels do - not so hard.\nAnother very big issue is there was not a single place to put your cloths, neither in the rooms nor in the bathroom. Put some hangers to people can out the wet towels or cloths - it’s very annoying to pay for a room and the host is saving on hangers.\nBelow you see the hair in my towel… can happen but should never happen when you pay for a room",
-      "must": [["location.general", "positive"], ["staff.response", "positive"], ["facilities.parking", "positive"], ["staff.checkin", "negative"], ["room.bed", "negative"], ["facilities.family", "negative"], ["room.storage", "negative"], ["cleanliness.linen", "negative"]],
-      "must_not": [["room.size", "negative"]],
+      "must": [["location.general", "positive"], ["staff.response", "positive"], ["staff.checkin", "negative"], ["room.bed", "negative"], ["facilities.family", "negative"], ["room.storage", "negative"], ["cleanliness.linen", "negative"]],
+      "must_not": [["room.size", "negative"], ["staff.people", "positive"]],
       "flags": {"facilities.family negative": ["check", "typo"]},
-      "not_from": {"value.price negative": "cheap"}
+      "not_from": {"value.price negative": "cheap"},
+      "target": [["facilities.parking", "positive"]]
     },
     {
       "text": "The room was spacious and comfortable. Francesco was extremely friendly and helpful — whenever I had an issue, he responded quickly and took care of it responsibly.\nThe location was excellent. Most major attractions in Florence were within a 30-minute walking distance. There were plenty of restaurants nearby that stayed open late, and there was even a Carrefour just a 1-minute walk away that stayed open until midnight. The area felt very safe, even when walking back late at night.\nIf you’re sensitive to smells, I honestly wouldn’t recommend this place. Since it’s located in an old building, there’s a strong and unpleasant odor as soon as you open the door, especially the smell of sewage, which filled the entire apartment. I had to keep the windows open for ventilation the whole time. Even after I reported the issue, and Francesco kindly came with tools to clean, it didn’t make any real difference. Showering was the most uncomfortable part of each day because the bathroom smelled terrible, and the shower area was very small.\nDue to the building’s age, noise from upstairs was also a big issue. I don’t think it was intentional, but the sounds of walking or moving furniture were extremely loud, and even late at night I could clearly hear noise from tourists on the street below.\nLastly, there’s no elevator in the building, so you have to carry all your luggage upstairs by yourself — which can be quite inconvenient if you have heavy or multiple bags.",

@@ -127,6 +127,36 @@ def test_suggestions_are_complaints_and_advice_to_guests_is_not():
     assert [(m["topic"], m["sentiment"], m["flags"]) for m in mentions] == [("location.general", "positive", [])]
 
 
+def test_complaints_the_model_reads_the_wrong_way_round_are_corrected():
+    always_positive = lambda pairs: [("positive", 0.95)] * len(pairs)  # noqa: E731
+
+    def found(text):
+        [mentions] = triage.analyze([text], always_positive)
+        return {(m["topic"], m["sentiment"]) for m in mentions}
+
+    assert found("Airconds provided but all not cold.") == {("room.climate", "negative")}
+    assert found("The shower was lukewarm at best.") == {("room.bathroom", "negative")}
+    assert found("the host is saving on hangers.") == {("staff.people", "negative"), ("room.storage", "negative")}
+    assert found("I woke up with bed bug bites.") == {("cleanliness.pests", "negative")}
+    assert found("No bed bugs, no stains.") == {("cleanliness.pests", "positive"), ("cleanliness.general", "positive")}
+    # Something missing that a guest expects to find is a complaint; "no problem with" is not.
+    assert found("There was no kettle and no hangers.") == {("room.equipment", "negative"),
+                                                           ("room.storage", "negative")}
+    assert found("Breakfast was pastries only, no eggs or freshly prepared food.") >= {("food.dining", "negative")}
+    assert found("No problems at all with the wifi.") == {("facilities.wifi", "positive")}
+
+
+def test_the_model_reads_the_thing_not_the_opinion_word():
+    seen = []
+
+    def scorer(pairs):
+        seen.extend(pairs)
+        return [("positive", 0.9)] * len(pairs)
+
+    triage.analyze(["Small fridge in room was nice.", "The apartment was comfortable."], scorer)
+    assert [term for _, term in seen] == ["fridge", "apartment", "comfortable"]
+
+
 def test_a_reported_problem_that_was_not_solved_is_a_finding_of_its_own():
     text = ("Even after I reported the issue, and Francesco kindly came with tools to clean, "
             "it didn’t make any real difference.")
@@ -157,8 +187,9 @@ def test_neutral_answers_and_empty_reviews_produce_no_findings():
 def test_unsure_answers_and_typos_are_marked_for_checking():
     [[mention]] = triage.analyze(["The breakfast was fine."], lambda pairs: [("negative", 0.55)] * len(pairs))
     assert mention["flags"] == ["check"]
-    [[mention]] = triage.analyze(["We had a baby and there was no cod."], keyword_scorer)
-    assert (mention["topic"], mention["flags"]) == ("facilities.family", ["check", "typo"])
+    [mentions] = triage.analyze(["We had a baby and there was no cod."], keyword_scorer)
+    cot = next(m for m in mentions if m["sentiment"] == "negative")
+    assert (cot["topic"], cot["term"], cot["flags"]) == ("facilities.family", "cod", ["check", "typo"])
 
 
 def test_looks_english_rejects_other_languages():

@@ -58,6 +58,14 @@ TRIVIAL = re.compile(
     r"|great|fine|good|excellent)|no negatives?|not applicable)[\s.!]*$",
     re.I,
 )
+# A "disliked" text that opens like this says there was nothing to dislike
+# ("Nothing - everything was awesome"), so it does not count as a complaint.
+NO_COMPLAINT = re.compile(
+    r"^\W*(?:nothing|none|no\s+complaints?|all\s+(?:was\s+)?(?:good|great|perfect|fine)"
+    r"|everything\s+(?:was\s+)?(?:perfect|great|fine|good|excellent|wonderful|awesome|fantastic|amazing"
+    r"|in\s+(?:well\s+)?working\s+order))\b",
+    re.I,
+)
 
 
 def load_triage(path: Path | None = None):
@@ -95,10 +103,15 @@ def evaluate_user6(triage, model) -> None:
     for number, (review, mentions) in enumerate(zip(data["reviews"], found, strict=True), start=1):
         grouped: dict[tuple[str, str], dict] = {}
         for m in mentions:
-            entry = grouped.setdefault((m["topic"], m["sentiment"]), {"quotes": [], "flags": set(), "terms": set()})
+            entry = grouped.setdefault((m["topic"], m["sentiment"]),
+                                       {"quotes": [], "flags": set(), "terms": set(), "sure": False})
             entry["quotes"].append(m["quote"])
-            entry["flags"] |= set(m["flags"])
+            entry["flags"] |= set(m["flags"]) - {"check"}
+            entry["sure"] |= "check" not in m["flags"]
             entry["terms"].add(m["term"].lower())
+        for entry in grouped.values():
+            if not entry["sure"]:
+                entry["flags"].add("check")
         problems = [f"missing {topic} {sentiment}" for topic, sentiment in review["must"]
                     if (topic, sentiment) not in grouped]
         problems += [f"unwanted {topic} {sentiment}: {grouped[(topic, sentiment)]['quotes']}"
@@ -189,8 +202,9 @@ def evaluate_booking(triage, model, name: str) -> None:
     liked, disliked = found[:len(rows)], found[len(rows):]
     c = dict.fromkeys(("comp_found", "comp_gold", "comp_real", "comp_pred", "praise_found", "praise_gold",
                        "praise_real", "praise_pred", "unsure_real", "unsure_pred"), 0)
+    by_confidence: dict[str, list[int]] = {}
     for (_, row), pos_mentions, neg_mentions in zip(rows.iterrows(), liked, disliked, strict=True):
-        if row["neg_ok"]:
+        if row["neg_ok"] and not NO_COMPLAINT.match(row["neg"]):
             c["comp_gold"] += 1
             c["comp_found"] += any(m["sentiment"] == "negative" for m in neg_mentions)
         if row["pos_ok"]:
@@ -199,9 +213,11 @@ def evaluate_booking(triage, model, name: str) -> None:
         units: dict[tuple[str, str], dict] = {}
         for field, mentions in (("pos", pos_mentions), ("neg", neg_mentions)):
             for m in mentions:
-                unit = units.setdefault((m["aspect"], m["sentiment"]), {"fields": set(), "sure": False})
+                unit = units.setdefault((m["aspect"], m["sentiment"]), {"fields": set(), "sure": False,
+                                                                         "confidence": 0.0})
                 unit["fields"].add(field)
                 unit["sure"] |= "check" not in m.get("flags", [])
+                unit["confidence"] = max(unit["confidence"], m.get("confidence", 1.0))
         for (_, sentiment), unit in units.items():
             side, home = ("comp", "neg") if sentiment == "negative" else ("praise", "pos")
             c[f"{side}_pred"] += 1
@@ -209,6 +225,10 @@ def evaluate_booking(triage, model, name: str) -> None:
             if side == "comp" and not unit["sure"]:
                 c["unsure_pred"] += 1
                 c["unsure_real"] += home in unit["fields"]
+            if side == "comp":
+                band = next(f"<{edge:.2f}" for edge in (0.6, 0.7, 0.8, 0.9, 1.01) if unit["confidence"] < edge)
+                by_confidence.setdefault(band, [0, 0])[0] += home in unit["fields"]
+                by_confidence[band][1] += 1
     print(f"== booking {name}: {len(rows)} reviews, {seconds / len(rows):.2f}s per review")
     print(f"  complaints found        {wilson(c['comp_found'], c['comp_gold'])}")
     print(f"  complaints real         {wilson(c['comp_real'], c['comp_pred'])}")
@@ -216,6 +236,8 @@ def evaluate_booking(triage, model, name: str) -> None:
     print(f"  praise real             {wilson(c['praise_real'], c['praise_pred'])}")
     if c["unsure_pred"]:
         print(f"  complaints marked 'check' that are real {wilson(c['unsure_real'], c['unsure_pred'])}")
+    for band in sorted(by_confidence):
+        print(f"  complaints with model confidence {band}: real {wilson(*by_confidence[band])}")
 
 
 # --- Set C -------------------------------------------------------------------

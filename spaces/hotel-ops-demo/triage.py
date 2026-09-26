@@ -77,7 +77,7 @@ NOUNS = {
     "cleanliness.odour": r"smell\w*|odou?r\w*|stink\w*|stank|stench|musty|mou?ld\w*|mildew\w*|damp\w*|sewage"
                          r"|sewer\w*|smok(?:e|ed|y)|cigarettes?|fumes",
     "cleanliness.pests": r"bed\s?bugs?|bugs?|insects?|cockroach\w*|roach(?:es)?|ants|mosquito(?:e?s)?|mice|mouse"
-                         r"|rats?|flies|fleas?|spiders?|pests?",
+                         r"|rats?|flies|fleas?|spiders?|pests?|bites?|bitten",
     "staff.people": r"staff\w*|hosts?|hostess\w*|owners?|landlord\w*|landlad(?:y|ies)|manager\w*|management"
                     r"|reception\w*|front\s+desk|concierge|porters?|bell\s?(?:man|men|boys?|desk|hops?)|doorm[ae]n"
                     r"|maids?|waiter\w*|waitress\w*|bartenders?|employees?|personnel|team|service|hospitality",
@@ -91,7 +91,8 @@ NOUNS = {
                      r"|id\s+cards?|(?:early|late)\s+arrival|luggage\s+storage"
                      r"|(?:left|leave|store|stored|keep|kept)\s+(?:our|the|my)\s+(?:bags|luggage|suitcases?)",
     "location.general": r"locat\w*|position(?:ed)?|neighbou?rhood|area|district|surroundings|distance"
-                        r"|walk(?:ing)?\s+distance|walkable|the\s+walk"
+                        r"|walk(?:ing)?\s+distance|walkable|the\s+walk|(?:a\s+)?bit\s+of\s+a\s+walk|quite\s+a\s+walk"
+                        r"|(?:too|quite|very|a\s+bit|a\s+little|rather)\s+far|far\s+(?:from|away|out)|long\s+way"
                         r"|(?:short|easy|quick|long|little|nice|brisk|minutes?|mins?|blocks?)[\s-]+walk\w*"
                         r"|\d+[\s-]*(?:min(?:ute)?s?|blocks?)?[\s-]+walk\w*|walk(?:s|ed|ing)?\s+(?:to|from|back)"
                         r"|minutes?\s+(?:from|away)|blocks?\s+(?:away|from|off)|subway\w*|metro|trams?|bus(?:es)?"
@@ -103,7 +104,8 @@ NOUNS = {
     "room.bed": r"beds?|mattress\w*|pillows?|sofa\s?beds?|bunk\s?beds?|(?:king|queen)[\s-]?sized?",
     "room.climate": r"air[\s-]?con\w*|aircon\w*|a/c|ac|air[\s-]?condition\w*|heating|heaters?|radiators?"
                     r"|temperature|thermostat|fans?|ventilat\w*|stuffy|freezing|chilly",
-    "room.bathroom": r"bathrooms?|baths?|bathtubs?|tubs?|showers?|showering|toilets?|wc|sinks?|wash\s?basins?"
+    "room.bathroom": r"bathrooms?|wash\s?rooms?|baths?|bathtubs?|tubs?|showers?|showering|toilets?|wc|sinks?"
+                     r"|wash\s?basins?"
                      r"|basins?|taps?|faucets?|(?:hot|cold|no)\s+water|water\s+pressure|drains?|drainage"
                      r"|plumbing|flush\w*|toiletries|shampoo|soap|bidet|hair\s?dryers?",
     "room.storage": r"wardrobes?|closets?|cupboards?|drawers?|shel(?:f|ves)|shelving|hangers?|(?:coat\s+)?hooks"
@@ -113,7 +115,7 @@ NOUNS = {
                       r"|bulbs?|curtains?|blinds?|shutters?|windows?|doors?|locks?|sockets?|plugs?|outlets?"
                       r"|chargers?|usb|desks?|sofas?|couch(?:es)?|mirrors?|carpets?|rugs?|floors?|walls?"
                       r"|wall\s?paper|ceilings?|appliances?|equipment|amenit(?:y|ies)|electricity|power"
-                      r"|safe\s+(?:box|deposit)"
+                      r"|safe\s+(?:box|deposit)|water\s+bottles?|bottles?\s+of\s+water|bottled\s+water"
                       r"|(?:the|in-room|room|electronic)\s+safe"
                       r"(?!\s+(?:area|neighbou?rhood|place|district|city|street|location|bet|to))",
     "room.view": r"views?|balcon(?:y|ies)|terraces?|patio|garden|courtyard|panoram\w*|overlook\w*|rooftop"
@@ -159,6 +161,8 @@ OPINIONS = {
                     r"|stylish|atmosphere|ambi[ae]nce|d[eé]cor\w*|furnished|feels?\s+like\s+home|at\s+home",
     "room.size": r"tin(?:y|ier|iest)|small(?:er|est)?|cramped|spacious|compact|snug|roomy|narrow|space|spaces"
                  r"|square\s+met(?:er|re)s|m2|sq\s?m",
+    "room.equipment": r"outdated|dated|old[-\s]fashioned|worn(?:[-\s]out)?|shabby|run[-\s]down|tired[-\s]looking"
+                      r"|dilapidated|needs?\s+(?:a\s+)?(?:refresh|refurbishment|renovation|makeover|update)",
     "food.dining": r"tast(?:y|ed|ing|es|eless)|delicious|salty|bland|cooked|undercooked|overcooked|yummy",
     "value.price": r"prices?|priced|pricey|value|money|expensive|inexpensive|cheap\w*|affordab\w*|overpriced"
                    r"|costs?|costly|rates?|worth\w*|deals?|bargain|budget|paid|pay|paying|\$\s?\d+|\d+\s?\$"
@@ -175,6 +179,8 @@ _OVERRIDES = [
      r"(?:the\s+|our\s+|a\s+|any\s+)?(?:hosts?|owners?|staff|landlord|landlady|anyone|anybody)(?:\s+in\s+person)?"
      r"|in\s+person", None),
     (r"(?:tea|trash|garbage|rubbish|bin|plastic|paper|shopping)\s+bags?", None),
+    (r"(?:sad|sorry|disappointed|happy|glad|pleased|surprised|shocked|upset)\s+to\s+hear"
+     r"|hear(?:d)?\s+(?:that|about|from|back)", None),
     (r"(?:keep|kept|keeping|leave|left)\s+(?:the\s+|all\s+the\s+)?(?:windows?|doors?)\s+open"
      r"|open(?:ed|ing)?\s+(?:the\s+|all\s+the\s+)?(?:windows?|doors?)", None),
     (r"hair\s?dryers?", "room.bathroom"),
@@ -267,7 +273,10 @@ _SUGGEST_WHOLE = re.compile(
     r"|\bneeds?\s+(?:a\s+|an\s+|some\s+|more\s+|urgent\s+|serious\s+|real\s+)?(?:\w+\s+){0,2}"
     r"(?:repair\w*|fix\w*|replac\w*|clean\w*|renovat\w*|updat\w*|upgrad\w*|attention|maintenance|improv\w*"
     r"|refurbish\w*|refresh\w*|paint\w*|servic\w*|work)\b"
-    r"|\b(?:would|could|might)\s+(?:have\s+)?(?:been|be)\s+(?:so\s+|a\s+(?:little|bit)\s+|much\s+)?better\b",
+    r"|\b(?:would|could|might)\s+(?:have\s+)?(?:been|be)\s+(?:so\s+|a\s+(?:little|bit)\s+|much\s+)?better\b"
+    r"|\b(?:would|will)\s+be\s+(?:a\s+)?(?:good|great|nice|better)\s+idea\b|\bwould\s+(?:really\s+)?help\b"
+    r"|\b(?:updating|renovating|refurbishing|replacing|fixing|repainting|repairing|cleaning|improving)\b"
+    r"[^.!?]{0,60}?\b(?:is|are|would\s+be)\s+(?:crucial|essential|necessary|needed|important|a\s+must|overdue)\b",
     re.I,
 )
 # A suggestion about what follows: "it would be nice to have a kettle", "just get a 160cm bed".
@@ -285,7 +294,8 @@ _SUGGEST_AFTER = re.compile(
     r"|\bshould\s+have\s+(?:a|an|some|more|better|proper)\b"
     r"|\b(?:i|we)\s+wish\s+(?:there|they|the|it|we|you)\b|\bif\s+only\b"
     r"|^(?:just\s+|please\s+)?(?:put|add|get|buy|provide|install|fix|replace)\s+(?:some|a|an|more|new|better)\b"
-    r"|\bjust\s+(?:get|buy|put|add|install|fix|replace)\s+(?:a|an|some|more|new|better)\b",
+    r"|\bjust\s+(?:get|buy|put|add|install|fix|replace)\s+(?:a|an|some|more|new|better)\b"
+    r"|\bwould\s+have\s+been\s+to\s+have\b|\bto\s+make\s+(?:the|our|your|a)\s+stay\s+(?:better|more\b)",
     re.I,
 )
 # Advice to other guests is not a complaint.
@@ -301,7 +311,7 @@ _RECOMMEND = re.compile(
 # A problem the guest reported, and what came of it.
 _INTERVENE = re.compile(
     r"\b(?:report(?:ed|ing)?|complain(?:ed|ing)?|told\s+(?:the|our|him|her|them|reception|staff)"
-    r"|asked\s+(?:the|him|her|them|for|reception|staff)|inform(?:ed)?|call(?:ed)?\s+(?:the|them|him|her"
+    r"|asked\s+(?:the|him|her|them|for|reception|staff|about|if|whether|to)|inform(?:ed)?|call(?:ed)?\s+(?:the|them|him|her"
     r"|reception)|contact(?:ed)?|messag(?:ed|ing)|wrote\s+to|came\s+(?:to|with|and|up|over|quickly"
     r"|immediately|by)|sent|tried|attempted|changed|replaced|moved\s+us|gave\s+us|brought|fixed|repaired"
     r"|respond(?:ed)?|react(?:ed)?)\b",
@@ -334,6 +344,32 @@ _RESOLVED = re.compile(
     re.I,
 )
 
+# What a general-purpose sentiment model reads the wrong way round: an air
+# conditioner that is "not cold", a shower that is "not hot", a host "saving on
+# hangers". Each pattern makes every word of its topics in the clause a complaint.
+_EXPECTED = [
+    (("room.climate",), _phrase(r"(?:not|n['’]t|never|barely|hardly)\s+(?!too\b)(?:\w+\s+){0,2}?(?:cold|cool\w*)"
+                                r"|(?:warm|hot)\s+air|no\s+cool\w*")),
+    (("room.bathroom",), _phrase(r"(?:not|n['’]t|never|barely|hardly)\s+(?!too\b)(?:\w+\s+){0,2}?(?:hot|warm)"
+                                 r"|luke\s?warm|(?:only|just)\s+cold\s+(?:water|showers?)"
+                                 r"|(?:water|showers?)\s+(?:was|were|is|are|always)\s+(?:\w+\s+)?cold")),
+    (TOPICS, _phrase(r"sav(?:e|es|ed|ing)\s+on|skimp\w*|cut(?:s|ting)?\s+(?:corners|costs)|stingy|cheapskate")),
+]
+# Pests are a complaint unless the guest says there were none.
+_NO_PESTS = _phrase(r"(?:no|without|never\s+(?:saw|seen|had|found)|not\s+(?:a|any|one|single))\s+(?:\w+\s+){0,2}?"
+                    r"(?:bed\s?bugs?|bugs?|insects?|cockroach\w*|roach(?:es)?|ants|mosquito(?:e?s)?|mice|mouse|rats?"
+                    r"|flies|fleas?|spiders?|pests?|bites?)")
+# "No kettle", "without lift", "no eggs or freshly prepared food": the missing
+# thing is a complaint. Only for things a guest expects to find, and not after
+# "no problem with", "no noise" or "no extra charge".
+_ABSENT = re.compile(
+    r"\b(?:no|without|lack\s+of|lacking|missing|not\s+a\s+single|not\s+any|nor)\s+"
+    r"(?!(?:problems?|issues?|complaints?|trouble|doubt|worries|need|wait\w*|charges?|extra|hidden|noise|smell\w*"
+    r"|dirt\w*|bugs?|stains?|hairs?|other|more|longer)\b)",
+    re.I,
+)
+_ABSENCE_TOPICS = ("room.equipment", "room.storage", "room.climate", "room.bathroom", "room.view", "room.bed",
+                   "cleanliness.linen", "food.", "facilities.", "staff.")
 _ENGLISH = re.compile(
     r"\b(?:the|and|was|were|is|are|we|our|it|to|of|in|for|with|but|not|very|room|hotel|staff)\b", re.I
 )
@@ -433,6 +469,11 @@ def _apply_rules(clause: str, terms: list[Term]) -> list[Term]:
                 food = [t for t in nouns if t.aspect == "food"]
                 if food:
                     term = term._replace(topic=_nearest(term, food).topic)  # "delicious breakfast"
+            elif term.topic == "room.equipment":
+                worn = [t for t in nouns if t.topic.startswith(("room.", "facilities.", "location."))
+                        and t.topic != "room.general"]
+                if worn:
+                    term = term._replace(topic=_nearest(term, worn).topic)  # "the bathroom is outdated"
             elif _CHEAP.fullmatch(term.text) and not other_value and (_CHEAP_QUALITY.search(clause) or things):
                 continue  # "very poor and cheap", "cheap hangers": quality, not price
             elif _PRICEY.fullmatch(term.text) and not room_nouns and any(
@@ -573,6 +614,28 @@ def resolution_mentions(text: str) -> list[dict]:
     return found
 
 
+def _absence_spans(clause: str) -> list[tuple[int, int]]:
+    """What "no", "without", "lack of" … cover: up to the next punctuation or conjunction, six words at most."""
+    spans = []
+    for match in _ABSENT.finditer(clause):
+        rest = clause[match.end():]
+        stop = re.search(r"[.,;:!?]|\s(?:and|but|so|because|which|that|as|if)\s", rest)
+        words = list(re.finditer(r"\S+", rest[:stop.start() if stop else len(rest)]))[:6]
+        if words:
+            spans.append((match.end(), match.end() + words[-1].end()))
+    return spans
+
+
+def _forced_negative(clause: str, term: Term) -> bool:
+    """A complaint the model reads the wrong way round: see _EXPECTED, _NO_PESTS and _ABSENT."""
+    if term.topic == "cleanliness.pests" and not _NO_PESTS.search(clause):
+        return True
+    if any(term.topic.startswith(topics) and pattern.search(clause) for topics, pattern in _EXPECTED):
+        return True
+    return (not term.opinion and term.topic.startswith(_ABSENCE_TOPICS)
+            and any(start <= term.start < end for start, end in _absence_spans(clause)))
+
+
 def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
     """One list of mentions per review, in reading order.
 
@@ -581,6 +644,9 @@ def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
     pairs of all reviews go to the scorer in one call, so the model batches them.
     Flags: "suggestion" (a complaint worded as a suggestion), "unresolved",
     "check" (the model was unsure) and "typo" ("cod" read as "cot").
+
+    The model reads each topic through its nouns ("the bed was too small" is
+    scored on "bed"), and through the opinion word only when there is no noun.
     """
     texts = [normalize(review) for review in reviews]
     jobs = []
@@ -592,28 +658,31 @@ def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
             # resolution_mentions, and the effort alone says nothing about the reply.
             failed = _UNRESOLVED.search(clause)
             outcome_only = failed is not None and not re.match(r"no\s*(?:one|body)", failed.group(), re.I)
-            used: dict[str, int] = {}
+            by_topic: dict[str, list[Term]] = {}
             for term in clause_terms(clause):
-                if outcome_only and term.topic == "staff.response":
-                    continue
-                used[term.topic] = used.get(term.topic, 0) + 1
-                if used[term.topic] <= MAX_TERMS_PER_TOPIC:
-                    jobs.append((index, start, end, term, cue is not None and term.start >= cue))
-    scores = scorer([(texts[index][start:end], term.text) for index, start, end, term, _ in jobs]) if jobs else []
+                if not (outcome_only and term.topic == "staff.response"):
+                    by_topic.setdefault(term.topic, []).append(term)
+            for terms in by_topic.values():
+                judged = any(t.opinion for t in terms)
+                for term in ([t for t in terms if not t.opinion] or terms)[:MAX_TERMS_PER_TOPIC]:
+                    jobs.append((index, start, end, term, judged, cue is not None and term.start >= cue,
+                                 _forced_negative(clause, term)))
+    scores = scorer([(texts[job[0]][job[1]:job[2]], job[3].text) for job in jobs]) if jobs else []
 
     found: dict[tuple, dict] = {}
-    for (index, start, end, term, suggested), (label, probability) in zip(jobs, scores, strict=True):
-        if suggested:
+    for (index, start, end, term, judged, suggested, forced), (label, probability) in zip(jobs, scores, strict=True):
+        if suggested or forced:
             label = "negative"
         elif label not in ("positive", "negative"):
             continue
         key = (index, start, end, term.topic, label)
-        entry = found.setdefault(key, {"term": term.text, "confidence": 0.0, "suggested": False,
+        entry = found.setdefault(key, {"term": term.text, "confidence": 0.0, "suggested": False, "ruled": False,
                                        "typo": False, "nouns_only": True})
         entry["confidence"] = max(entry["confidence"], probability)
         entry["suggested"] |= suggested
+        entry["ruled"] |= forced
         entry["typo"] |= term.typo
-        entry["nouns_only"] &= not term.opinion
+        entry["nouns_only"] &= not judged
 
     for key, entry in list(found.items()):
         # A specific topic covers the general one it came with: "the room was spacious"
@@ -630,12 +699,13 @@ def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
         flags = set()
         if entry["suggested"]:
             flags.add("suggestion")
-        elif entry["confidence"] < CHECK_BELOW:
+        elif not entry["ruled"] and entry["confidence"] < CHECK_BELOW:
             flags.add("check")
         if entry["typo"]:
             flags |= {"typo", "check"}
-        mentions[index].append(_mention(texts[index], start, end, topic, label, entry["term"],
-                                        entry["confidence"], flags))
+        # A label a rule decided is as sure as the rule; only the model's own answers carry its probability.
+        confidence = 1.0 if entry["ruled"] or entry["suggested"] else entry["confidence"]
+        mentions[index].append(_mention(texts[index], start, end, topic, label, entry["term"], confidence, flags))
     return [sorted(items, key=lambda m: (m["start"], TOPICS.index(m["topic"]), m["sentiment"]))
             for items in mentions]
 
