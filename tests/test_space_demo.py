@@ -146,6 +146,16 @@ def test_complaints_the_model_reads_the_wrong_way_round_are_corrected():
                                                            ("room.storage", "negative")}
     assert found("Breakfast was pastries only, no eggs or freshly prepared food.") >= {("food.dining", "negative")}
     assert found("No problems at all with the wifi.") == {("facilities.wifi", "positive")}
+    # Hair or stains found are a cleaning complaint; "not a hair in sight" is praise.
+    assert found("Below you see the hair in my towel") == {("cleanliness.linen", "negative")}
+    assert found("Spotless towels, not a hair in sight.") == {("cleanliness.linen", "positive")}
+
+
+def test_a_suggestion_is_a_complaint_about_what_it_suggests_only():
+    always_positive = lambda pairs: [("positive", 0.95)] * len(pairs)  # noqa: E731
+    [mentions] = triage.analyze(["Put some hangers to people can out the wet towels or cloths"], always_positive)
+    assert {(m["topic"], m["sentiment"], tuple(m["flags"])) for m in mentions} == {
+        ("room.storage", "negative", ("suggestion",)), ("cleanliness.linen", "positive", ())}
 
 
 def test_the_model_reads_the_thing_not_the_opinion_word():

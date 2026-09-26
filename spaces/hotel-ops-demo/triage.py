@@ -363,6 +363,11 @@ _EXPECTED = [
 _NO_PESTS = _phrase(r"(?:no|without|never\s+(?:saw|seen|had|found)|not\s+(?:a|any|one|single))\s+(?:\w+\s+){0,2}?"
                     r"(?:bed\s?bugs?|bugs?|insects?|cockroach\w*|roach(?:es)?|ants|mosquito(?:e?s)?|mice|mouse|rats?"
                     r"|flies|fleas?|spiders?|pests?|bites?)")
+# Hair, stains or mould found are a cleaning complaint ("the hair in my towel"),
+# unless the guest says there were none ("not a hair in sight").
+_DIRT = _phrase(r"hairs?|stains?|dust|dirt|grime|mou?ld|mildew")
+_NO_DIRT = _phrase(r"(?:no|without|not\s+(?:a|one|any|single)|never|free\s+of|zero)\s+(?:\w+\s+){0,2}?"
+                   r"(?:hairs?|stains?|dust|dirt|grime|mou?ld|mildew)|(?:hair|stain|dust)[-\s]free")
 # "No kettle", "without lift", "no eggs or freshly prepared food": the missing
 # thing is a complaint. Only for things a guest expects to find, and not after
 # "no problem with", "no noise" or "no extra charge".
@@ -582,14 +587,23 @@ def split_clauses(text: str) -> list[str]:
     return [text[start:end] for start, end in clause_spans(text)]
 
 
-def suggestion_start(clause: str) -> int | None:
-    """Where the words a suggestion is about begin, or None if the clause suggests nothing."""
+def suggestion_span(clause: str) -> tuple[int, int] | None:
+    """The part of a clause a suggestion is about, or None if the clause suggests nothing.
+
+    "Airconds should be serviced" is about its subject, so the whole clause;
+    "put some hangers to hang the wet towels" is about the hangers only.
+    """
     if _RECOMMEND.search(clause):
         return None
     if _SUGGEST_WHOLE.search(clause):
-        return 0
+        return 0, len(clause)
     match = _SUGGEST_AFTER.search(clause)
-    return match.start() if match else None
+    if not match:
+        return None
+    rest = re.match(r"\s+(?:to|if)(?:\s+(?:have|get|add|provide|put|include|find|see))?", clause[match.end():], re.I)
+    start = match.end() + (rest.end() if rest else 0)
+    stop = re.search(r"[,.;:!?—–]|\s-\s|\s(?:to|so|because|as|since|which|who|when|where|but)\s", clause[start:])
+    return match.start(), start + stop.start() if stop else len(clause)
 
 
 def _mention(text: str, start: int, end: int, topic: str, sentiment: str, term: str,
@@ -633,8 +647,11 @@ def _absence_spans(clause: str) -> list[tuple[int, int]]:
 
 
 def _forced_negative(clause: str, term: Term) -> bool:
-    """A complaint the model reads the wrong way round: see _EXPECTED, _NO_PESTS and _ABSENT."""
+    """A complaint the model reads the wrong way round: see _EXPECTED, _NO_PESTS, _DIRT and _ABSENT."""
     if term.topic == "cleanliness.pests" and not _NO_PESTS.search(clause):
+        return True
+    if term.topic in ("cleanliness.general", "cleanliness.linen") and _DIRT.search(clause) \
+            and not _NO_DIRT.search(clause):
         return True
     if any(term.topic.startswith(topics) and pattern.search(clause) for topics, pattern in _EXPECTED):
         return True
@@ -659,7 +676,7 @@ def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
     for index, text in enumerate(texts):
         for start, end in clause_spans(text):
             clause = text[start:end]
-            cue = suggestion_start(clause)
+            suggested_span = suggestion_span(clause)
             # "He came with tools, but it made no difference": the outcome is judged by
             # resolution_mentions, and the effort alone says nothing about the reply.
             failed = _UNRESOLVED.search(clause)
@@ -671,7 +688,8 @@ def analyze(reviews: Sequence[str], scorer: Scorer) -> list[list[dict]]:
             for terms in by_topic.values():
                 judged = any(t.opinion for t in terms)
                 for term in ([t for t in terms if not t.opinion] or terms)[:MAX_TERMS_PER_TOPIC]:
-                    jobs.append((index, start, end, term, judged, cue is not None and term.start >= cue,
+                    jobs.append((index, start, end, term, judged,
+                                 suggested_span is not None and suggested_span[0] <= term.start < suggested_span[1],
                                  _forced_negative(clause, term)))
     scores = scorer([(texts[job[0]][job[1]:job[2]], job[3].text) for job in jobs]) if jobs else []
 

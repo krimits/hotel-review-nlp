@@ -12,7 +12,8 @@ was deployed before, for a before/after comparison on the same reviews.
 
 Set A (data/eval/space_triage_user6.json): six apartment reviews the project
 owner checked finding by finding. Each lists topics the demo must report,
-must not report, and the flags a finding must carry.
+must not report, the flags a finding must carry and, where it matters, the
+phrase a finding must rest on.
 
 Set B (data/eval/space_triage_booking.json): English Booking.com reviews from
 crawlfeeds/Booking-Hotel-Reviews-Dataset (CC BY-NC 4.0; downloaded, not
@@ -120,6 +121,10 @@ def evaluate_user6(triage, model) -> None:
             topic, sentiment = key.split()
             have = grouped.get((topic, sentiment), {"flags": set()})["flags"]
             problems += [f"{topic} {sentiment} lacks flag {flag}" for flag in flags if flag not in have]
+        for key, phrase in review.get("evidence", {}).items():
+            quotes = grouped.get(tuple(key.split()), {"quotes": []})["quotes"]
+            if not any(phrase in quote for quote in quotes):
+                problems.append(f"{key} does not rest on '{phrase}'")
         for key, word in review.get("not_from", {}).items():
             if word in grouped.get(tuple(key.split()), {"terms": set()})["terms"]:
                 problems.append(f"{key} comes from '{word}'")

@@ -98,21 +98,20 @@ with gr.Blocks(title="Hotel Review Triage", css=CSS) as demo:
     summary = gr.Markdown()
     gr.Markdown("### Τι να διορθώσετε πρώτα")
     fix_first = gr.Dataframe(
-        headers=["Θέμα", "Κριτικές", "% κριτικών", "Αναφορές", "Σημειώσεις", "Τι γράφουν",
-                 "Τι μπορείτε να κάνετε"],
-        column_widths=["15%", "7%", "7%", "7%", "12%", "30%", "22%"], max_height=1200,
+        headers=["Θέμα", "Κριτικές", "%", "Αναφορές", "Σημειώσεις", "Τι γράφουν", "Τι μπορείτε να κάνετε"],
+        column_widths=["15%", "8%", "6%", "8%", "12%", "29%", "22%"], max_height=1200,
         interactive=False, wrap=True, elem_classes="owner-table",
     )
     gr.Markdown("### Τι εκτιμούν οι επισκέπτες")
     strengths = gr.Dataframe(
-        headers=["Θέμα", "Κριτικές", "% κριτικών", "Αναφορές", "Τι γράφουν"],
-        column_widths=["18%", "8%", "8%", "8%", "58%"], max_height=1200,
+        headers=["Θέμα", "Κριτικές", "%", "Αναφορές", "Τι γράφουν"],
+        column_widths=["18%", "8%", "6%", "8%", "60%"], max_height=1200,
         interactive=False, wrap=True, elem_classes="owner-table",
     )
     with gr.Accordion("Όλα τα ευρήματα ανά κριτική και θέμα, με τις φράσεις της κριτικής", open=False):
         findings = gr.Dataframe(
             headers=["Κριτική", "Θέμα", "Συναίσθημα", "Αναφορές", "Σημειώσεις", "Φράσεις της κριτικής"],
-            column_widths=["7%", "18%", "9%", "7%", "12%", "47%"],
+            column_widths=["7%", "18%", "11%", "8%", "12%", "44%"],
             interactive=False, wrap=True, elem_classes="owner-table",
         )
     with gr.Accordion("Ανά κριτική", open=False):
