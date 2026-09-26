@@ -29,8 +29,16 @@ per review, with each field analysed on its own:
 Guests sometimes put a criticism in "liked", so "real" is a lower bound.
 
 Set C (data/eval/space_triage_booking_labels.json): the owner's topic labels
-for 40 TEST reviews, made before seeing the demo's output. Precision and
-recall of (topic, sentiment) pairs, and of complaints alone.
+for 40 TEST reviews, made on a page that did not show the demo's output.
+Counted per review, on the liked and disliked text together:
+  right    reported (topic, sentiment) pairs that the owner labelled (precision)
+  found    labelled pairs that are reported (recall)
+for the 30 topics and for their 8 categories. For a general remark ("great
+staff") the owner often ticked every sub-topic of a category, while the demo
+names one, so the topic level undercounts what is found. The counts are
+repeated without any review labelled with every topic. `--dump PATH` writes
+each review's text, labels and findings for a side-by-side look; the texts are
+CC BY-NC, so keep that file out of the repository.
 """
 
 from __future__ import annotations
@@ -247,38 +255,135 @@ def evaluate_booking(triage, model, name: str) -> None:
 
 # --- Set C -------------------------------------------------------------------
 
-def evaluate_topics(triage, model) -> None:
-    labels = json.loads((EVAL / "space_triage_booking_labels.json").read_text(encoding="utf-8"))["labels"]
-    df, _ = booking_sets()
-    ids = sorted(labels)
-    rows = df.loc[ids]
-    texts = [f"{row['pos']}\n{row['neg']}".strip() for _, row in rows.iterrows()]
-    found, seconds = run(triage, model, texts)
-    c = dict.fromkeys(("hit", "pred", "gold", "comp_hit", "comp_pred", "comp_gold", "cat_hit", "cat_pred",
-                       "cat_gold"), 0)
-    for uid, mentions in zip(ids, found, strict=True):
-        gold = set()
-        for topic, sentiment in labels[uid]["topics"]:
-            gold |= {(topic, "positive"), (topic, "negative")} if sentiment == "mixed" else {(topic, sentiment)}
-        pred = {(m["topic"], m["sentiment"]) for m in mentions}
-        c["hit"] += len(pred & gold)
-        c["pred"] += len(pred)
-        c["gold"] += len(gold)
-        comp_pred = {p for p in pred if p[1] == "negative"}
-        comp_gold = {g for g in gold if g[1] == "negative"}
-        c["comp_hit"] += len(comp_pred & comp_gold)
-        c["comp_pred"] += len(comp_pred)
-        c["comp_gold"] += len(comp_gold)
-        cat = lambda pairs: {(t.split(".")[0], s) for t, s in pairs}  # noqa: E731
-        c["cat_hit"] += len(cat(pred) & cat(gold))
-        c["cat_pred"] += len(cat(pred))
-        c["cat_gold"] += len(cat(gold))
-    print(f"== topics: {len(ids)} reviews labelled by the owner, {seconds / len(ids):.2f}s per review")
-    print(f"  findings that are right (topic + sentiment)   {wilson(c['hit'], c['pred'])}")
-    print(f"  labelled topics found                         {wilson(c['hit'], c['gold'])}")
-    print(f"  complaints that are right                     {wilson(c['comp_hit'], c['comp_pred'])}")
-    print(f"  labelled complaints found                     {wilson(c['comp_hit'], c['comp_gold'])}")
-    print(f"  category level: right {wilson(c['cat_hit'], c['cat_pred'])}, found {wilson(c['cat_hit'], c['cat_gold'])}")
+SIDES = {"all": ("negative", "positive"), "complaints": ("negative",), "praise": ("positive",)}
+
+
+def review_units(mentions: list[dict]) -> dict[tuple[str, str], dict]:
+    """What a version reports for one review: one unit per topic and sentiment, with its quotes.
+
+    A unit is unsure only if the model was unsure of every quote, as in the
+    app. A version that names no topic (fe250b8) reports categories instead.
+    """
+    units: dict[tuple[str, str], dict] = {}
+    for m in mentions:
+        unit = units.setdefault((m.get("topic") or m["aspect"], m["sentiment"]),
+                                {"category": m["aspect"], "quotes": [], "flags": set(), "sure": False})
+        unit["quotes"].append(m["quote"])
+        unit["flags"] |= set(m.get("flags", ())) - {"check"}
+        unit["sure"] |= "check" not in m.get("flags", ())
+    return units
+
+
+def labelled_with_every_topic(labels: dict[str, list], offered) -> list[str]:
+    """Reviews whose labels name every topic the page offered: they do not say which topic."""
+    return [uid for uid, pairs in labels.items() if set(offered) <= {topic for topic, _ in pairs}]
+
+
+def score_topics(labels: dict[str, list], found: dict[str, list[dict]]) -> dict:
+    """Set C counts for the reviews in `labels`: [right, reported, labelled].
+
+    "topic" and "category" hold the counts per side (all, complaints, praise);
+    "per_topic" and "per_category" per (topic or category, sentiment); "check"
+    [right, reported] for complaints the model was unsure of. There is no topic
+    level for a version that names no topic.
+    """
+    named = any("topic" in m for mentions in found.values() for m in mentions)
+    levels = ("topic", "category") if named else ("category",)
+    scores: dict = {level: {side: [0, 0, 0] for side in SIDES} for level in levels}
+    tables: dict[str, dict] = {level: {} for level in levels}
+    check = [0, 0]
+    for uid, pairs in labels.items():
+        units = review_units(found[uid])
+        labelled = {"topic": set(map(tuple, pairs)), "category": {(t.split(".", 1)[0], s) for t, s in pairs}}
+        reported = {"topic": set(units), "category": {(u["category"], s) for (_, s), u in units.items()}}
+        for level in levels:
+            for side, sentiments in SIDES.items():
+                mine = {pair for pair in reported[level] if pair[1] in sentiments}
+                theirs = {pair for pair in labelled[level] if pair[1] in sentiments}
+                for n, count in enumerate((len(mine & theirs), len(mine), len(theirs))):
+                    scores[level][side][n] += count
+            for pair in reported[level] | labelled[level]:
+                row = tables[level].setdefault(pair, [0, 0, 0])
+                row[0] += pair in reported[level] and pair in labelled[level]
+                row[1] += pair in reported[level]
+                row[2] += pair in labelled[level]
+        if named:
+            for pair, unit in units.items():
+                if pair[1] == "negative" and not unit["sure"]:
+                    check[0] += pair in labelled["topic"]
+                    check[1] += 1
+    scores.update({f"per_{level}": tables[level] for level in levels}, check=check)
+    return scores
+
+
+def dump_records(texts: dict[str, tuple[str, str]], labels: dict[str, list], found: dict[str, list[dict]]) -> list:
+    """Per review: its text, the labels, each finding with its quotes and whether it was labelled, and the misses."""
+    records = []
+    for uid, pairs in labels.items():
+        units = review_units(found[uid])
+        labelled = set(map(tuple, pairs))
+        categories = {(t.split(".", 1)[0], s) for t, s in pairs}
+        reported = {(unit["category"], s) for (_, s), unit in units.items()}
+        records.append({
+            "id": uid, "liked": texts[uid][0], "disliked": texts[uid][1], "labels": [list(p) for p in pairs],
+            "findings": [{"topic": topic, "sentiment": sentiment, "quotes": unit["quotes"],
+                          "flags": sorted(unit["flags"] | (set() if unit["sure"] else {"check"})),
+                          "right": (topic, sentiment) in labelled,
+                          "category_right": (unit["category"], sentiment) in categories}
+                         for (topic, sentiment), unit in units.items()],
+            "missed": [{"topic": topic, "sentiment": sentiment,
+                        "category_found": (topic.split(".", 1)[0], sentiment) in reported}
+                       for topic, sentiment in pairs if (topic, sentiment) not in units],
+        })
+    return records
+
+
+def print_scores(scores: dict) -> None:
+    for level in ("topic", "category"):
+        if level not in scores:
+            continue
+        for side in SIDES:
+            right, reported, labelled = scores[level][side]
+            print(f"  {level:8} {side:10}  right {wilson(right, reported):30}  found {wilson(right, labelled)}")
+
+
+def print_table(table: dict, units: list[str]) -> None:
+    print(f"  {'':22} {'complaints':>11} {'praise':>11}   right/reported/labelled")
+    for unit in units:
+        cells = [table.get((unit, sentiment)) for sentiment in ("negative", "positive")]
+        if any(cells):
+            text = ["/".join(map(str, cell)) if cell else "-" for cell in cells]
+            print(f"  {unit:22} {text[0]:>11} {text[1]:>11}")
+
+
+def evaluate_topics(triage, model, dump: Path | None = None) -> None:
+    data = json.loads((EVAL / "space_triage_booking_labels.json").read_text(encoding="utf-8"))
+    labels = {uid: [tuple(pair) for pair in item["topics"]] for uid, item in data["labels"].items()}
+    df, split = booking_sets()
+    if sorted(labels) != split["label"]:
+        raise SystemExit("The labelled reviews are not the recorded 'label' split.")
+    rows = df.loc[split["label"]]
+    texts = {uid: (row["pos"], row["neg"]) for uid, row in rows.iterrows()}
+    found, seconds = run(triage, model, [f"{liked}\n{disliked}".strip() for liked, disliked in texts.values()])
+    by_id = dict(zip(texts, found, strict=True))
+    offered = list(getattr(triage, "TOPICS", None) or load_triage().TOPICS)  # the topics the labelling page offered
+    scores = score_topics(labels, by_id)
+    print(f"== topics: {len(labels)} reviews labelled by the owner, {seconds / len(labels):.2f}s per review")
+    print_scores(scores)
+    every = labelled_with_every_topic(labels, offered)
+    if every:
+        print(f"-- the same without the {len(every)} review(s) labelled with every topic ({', '.join(every)})")
+        print_scores(score_topics({uid: p for uid, p in labels.items() if uid not in every}, by_id))
+    if scores["check"][1]:
+        print(f"  complaints marked 'check' that are right  {wilson(*scores['check'])}")
+    if "topic" in scores:
+        print("-- per topic")
+        print_table(scores["per_topic"], offered)
+    print("-- per category")
+    print_table(scores["per_category"], list(dict.fromkeys(topic.split(".", 1)[0] for topic in offered)))
+    if dump and "topic" in scores:
+        dump.write_text(json.dumps(dump_records(texts, labels, by_id), ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"-- wrote {dump}")
 
 
 # --- TripAdvisor labels made by Claude (regression) ---------------------------
@@ -352,6 +457,8 @@ def main() -> None:
     parser.add_argument("mode", choices=["user6", "booking", "topics", "labels"])
     parser.add_argument("sets", nargs="*")
     parser.add_argument("--triage", type=Path, help="another version of spaces/hotel-ops-demo/triage.py")
+    parser.add_argument("--dump", type=Path, help="topics: write each review's text, labels and findings to this "
+                        "JSON file, outside the repository")
     args = parser.parse_args()
     triage = load_triage(args.triage)
     model = triage.AbsaModel()
@@ -361,7 +468,7 @@ def main() -> None:
         for name in args.sets or ["dev"]:
             evaluate_booking(triage, model, name)
     elif args.mode == "topics":
-        evaluate_topics(triage, model)
+        evaluate_topics(triage, model, args.dump)
     else:
         for name in args.sets or ["test2"]:
             evaluate_labels(triage, model, name)
