@@ -57,29 +57,41 @@ The same pipeline, chosen on dev, gives these results on each split:
 | **Out-of-time** | reviews written after every training review (26 May–3 Aug 2017) | 13,921 | **0.9184** (0.9132–0.9233) | 93.32% |
 | Unseen hotels | 147 hotels with no review in training | 13,289 | 0.9348 (0.9298–0.9396) | 95.12% |
 
-The selected pipeline is word TF-IDF + Naive Bayes on all three splits. A new
-hotel costs nothing. Later reviews cost 1.7 points, and the intervals do not
-overlap. Recall falls for both classes (negative 0.913 → 0.900, positive
-0.964 → 0.946), so the drop is not only a change in the share of negative
-reviews: guests' wording drifts over time. A deployed model needs
-monitoring on recent reviews and periodic retraining. The results, manifests
-and test predictions are in
+The selected pipeline is word TF-IDF + Naive Bayes on all three splits.
+- **Unseen hotels.** The observed performance is similar to the random split in
+  this comparison (0.9348 against 0.9351). This is not a test of equivalence.
+- **Later reviews.** Macro-F1 is 1.7 points lower, and the two intervals do not
+  overlap. The test sets hold different reviews, so this is not a paired
+  comparison.
+- **Recall falls for both classes** (negative 0.913 → 0.900, positive
+  0.964 → 0.946). So the drop is not only a change in the share of negative
+  reviews. The later reviews differ from the training ones in ways that cost
+  recall in both classes: wording, topics or season. This split cannot say
+  which.
+- **What it means for deployment.** A deployed model needs monitoring on recent
+  reviews and periodic retraining.
+
+The results, manifests and test predictions are in
 [`docs/experiments/results/split_views.json`](docs/experiments/results/split_views.json) and
 [`v2_splits/`](docs/experiments/results/v2_splits/).
 
 **Which complaints are rising.** A SQL analysis of the same reviews asks which
 complaint topics became more frequent within the same hotels.
-- **How.** It compares February–July 2016 with February–July 2017, after a change
-  in Booking's review form. A hotel-level bootstrap and a stricter interval for
-  the 29 topics tested decide what counts as a rise.
-- **Worth a look:** four topics.
-  - Bathroom & shower: +1.2 points, +14%.
-  - Cleanliness: +16%.
-  - Air conditioning: +17%.
-  - Pests: rare, but +40%.
-- **Only a lead: responsiveness.** Half of its matches are other phrases.
-- **Not a real rise: bed.** It looked like one in the first run, but most of that
-  was the change in the form.
+- **How.** It compares February–July 2016 with February–July 2017.
+  - Both periods come after a step in the data in February 2016, possibly a
+    change in how reviews were collected or recorded.
+  - A hotel-level bootstrap and a stricter interval for the 29 topics tested
+    decide what counts as a rise.
+- **Worth a look, not confirmed:**
+  - bathroom & shower (+14% within the same hotels);
+  - air conditioning (+17%);
+  - pests (rare, +40%).
+- **Not yet findings: cleanliness and responsiveness.** The lexicon that names
+  the topics is right in only about half of their sampled quotes.
+- **Not rising faster than other topics: bed.** Most of its rise in the first run
+  came from the February 2016 step.
+- **Not measured yet: the lexicon's recall.** A pilot evaluation by two people
+  comes next.
 
 The queries, checks, charts and caveats are in the
 [case study](docs/case_study/complaint_trends.md).

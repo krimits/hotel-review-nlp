@@ -170,7 +170,7 @@ def analysis_windows(dates: pd.Series, min_hotel_reviews: int = 30, since: str |
     """Full calendar months, and the same months one year apart (up to 12).
 
     `since` (yyyy-mm) starts the comparison at that month, for instance after
-    a change in the review form, so that both periods come after it. The
+    a step in the data, so that both periods come after it. The
     monthly series still covers every full month.
     """
     first, last = dates.min(), dates.max()
@@ -377,7 +377,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="read only the first N rows (a quick look)")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--min-hotel-reviews", type=int, default=30)
-    parser.add_argument("--since", help="start the comparison at this month (yyyy-mm), e.g. after a form change")
+    parser.add_argument("--since", help="start the comparison at this month (yyyy-mm), e.g. after a step in the data")
     parser.add_argument("--resamples", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()

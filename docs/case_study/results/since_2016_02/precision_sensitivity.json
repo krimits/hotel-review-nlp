@@ -1,0 +1,169 @@
+{
+ "reader": "Claude, the AI assistant that wrote the analysis; not an independent annotator",
+ "rule": "A quote counts when it complains about the named topic, including a missing item ('no bath') and a problem anywhere in the hotel (a mouse in the bar). It does not count when the word means something else, when the topic is praised, or when the complaint is about another topic (hearing the neighbours' toilets flush is noise).",
+ "main": [
+  {
+   "topic": "room.bathroom",
+   "base_rate": 0.0876688270959648,
+   "recent_rate_base_mix": 0.0996633690239638,
+   "precision_ratio_that_erases_rise": 0.8796,
+   "precision_fall_that_erases_rise": 0.1204,
+   "reading": {
+    "base": [
+     17,
+     20
+    ],
+    "recent": [
+     19,
+     20
+    ]
+   }
+  },
+  {
+   "topic": "cleanliness.general",
+   "base_rate": 0.0504286012962575,
+   "recent_rate_base_mix": 0.0583929721581682,
+   "precision_ratio_that_erases_rise": 0.8636,
+   "precision_fall_that_erases_rise": 0.1364,
+   "reading": {
+    "base": [
+     10,
+     20
+    ],
+    "recent": [
+     12,
+     20
+    ]
+   }
+  },
+  {
+   "topic": "room.climate",
+   "base_rate": 0.0424085302111645,
+   "recent_rate_base_mix": 0.049743733090761,
+   "precision_ratio_that_erases_rise": 0.8525,
+   "precision_fall_that_erases_rise": 0.1475,
+   "reading": {
+    "base": [
+     18,
+     20
+    ],
+    "recent": [
+     19,
+     20
+    ]
+   }
+  },
+  {
+   "topic": "staff.response",
+   "base_rate": 0.0092410620949195,
+   "recent_rate_base_mix": 0.0111115289128434,
+   "precision_ratio_that_erases_rise": 0.8317,
+   "precision_fall_that_erases_rise": 0.1683,
+   "reading": {
+    "base": [
+     11,
+     20
+    ],
+    "recent": [
+     10,
+     20
+    ]
+   }
+  },
+  {
+   "topic": "cleanliness.pests",
+   "base_rate": 0.0022496341208446,
+   "recent_rate_base_mix": 0.0031409041193468,
+   "precision_ratio_that_erases_rise": 0.7162,
+   "precision_fall_that_erases_rise": 0.2838,
+   "reading": {
+    "base": [
+     18,
+     20
+    ],
+    "recent": [
+     19,
+     20
+    ]
+   }
+  }
+ ],
+ "supplementary": {
+  "note": "Hypothetical sensitivity analysis under the assumptions listed. It shows how the reading bears on the precision fall that would erase a rise; it does not confirm that any trend is real.",
+  "assumptions": [
+   "The quotes were read by Claude, the AI assistant that wrote the analysis, not by an independent annotator.",
+   "The quotes were sampled from all hotels in each period, not from the compared hotels at the base period's hotel mix, so their precision may differ from the precision behind the within-hotel rates.",
+   "Recall is unknown and taken as unchanged between the periods.",
+   "Each count is binomial, with a uniform Beta(1, 1) prior on each precision."
+  ],
+  "draws": 200000,
+  "seed": 0,
+  "topics": [
+   {
+    "topic": "room.bathroom",
+    "chance_precision_fell_that_far": 0.023,
+    "beta_ratio_interval95": [
+     0.884,
+     1.457
+    ],
+    "katz_ratio_interval95": [
+     0.906,
+     1.379
+    ],
+    "katz_interval_excludes_needed_ratio": true
+   },
+   {
+    "topic": "cleanliness.general",
+    "chance_precision_fell_that_far": 0.1245,
+    "beta_ratio_interval95": [
+     0.686,
+     2.132
+    ],
+    "katz_ratio_interval95": [
+     0.681,
+     2.113
+    ],
+    "katz_interval_excludes_needed_ratio": false
+   },
+   {
+    "topic": "room.climate",
+    "chance_precision_fell_that_far": 0.0263,
+    "beta_ratio_interval95": [
+     0.85,
+     1.334
+    ],
+    "katz_ratio_interval95": [
+     0.884,
+     1.26
+    ],
+    "katz_interval_excludes_needed_ratio": true
+   },
+   {
+    "topic": "staff.response",
+    "chance_precision_fell_that_far": 0.371,
+    "beta_ratio_interval95": [
+     0.502,
+     1.633
+    ],
+    "katz_ratio_interval95": [
+     0.503,
+     1.642
+    ],
+    "katz_interval_excludes_needed_ratio": false
+   },
+   {
+    "topic": "cleanliness.pests",
+    "chance_precision_fell_that_far": 0.0013,
+    "beta_ratio_interval95": [
+     0.85,
+     1.335
+    ],
+    "katz_ratio_interval95": [
+     0.884,
+     1.26
+    ],
+    "katz_interval_excludes_needed_ratio": true
+   }
+  ]
+ }
+}

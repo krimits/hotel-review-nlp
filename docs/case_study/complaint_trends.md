@@ -4,11 +4,12 @@
 topics became more frequent? Does a rise hold within the same hotels, or does
 it come from a change in which hotels and which guests were reviewed?
 
-**Status.** Done, in two runs on all 515K reviews.
+**Status.** Two runs on all 515K reviews are done. People have not yet measured
+the lexicon's precision and recall; that is the next step.
 - **First run.** It compares September 2015–July 2016 with September 2016–July
-  2017. It showed that a change in Booking's review form in February 2016 lifts
-  every topic.
-- **Second run.** It compares only months after that change.
+  2017. It found a step in February 2016 that lifts every topic, possibly a
+  change in how reviews were collected or recorded.
+- **Second run.** It compares only months after that step.
 
 The notebook
 [`notebooks/08_phase1_data_and_trends_colab.ipynb`](../../notebooks/08_phase1_data_and_trends_colab.ipynb)
@@ -17,67 +18,80 @@ reruns both.
 ## Answer
 
 The comparison is February–July 2016 against February–July 2017, in the 863
-hotels with at least 30 reviews in both periods.
-
-**1. Four topics are worth a look.** Five topics pass the rule fixed before the
-first run:
+hotels with at least 30 reviews in both periods. Five topics pass the rule fixed
+before the first run:
 - they rise within the same hotels;
 - the stricter interval for 29 topics excludes zero;
 - the rise is at least 10% of the base rate.
 
-Four of them also hold up when the sampled quotes are read. The fifth,
-responsiveness, is in point 2.
+How the columns below are measured:
+- **Change within the same hotels.** The change in the rate, holding the hotel
+  mix at the base period's.
+- **Against other topics.** The topic's gain relative to all topic mentions, in
+  the same hotels.
+- **Quotes about the topic.** 20 quotes the lexicon matched in each period, read
+  by Claude. This is precision only.
+- **Precision fall that erases the rise.** How far precision would have to fall
+  between the periods for the genuine change to be zero.
 
-| Topic | Reviews complaining, 2016 → 2017 | Change within the same hotels | Against all complaint topics | Quotes about the topic |
-|---|---:|---:|---:|---:|
-| Bathroom & shower | 8.8% → 10.0% | +1.20 points (+14%) | +6% | 36/40 |
-| Cleanliness | 5.0% → 6.0% | +0.80 points (+16%) | +11% | 22/40 |
-| Air conditioning & ventilation | 4.2% → 5.0% | +0.73 points (+17%) | +10% | 37/40 |
-| Pests | 0.22% → 0.33% | +0.09 points (+40%) | +39% | 37/40 |
+**1. Worth a look, not confirmed: bathroom & shower, air conditioning, pests.**
 
-What each topic adds:
-- **Cleanliness and air conditioning** gain ground even against all other
-  complaint topics.
-- **Cleanliness** is the hardest topic for the lexicon: only 22 of 40 quotes are
-  about dirt or cleaning. The rest are mostly housekeeping knocking early, or
-  praise such as "very clean".
-- **Bathroom & shower** has the largest rise in points. About half of it is the
-  general growth in complaints: against all other topics it gains 6%.
-- **Pests** are rare, about 1 review in 300 in 2017, but serious (bed bugs,
-  mice, cockroaches), and the rise is the steepest.
+| Topic | Reviews complaining, 2016 → 2017 | Change within the same hotels | Against other topics | Quotes about the topic, 2016 → 2017 | Precision fall that erases the rise |
+|---|---:|---:|---:|---:|---:|
+| Bathroom & shower | 8.8% → 10.0% | +1.20 points (+14%) | +8% | 17/20 → 19/20 | 12% |
+| Air conditioning & ventilation | 4.2% → 5.0% | +0.73 points (+17%) | +11% | 18/20 → 19/20 | 15% |
+| Pests | 0.22% → 0.33% | +0.09 points (+40%) | +33% | 18/20 → 19/20 | 28% |
 
-**2. A lead, not a finding: responsiveness.**
-- It rises by 20%, from 0.92% to 1.12% of reviews (+0.19 points).
-- Only 21 of 40 quotes are about staff not answering. Others are phrases such as
-  "the answer was yes".
+- **Precision.** In the sampled quotes it is high in both periods.
+- **Bathroom & shower.** It has the largest rise in points. Of its +14%, about
+  5% is the general growth in topic mentions, which lifts every topic.
+- **Pests.** They are rare, about 1 review in 300 in 2017, but serious: bed bugs,
+  mice, cockroaches.
 
-**3. Not rising faster than complaints in general.**
-- **Bed**: +8% within the same hotels, under the 10% bar. Against all topics it
-  gains 0%. Most of the first run's +14% came from the form change.
-- **Restaurant, bar & coffee**: +0.5%.
-- **Breakfast**: −3%.
+**2. Not yet findings: cleanliness and responsiveness.**
 
-**4. Location** rose by 0.91 points, but 0.39 of that came from which hotels
-were reviewed. Within the same hotels the rise is +0.52 points
-(+7%), under the bar.
+| Topic | Reviews complaining, 2016 → 2017 | Change within the same hotels | Against other topics | Quotes about the topic, 2016 → 2017 | Precision fall that erases the rise |
+|---|---:|---:|---:|---:|---:|
+| Cleanliness | 5.0% → 6.0% | +0.80 points (+16%) | +10% | 10/20 → 12/20 | 14% |
+| Responsiveness | 0.92% → 1.12% | +0.19 points (+20%) | +14% | 11/20 → 10/20 | 17% |
+
+- **Precision.** It is about half: 22 of 40 quotes for cleanliness, 21 of 40 for
+  responsiveness.
+- **Cleanliness errors.** Mostly housekeeping knocking early, or praise such as
+  "very clean".
+- **Responsiveness errors.** Phrases such as "the answer was yes".
+- **Why not yet findings.** A relative fall in precision of 14% or 17% would
+  erase these rises, and 20 quotes per period cannot rule that out.
+
+**3. Not rising faster than other topics.**
+- **Bed.** +8% within the same hotels, under the 10% bar, and +2.5% against other
+  topics. Most of the first run's +14% came from the February 2016 step.
+- **Restaurant, bar & coffee.** +0.5%.
+- **Breakfast.** −3%.
+
+**4. Location.** It rose by 0.91 points, but 0.39 of that came from which hotels
+were reviewed. Within the same hotels the rise is +0.52 points (+7%), under the
+bar.
 
 **Limits.**
-- **Topics come from a lexicon, not a model.** About three quarters of the 480
-  quotes read are about the named topic. For responsiveness it is about half,
-  and for cleanliness about 60%.
-- **One reader.** Claude, the AI assistant, judged the quotes, and no second
-  person checked them.
+- **Topics come from a lexicon, not a model.** Only its precision was checked,
+  by Claude, on 20 quotes per topic and period. About three quarters of the 480
+  quotes read are about the named topic.
+- **Recall is not measured.** A rise could also come from guests using words the
+  lexicon catches more often.
+- **The step in February 2016.** Its cause is unknown. The second run avoids it,
+  whatever caused it.
 - **Short periods.** Each period is six months, and the data end in August 2017.
-- **Guests are not adjusted for.** The comparison fixes the hotel mix, not the
-  guests' nationality. The shift in nationality is too small to explain rises of
-  this size (see [the second run](#second-run-after-the-change-in-the-form)).
+- **Guests' nationality is not adjusted for.** For nationality there is only a
+  sensitivity bound, not a test (see
+  [the second run](#second-run-after-the-february-2016-step)).
 
 **Next step in real work.**
-- **By hotel and city.** Break the four topics down by hotel and city to find
+- **Measure the lexicon.** Two people label a pilot sample for the five topics:
+  precision and recall in both periods.
+- **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.
-- **Before acting on responsiveness and cleanliness.** Label a few hundred
-  mentions of each, to measure the lexicon's precision properly.
 
 ## Data
 
@@ -94,12 +108,13 @@ were reviewed. Within the same hotels the rise is +0.52 points
 
 ## Definitions
 
-- **Complaint.** A topic named in the guest's own negative field. The guest
-  supplies the polarity. The topic is named by the lexicon of the hotel-ops demo
-  ([`triage.py`](../../spaces/hotel-ops-demo/triage.py), 29 topics such as bed,
-  air conditioning or check-in), without a model. So no model update can create
-  a trend. The demo's 30th topic, problem resolution, comes from a separate
-  sentence rule and is not used here.
+- **Complaint.** A topic named in the guest's own negative field.
+  - The guest supplies the polarity.
+  - The topic is named without a model, by the lexicon of the hotel-ops demo
+    ([`triage.py`](../../spaces/hotel-ops-demo/triage.py)): 29 topics such as
+    bed, air conditioning or check-in. So no model update can create a trend.
+  - The demo's 30th topic, problem resolution, comes from a separate sentence
+    rule and is not used here.
 - **Not a complaint.** Booking's placeholder "No Negative", and answers that
   open with "nothing", "none" or "all good". The exception is when the guest
   goes on with "but", "except" or "however".
@@ -112,7 +127,7 @@ were reviewed. Within the same hotels the rise is +0.52 points
   one year apart, so the seasons match:
   - first run: September 2015 to July 2016 against September 2016 to July 2017;
   - second run (`--since 2016-02`): February to July 2016 against February to
-    July 2017, both after the change in the review form.
+    July 2017, both after the step in February 2016.
 
 ## Method
 
@@ -125,7 +140,7 @@ were reviewed. Within the same hotels the rise is +0.52 points
 | Within hotels | [`04_within_hotel.sql`](../../analysis/complaint_trends/sql/04_within_hotel.sql) | the recent rate at the base period's hotel mix; the raw change splits into a within-hotel change plus a mix effect |
 | Guest mix | [`05_guest_mix.sql`](../../analysis/complaint_trends/sql/05_guest_mix.sql) | shares of trip type, traveller type and nationality in each period |
 | Checks | [`06_checks.sql`](../../analysis/complaint_trends/sql/06_checks.sql) | no double counting, no orphan complaint, denominators add up, periods do not overlap |
-| Form changes | [`07_complaint_text_share.sql`](../../analysis/complaint_trends/sql/07_complaint_text_share.sql) | share of reviews with any complaint; a step would move every topic at once |
+| Steps in the data | [`07_complaint_text_share.sql`](../../analysis/complaint_trends/sql/07_complaint_text_share.sql) | share of reviews with any complaint; a step would move every topic at once |
 
 The runner [`scripts/complaint_trends.py`](../../scripts/complaint_trends.py)
 adds four things to the SQL:
@@ -134,15 +149,15 @@ adds four things to the SQL:
    hotel are not independent. This gives a 95% interval for each topic's
    within-hotel change.
 2. **Many topics at once.** It also computes a stricter interval, at
-   1 − 0.05/k for the k topics tested together: here k = 29, so the interval is
-   at 99.83%. A topic is flagged as **rising** or
-   **falling** only when that interval excludes zero **and** the change is at
-   least 10% of the base rate.
+   1 − 0.05/k for the k topics tested together.
+   - Here k = 29, so the interval is at 99.83%.
+   - A topic is flagged as **rising** or **falling** only when that interval
+     excludes zero **and** the change is at least 10% of the base rate.
 3. **Two implementations.** The Python and the SQL within-hotel changes must
    agree, or nothing is reported.
 4. **Reading.** For every flagged topic it samples 20 quotes from each period.
-   Reading them checks that the trend is in what guests wrote, not in a word the
-   lexicon misreads.
+   - Reading them checks the lexicon's precision on what it matched.
+   - It does not measure what the lexicon misses.
 
 ## What would make a rise not real
 
@@ -150,11 +165,11 @@ adds four things to the SQL:
 |---|---|
 | More reviews overall | Rates use all reviews of the period as the denominator. |
 | Different hotels reviewed | The within-hotel change and the mix effect (query 04). |
-| Different guests | The shares of trip type, traveller type and nationality (query 05), and a bound on how far the nationality shift can move a rate. |
-| A change in the review form | The monthly share of reviews with any complaint (query 07), and each topic's share of the reviews that complain at all (query 02). |
-| Complaints that name more topics | Each topic's share of all complaint topics, from the counts of query 02. |
+| Different guests | The shares of trip type, traveller type and nationality (query 05). For nationality, only a sensitivity bound, not a test. |
+| A change in how reviews were collected or recorded | The monthly share of reviews with any complaint (query 07). The second run uses only months after the February 2016 step. |
+| Complaints that name more topics | Each topic's share of all topic mentions, in the same hotels at the base period's mix (from query 04). |
 | A change in Booking's tags | Tag shares that swap between two labels (query 05). |
-| The lexicon misreading a new phrasing | 20 quotes per period for each flagged topic. |
+| The lexicon misreading words | 20 quotes per period read for precision. Recall is not measured. |
 | Chance, with 29 topics tested | The stricter interval and the 10% minimum. |
 
 ## Results
@@ -188,18 +203,18 @@ Seven topics were flagged as rising. None was flagged as falling.
 | Pests | 0.22% | 0.30% | +0.08 pp (+0.04 to +0.12) | +35% |
 
 The change in hotel mix explains almost nothing: the mix effect is under
-0.25 percentage points for every topic. Charts:
-[monthly rates](results/full_window/monthly_rates.png) and
-[changes with intervals](results/full_window/within_hotel_change.png). Data:
-[`results/full_window/`](results/full_window/).
+0.25 percentage points for every topic.
+- **Charts:** [monthly rates](results/full_window/monthly_rates.png) and
+  [changes with intervals](results/full_window/within_hotel_change.png).
+- **Data:** [`results/full_window/`](results/full_window/).
 
 ### Why the first run overstates the rises
 
 **Every topic went up together.** 25 of the 29 topics rose within the same
 hotels. That points to one common cause rather than 25 separate problems.
 
-**The review form changed in February 2016.** Query 07 shows the share of
-reviews whose negative field holds a complaint:
+**A step in February 2016.** Query 07 shows the share of reviews whose negative
+field holds a complaint:
 
 | Month | Share with a complaint |
 |---|---:|
@@ -210,102 +225,120 @@ reviews whose negative field holds a complaint:
 | January 2017 | 67.8% |
 | February 2017 | 68.9% |
 
-The six-point jump from January to February 2016 is a step, not a season: a
-year later the same months differ by 1.1 points. Across the two periods the
-share went from 66.1% to 69.4%. The first run's base period mixes five months
-before the step and six after, so part of every rise is the form, not the
-hotels.
+- **A step, not a season.** The share jumps six points from January to February
+  2016. A year later the same months differ by 1.1 points.
+- **Its cause is unknown.** It is possibly a change in how reviews were collected
+  or recorded, for example in Booking's review form. No outside source confirms
+  the cause, and the method does not depend on it.
+- **What it does to the first run.**
+  - Across the two periods the share went from 66.1% to 69.4%.
+  - The first run's base period mixes five months before the step and six after.
+  - So part of every rise is the step, not the hotels.
 
-**Booking's tags changed too.** "Family with older children" fell from 8.2% of
-reviews to 0.5%, while "Family with young children" rose from 5.8% to 17.4%.
-That is a relabelling, not a change in guests. So traveller type cannot be
-compared across the two periods. Trip type and nationality moved by at most 2.4
-points (United Kingdom 49.3% → 46.9%).
+**The family tags swap.**
+- **What changed.** "Family with older children" fell from 8.2% of reviews to
+  0.5%, while "Family with young children" rose from 5.8% to 17.4%.
+- **What it means.** This looks like a relabelling rather than a change in
+  guests, but the data cannot confirm it. Either way, traveller type cannot be
+  compared across the two periods.
+- **The other guest fields.** Trip type and nationality moved by at most 2.4
+  points (United Kingdom 49.3% → 46.9%).
 
-### Second run, after the change in the form
+### Second run, after the February 2016 step
 
 **Setup.**
 - **Periods.** February to July 2016 against February to July 2017. Both periods
   follow the step, and they hold 130,860 and 129,968 reviews.
-- **Share with a complaint.** It still grows a little, from 68.0% to 69.6%.
+- **Share with a complaint.** It still grows a little, from 68.0% to 69.6% (all
+  hotels).
 - **Result.** Five topics were flagged as rising. None was flagged as falling.
 
-| Topic | Base rate | Recent rate | Change within the same hotels (95% CI) | Stricter interval | Relative | Against all complaint topics |
+| Topic | Base rate | Recent rate | Change within the same hotels (95% CI) | Stricter interval | Relative | Against other topics, same hotels |
 |---|---:|---:|---:|---:|---:|---:|
-| Bathroom & shower | 8.77% | 9.98% | +1.20 pp (+0.91 to +1.51) | +0.64 to +1.66 | +14% | +6% |
-| Cleanliness | 5.04% | 5.99% | +0.80 pp (+0.58 to +1.02) | +0.47 to +1.13 | +16% | +11% |
-| Air conditioning & ventilation | 4.24% | 5.02% | +0.73 pp (+0.49 to +0.99) | +0.36 to +1.18 | +17% | +10% |
-| Responsiveness | 0.92% | 1.12% | +0.19 pp (+0.10 to +0.28) | +0.06 to +0.34 | +20% | +16% |
-| Pests | 0.22% | 0.33% | +0.09 pp (+0.04 to +0.14) | +0.02 to +0.18 | +40% | +39% |
+| Bathroom & shower | 8.77% | 9.98% | +1.20 pp (+0.91 to +1.51) | +0.64 to +1.66 | +14% | +8% |
+| Cleanliness | 5.04% | 5.99% | +0.80 pp (+0.58 to +1.02) | +0.47 to +1.13 | +16% | +10% |
+| Air conditioning & ventilation | 4.24% | 5.02% | +0.73 pp (+0.49 to +0.99) | +0.36 to +1.18 | +17% | +11% |
+| Responsiveness | 0.92% | 1.12% | +0.19 pp (+0.10 to +0.28) | +0.06 to +0.34 | +20% | +14% |
+| Pests | 0.22% | 0.33% | +0.09 pp (+0.04 to +0.14) | +0.02 to +0.18 | +40% | +33% |
 
-For these five topics the mix effect is at most 0.15 points (cleanliness).
-Charts: [monthly rates](results/since_2016_02/monthly_rates.png) and
-[changes with intervals](results/since_2016_02/within_hotel_change.png). Data:
-[`results/since_2016_02/`](results/since_2016_02/).
+- **Population.** All columns come from the 863 hotels. The mix effect is at most
+  0.15 points for these five topics (cleanliness).
+- **Charts:** [monthly rates](results/since_2016_02/monthly_rates.png) and
+  [changes with intervals](results/since_2016_02/within_hotel_change.png).
+- **Data:** [`results/since_2016_02/`](results/since_2016_02/).
 
-**Complaints grew in two ways that lift every topic.**
-- **More reviews complain**, from 68.0% to 69.6% (+2.3%).
-- **A complaint names more topics**, from 2.18 to 2.26 (+3.4%).
+**Topic mentions grew, and that lifts every topic.**
+- **In the same 863 hotels,** at the base period's mix, topic mentions per review
+  rose 5.3%, from 1.49 to 1.57.
+- **Across all 1,493 hotels,** the same growth comes from two places:
+  - more reviews with a complaint (68.0% → 69.6%);
+  - more topics per complaining review (2.18 → 2.26).
 
-The last column of the table removes both.
-- **What it measures.** Each topic's share of all (review, topic) complaints,
-  over all hotels.
-- **Where it comes from.** It is computed from the counts in
-  [`02_year_over_year.csv`](results/since_2016_02/csv/02_year_over_year.csv),
-  and this check was added after the run.
+The last column of the table removes this growth.
+- **What it measures.** Each topic's share of all topic mentions, from the rates
+  in [`04_within_hotel.csv`](results/since_2016_02/csv/04_within_hotel.csv). It
+  uses the 863 hotels at the base period's mix.
 - **How to read it.** A topic that only kept pace with the rest scores 0%.
+- **When it was added.** After the run.
 
-For bathroom, the rise of 12% across all hotels splits into about 2% more
-complaining reviews, 3% more topics per complaint, and 6% gained on other
-topics.
+For bathroom, the rise of 14% within the same hotels is about 5% more mentions
+per review, shared by all topics, times 8% gained on the other topics.
 
 **Topics that do not rise faster than the rest.**
 - **Bed.**
-  - Change within the same hotels: +0.52 pp (+0.29 to +0.75), +8%. The stricter
-    interval excludes zero, but the rise is under the 10% bar and keeps pace
-    with complaints overall.
+  - Change within the same hotels: +0.52 pp (+0.29 to +0.75), +8%.
+  - The stricter interval excludes zero. But the rise is under the 10% bar, and
+    it gains only 2.5% on the other topics.
   - Monthly rates: bed complaints peaked in the winter, at 7.8% of reviews in
     February 2017, and were back to 6.2% by June–July 2017.
 - **Restaurant, bar & coffee.** +0.05 pp (−0.25 to +0.35), +0.5%.
-- **Breakfast.** −0.35 pp (−0.65 to −0.02), −3%. The 95% interval is below zero
-  but the stricter one is not (−0.85 to +0.18), so it is not flagged as falling.
+- **Breakfast.** −0.35 pp (−0.65 to −0.02), −3%.
+  - The 95% interval is below zero, but the stricter one is not (−0.85 to +0.18).
+  - So it is not flagged as falling.
 - **Location.**
-  - In the 863 hotels: from 7.21% to 8.12% (+0.91 pp), the same change as across
-    all hotels.
+  - In the 863 hotels: from 7.21% to 8.12% (+0.91 pp).
   - Query 04 splits this into +0.52 pp within the same hotels and +0.39 pp from
     the hotel mix: in 2017 more reviews came from hotels whose guests complain
     more about the location.
   - Within the same hotels the rise is +7%, under the bar.
 
-**Different guests.**
+**Different guests** (all hotels).
 - **Trip type** moved by less than half a point.
-- **Nationality.** The United Kingdom's share of reviews fell from 51.0% to
-  46.6%, and the United States' rose from 6.4% to 7.7%. Over the ten largest
-  nationalities and the rest, the mix moved by 4.6% (half the sum of the
-  absolute changes in share).
-- **Bound.** A shift of 4.6% can move a topic's rate by at most 4.6% of the gap
-  between the nationalities with the highest and the lowest rate. To produce the
-  bathroom rise of 1.2 points, some nationalities would have to complain about
-  bathrooms at least 26 points more often than others. That is three times the
-  bathroom rate itself. Cleanliness would need a gap of 17 points and air
-  conditioning 16. Shifts within the smaller nationalities are not covered by
-  this bound.
-- **Traveller type** cannot be compared, because Booking's family tags were
-  relabelled: "older children" went from 8.5% to 0.1%, and "young children" from
-  6.0% to 18.2%.
+- **Nationality.**
+  - The United Kingdom's share of reviews fell from 51.0% to 46.6%, and the
+    United States' rose from 6.4% to 7.7%.
+  - Over the ten largest nationalities and the rest, the mix moved by 4.6%: half
+    the sum of the absolute changes in share.
+- **Sensitivity, not a test.**
+  - A shift of 4.6% can move a topic's rate by at most 4.6% of the gap between
+    the nationalities with the highest and the lowest rate.
+  - For nationality alone to produce the bathroom rise of 1.2 points, some
+    nationalities would have to complain about bathrooms at least 26 points more
+    often than others. Cleanliness would need a gap of 17 points, and air
+    conditioning 16.
+  - The rates per nationality were not measured. So this shows how large the
+    differences would have to be, not that they are smaller.
+  - The bound does not cover shifts within the smaller nationalities.
+- **Traveller type** cannot be compared: the family tags swap again ("older
+  children" 8.5% → 0.1%, "young children" 6.0% → 18.2%).
 
 ### Reading the quotes
 
 **How they were read.**
-- **Who read them.** Claude, the AI assistant, not an independent annotator.
-- **How many.** For every flagged topic, 20 quotes per period were sampled and
-  read in full: 480 quotes over both runs.
+- **Who.** Claude, the AI assistant, not an independent annotator.
+- **What.** For every flagged topic, 20 quotes per period were sampled from all
+  hotels of the period and read in full: 480 quotes over both runs.
 - **When a quote counts.** It complains about the named topic. This includes a
   missing item ("no bath") and a problem anywhere in the hotel (a mouse in the
   bar).
 - **When it does not.** The word means something else, the topic is praised, or
   the complaint is about another topic (hearing the neighbours' toilets flush is
   noise).
+- **Record.** The counts and the positions of the quotes judged not about the
+  topic are in `reading_counts.json`, one per run
+  ([first](results/full_window/reading_counts.json),
+  [second](results/since_2016_02/reading_counts.json)). The quotes themselves
+  hold review text and are not committed.
 
 | Topic | Run 1, base | Run 1, recent | Run 2, base | Run 2, recent |
 |---|---:|---:|---:|---:|
@@ -320,17 +353,18 @@ topics.
 
 Bed and linen were flagged only in the first run.
 
-**Correction.** An earlier version of this table was read from quotes cut at
-120 characters.
+**Correction.** An earlier version of this table was read from quotes cut at 120
+characters.
 - **What it missed.** Topics named late in long reviews, such as bed bug bites at
   the end of a list.
-- **Effect.** It gave lower counts, for example 12/20 for pests in both periods
+- **Effect.** The counts were lower, for example 12/20 for pests in both periods
   of the first run.
 - **Now.** The counts above come from the full texts.
 
-**Precision.** About three quarters of the quotes are about the named topic.
-- **By topic.** It is highest for bathroom, air conditioning and pests (85–91%),
-  and lowest for cleanliness (about 60%) and responsiveness (about half).
+**Precision in the sample.** About three quarters of the quotes are about the
+named topic.
+- **By topic.** Highest for bathroom, air conditioning and pests (85–91%), and
+  lowest for cleanliness (about 60%) and responsiveness (about half).
 - **Errors.** They appear in both periods:
   - **another meaning of the word:** "bite-size" food, a "flea market", a
     restaurant called "The Five Flies" or a computer "mouse" read as pests; a
@@ -339,12 +373,67 @@ Bed and linen were flagged only in the first run.
   - **praise in the negative field:** "Clean tidy comfortable nice breakfast";
   - **a neighbouring topic:** housekeeping knocking early read as cleanliness.
 
-**What this means for the rises.**
-- **No drop in the recent quotes.** In both runs the recent quotes are at least
-  as often about the topic as the base quotes:
+**What the reading shows, and what it does not.**
+- **Shows.** In this small sample, read by Claude, precision did not fall in the
+  recent period:
   - run 1: 109/140 against 101/140;
   - run 2: 79/100 against 74/100.
+- **Does not show:**
+  - **Recall.** Only quotes the lexicon matched were read. So complaints it
+    missed, and any change in how many it misses, are not measured.
+  - **Small changes in precision.** With 20 quotes per cell, the counts cannot
+    detect them.
 
-  So a lexicon misreading new phrasings does not explain the rises.
-- **Limit.** With 20 quotes per cell, the counts cannot detect a small change in
-  precision.
+**How far precision would have to fall.**
+- **The calculation.** Within the same hotels, the lexicon's rate goes from L1
+  to L2 (the recent rate at the base period's mix). If precision went from p1 to
+  p2, the genuine change is zero when p2 / p1 = L1 / L2. So precision would have
+  to fall by 1 − L1 / L2.
+- **No labels needed.** The fall is computed from the rates alone.
+- **Source.**
+  [`scripts/precision_sensitivity.py`](../../scripts/precision_sensitivity.py)
+  writes it to
+  [`precision_sensitivity.json`](results/since_2016_02/precision_sensitivity.json).
+
+| Topic | Read, 2016 → 2017 | Precision fall that erases the rise |
+|---|---:|---:|
+| Bathroom & shower | 17/20 → 19/20 | 12.0% |
+| Air conditioning & ventilation | 18/20 → 19/20 | 14.8% |
+| Pests | 18/20 → 19/20 | 28.4% |
+| Cleanliness | 10/20 → 12/20 | 13.6% |
+| Responsiveness | 11/20 → 10/20 | 16.8% |
+
+## Supplementary: a hypothetical sensitivity analysis
+
+This section asks how the reading bears on the falls above. It rests on
+assumptions that may not hold. The numbers do not confirm that any trend is
+real, and the answer at the top does not use them.
+
+**Assumptions.**
+- The quotes were read by Claude, not by an independent annotator.
+- The quotes come from all hotels in each period. The within-hotel rates come
+  from the 863 compared hotels at the base period's mix. Precision may differ
+  between the two.
+- Recall is unknown and taken as unchanged between the periods.
+- Each count is binomial, with a uniform prior on each precision.
+
+**Method.**
+- **Beta.** The two counts give Beta posteriors for p1 and p2. The chance is the
+  share of 200,000 draws in which p2 / p1 falls to the needed ratio or below
+  (seed 0).
+- **Katz.** The Katz log interval is a frequentist 95% interval for p2 / p1.
+
+| Topic | Chance precision fell that far | Katz 95% interval for p2 / p1 | Needed ratio |
+|---|---:|---:|---:|
+| Bathroom & shower | 0.023 | 0.91 to 1.38 | 0.88 |
+| Air conditioning & ventilation | 0.026 | 0.88 to 1.26 | 0.85 |
+| Pests | 0.001 | 0.88 to 1.26 | 0.72 |
+| Cleanliness | 0.124 | 0.68 to 2.11 | 0.86 |
+| Responsiveness | 0.371 | 0.50 to 1.64 | 0.83 |
+
+**Reading the table.**
+- **Under these assumptions,** a fall large enough to erase the rise is unlikely
+  for bathroom, air conditioning and pests. For cleanliness and responsiveness it
+  is quite possible.
+- **Only the pilot can test it.** The pilot evaluation, with two people and
+  recall included, can test this. This section cannot.
