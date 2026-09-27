@@ -1,4 +1,4 @@
-.PHONY: install data baselines bilstm distilbert qlora greek greek-eval benchmark serve quantbench lint test docker
+.PHONY: install data split-views baselines bilstm distilbert qlora greek greek-eval benchmark serve quantbench lint test docker
 
 PY ?= python3
 
@@ -6,9 +6,17 @@ install:
 	$(PY) -m pip install -e ".[dev,serving]"
 	$(PY) -m pip install -e ".[llm]" || echo "LLM extras skipped (install on GPU machine)"
 
-## 1) Build the processed dataset from the raw Kaggle CSV (run once)
+## 1) Fetch the raw CSV (size and SHA-256 checked), then build the v2 splits:
+##    random (reviews like the training ones), time (later reviews), hotel (unseen hotels)
 data:
+	$(PY) scripts/fetch_booking_515k.py
 	$(PY) -m reviewnlp.data.preprocess --config configs/baselines.yaml
+	$(PY) -m reviewnlp.data.preprocess --config configs/baselines_time.yaml
+	$(PY) -m reviewnlp.data.preprocess --config configs/baselines_hotel.yaml
+
+## 1b) The dev-selected classical model on each split, with bootstrap 95% intervals
+split-views:
+	$(PY) scripts/split_views.py
 
 ## 2) Classical baselines (TF-IDF + MultinomialNB, TF-IDF + LR-SGD)
 baselines:

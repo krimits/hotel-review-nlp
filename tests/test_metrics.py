@@ -117,3 +117,23 @@ def test_matches_requires_identical_structure():
     assert not matches({"a": 1.0}, {"b": 1.0})            # renamed key
     assert not matches([1.0, 2.0], [1.0, 2.0, 3.0])       # length
     assert not matches(1.0, "1.0")                        # type
+
+
+def test_bootstrap_interval_brackets_the_point_estimate():
+    from reviewnlp.evaluation.metrics import binary_metrics, bootstrap_ci
+
+    rng = np.random.default_rng(0)
+    truth = np.where(rng.random(2000) < 0.3, "negative", "positive")
+    guess = np.where(rng.random(2000) < 0.9, truth, np.where(truth == "negative", "positive", "negative"))
+    low, high = bootstrap_ci(truth, guess, n_resamples=300, seed=1)
+    point = binary_metrics(truth, guess)["macro_f1"]
+    assert low < point < high
+    assert high - low < 0.06
+    assert bootstrap_ci(truth, guess, n_resamples=300, seed=1) == (low, high)
+
+
+def test_bootstrap_interval_of_a_perfect_model_is_one():
+    from reviewnlp.evaluation.metrics import bootstrap_ci
+
+    truth = np.array(["negative", "positive"] * 50)
+    assert bootstrap_ci(truth, truth, n_resamples=50) == (1.0, 1.0)

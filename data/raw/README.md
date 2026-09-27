@@ -20,7 +20,16 @@ Source: Kaggle dataset **"515k Hotel Reviews Data in Europe"**
 ~515k reviews of 1,493 hotels, each with a positive and a negative free-text
 field plus a 2.5-10 reviewer score.
 
-Download and extract the Kaggle archive into a **separate temporary directory**,
+**One command:** `make data` runs `scripts/fetch_booking_515k.py`, which downloads a
+byte-identical copy from the Hugging Face Hub
+([`Dricz/515k-Hotel-Reviews-In-Europe`](https://huggingface.co/datasets/Dricz/515k-Hotel-Reviews-In-Europe),
+pinned revision `cdaea79`). It checks the size (238,154,765 bytes) and the SHA-256
+(`a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9`) against the Kaggle
+download the original splits were built from, and refuses any other file. Then it builds
+the three v2 splits (random, out-of-time, unseen hotels); each split directory gets a
+`data_manifest.json` with the raw file's hash.
+
+To use your own Kaggle download instead, download and extract the Kaggle archive into a **separate temporary directory**,
 then copy its `Hotel_Reviews.csv` into this project as
 `data/raw/booking_reviews_515k.csv`. The baseline config and EDA notebook use that name.
 
