@@ -67,6 +67,23 @@ and test predictions are in
 [`docs/experiments/results/split_views.json`](docs/experiments/results/split_views.json) and
 [`v2_splits/`](docs/experiments/results/v2_splits/).
 
+**Which complaints are rising.** A SQL analysis of the same reviews asks which
+complaint topics became more frequent within the same hotels.
+- **How.** It compares February–July 2016 with February–July 2017, after a change
+  in Booking's review form. A hotel-level bootstrap and a stricter interval for
+  the 29 topics tested decide what counts as a rise.
+- **Worth a look:** four topics.
+  - Bathroom & shower: +1.2 points, +14%.
+  - Cleanliness: +16%.
+  - Air conditioning: +17%.
+  - Pests: rare, but +40%.
+- **Only a lead: responsiveness.** Half of its matches are other phrases.
+- **Not a real rise: bed.** It looked like one in the first run, but most of that
+  was the change in the form.
+
+The queries, checks, charts and caveats are in the
+[case study](docs/case_study/complaint_trends.md).
+
 ### Historical results (legacy split, text overlap)
 
 These were measured on the first frozen test set of 13,278 reviews (10,000

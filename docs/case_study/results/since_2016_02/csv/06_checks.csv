@@ -1,0 +1,6 @@
+check_name,value
+complaints counted twice for one review and topic,0
+complaints without a review,0
+complaints on a review whose negative field holds no complaint,0
+reviews in full months minus the sum of monthly denominators,0
+overlap in months between the base and the recent period,0
