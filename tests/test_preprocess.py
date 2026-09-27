@@ -184,3 +184,88 @@ def test_split_rejects_invalid_settings(tiny_reviews, overrides):
 
     with pytest.raises(ValueError):
         split_and_cap(reviews, **settings)
+
+
+def _dated_reviews(hotels: int = 10, per_hotel: int = 20) -> pd.DataFrame:
+    rows = []
+    for hotel in range(hotels):
+        for index in range(per_hotel):
+            day = (hotel * per_hotel + index) % 60
+            label = "positive" if index % 2 else "negative"
+            rows.append({"text": f"{label} review {hotel}-{index}", "label": label, "hotel": f"Hotel {hotel}",
+                         "review_date": f"2016-{1 + day // 28:02d}-{1 + day % 28:02d}"})
+    return pd.DataFrame(rows)
+
+
+def test_time_split_trains_on_older_reviews_and_tests_on_newer():
+    reviews = _dated_reviews()
+    train, dev, test = split_and_cap(reviews, seed=1, train_frac=0.6, dev_frac=0.2, train_cap=0, test_cap=0,
+                                     policy="time")
+    assert train["review_date"].max() < dev["review_date"].min()
+    assert dev["review_date"].max() < test["review_date"].min()
+    assert len(train) + len(dev) + len(test) == len(reviews)
+
+
+def test_hotel_split_keeps_each_hotel_in_one_split():
+    reviews = _dated_reviews()
+    splits = split_and_cap(reviews, seed=1, train_frac=0.6, dev_frac=0.2, train_cap=0, test_cap=0, policy="hotel")
+    train, dev, test = (set(frame["hotel"]) for frame in splits)
+    assert not (train & dev or train & test or dev & test)
+    assert [len(frame) for frame in splits] == [120, 40, 40]
+
+
+def test_hotel_split_caps_within_its_hotels():
+    reviews = _dated_reviews()
+    train, _, test = split_and_cap(reviews, seed=1, train_frac=0.6, dev_frac=0.2, train_cap=10, test_cap=5,
+                                   policy="hotel")
+    assert test["label"].value_counts().to_dict() == {"negative": 5, "positive": 5}
+    assert len(train) == 20
+    assert not set(train["hotel"]) & set(test["hotel"])
+
+
+@pytest.mark.parametrize("policy", ["time", "hotel", "weekday"])
+def test_a_split_policy_needs_its_column(policy):
+    reviews = pd.DataFrame({"text": [f"review {i}" for i in range(8)], "label": ["positive", "negative"] * 4})
+    with pytest.raises(ValueError):
+        split_and_cap(reviews, seed=1, train_frac=0.5, dev_frac=0.25, train_cap=0, test_cap=0, policy=policy)
+
+
+def test_extraction_keeps_hotel_date_and_the_earliest_copy():
+    raw = pd.DataFrame(
+        {
+            "Hotel_Name": ["B", "A", "C"],
+            "Review_Date": ["8/3/2017", "1/15/2016", "5/1/2016"],
+            "Positive_Review": ["Lovely staff and room", "lovely staff  and room", "Quiet and clean place"],
+            "Negative_Review": ["No Negative"] * 3,
+        }
+    )
+    out = extract_labeled_reviews(raw, max_chars=1200, min_chars=5)
+    assert len(out) == 2
+    kept = out.loc[out["text"].str.casefold().str.startswith("lovely")].iloc[0]
+    assert (kept["hotel"], kept["review_date"]) == ("A", "2016-01-15")
+
+
+def test_hotel_dataset_manifest_records_the_policy(tmp_path):
+    rows = []
+    for hotel in range(8):
+        for index in range(6):
+            positive = index % 2 == 0
+            rows.append({"Hotel_Name": f"Hotel {hotel}", "Review_Date": f"{1 + index}/1/2016",
+                         "Positive_Review": f"Great stay number {hotel} {index}" if positive else "No Positive",
+                         "Negative_Review": "No Negative" if positive else f"Poor stay number {hotel} {index}"})
+    raw = tmp_path / "source.csv"
+    pd.DataFrame(rows).to_csv(raw, index=False)
+    output = tmp_path / "processed"
+    config = tmp_path / "config.yaml"
+    config.write_text(
+        "seed: 3\n"
+        f"data:\n  raw_csv: {raw}\n  processed_dir: {output}\n  split: hotel\n"
+        "  max_chars: 1200\n  min_chars: 5\n  train_frac: 0.5\n"
+        "  dev_frac: 0.25\n  train_cap: 0\n  test_cap: 0\n"
+    )
+    build_dataset(str(config))
+    manifest = json.loads((output / "data_manifest.json").read_text())
+    assert manifest["split"] == "hotel"
+    assert manifest["hotels_in_more_than_one_split"] == 0
+    assert sum(manifest["hotels"].values()) == 8
+    assert manifest["raw_csv_bytes"] == raw.stat().st_size

@@ -10,11 +10,15 @@ This avoids inventing a score threshold (e.g. "7+/10 is positive") and keeps
 the training signal unambiguous. Every row is used exactly once, with the
 single free-text field the guest actually wrote.
 
-Outputs (parquet, one row per example):
-    data/processed/train.parquet
-    data/processed/dev.parquet
-    data/processed/test.parquet
-    data/processed/label_stats.json
+The config's `split` decides what the test set measures:
+
+    random  reviews like the training ones (stratified, the default)
+    time    later reviews: train on the oldest, test on the newest
+    hotel   hotels the model has never seen: no hotel is in two splits
+
+Outputs (parquet, one row per example), in the config's processed_dir:
+    train.parquet, dev.parquet, test.parquet
+    label_stats.json, data_manifest.json
 
 Run:  python -m reviewnlp.data.preprocess --config configs/baselines.yaml
 """
@@ -25,6 +29,7 @@ import argparse
 import hashlib
 import json
 import os
+import random
 import re
 
 import pandas as pd
@@ -46,27 +51,54 @@ def clean_text(text: str, max_chars: int) -> str:
     return text[:max_chars]
 
 
+def _review_context(df: pd.DataFrame) -> pd.DataFrame:
+    """The hotel and the review date, when the raw file has them."""
+    context = {}
+    if "Hotel_Name" in df:
+        context["hotel"] = df["Hotel_Name"].astype(str).str.strip()
+    if "Review_Date" in df:
+        context["review_date"] = pd.to_datetime(df["Review_Date"], format="%m/%d/%Y").dt.strftime("%Y-%m-%d")
+    return pd.DataFrame(context, index=df.index)
+
+
 def extract_labeled_reviews(df: pd.DataFrame, max_chars: int, min_chars: int) -> pd.DataFrame:
-    """Turn the two-field Booking schema into (text, label) rows."""
+    """Turn the two-field Booking schema into (text, label) rows.
+
+    The hotel and the review date come along when the raw file has them. A
+    text that appears more than once keeps only its earliest copy, so a later
+    test period never holds a review already seen in training.
+    """
     pos = df["Positive_Review"].fillna("").astype(str).str.strip()
     neg = df["Negative_Review"].fillna("").astype(str).str.strip()
 
     is_pos = pos.ne("") & pos.ne(NO_POSITIVE) & neg.eq(NO_NEGATIVE)
     is_neg = pos.eq(NO_POSITIVE) & neg.ne(NO_NEGATIVE) & neg.ne("")
 
+    context = _review_context(df)
     out = pd.concat(
         [
-            pd.DataFrame({"text": pos[is_pos], "label": "positive"}),
-            pd.DataFrame({"text": neg[is_neg], "label": "negative"}),
+            pd.DataFrame({"text": pos[is_pos], "label": "positive"}).join(context),
+            pd.DataFrame({"text": neg[is_neg], "label": "negative"}).join(context),
         ]
     )
     out["text"] = out["text"].map(lambda t: clean_text(t, max_chars))
     out = out[out["text"].str.len() >= min_chars]
     label_counts = out.groupby(out["text"].map(canonical_text))["label"].transform("nunique")
     out = out.loc[label_counts.eq(1)]
+    if "review_date" in out:
+        out = out.sort_values("review_date", kind="stable")
     out = out.loc[~out["text"].map(canonical_text).duplicated()].reset_index(drop=True)
     out["review_id"] = out["text"].map(review_id)
     return out
+
+
+SPLIT_POLICIES = {
+    "random": "deduplicate canonical review text globally before stratified split",
+    "time": "deduplicate keeping the earliest copy; train on the oldest reviews, dev on the next, "
+            "test on the newest; no review date is in two splits",
+    "hotel": "deduplicate keeping the earliest copy; shuffle hotels with the seed and give whole "
+             "hotels to test, then dev, then train; no hotel is in two splits",
+}
 
 
 def split_and_cap(
@@ -76,17 +108,27 @@ def split_and_cap(
     dev_frac: float,
     train_cap: int,
     test_cap: int,
+    policy: str = "random",
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Stratified split using configured fractions, then per-class caps.
+    """Split with the configured fractions and policy, then apply per-class caps.
 
-    The test split is capped first (it must stay fixed across all model
-    comparisons), then dev is sampled from the remainder and train is capped.
-    A zero cap means unlimited. Each class must appear in all three splits.
+    random: stratified. The test split is capped first (it must stay fixed
+    across all model comparisons), then dev is sampled from the remainder and
+    train is capped. time and hotel: the fractions are shares of reviews; the
+    test and train splits are then capped by sampling within them, so no
+    review crosses a date or hotel boundary. A zero cap means unlimited.
+    Each class must appear in all three splits.
     """
     if not (0 < train_frac < 1 and 0 < dev_frac < 1 and train_frac + dev_frac < 1):
         raise ValueError("train/dev fractions must be positive and sum to less than one")
     if train_cap < 0 or test_cap < 0:
         raise ValueError("split caps must be non-negative; zero means unlimited")
+    if policy not in SPLIT_POLICIES:
+        raise ValueError(f"unknown split policy {policy!r}; use one of {sorted(SPLIT_POLICIES)}")
+    if policy != "random":
+        splitter = _split_by_time if policy == "time" else _split_by_hotel
+        train_df, dev_df, test_df = splitter(df, seed, train_frac, dev_frac)
+        return _cap_per_class(train_df, train_cap, seed), dev_df, _cap_per_class(test_df, test_cap, seed)
     df = df.sample(frac=1.0, random_state=seed).reset_index(drop=True)
 
     test_parts, rest_parts = [], []
@@ -118,6 +160,39 @@ def split_and_cap(
     return train_df, dev_df, test_df
 
 
+def _split_by_time(df: pd.DataFrame, seed: int, train_frac: float, dev_frac: float):
+    """Oldest reviews to train, the next to dev, the newest to test; a date never straddles two splits."""
+    if "review_date" not in df:
+        raise ValueError("a time split needs the review date")
+    ordered = df.sort_values("review_date", kind="stable").reset_index(drop=True)
+    dates = ordered["review_date"]
+    dev_start = dates.iloc[int(len(ordered) * train_frac)]
+    test_start = dates.iloc[int(len(ordered) * (train_frac + dev_frac))]
+    if not dev_start < test_start:
+        raise ValueError("too few distinct review dates for a time split")
+    parts = (dates < dev_start, (dates >= dev_start) & (dates < test_start), dates >= test_start)
+    return tuple(ordered[part].reset_index(drop=True) for part in parts)
+
+
+def _split_by_hotel(df: pd.DataFrame, seed: int, train_frac: float, dev_frac: float):
+    """Whole hotels, shuffled with the seed, fill test, then dev; the rest is train."""
+    if "hotel" not in df:
+        raise ValueError("a hotel split needs the hotel name")
+    sizes = df["hotel"].value_counts()
+    hotels = sorted(sizes.index)
+    random.Random(seed).shuffle(hotels)
+    targets = {"test": len(df) * (1 - train_frac - dev_frac), "dev": len(df) * dev_frac}
+    filled = {"test": 0, "dev": 0}
+    side = {}
+    for hotel in hotels:
+        name = next((split for split in ("test", "dev") if filled[split] < targets[split]), "train")
+        side[hotel] = name
+        if name != "train":
+            filled[name] += int(sizes[hotel])
+    assigned = df["hotel"].map(side)
+    return tuple(df[assigned == name].reset_index(drop=True) for name in ("train", "dev", "test"))
+
+
 def _cap_per_class(df: pd.DataFrame, cap: int, seed: int) -> pd.DataFrame:
     if cap <= 0:
         return df
@@ -146,6 +221,7 @@ def build_dataset(config_path: str) -> dict:
     labeled = extract_labeled_reviews(raw, d["max_chars"], d["min_chars"])
     print(f"Labeled (unambiguous) reviews: {len(labeled):,}")
 
+    policy = d.get("split", "random")
     train_df, dev_df, test_df = split_and_cap(
         labeled,
         seed=cfg["seed"],
@@ -153,10 +229,13 @@ def build_dataset(config_path: str) -> dict:
         dev_frac=d["dev_frac"],
         train_cap=d["train_cap"],
         test_cap=d["test_cap"],
+        policy=policy,
     )
 
     frames = {"train": train_df, "dev": dev_df, "test": test_df}
     assert_clean_splits(frames)
+    if policy == "hotel" and _shared(frames, "hotel"):
+        raise ValueError("a hotel appears in more than one split")
 
     os.makedirs(d["processed_dir"], exist_ok=True)
     train_df.to_parquet(os.path.join(d["processed_dir"], "train.parquet"))
@@ -184,16 +263,35 @@ def build_dataset(config_path: str) -> dict:
     manifest = {
         "schema_version": 2,
         "raw_csv_sha256": digest.hexdigest(),
+        "raw_csv_bytes": os.path.getsize(raw_csv),
         "config": {"seed": cfg["seed"], **d},
-        "split_policy": "deduplicate canonical review text globally before stratified split",
+        "split": policy,
+        "split_policy": SPLIT_POLICIES[policy],
         "splits": {split: frame_fingerprint(frame) for split, frame in frames.items()},
         "cross_split_overlap": {"train_dev": 0, "train_test": 0, "dev_test": 0},
     }
+    if "review_date" in labeled:
+        manifest["review_dates"] = {split: [frame["review_date"].min(), frame["review_date"].max()]
+                                    for split, frame in frames.items()}
+    if "hotel" in labeled:
+        manifest["hotels"] = {split: int(frame["hotel"].nunique()) for split, frame in frames.items()}
+        manifest["hotels_in_more_than_one_split"] = len(_shared(frames, "hotel"))
     with open(os.path.join(d["processed_dir"], "data_manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
 
     print(json.dumps(stats, indent=2))
     return stats
+
+
+def _shared(frames: dict[str, pd.DataFrame], column: str) -> set:
+    """Values of `column` that occur in more than one split."""
+    seen: dict[object, str] = {}
+    shared = set()
+    for split, frame in frames.items():
+        for value in frame[column].unique():
+            if seen.setdefault(value, split) != split:
+                shared.add(value)
+    return shared
 
 
 def load_processed(processed_dir: str) -> dict[str, pd.DataFrame]:

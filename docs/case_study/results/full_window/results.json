@@ -1,0 +1,1189 @@
+{
+ "source": {
+  "rows_read": 515738,
+  "duplicate_rows_dropped": 565,
+  "reviews": 515173,
+  "csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+  "limit": null
+ },
+ "params": {
+  "first_month": "2015-09",
+  "last_month": "2017-07",
+  "base_start": "2015-09",
+  "base_end": "2016-07",
+  "recent_start": "2016-09",
+  "recent_end": "2017-07",
+  "min_hotel_reviews": "30"
+ },
+ "hotels": 1493,
+ "complaints": 771882,
+ "checks": [
+  {
+   "check_name": "complaints counted twice for one review and topic",
+   "value": 0
+  },
+  {
+   "check_name": "complaints without a review",
+   "value": 0
+  },
+  {
+   "check_name": "complaints on a review whose negative field holds no complaint",
+   "value": 0
+  },
+  {
+   "check_name": "reviews in full months minus the sum of monthly denominators",
+   "value": 0
+  },
+  {
+   "check_name": "overlap in months between the base and the recent period",
+   "value": 0
+  }
+ ],
+ "complaint_text_share": [
+  {
+   "month": "2015-09",
+   "reviews": 19689,
+   "complaint_text_share": 0.6469602316014018
+  },
+  {
+   "month": "2015-10",
+   "reviews": 19449,
+   "complaint_text_share": 0.6520643734896395
+  },
+  {
+   "month": "2015-11",
+   "reviews": 18039,
+   "complaint_text_share": 0.6378956704917124
+  },
+  {
+   "month": "2015-12",
+   "reviews": 17914,
+   "complaint_text_share": 0.6167243496706487
+  },
+  {
+   "month": "2016-01",
+   "reviews": 19494,
+   "complaint_text_share": 0.612547450497589
+  },
+  {
+   "month": "2016-02",
+   "reviews": 18835,
+   "complaint_text_share": 0.6720467215290682
+  },
+  {
+   "month": "2016-03",
+   "reviews": 20722,
+   "complaint_text_share": 0.6733905993629958
+  },
+  {
+   "month": "2016-04",
+   "reviews": 21470,
+   "complaint_text_share": 0.6831858407079646
+  },
+  {
+   "month": "2016-05",
+   "reviews": 23053,
+   "complaint_text_share": 0.6835119073439465
+  },
+  {
+   "month": "2016-06",
+   "reviews": 20919,
+   "complaint_text_share": 0.6873177494144079
+  },
+  {
+   "month": "2016-07",
+   "reviews": 25861,
+   "complaint_text_share": 0.6800587757627315
+  },
+  {
+   "month": "2016-08",
+   "reviews": 27249,
+   "complaint_text_share": 0.6829608425997284
+  },
+  {
+   "month": "2016-09",
+   "reviews": 22648,
+   "complaint_text_share": 0.6941451783821971
+  },
+  {
+   "month": "2016-10",
+   "reviews": 24323,
+   "complaint_text_share": 0.7042716770135263
+  },
+  {
+   "month": "2016-11",
+   "reviews": 17900,
+   "complaint_text_share": 0.6983240223463687
+  },
+  {
+   "month": "2016-12",
+   "reviews": 21657,
+   "complaint_text_share": 0.6836126887380524
+  },
+  {
+   "month": "2017-01",
+   "reviews": 22623,
+   "complaint_text_share": 0.6784246121204084
+  },
+  {
+   "month": "2017-02",
+   "reviews": 19498,
+   "complaint_text_share": 0.6894040414401477
+  },
+  {
+   "month": "2017-03",
+   "reviews": 20351,
+   "complaint_text_share": 0.6984914746204117
+  },
+  {
+   "month": "2017-04",
+   "reviews": 21381,
+   "complaint_text_share": 0.6997334081661288
+  },
+  {
+   "month": "2017-05",
+   "reviews": 23401,
+   "complaint_text_share": 0.6978761591384983
+  },
+  {
+   "month": "2017-06",
+   "reviews": 21935,
+   "complaint_text_share": 0.6890357875541372
+  },
+  {
+   "month": "2017-07",
+   "reviews": 23402,
+   "complaint_text_share": 0.6978036065293565
+  }
+ ],
+ "year_over_year": [
+  {
+   "topic": "room.equipment",
+   "base_complaining": 27506,
+   "base_reviews": 225445,
+   "recent_complaining": 31762,
+   "recent_reviews": 239119,
+   "base_rate": 0.1220075849985584,
+   "recent_rate": 0.13282926074465015,
+   "change": 0.010821675746091747
+  },
+  {
+   "topic": "room.bathroom",
+   "base_complaining": 19216,
+   "base_reviews": 225445,
+   "recent_complaining": 22968,
+   "recent_reviews": 239119,
+   "base_rate": 0.08523586684113642,
+   "recent_rate": 0.09605259306035907,
+   "change": 0.010816726219222653
+  },
+  {
+   "topic": "cleanliness.general",
+   "base_complaining": 11328,
+   "base_reviews": 225445,
+   "recent_complaining": 13926,
+   "recent_reviews": 239119,
+   "base_rate": 0.05024728869569074,
+   "recent_rate": 0.058238784872803914,
+   "change": 0.007991496177113172
+  },
+  {
+   "topic": "food.dining",
+   "base_complaining": 21681,
+   "base_reviews": 225445,
+   "recent_complaining": 24832,
+   "recent_reviews": 239119,
+   "base_rate": 0.09616979751158819,
+   "recent_rate": 0.10384787490747285,
+   "change": 0.007678077395884664
+  },
+  {
+   "topic": "room.bed",
+   "base_complaining": 14028,
+   "base_reviews": 225445,
+   "recent_complaining": 16657,
+   "recent_reviews": 239119,
+   "base_rate": 0.062223602208964494,
+   "recent_rate": 0.0696598764631836,
+   "change": 0.007436274254219104
+  },
+  {
+   "topic": "location.general",
+   "base_complaining": 15652,
+   "base_reviews": 225445,
+   "recent_complaining": 18318,
+   "recent_reviews": 239119,
+   "base_rate": 0.06942713300361507,
+   "recent_rate": 0.07660620862415785,
+   "change": 0.007179075620542777
+  },
+  {
+   "topic": "room.general",
+   "base_complaining": 37161,
+   "base_reviews": 225445,
+   "recent_complaining": 41127,
+   "recent_reviews": 239119,
+   "base_rate": 0.16483399498769102,
+   "recent_rate": 0.17199386079734358,
+   "change": 0.007159865809652555
+  },
+  {
+   "topic": "room.climate",
+   "base_complaining": 8913,
+   "base_reviews": 225445,
+   "recent_complaining": 11141,
+   "recent_reviews": 239119,
+   "base_rate": 0.03953514160881812,
+   "recent_rate": 0.0465918643018748,
+   "change": 0.007056722693056683
+  },
+  {
+   "topic": "staff.people",
+   "base_complaining": 25130,
+   "base_reviews": 225445,
+   "recent_complaining": 28207,
+   "recent_reviews": 239119,
+   "base_rate": 0.11146842910687751,
+   "recent_rate": 0.11796218619181245,
+   "change": 0.006493757084934937
+  },
+  {
+   "topic": "food.breakfast",
+   "base_complaining": 21857,
+   "base_reviews": 225445,
+   "recent_complaining": 24196,
+   "recent_reviews": 239119,
+   "base_rate": 0.09695047572578677,
+   "recent_rate": 0.10118811135877952,
+   "change": 0.004237635632992745
+  },
+  {
+   "topic": "facilities.access",
+   "base_complaining": 9764,
+   "base_reviews": 225445,
+   "recent_complaining": 11213,
+   "recent_reviews": 239119,
+   "base_rate": 0.043309898201335136,
+   "recent_rate": 0.04689296960927404,
+   "change": 0.003583071407938905
+  },
+  {
+   "topic": "staff.checkin",
+   "base_complaining": 6332,
+   "base_reviews": 225445,
+   "recent_complaining": 7379,
+   "recent_reviews": 239119,
+   "base_rate": 0.02808667302446273,
+   "recent_rate": 0.03085911199026426,
+   "change": 0.002772438965801531
+  },
+  {
+   "topic": "cleanliness.linen",
+   "base_complaining": 3795,
+   "base_reviews": 225445,
+   "recent_complaining": 4563,
+   "recent_reviews": 239119,
+   "base_rate": 0.01683337399365699,
+   "recent_rate": 0.019082548856427135,
+   "change": 0.0022491748627701466
+  },
+  {
+   "topic": "noise.general",
+   "base_complaining": 15692,
+   "base_reviews": 225445,
+   "recent_complaining": 17180,
+   "recent_reviews": 239119,
+   "base_rate": 0.0696045598704784,
+   "recent_rate": 0.07184707195998645,
+   "change": 0.002242512089508056
+  },
+  {
+   "topic": "cleanliness.odour",
+   "base_complaining": 4069,
+   "base_reviews": 225445,
+   "recent_complaining": 4684,
+   "recent_reviews": 239119,
+   "base_rate": 0.018048748031670697,
+   "recent_rate": 0.019588573053584198,
+   "change": 0.0015398250219135004
+  },
+  {
+   "topic": "staff.response",
+   "base_complaining": 2034,
+   "base_reviews": 225445,
+   "recent_complaining": 2499,
+   "recent_reviews": 239119,
+   "base_rate": 0.009022156179999557,
+   "recent_rate": 0.010450863377648785,
+   "change": 0.0014287071976492281
+  },
+  {
+   "topic": "facilities.common",
+   "base_complaining": 10506,
+   "base_reviews": 225445,
+   "recent_complaining": 11474,
+   "recent_reviews": 239119,
+   "base_rate": 0.046601166581649624,
+   "recent_rate": 0.0479844763485963,
+   "change": 0.001383309766946679
+  },
+  {
+   "topic": "value.price",
+   "base_complaining": 23659,
+   "base_reviews": 225445,
+   "recent_complaining": 25359,
+   "recent_reviews": 239119,
+   "base_rate": 0.1049435560779791,
+   "recent_rate": 0.10605179847690899,
+   "change": 0.0011082423989298845
+  },
+  {
+   "topic": "room.storage",
+   "base_complaining": 2360,
+   "base_reviews": 225445,
+   "recent_complaining": 2744,
+   "recent_reviews": 239119,
+   "base_rate": 0.010468185144935572,
+   "recent_rate": 0.011475457826437883,
+   "change": 0.0010072726815023112
+  },
+  {
+   "topic": "facilities.leisure",
+   "base_complaining": 5230,
+   "base_reviews": 225445,
+   "recent_complaining": 5788,
+   "recent_reviews": 239119,
+   "base_rate": 0.023198562842378406,
+   "recent_rate": 0.024205521100372617,
+   "change": 0.0010069582579942116
+  },
+  {
+   "topic": "facilities.kitchen",
+   "base_complaining": 1117,
+   "base_reviews": 225445,
+   "recent_complaining": 1359,
+   "recent_reviews": 239119,
+   "base_rate": 0.004954645257158065,
+   "recent_rate": 0.005683362677160744,
+   "change": 0.0007287174200026787
+  },
+  {
+   "topic": "cleanliness.pests",
+   "base_complaining": 503,
+   "base_reviews": 225445,
+   "recent_complaining": 705,
+   "recent_reviews": 239119,
+   "base_rate": 0.0022311428508061835,
+   "recent_rate": 0.0029483228016176045,
+   "change": 0.000717179950811421
+  },
+  {
+   "topic": "room.view",
+   "base_complaining": 5650,
+   "base_reviews": 225445,
+   "recent_complaining": 6146,
+   "recent_reviews": 239119,
+   "base_rate": 0.025061544944443213,
+   "recent_rate": 0.025702683601052195,
+   "change": 0.0006411386566089819
+  },
+  {
+   "topic": "facilities.parking",
+   "base_complaining": 3661,
+   "base_reviews": 225445,
+   "recent_complaining": 4003,
+   "recent_reviews": 239119,
+   "base_rate": 0.016238993989664885,
+   "recent_rate": 0.016740618687766343,
+   "change": 0.0005016246981014577
+  },
+  {
+   "topic": "value.charges",
+   "base_complaining": 9713,
+   "base_reviews": 225445,
+   "recent_complaining": 10408,
+   "recent_reviews": 239119,
+   "base_rate": 0.04308367894608441,
+   "recent_rate": 0.043526444991824155,
+   "change": 0.00044276604573974254
+  },
+  {
+   "topic": "room.comfort",
+   "base_complaining": 2053,
+   "base_reviews": 225445,
+   "recent_complaining": 2260,
+   "recent_reviews": 239119,
+   "base_rate": 0.009106433941759631,
+   "recent_rate": 0.009451361037809625,
+   "change": 0.00034492709604999443
+  },
+  {
+   "topic": "facilities.family",
+   "base_complaining": 395,
+   "base_reviews": 225445,
+   "recent_complaining": 432,
+   "recent_reviews": 239119,
+   "base_rate": 0.0017520903102752334,
+   "recent_rate": 0.0018066318443954684,
+   "change": 5.4541534120234984e-05
+  },
+  {
+   "topic": "room.size",
+   "base_complaining": 11479,
+   "base_reviews": 225445,
+   "recent_complaining": 11979,
+   "recent_reviews": 239119,
+   "base_rate": 0.05091707511809976,
+   "recent_rate": 0.050096395518549344,
+   "change": -0.000820679599550414
+  },
+  {
+   "topic": "facilities.wifi",
+   "base_complaining": 6576,
+   "base_reviews": 225445,
+   "recent_complaining": 6355,
+   "recent_reviews": 239119,
+   "base_rate": 0.029168976912328948,
+   "recent_rate": 0.02657672539614167,
+   "change": -0.0025922515161872772
+  }
+ ],
+ "within_hotel": [
+  {
+   "topic": "room.bathroom",
+   "hotels": 1130,
+   "base_rate": 0.08467264499903625,
+   "within_hotel_change": 0.012274203470144754,
+   "relative_change": 0.14496067142209224,
+   "ci95": [
+    0.010146585308316724,
+    0.014399498601238486
+   ],
+   "ci99.8276": [
+    0.008921067568923337,
+    0.015760430448346234
+   ],
+   "recent_rate": 0.09643689673603033,
+   "recent_rate_base_mix": 0.096946848469181,
+   "raw_change": 0.01176425173699408,
+   "mix_effect": -0.0005099517331506737,
+   "flag": "rising"
+  },
+  {
+   "topic": "room.equipment",
+   "hotels": 1130,
+   "base_rate": 0.12219937769047903,
+   "within_hotel_change": 0.011222339684906657,
+   "relative_change": 0.09183630798294178,
+   "ci95": [
+    0.008695627439861554,
+    0.013592469627892175
+   ],
+   "ci99.8276": [
+    0.007165191809602412,
+    0.015080287599472096
+   ],
+   "recent_rate": 0.13321775218623536,
+   "recent_rate_base_mix": 0.1334217173753857,
+   "raw_change": 0.011018374495756322,
+   "mix_effect": -0.00020396518915033468,
+   "flag": ""
+  },
+  {
+   "topic": "room.general",
+   "hotels": 1130,
+   "base_rate": 0.1644806285509734,
+   "within_hotel_change": 0.009787269200079579,
+   "relative_change": 0.05950408437943471,
+   "ci95": [
+    0.007276970164323346,
+    0.012271591076186424
+   ],
+   "ci99.8276": [
+    0.005623922697302171,
+    0.013612401572757789
+   ],
+   "recent_rate": 0.17231172774351766,
+   "recent_rate_base_mix": 0.17426789775105297,
+   "raw_change": 0.007831099192544266,
+   "mix_effect": -0.0019561700075353128,
+   "flag": ""
+  },
+  {
+   "topic": "room.bed",
+   "hotels": 1130,
+   "base_rate": 0.0626394000862789,
+   "within_hotel_change": 0.008611712429856339,
+   "relative_change": 0.1374807615972479,
+   "ci95": [
+    0.006878753659167447,
+    0.010248341892372934
+   ],
+   "ci99.8276": [
+    0.006001971359891642,
+    0.011279486603071034
+   ],
+   "recent_rate": 0.07121715032585799,
+   "recent_rate_base_mix": 0.07125111251613524,
+   "raw_change": 0.008577750239579088,
+   "mix_effect": -3.396219027725078e-05,
+   "flag": "rising"
+  },
+  {
+   "topic": "cleanliness.general",
+   "hotels": 1130,
+   "base_rate": 0.05031253155145986,
+   "within_hotel_change": 0.007800325246982959,
+   "relative_change": 0.15503742321144692,
+   "ci95": [
+    0.006121469350444177,
+    0.009534943293737351
+   ],
+   "ci99.8276": [
+    0.005522610343745449,
+    0.010693113371805925
+   ],
+   "recent_rate": 0.058870029598954376,
+   "recent_rate_base_mix": 0.05811285679844281,
+   "raw_change": 0.008557498047494519,
+   "mix_effect": 0.0007571728005115672,
+   "flag": "rising"
+  },
+  {
+   "topic": "room.climate",
+   "hotels": 1130,
+   "base_rate": 0.03938081120524282,
+   "within_hotel_change": 0.007583464738314852,
+   "relative_change": 0.1925675095617445,
+   "ci95": [
+    0.005867464822676664,
+    0.009430769078738898
+   ],
+   "ci99.8276": [
+    0.005036200763952809,
+    0.010747227091217485
+   ],
+   "recent_rate": 0.04698553289346622,
+   "recent_rate_base_mix": 0.04696427594355768,
+   "raw_change": 0.007604721688223404,
+   "mix_effect": 2.1256949908537992e-05,
+   "flag": "rising"
+  },
+  {
+   "topic": "food.dining",
+   "hotels": 1130,
+   "base_rate": 0.09666908369971271,
+   "within_hotel_change": 0.006471750743050675,
+   "relative_change": 0.06694747167723396,
+   "ci95": [
+    0.004314818339984231,
+    0.00854241253053298
+   ],
+   "ci99.8276": [
+    0.003072281517674844,
+    0.009765042783026824
+   ],
+   "recent_rate": 0.10394218547180913,
+   "recent_rate_base_mix": 0.1031408344427634,
+   "raw_change": 0.007273101772096419,
+   "mix_effect": 0.0008013510290457299,
+   "flag": ""
+  },
+  {
+   "topic": "staff.people",
+   "hotels": 1130,
+   "base_rate": 0.1121258570523823,
+   "within_hotel_change": 0.005842044627217269,
+   "relative_change": 0.05210256385811184,
+   "ci95": [
+    0.003288137177982244,
+    0.008465993728651356
+   ],
+   "ci99.8276": [
+    0.0016014473116601588,
+    0.009682581309788095
+   ],
+   "recent_rate": 0.11850361340801192,
+   "recent_rate_base_mix": 0.11796790167959958,
+   "raw_change": 0.006377756355629621,
+   "mix_effect": 0.0005357117284123386,
+   "flag": ""
+  },
+  {
+   "topic": "location.general",
+   "hotels": 1130,
+   "base_rate": 0.0696243196357929,
+   "within_hotel_change": 0.0046631498950651384,
+   "relative_change": 0.06697587738678423,
+   "ci95": [
+    0.0029100378066758584,
+    0.006281152177293727
+   ],
+   "ci99.8276": [
+    0.0016853296583265553,
+    0.007224309377749771
+   ],
+   "recent_rate": 0.07682702802243951,
+   "recent_rate_base_mix": 0.07428746953085805,
+   "raw_change": 0.00720270838664662,
+   "mix_effect": 0.0025395584915814673,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.access",
+   "hotels": 1130,
+   "base_rate": 0.043281718969426064,
+   "within_hotel_change": 0.00412538271642815,
+   "relative_change": 0.09531466897935117,
+   "ci95": [
+    0.0024523945529397106,
+    0.0059006610043005345
+   ],
+   "ci99.8276": [
+    0.0012773996783402213,
+    0.00681388860980768
+   ],
+   "recent_rate": 0.047331378035689424,
+   "recent_rate_base_mix": 0.04740710168585421,
+   "raw_change": 0.00404965906626336,
+   "mix_effect": -7.572365016478289e-05,
+   "flag": ""
+  },
+  {
+   "topic": "food.breakfast",
+   "hotels": 1130,
+   "base_rate": 0.09684347722328795,
+   "within_hotel_change": 0.004022427891562985,
+   "relative_change": 0.04153535175413664,
+   "ci95": [
+    0.0014880105952179425,
+    0.006457701416104831
+   ],
+   "ci99.8276": [
+    0.00015407046241466788,
+    0.007579654701442835
+   ],
+   "recent_rate": 0.10138652461564028,
+   "recent_rate_base_mix": 0.10086590511485097,
+   "raw_change": 0.004543047392352326,
+   "mix_effect": 0.0005206195007893127,
+   "flag": ""
+  },
+  {
+   "topic": "noise.general",
+   "hotels": 1130,
+   "base_rate": 0.06940862238294981,
+   "within_hotel_change": 0.003096456465130737,
+   "relative_change": 0.04461198564130239,
+   "ci95": [
+    0.0011246758696486837,
+    0.005029308577834748
+   ],
+   "ci99.8276": [
+    0.00026365370599493903,
+    0.006141989377787023
+   ],
+   "recent_rate": 0.0723310411735379,
+   "recent_rate_base_mix": 0.07250507884808056,
+   "raw_change": 0.002922418790588091,
+   "mix_effect": -0.00017403767454265973,
+   "flag": ""
+  },
+  {
+   "topic": "staff.checkin",
+   "hotels": 1130,
+   "base_rate": 0.028348126187482215,
+   "within_hotel_change": 0.0021413011261504945,
+   "relative_change": 0.07553589651706985,
+   "ci95": [
+    0.0008387109857632138,
+    0.0035037421151594057
+   ],
+   "ci99.8276": [
+    7.230593730453902e-05,
+    0.004347340810102501
+   ],
+   "recent_rate": 0.031036232893017074,
+   "recent_rate_base_mix": 0.030489427313632713,
+   "raw_change": 0.002688106705534859,
+   "mix_effect": 0.0005468055793843608,
+   "flag": ""
+  },
+  {
+   "topic": "cleanliness.linen",
+   "hotels": 1130,
+   "base_rate": 0.016819796418507744,
+   "within_hotel_change": 0.002061697059292548,
+   "relative_change": 0.12257562505476877,
+   "ci95": [
+    0.0011588301130488017,
+    0.0029162605945712706
+   ],
+   "ci99.8276": [
+    0.0005346859673176387,
+    0.003528438689126036
+   ],
+   "recent_rate": 0.019106821233993432,
+   "recent_rate_base_mix": 0.018881493477800288,
+   "raw_change": 0.002287024815485688,
+   "mix_effect": 0.00022532775619314369,
+   "flag": "rising"
+  },
+  {
+   "topic": "value.price",
+   "hotels": 1130,
+   "base_rate": 0.10515929471587623,
+   "within_hotel_change": 0.0019645899021449448,
+   "relative_change": 0.018682037640638003,
+   "ci95": [
+    -0.00019442909541772033,
+    0.0040416090010160525
+   ],
+   "ci99.8276": [
+    -0.0015098386941974238,
+    0.005209322532148707
+   ],
+   "recent_rate": 0.10736470493121275,
+   "recent_rate_base_mix": 0.10712388461802118,
+   "raw_change": 0.0022054102153365174,
+   "mix_effect": 0.0002408203131915726,
+   "flag": ""
+  },
+  {
+   "topic": "cleanliness.odour",
+   "hotels": 1130,
+   "base_rate": 0.01808185481280232,
+   "within_hotel_change": 0.001684497086589909,
+   "relative_change": 0.09315952948572792,
+   "ci95": [
+    0.0007266248450331431,
+    0.002573517268402235
+   ],
+   "ci99.8276": [
+    0.00037446653619383337,
+    0.0030464457421592577
+   ],
+   "recent_rate": 0.01985240946268241,
+   "recent_rate_base_mix": 0.019766351899392232,
+   "raw_change": 0.0017705546498800913,
+   "mix_effect": 8.605756329017888e-05,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.common",
+   "hotels": 1130,
+   "base_rate": 0.04648046333605632,
+   "within_hotel_change": 0.0015749108353798127,
+   "relative_change": 0.03388328605920127,
+   "ci95": [
+    6.737116608833636e-05,
+    0.003068338368943334
+   ],
+   "ci99.8276": [
+    -0.000681493058057777,
+    0.004031872166175572
+   ],
+   "recent_rate": 0.048162304676095814,
+   "recent_rate_base_mix": 0.04805537417143614,
+   "raw_change": 0.001681841340039493,
+   "mix_effect": 0.0001069305046596733,
+   "flag": ""
+  },
+  {
+   "topic": "staff.response",
+   "hotels": 1130,
+   "base_rate": 0.009123534864936805,
+   "within_hotel_change": 0.0012173998970686235,
+   "relative_change": 0.13343511205807793,
+   "ci95": [
+    0.0005986584222557761,
+    0.001807146664788275
+   ],
+   "ci99.8276": [
+    0.000266125767689255,
+    0.002158147237800012
+   ],
+   "recent_rate": 0.010429252210938588,
+   "recent_rate_base_mix": 0.010340934762005429,
+   "raw_change": 0.0013057173460017824,
+   "mix_effect": 8.831744893315896e-05,
+   "flag": "rising"
+  },
+  {
+   "topic": "room.storage",
+   "hotels": 1130,
+   "base_rate": 0.010504915143782871,
+   "within_hotel_change": 0.0009464606293189785,
+   "relative_change": 0.09009693237542454,
+   "ci95": [
+    0.0003297355354502242,
+    0.0015988342886373295
+   ],
+   "ci99.8276": [
+    5.1397639486200385e-05,
+    0.0019517623179020663
+   ],
+   "recent_rate": 0.011143399972152728,
+   "recent_rate_base_mix": 0.01145137577310185,
+   "raw_change": 0.000638484828369857,
+   "mix_effect": -0.0003079758009491215,
+   "flag": ""
+  },
+  {
+   "topic": "cleanliness.pests",
+   "hotels": 1130,
+   "base_rate": 0.002193686954446576,
+   "within_hotel_change": 0.000765575412295153,
+   "relative_change": 0.348990274452488,
+   "ci95": [
+    0.00035873903177056346,
+    0.0011967612231788207
+   ],
+   "ci99.8276": [
+    0.00018744500085637777,
+    0.0014537128725192405
+   ],
+   "recent_rate": 0.0029688784286952654,
+   "recent_rate_base_mix": 0.0029592623667417293,
+   "raw_change": 0.0007751914742486895,
+   "mix_effect": 9.616061953536103e-06,
+   "flag": "rising"
+  },
+  {
+   "topic": "room.comfort",
+   "hotels": 1130,
+   "base_rate": 0.009004212980385317,
+   "within_hotel_change": 0.0006310408473034733,
+   "relative_change": 0.07008284329548024,
+   "ci95": [
+    1.4515656923634924e-05,
+    0.0012509032386280095
+   ],
+   "ci99.8276": [
+    -0.0003517577751957412,
+    0.0016142175692285365
+   ],
+   "recent_rate": 0.009517478654168332,
+   "recent_rate_base_mix": 0.00963525382768879,
+   "raw_change": 0.0005132656737830144,
+   "mix_effect": -0.00011777517352045894,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.kitchen",
+   "hotels": 1130,
+   "base_rate": 0.004924322389374845,
+   "within_hotel_change": 0.0005649741074042099,
+   "relative_change": 0.11473134021916358,
+   "ci95": [
+    0.0001263734721646723,
+    0.0010081436385007512
+   ],
+   "ci99.8276": [
+    -0.00013328447033183306,
+    0.0012604639399048172
+   ],
+   "recent_rate": 0.005654792650117003,
+   "recent_rate_base_mix": 0.005489296496779053,
+   "raw_change": 0.0007304702607421583,
+   "mix_effect": 0.0001654961533379502,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.leisure",
+   "hotels": 1130,
+   "base_rate": 0.02340544658509945,
+   "within_hotel_change": 0.0004973917404839726,
+   "relative_change": 0.021251110876073852,
+   "ci95": [
+    -0.0007975772126783727,
+    0.0017643716997867117
+   ],
+   "ci99.8276": [
+    -0.0015242039556120583,
+    0.0024164948747853665
+   ],
+   "recent_rate": 0.024227125937038217,
+   "recent_rate_base_mix": 0.02390283832558342,
+   "raw_change": 0.0008216793519387651,
+   "mix_effect": 0.000324287611454796,
+   "flag": ""
+  },
+  {
+   "topic": "room.view",
+   "hotels": 1130,
+   "base_rate": 0.025245757189143545,
+   "within_hotel_change": 0.00013688156733134005,
+   "relative_change": 0.005421963235477973,
+   "ci95": [
+    -0.0008565133227570746,
+    0.0011143248614055468
+   ],
+   "ci99.8276": [
+    -0.0013495374522545715,
+    0.0017745939249119186
+   ],
+   "recent_rate": 0.02565991295482005,
+   "recent_rate_base_mix": 0.025382638756474885,
+   "raw_change": 0.0004141557656765042,
+   "mix_effect": 0.0002772741983451642,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.family",
+   "hotels": 1130,
+   "base_rate": 0.0017622924487604291,
+   "within_hotel_change": 9.733337630106215e-05,
+   "relative_change": 0.055231114659502194,
+   "ci95": [
+    -0.00015391175566574185,
+    0.00037449735875515487
+   ],
+   "ci99.8276": [
+    -0.00037305648214339127,
+    0.0005578917444662449
+   ],
+   "recent_rate": 0.001823547113540511,
+   "recent_rate_base_mix": 0.001859625825061491,
+   "raw_change": 6.125466478008185e-05,
+   "mix_effect": -3.607871152098009e-05,
+   "flag": ""
+  },
+  {
+   "topic": "room.size",
+   "hotels": 1130,
+   "base_rate": 0.05050987159129501,
+   "within_hotel_change": -0.00015650949366156908,
+   "relative_change": -0.0030985921906113555,
+   "ci95": [
+    -0.00148136323887069,
+    0.001247455306591717
+   ],
+   "ci99.8276": [
+    -0.002236718738434775,
+    0.0019680789226387803
+   ],
+   "recent_rate": 0.049289670009836375,
+   "recent_rate_base_mix": 0.05035336209763344,
+   "raw_change": -0.0012202015814586353,
+   "mix_effect": -0.0010636920877970663,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.parking",
+   "hotels": 1130,
+   "base_rate": 0.0165031344941211,
+   "within_hotel_change": -0.00018835777220214261,
+   "relative_change": -0.011413454351307696,
+   "ci95": [
+    -0.0010997621372659046,
+    0.0007452806714268324
+   ],
+   "ci99.8276": [
+    -0.0015175020732729999,
+    0.001111626858589858
+   ],
+   "recent_rate": 0.01693742897822972,
+   "recent_rate_base_mix": 0.016314776721918958,
+   "raw_change": 0.0004342944841086195,
+   "mix_effect": 0.0006226522563107621,
+   "flag": ""
+  },
+  {
+   "topic": "value.charges",
+   "hotels": 1130,
+   "base_rate": 0.04356625577104884,
+   "within_hotel_change": -0.000492630026667655,
+   "relative_change": -0.011307605346131748,
+   "ci95": [
+    -0.0018323196611596281,
+    0.0007948886557971372
+   ],
+   "ci99.8276": [
+    -0.0023533524069436255,
+    0.0014694344491412424
+   ],
+   "recent_rate": 0.043836994650629034,
+   "recent_rate_base_mix": 0.04307362574438119,
+   "raw_change": 0.00027073887958019294,
+   "mix_effect": 0.000763368906247841,
+   "flag": ""
+  },
+  {
+   "topic": "facilities.wifi",
+   "hotels": 1130,
+   "base_rate": 0.0290502895850352,
+   "within_hotel_change": -0.0025799269788056127,
+   "relative_change": -0.08880899349570069,
+   "ci95": [
+    -0.0052048284867925905,
+    -0.00010309344792818525
+   ],
+   "ci99.8276": [
+    -0.006576957427770323,
+    0.0012327666943078833
+   ],
+   "recent_rate": 0.026728888848964485,
+   "recent_rate_base_mix": 0.026470362606229588,
+   "raw_change": -0.002321400736070716,
+   "mix_effect": 0.00025852624273489666,
+   "flag": ""
+  }
+ ],
+ "strict_interval": "ci99.8276",
+ "guest_mix": [
+  {
+   "dimension": "nationality",
+   "segment": "United Kingdom",
+   "base_share": 0.4927498946527978,
+   "recent_share": 0.46900079040143194,
+   "change": -0.023749104251365838
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Other",
+   "base_share": 0.278467031870301,
+   "recent_share": 0.28878508190482566,
+   "change": 0.010318050034524684
+  },
+  {
+   "dimension": "nationality",
+   "segment": "United States of America",
+   "base_share": 0.06490718357027213,
+   "recent_share": 0.07034990945930687,
+   "change": 0.005442725889034744
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Ireland",
+   "base_share": 0.026614030029497217,
+   "recent_share": 0.03164951342218728,
+   "change": 0.005035483392690065
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Australia",
+   "base_share": 0.03817782607731376,
+   "recent_share": 0.04171144911111204,
+   "change": 0.0035336230337982832
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Saudi Arabia",
+   "base_share": 0.016926523098760228,
+   "recent_share": 0.015092903533387141,
+   "change": -0.0018336195653730868
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Germany",
+   "base_share": 0.015076848011710173,
+   "recent_share": 0.015887486983468483,
+   "change": 0.0008106389717583099
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Canada",
+   "base_share": 0.014553438754463395,
+   "recent_share": 0.015092903533387141,
+   "change": 0.0005394647789237466
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Switzerland",
+   "base_share": 0.017152742354010955,
+   "recent_share": 0.016886989323307643,
+   "change": -0.00026575303070331194
+  },
+  {
+   "dimension": "nationality",
+   "segment": "United Arab Emirates",
+   "base_share": 0.018217303555190845,
+   "recent_share": 0.01837160576951225,
+   "change": 0.00015430221432140637
+  },
+  {
+   "dimension": "nationality",
+   "segment": "Netherlands",
+   "base_share": 0.017157178025682538,
+   "recent_share": 0.017171366558073595,
+   "change": 1.4188532391056635e-05
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Family with young children",
+   "base_share": 0.0580274568076471,
+   "recent_share": 0.1744110672928542,
+   "change": 0.1163836104852071
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Family with older children",
+   "base_share": 0.08199782652088092,
+   "recent_share": 0.005327891133703302,
+   "change": -0.07666993538717762
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Couple",
+   "base_share": 0.5170263257113709,
+   "recent_share": 0.46684286903173733,
+   "change": -0.05018345667963353
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Group",
+   "base_share": 0.12192774290846992,
+   "recent_share": 0.13390403941133913,
+   "change": 0.011976296502869216
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Solo traveler",
+   "base_share": 0.21901128878440418,
+   "recent_share": 0.21314491947524036,
+   "change": -0.005866369309163816
+  },
+  {
+   "dimension": "traveller_type",
+   "segment": "Travelers with friends",
+   "base_share": 0.00200935926722704,
+   "recent_share": 0.006369213655125691,
+   "change": 0.0043598543878986505
+  },
+  {
+   "dimension": "trip_type",
+   "segment": "Business trip",
+   "base_share": 0.173851715496019,
+   "recent_share": 0.16416930482312153,
+   "change": -0.009682410672897462
+  },
+  {
+   "dimension": "trip_type",
+   "segment": "Leisure trip",
+   "base_share": 0.7983233161081417,
+   "recent_share": 0.8049423090595059,
+   "change": 0.006618992951364255
+  },
+  {
+   "dimension": "trip_type",
+   "segment": "Unknown",
+   "base_share": 0.02782496839583934,
+   "recent_share": 0.030888386117372522,
+   "change": 0.0030634177215331827
+  }
+ ],
+ "flagged": {
+  "rising": [
+   "room.bathroom",
+   "room.bed",
+   "cleanliness.general",
+   "room.climate",
+   "cleanliness.linen",
+   "staff.response",
+   "cleanliness.pests"
+  ],
+  "falling": []
+ },
+ "runtime_seconds": 482.6
+}

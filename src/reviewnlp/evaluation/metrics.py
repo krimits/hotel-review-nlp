@@ -56,6 +56,29 @@ def binary_metrics(y_true, y_pred, label_names=LABELS, label_values=None) -> dic
     }
 
 
+def _macro_f1(y_true: np.ndarray, y_pred: np.ndarray, labels) -> float:
+    scores = []
+    for label in labels:
+        truth, guess = y_true == label, y_pred == label
+        true_pos = np.sum(truth & guess)
+        wrong = np.sum(~truth & guess) + np.sum(truth & ~guess)
+        scores.append(2 * true_pos / (2 * true_pos + wrong) if true_pos or wrong else 0.0)
+    return float(np.mean(scores))
+
+
+def bootstrap_ci(y_true, y_pred, labels=LABELS, n_resamples: int = 1000, seed: int = 0,
+                 level: float = 0.95) -> tuple[float, float]:
+    """Percentile bootstrap interval of macro-F1, resampling test reviews with replacement."""
+    y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+    if len(y_true) != len(y_pred) or len(y_true) == 0:
+        raise ValueError("need two non-empty arrays of the same length")
+    rng = np.random.default_rng(seed)
+    values = [_macro_f1(y_true[rows], y_pred[rows], labels)
+              for rows in (rng.integers(0, len(y_true), len(y_true)) for _ in range(n_resamples))]
+    low, high = np.quantile(values, [(1 - level) / 2, (1 + level) / 2])
+    return round(float(low), 4), round(float(high), 4)
+
+
 def discordant_counts(y_true, preds_a, preds_b, model_a: str, model_b: str) -> tuple[int, int]:
     """Return (n01, n10): a-wrong/b-right and a-right/b-wrong counts.
 

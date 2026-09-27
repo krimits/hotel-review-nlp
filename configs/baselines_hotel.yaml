@@ -1,4 +1,4 @@
-# Classical ML baselines + dataset construction (v2: built from the raw CSV)
+# Same as baselines.yaml, but the test set holds hotels the model has never seen: whole hotels go to one split.
 # `make data` fetches the raw CSV, checks its SHA-256 and builds these splits.
 # The uploaded v1 splits in data/processed are kept as history, untouched.
 seed: 42
@@ -6,9 +6,9 @@ seed: 42
 data:
   # Booking.com 515K Hotel Reviews (Kaggle id below) - see data/raw/README.md
   raw_csv: data/raw/booking_reviews_515k.csv
-  processed_dir: data/processed_v2
+  processed_dir: data/processed_v2_hotel
   # random: reviews like the training ones; time: later reviews; hotel: unseen hotels
-  split: random
+  split: hotel
   # A review is labeled positive when only Positive_Review is present
   # ('No Negative' in the negative slot) and vice versa. This removes any
   # threshold arbitrariness from the Reviewer_Score.
@@ -45,5 +45,5 @@ baselines:
         random_state: 42
 
 output:
-  model_dir: runs/classical_v2
-  metrics_path: runs/classical_v2/metrics.json
+  model_dir: runs/classical_v2_hotel
+  metrics_path: runs/classical_v2_hotel/metrics.json

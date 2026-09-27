@@ -4,7 +4,7 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Hotel review classification and an emerging hotel-operations product: **0.9634 macro-F1 / 97.27% accuracy** on a historical test split, with an API, aspect extraction and hotel-scoped recommendations. The historical split contains known text overlap; see [limitations](#technical-details).
+> Hotel review classification and an emerging hotel-operations product, with an API, aspect extraction and hotel-scoped recommendations. On a test set that shares no review text with training, TF-IDF + Naive Bayes, chosen on dev, reaches **0.9347 macro-F1 / 95.10% accuracy**. The higher figures below (DistilBERT 0.9634) come from an earlier split whose test set shares 170 texts with training; they are kept as [history](#historical-results-legacy-split-text-overlap). What this project demonstrates, with links to the evidence: [evidence map](docs/EVIDENCE_MAP.md).
 
  **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)**  · **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** .**📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
 
@@ -18,10 +18,10 @@ Manual triage doesn't scale. Keyword rules miss sarcasm, mixed sentiment, and co
 
 ## The solution
 
-A **binary sentiment classifier** fine-tuned on **118,990 real Booking.com reviews** that:
+A **binary sentiment classifier** trained on about **118,000 real Booking.com reviews** that:
 
 - Supports CPU inference; the archived FastAPI load test measured `/predict` p50 **360 ms under load** on its Windows CPU
-- Achieves **0.9634 macro-F1** on a held-out test set of 13,278 reviews
+- Reaches **0.9347 macro-F1** (TF-IDF + Naive Bayes, chosen on dev) on a test set that shares no review text with training
 - Exposes a **FastAPI service** — `/predict` for scoring, `/absa` for per-aspect extraction — with health checks and batch paths for both
 - Ships as a Docker image and includes an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md)
 - Includes a reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run
@@ -32,7 +32,50 @@ For teams, this is the difference between reading reviews and *acting* on them.
 
 ## Key results
 
-All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 positive, 3,278 negative), with paired McNemar tests for statistical significance. Every row is the number recorded in the preserved run artifacts under [`docs/experiments/results/`](docs/experiments/results/) — the DistilBERT pair is additionally recomputed from saved logits by [`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) on every CI run.
+**Clean test set.** The uploaded processed parquets were audited and cleaned:
+duplicates and texts with contradictory labels removed, and no review text
+shared between train, dev and test. On the resulting **13,270-review** test set,
+a word TF-IDF + Naive Bayes model selected on dev reached **0.9347 macro-F1** and
+**95.10% accuracy**. Its fingerprints, rejected duplicates, per-class metrics and
+explicit missing-model list are in [the benchmark](runs/benchmark/README.md), the
+[four candidate metrics](docs/experiments/results/classical_clean_uploaded_metrics.json) and
+[`results.json`](runs/benchmark/results.json). No neural model has been re-run on
+a clean split yet.
+
+**Rebuilt from the raw file.** The Booking CSV is not in the repository, but a
+byte-identical copy of the Kaggle file is on the Hugging Face Hub. `make data`
+downloads it at a pinned revision, refuses it unless the size and SHA-256 match,
+and builds three splits of the same reviews: random, **out-of-time** (train on
+older reviews, test on newer) and **unseen hotels**. See
+[`data/raw/README.md`](data/raw/README.md) and
+[`notebooks/08_phase1_data_and_trends_colab.ipynb`](notebooks/08_phase1_data_and_trends_colab.ipynb).
+The same pipeline, chosen on dev, gives these results on each split:
+
+| Test set | What it asks | Test reviews | Macro-F1 (95% bootstrap CI) | Accuracy |
+| :--- | :--- | ---: | ---: | ---: |
+| Random | reviews like the training ones | 13,263 | 0.9351 (0.9303–0.9400) | 95.14% |
+| **Out-of-time** | reviews written after every training review (26 May–3 Aug 2017) | 13,921 | **0.9184** (0.9132–0.9233) | 93.32% |
+| Unseen hotels | 147 hotels with no review in training | 13,289 | 0.9348 (0.9298–0.9396) | 95.12% |
+
+The selected pipeline is word TF-IDF + Naive Bayes on all three splits. A new
+hotel costs nothing. Later reviews cost 1.7 points, and the intervals do not
+overlap. Recall falls for both classes (negative 0.913 → 0.900, positive
+0.964 → 0.946), so the drop is not only a change in the share of negative
+reviews: guests' wording drifts over time. A deployed model needs
+monitoring on recent reviews and periodic retraining. The results, manifests
+and test predictions are in
+[`docs/experiments/results/split_views.json`](docs/experiments/results/split_views.json) and
+[`v2_splits/`](docs/experiments/results/v2_splits/).
+
+### Historical results (legacy split, text overlap)
+
+These were measured on the first frozen test set of 13,278 reviews (10,000
+positive, 3,278 negative), which shares **170 normalized review texts with its
+training set** (audit finding F02). They are kept as recorded and are not
+comparable with the clean result above. Every row is the number recorded in the
+preserved run artifacts under [`docs/experiments/results/`](docs/experiments/results/);
+the DistilBERT pair is also recomputed from saved logits by
+[`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) on every CI run.
 
 | Model | Macro-F1 | Accuracy | Trainable params | Notes |
 | :--- | ---: | ---: | ---: | :--- |
@@ -41,16 +84,6 @@ All models evaluated on the same **frozen test set of 13,278 reviews** (10,000 p
 | **DistilBERT (full FT)** | **0.9634** | **97.3%** | 67.0M (100%) | 🏆 Best accuracy |
 | DistilBERT + scratch LoRA | 0.9573 | 96.8% | 0.74M (**1.1%**) | 35% faster training, 38% less GPU memory |
 | Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | Adapter | 4-bit, 20k subset |
-
-**Fresh clean-split result (separate experiment):** the newly uploaded processed
-parquets were audited, cleaned and kept separate from the legacy comparison.
-On their derived **13,270-review** test set, a word TF-IDF + Naive Bayes model
-selected on dev reached **0.9347 macro-F1** and **95.10% accuracy**. Its
-fingerprints, rejected duplicates, per-class metrics and explicit missing-model
-list are in [the new benchmark](runs/benchmark/README.md), the
-[four candidate metrics](docs/experiments/results/classical_clean_uploaded_metrics.json) and
-[`results.json`](runs/benchmark/results.json). The raw Booking CSV was not
-available for an end-to-end rebuild; old and new scores use different tests.
 
 <details>
 <summary><b>Pairwise McNemar tests (exact, on classification errors)</b></summary>
