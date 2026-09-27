@@ -1,0 +1,20 @@
+{
+  "train": {
+    "rows": 116202,
+    "positive": 90040,
+    "negative": 26162,
+    "avg_chars": 119.93793566375794
+  },
+  "dev": {
+    "rows": 15086,
+    "positive": 11906,
+    "negative": 3180,
+    "avg_chars": 119.25818639798489
+  },
+  "test": {
+    "rows": 13289,
+    "positive": 10000,
+    "negative": 3289,
+    "avg_chars": 121.52088193242531
+  }
+}

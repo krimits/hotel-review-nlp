@@ -49,6 +49,23 @@ and builds three splits of the same reviews: random, **out-of-time** (train on
 older reviews, test on newer) and **unseen hotels**. See
 [`data/raw/README.md`](data/raw/README.md) and
 [`notebooks/08_phase1_data_and_trends_colab.ipynb`](notebooks/08_phase1_data_and_trends_colab.ipynb).
+The same pipeline, chosen on dev, gives these results on each split:
+
+| Test set | What it asks | Test reviews | Macro-F1 (95% bootstrap CI) | Accuracy |
+| :--- | :--- | ---: | ---: | ---: |
+| Random | reviews like the training ones | 13,263 | 0.9351 (0.9303–0.9400) | 95.14% |
+| **Out-of-time** | reviews written after every training review (26 May–3 Aug 2017) | 13,921 | **0.9184** (0.9132–0.9233) | 93.32% |
+| Unseen hotels | 147 hotels with no review in training | 13,289 | 0.9348 (0.9298–0.9396) | 95.12% |
+
+The selected pipeline is word TF-IDF + Naive Bayes on all three splits. A new
+hotel costs nothing. Later reviews cost 1.7 points, and the intervals do not
+overlap. Recall falls for both classes (negative 0.913 → 0.900, positive
+0.964 → 0.946), so the drop is not only a change in the share of negative
+reviews: guests' wording drifts over time. A deployed model needs
+monitoring on recent reviews and periodic retraining. The results, manifests
+and test predictions are in
+[`docs/experiments/results/split_views.json`](docs/experiments/results/split_views.json) and
+[`v2_splits/`](docs/experiments/results/v2_splits/).
 
 ### Historical results (legacy split, text overlap)
 

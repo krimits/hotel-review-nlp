@@ -16,8 +16,9 @@ trends = importlib.util.module_from_spec(_spec)
 sys.modules[_spec.name] = trends
 _spec.loader.exec_module(trends)
 
-PARAMS = {"first_month": "2016-01", "last_month": "2017-01", "base_start": "2016-01", "base_end": "2016-01",
-          "recent_start": "2017-01", "recent_end": "2017-01", "min_hotel_reviews": "2"}
+PARAMS = {"first_month": "2016-01", "last_month": "2017-01", "comparison_start": "2016-01",
+          "base_start": "2016-01", "base_end": "2016-01", "recent_start": "2017-01", "recent_end": "2017-01",
+          "min_hotel_reviews": "2"}
 
 
 def _reviews() -> tuple[pd.DataFrame, list[tuple[int, str, str]]]:
@@ -69,6 +70,8 @@ def test_year_over_year_uses_every_review_as_denominator(database):
     row = pd.read_sql_query((trends.SQL_DIR / "02_year_over_year.sql").read_text(), database).iloc[0]
     assert (row["base_complaining"], row["base_reviews"]) == (2, 20)
     assert (row["recent_complaining"], row["recent_reviews"]) == (4, 40)
+    # every review with a complaint in this database is about noise
+    assert (row["base_share_of_complaints"], row["recent_share_of_complaints"]) == (1.0, 1.0)
 
 
 def test_monthly_rates_and_checks(database):
@@ -93,8 +96,19 @@ def test_guest_mix_shares_sum_to_one(database):
 def test_analysis_windows_use_full_months_one_year_apart():
     dates = pd.Series(pd.to_datetime(["2015-08-04", "2016-03-10", "2017-08-03"]))
     assert trends.analysis_windows(dates) == {
-        "first_month": "2015-09", "last_month": "2017-07", "base_start": "2015-09", "base_end": "2016-07",
-        "recent_start": "2016-09", "recent_end": "2017-07", "min_hotel_reviews": "30"}
+        "first_month": "2015-09", "last_month": "2017-07", "comparison_start": "2015-09",
+        "base_start": "2015-09", "base_end": "2016-07", "recent_start": "2016-09", "recent_end": "2017-07",
+        "min_hotel_reviews": "30"}
+
+
+def test_analysis_windows_can_start_after_a_form_change():
+    dates = pd.Series(pd.to_datetime(["2015-08-04", "2016-03-10", "2017-08-03"]))
+    windows = trends.analysis_windows(dates, since="2016-02")
+    assert (windows["base_start"], windows["base_end"]) == ("2016-02", "2016-07")
+    assert (windows["recent_start"], windows["recent_end"]) == ("2017-02", "2017-07")
+    assert windows["first_month"] == "2015-09"
+    with pytest.raises(ValueError):
+        trends.analysis_windows(dates, since="2016-09")
 
 
 @pytest.mark.parametrize(("text", "complains"), [

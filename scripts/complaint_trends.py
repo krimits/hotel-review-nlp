@@ -7,6 +7,7 @@ drift can fake a trend. A review counts once per topic.
 
     python scripts/complaint_trends.py                  # the full file
     python scripts/complaint_trends.py --limit 30000    # a quick look
+    python scripts/complaint_trends.py --since 2016-02  # compare only months after February 2016
 
 1. Builds a SQLite database (analysis/complaint_trends/sql/00_schema.sql):
    hotels, reviews and complaints, plus the analysis windows in `params`.
@@ -14,7 +15,10 @@ drift can fake a trend. A review counts once per topic.
 3. In Python: resamples hotels to put a 95% interval (and a stricter one, for
    30 topics tested at once) on each topic's change within the same hotels,
    and flags a topic as rising or falling only when the strict interval
-   excludes zero and the change is at least 10% of the base rate.
+   excludes zero and the change is at least 10% of the base rate. It also
+   gives each topic's change as a share of the reviews that complain at all,
+   which tells a topic that rises faster than complaints from one that rises
+   with them.
 4. Draws two charts and samples 20 quotes per period for every flagged topic,
    to check by reading that the trend is in the reviews, not in the lexicon.
 
@@ -162,20 +166,24 @@ def tag_complaints(frame: pd.DataFrame, workers: int = 1, chunk_size: int = 2000
 
 # --- Database -----------------------------------------------------------------
 
-def analysis_windows(dates: pd.Series, min_hotel_reviews: int = 30) -> dict[str, str]:
-    """Full calendar months, and the same months one year apart (up to 12)."""
+def analysis_windows(dates: pd.Series, min_hotel_reviews: int = 30, since: str | None = None) -> dict[str, str]:
+    """Full calendar months, and the same months one year apart (up to 12).
+
+    `since` (yyyy-mm) starts the comparison at that month, for instance after
+    a change in the review form, so that both periods come after it. The
+    monthly series still covers every full month.
+    """
     first, last = dates.min(), dates.max()
     first_month = first.to_period("M") + (0 if first.day == 1 else 1)
     last_month = last.to_period("M") - (0 if last.is_month_end else 1)
-    months = pd.period_range(first_month, last_month, freq="M")
-    span = min(12, len(months) // 2)
+    start = max(first_month, pd.Period(since, freq="M")) if since else first_month
+    months = pd.period_range(start, last_month, freq="M")
+    span = min(12, len(months) - 12)
     if span < 1:
-        raise ValueError("need at least two full months")
+        raise ValueError("the comparison needs more than a year of full months")
     recent = months[-span:]
     base = recent - 12
-    if base[0] < first_month:
-        raise ValueError("the data must cover the same months a year earlier")
-    return {"first_month": str(first_month), "last_month": str(last_month),
+    return {"first_month": str(first_month), "last_month": str(last_month), "comparison_start": str(start),
             "base_start": str(base[0]), "base_end": str(base[-1]),
             "recent_start": str(recent[0]), "recent_end": str(recent[-1]),
             "min_hotel_reviews": str(min_hotel_reviews)}
@@ -367,6 +375,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="read only the first N rows (a quick look)")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--min-hotel-reviews", type=int, default=30)
+    parser.add_argument("--since", help="start the comparison at this month (yyyy-mm), e.g. after a form change")
     parser.add_argument("--resamples", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
@@ -378,7 +387,7 @@ def main() -> None:
     source.update(csv_sha256=_sha256(args.csv), limit=args.limit)
     print(f"{source['reviews']:,} reviews; tagging complaint topics ...", flush=True)
     complaints = tag_complaints(frame, workers=args.workers)
-    params = analysis_windows(frame["review_date"], args.min_hotel_reviews)
+    params = analysis_windows(frame["review_date"], args.min_hotel_reviews, args.since)
     connection = build_database(frame, complaints, params, args.out / "reviews.sqlite")
     results = run_queries(connection)
     for name, table in results.items():
@@ -395,6 +404,9 @@ def main() -> None:
     strict_name = f"ci{strict * 100:g}"
     sql = results["04_within_hotel"].set_index("topic")
     summary = summary.join(sql[["recent_rate", "recent_rate_base_mix", "raw_change", "mix_effect"]], on="topic")
+    shares = results["02_year_over_year"].set_index("topic")
+    summary["share_of_complaints_change"] = (summary["topic"].map(shares["recent_share_of_complaints"])
+                                             / summary["topic"].map(shares["base_share_of_complaints"]) - 1)
     if not np.allclose(summary["within_hotel_change"].to_numpy(),
                        sql.loc[summary["topic"], "within_hotel_change"].to_numpy()):
         raise SystemExit("the Python and SQL within-hotel changes disagree")
@@ -422,7 +434,8 @@ def main() -> None:
         "runtime_seconds": round(time.perf_counter() - started, 1),
     }
     (args.out / "results.json").write_text(json.dumps(report, indent=1, default=float), encoding="utf-8")
-    print(summary[["topic", "base_rate", "within_hotel_change", "ci95", strict_name, "flag"]].to_string(index=False))
+    print(summary[["topic", "base_rate", "within_hotel_change", "ci95", strict_name, "share_of_complaints_change",
+                   "flag"]].to_string(index=False))
     print(f"rising: {flagged['rising']}  falling: {flagged['falling']}  -> {args.out}")
 
 

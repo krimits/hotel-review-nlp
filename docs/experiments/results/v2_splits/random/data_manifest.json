@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+  "raw_csv_bytes": 238154765,
+  "config": {
+    "seed": 42,
+    "raw_csv": "data/raw/booking_reviews_515k.csv",
+    "processed_dir": "data/processed_v2",
+    "split": "random",
+    "max_chars": 1200,
+    "min_chars": 15,
+    "train_frac": 0.8,
+    "dev_frac": 0.1,
+    "train_cap": 100000,
+    "test_cap": 10000
+  },
+  "split": "random",
+  "split_policy": "deduplicate canonical review text globally before stratified split",
+  "splits": {
+    "train": {
+      "rows": 117880,
+      "negative": 26105,
+      "positive": 91775,
+      "sha256": "37930e6da0c6487a64697835a6068a42f8c1abf3fb1599a47381188113b1198d"
+    },
+    "dev": {
+      "rows": 14734,
+      "negative": 3263,
+      "positive": 11471,
+      "sha256": "ba1d62768436766dab0082d74a2a2df3b9cfd3dc3aac8c2b595d69861068306a"
+    },
+    "test": {
+      "rows": 13263,
+      "negative": 3263,
+      "positive": 10000,
+      "sha256": "8cd21cdac358f10b6791497060ec3608726ab67e06674abc30503caeede92717"
+    }
+  },
+  "cross_split_overlap": {
+    "train_dev": 0,
+    "train_test": 0,
+    "dev_test": 0
+  },
+  "review_dates": {
+    "train": [
+      "2015-08-04",
+      "2017-08-03"
+    ],
+    "dev": [
+      "2015-08-04",
+      "2017-08-03"
+    ],
+    "test": [
+      "2015-08-04",
+      "2017-08-03"
+    ]
+  },
+  "hotels": {
+    "train": 1490,
+    "dev": 1388,
+    "test": 1384
+  },
+  "hotels_in_more_than_one_split": 1450
+}
