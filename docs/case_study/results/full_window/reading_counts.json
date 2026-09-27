@@ -1,0 +1,190 @@
+{
+ "reader": "Claude, the AI assistant that wrote the analysis; not an independent annotator",
+ "rule": "A quote counts when it complains about the named topic, including a missing item ('no bath') and a problem anywhere in the hotel (a mouse in the bar). It does not count when the word means something else, when the topic is praised, or when the complaint is about another topic (hearing the neighbours' toilets flush is noise).",
+ "source": "quotes_for_review.json of the first run: 20 matched quotes per flagged topic and period, sampled with seed 0 from all hotels of the period and read in full. The file holds review text, so it is not committed; positions below are 1-based in its order.",
+ "counts": {
+  "room.bathroom": {
+   "base": [
+    17,
+    20
+   ],
+   "recent": [
+    20,
+    20
+   ]
+  },
+  "room.bed": {
+   "base": [
+    16,
+    20
+   ],
+   "recent": [
+    18,
+    20
+   ]
+  },
+  "cleanliness.general": {
+   "base": [
+    12,
+    20
+   ],
+   "recent": [
+    13,
+    20
+   ]
+  },
+  "room.climate": {
+   "base": [
+    18,
+    20
+   ],
+   "recent": [
+    16,
+    20
+   ]
+  },
+  "cleanliness.linen": {
+   "base": [
+    15,
+    20
+   ],
+   "recent": [
+    15,
+    20
+   ]
+  },
+  "staff.response": {
+   "base": [
+    8,
+    20
+   ],
+   "recent": [
+    11,
+    20
+   ]
+  },
+  "cleanliness.pests": {
+   "base": [
+    15,
+    20
+   ],
+   "recent": [
+    16,
+    20
+   ]
+  }
+ },
+ "not_about_topic": {
+  "room.bathroom": {
+   "base": [
+    4,
+    15,
+    18
+   ],
+   "recent": []
+  },
+  "room.bed": {
+   "base": [
+    5,
+    7,
+    8,
+    15
+   ],
+   "recent": [
+    2,
+    14
+   ]
+  },
+  "cleanliness.general": {
+   "base": [
+    2,
+    6,
+    9,
+    10,
+    11,
+    13,
+    14,
+    20
+   ],
+   "recent": [
+    1,
+    2,
+    7,
+    15,
+    16,
+    17,
+    18
+   ]
+  },
+  "room.climate": {
+   "base": [
+    1,
+    9
+   ],
+   "recent": [
+    3,
+    8,
+    14,
+    16
+   ]
+  },
+  "cleanliness.linen": {
+   "base": [
+    6,
+    9,
+    16,
+    19,
+    20
+   ],
+   "recent": [
+    6,
+    7,
+    10,
+    14,
+    18
+   ]
+  },
+  "staff.response": {
+   "base": [
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    16,
+    17,
+    18,
+    19,
+    20
+   ],
+   "recent": [
+    4,
+    5,
+    7,
+    8,
+    15,
+    16,
+    18,
+    19,
+    20
+   ]
+  },
+  "cleanliness.pests": {
+   "base": [
+    1,
+    5,
+    6,
+    14,
+    19
+   ],
+   "recent": [
+    1,
+    10,
+    17,
+    20
+   ]
+  }
+ }
+}

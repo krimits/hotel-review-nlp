@@ -1,0 +1,136 @@
+{
+ "reader": "Claude, the AI assistant that wrote the analysis; not an independent annotator",
+ "rule": "A quote counts when it complains about the named topic, including a missing item ('no bath') and a problem anywhere in the hotel (a mouse in the bar). It does not count when the word means something else, when the topic is praised, or when the complaint is about another topic (hearing the neighbours' toilets flush is noise).",
+ "source": "quotes_for_review.json of the second run (--since 2016-02): 20 matched quotes per flagged topic and period, sampled with seed 0 from all hotels of the period and read in full. The file holds review text, so it is not committed; positions below are 1-based in its order.",
+ "counts": {
+  "room.bathroom": {
+   "base": [
+    17,
+    20
+   ],
+   "recent": [
+    19,
+    20
+   ]
+  },
+  "cleanliness.general": {
+   "base": [
+    10,
+    20
+   ],
+   "recent": [
+    12,
+    20
+   ]
+  },
+  "room.climate": {
+   "base": [
+    18,
+    20
+   ],
+   "recent": [
+    19,
+    20
+   ]
+  },
+  "staff.response": {
+   "base": [
+    11,
+    20
+   ],
+   "recent": [
+    10,
+    20
+   ]
+  },
+  "cleanliness.pests": {
+   "base": [
+    18,
+    20
+   ],
+   "recent": [
+    19,
+    20
+   ]
+  }
+ },
+ "not_about_topic": {
+  "room.bathroom": {
+   "base": [
+    7,
+    13,
+    15
+   ],
+   "recent": [
+    19
+   ]
+  },
+  "cleanliness.general": {
+   "base": [
+    2,
+    3,
+    6,
+    7,
+    8,
+    10,
+    13,
+    16,
+    17,
+    19
+   ],
+   "recent": [
+    6,
+    7,
+    10,
+    12,
+    15,
+    16,
+    19,
+    20
+   ]
+  },
+  "room.climate": {
+   "base": [
+    8,
+    9
+   ],
+   "recent": [
+    17
+   ]
+  },
+  "staff.response": {
+   "base": [
+    2,
+    3,
+    4,
+    6,
+    7,
+    12,
+    15,
+    18,
+    19
+   ],
+   "recent": [
+    1,
+    2,
+    3,
+    5,
+    6,
+    8,
+    10,
+    11,
+    15,
+    20
+   ]
+  },
+  "cleanliness.pests": {
+   "base": [
+    7,
+    12
+   ],
+   "recent": [
+    8
+   ]
+  }
+ }
+}

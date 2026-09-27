@@ -1,8 +1,8 @@
 name: CI
 
 on:
+  # Every branch, so work in progress is checked before any pull request exists.
   push:
-    branches: [main]
   pull_request:
 
 jobs:

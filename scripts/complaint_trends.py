@@ -13,7 +13,7 @@ drift can fake a trend. A review counts once per topic.
    hotels, reviews and complaints, plus the analysis windows in `params`.
 2. Runs the queries 01-07 in that folder and saves each result as a CSV.
 3. In Python: resamples hotels to put a 95% interval (and a stricter one, for
-   30 topics tested at once) on each topic's change within the same hotels,
+   all the topics tested at once) on each topic's change within the same hotels,
    and flags a topic as rising or falling only when the strict interval
    excludes zero and the change is at least 10% of the base rate. It also
    gives each topic's change as a share of the reviews that complain at all,
@@ -170,7 +170,7 @@ def analysis_windows(dates: pd.Series, min_hotel_reviews: int = 30, since: str |
     """Full calendar months, and the same months one year apart (up to 12).
 
     `since` (yyyy-mm) starts the comparison at that month, for instance after
-    a change in the review form, so that both periods come after it. The
+    a step in the data, so that both periods come after it. The
     monthly series still covers every full month.
     """
     first, last = dates.min(), dates.max()
@@ -319,7 +319,9 @@ def draw_monthly(monthly: pd.DataFrame, topics: list[str], params: dict[str, str
         axis.annotate(TOPIC_LABELS.get(topic, topic), (months[-1], values[-1]), xytext=(6, 0),
                       textcoords="offset points", va="center", fontsize=9, color=INK)
     axis.set_ylabel("% of reviews complaining (3-month mean)", color=INK_SOFT, fontsize=9)
-    axis.set_ylim(bottom=0)
+    # Headroom above the highest line keeps the period labels clear of the data.
+    highest = monthly.loc[monthly["topic"].isin(topics[:len(SERIES)]), "rate_3m"].max() * 100
+    axis.set_ylim(0, highest * 1.15)
     if len(topics[:len(SERIES)]) > 1:
         axis.legend(frameon=False, fontsize=9, labelcolor=INK, loc="lower left")
     axis.set_title("Complaint topics, share of all reviews per month", loc="left", color=INK, fontsize=11)
@@ -375,7 +377,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="read only the first N rows (a quick look)")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--min-hotel-reviews", type=int, default=30)
-    parser.add_argument("--since", help="start the comparison at this month (yyyy-mm), e.g. after a form change")
+    parser.add_argument("--since", help="start the comparison at this month (yyyy-mm), e.g. after a step in the data")
     parser.add_argument("--resamples", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()

@@ -1,6 +1,6 @@
 -- Share of reviews whose negative field holds a complaint, per full month. A
--- step in this series would mean the review form or the guests' habits
--- changed, which would move every topic at once.
+-- step in this series points to a change in how reviews were collected or
+-- recorded, or in the guests' habits; it would move every topic at once.
 SELECT
     month,
     COUNT(*) AS reviews,
