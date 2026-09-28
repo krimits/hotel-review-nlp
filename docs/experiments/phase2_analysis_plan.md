@@ -1,7 +1,9 @@
 # Phase 2: DistilBERT on the clean splits, analysis plan
 
-**Status: fixed before training.**
+**Status: fixed before training, then executed.**
 - **When.** This plan was committed before any model of this phase was trained.
+- **Executed.** The runs used commit `994a103`, which holds this plan. Their results are in
+  the [decision note](decision_distilbert_vs_nb.md).
 - **Record.** The notebook records the commit it ran from.
 - **Changes.** Any later change is listed at the end, with the reason.
 
@@ -126,4 +128,4 @@ weighs the costs. Two uses:
 
 ## Changes after fixing
 
-None yet.
+None. The runs followed the plan as written.

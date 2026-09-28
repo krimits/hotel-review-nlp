@@ -1,0 +1,13 @@
+{
+  "r": 8,
+  "alpha": 16.0,
+  "dropout": 0.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "modules_to_save": [
+    "pre_classifier",
+    "classifier"
+  ]
+}

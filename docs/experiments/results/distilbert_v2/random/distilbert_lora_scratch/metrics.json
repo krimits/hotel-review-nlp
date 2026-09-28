@@ -1,0 +1,86 @@
+{
+  "test": {
+    "accuracy": 0.9683,
+    "macro_f1": 0.9576,
+    "macro_precision": 0.9538,
+    "macro_recall": 0.9615,
+    "weighted_f1": 0.9684,
+    "per_class": {
+      "negative": {
+        "precision": 0.9247,
+        "recall": 0.9482,
+        "f1": 0.9363,
+        "support": 3263
+      },
+      "positive": {
+        "precision": 0.983,
+        "recall": 0.9748,
+        "f1": 0.9789,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        3094,
+        169
+      ],
+      [
+        252,
+        9748
+      ]
+    ]
+  },
+  "best_dev_macro_f1": 0.9531,
+  "trainable_params": 739586,
+  "adapter_params": 147456,
+  "head_params": 592130,
+  "total_params": 67102466,
+  "training_seconds": 542.3555184759998,
+  "peak_cuda_memory_mb": 1558.11181640625,
+  "data": {
+    "train": {
+      "rows": 117880,
+      "negative": 26105,
+      "positive": 91775,
+      "sha256": "37930e6da0c6487a64697835a6068a42f8c1abf3fb1599a47381188113b1198d"
+    },
+    "dev": {
+      "rows": 14734,
+      "negative": 3263,
+      "positive": 11471,
+      "sha256": "ba1d62768436766dab0082d74a2a2df3b9cfd3dc3aac8c2b595d69861068306a"
+    },
+    "test": {
+      "rows": 13263,
+      "negative": 3263,
+      "positive": 10000,
+      "sha256": "8cd21cdac358f10b6791497060ec3608726ab67e06674abc30503caeede92717"
+    }
+  },
+  "settings": {
+    "model_name": "distilbert-base-uncased",
+    "processed_dir": "/content/hotel-review-nlp/data/processed_v2",
+    "seed": 42,
+    "max_length": 256,
+    "batch_size": 32,
+    "eval_batch_size": 64,
+    "epochs": 2,
+    "lr": 0.0001,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.06,
+    "fp16": true,
+    "lora": {
+      "r": 8,
+      "alpha": 16.0,
+      "dropout": 0.0,
+      "target_modules": [
+        "q_lin",
+        "v_lin"
+      ],
+      "modules_to_save": [
+        "pre_classifier",
+        "classifier"
+      ]
+    }
+  }
+}

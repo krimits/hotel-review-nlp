@@ -1,0 +1,190 @@
+{
+ "commit": "994a103574d07833d466e9553680a9cab46bfe76",
+ "files": [
+  {
+   "path": "environment.json",
+   "bytes": 287,
+   "sha256": "dd0032186f6cb0b1dd175b53eff91c190b4bd232bc87198f90c71ce7ae33f664"
+  },
+  {
+   "path": "latency.json",
+   "bytes": 4027,
+   "sha256": "d3a56eb4ca19d21b519af802c65ff84c1609a348529647bf136abb966348bcad"
+  },
+  {
+   "path": "model_comparison_v2.json",
+   "bytes": 13194,
+   "sha256": "65d820394ce032f509476c0eed2c8eb468d4cbbe87f37f2b084a98af53b9550f"
+  },
+  {
+   "path": "random/distilbert/dev_labels.npy",
+   "bytes": 118000,
+   "sha256": "cbb2af1ffeaa5386be46486a9555847418fc540d02fdc92ffca2d0815d52f33f"
+  },
+  {
+   "path": "random/distilbert/dev_logits.npy",
+   "bytes": 118000,
+   "sha256": "2910f842d1c71ff29061cdf88a9c252f66ca8982076992c7150f9c06b01b3e24"
+  },
+  {
+   "path": "random/distilbert/metrics.json",
+   "bytes": 1661,
+   "sha256": "d9d8280d4f9d47bdb64bd819548cfe2be7cd11481f24be44ec88373d7e0e659f"
+  },
+  {
+   "path": "random/distilbert/request.json",
+   "bytes": 183,
+   "sha256": "1979be632babd6fd5181aa44d44eb2167aa7ea8018743d138895353d39d6aa24"
+  },
+  {
+   "path": "random/distilbert/run_config.yaml",
+   "bytes": 466,
+   "sha256": "623151f632669edc5f1796941ad888a1f0a5de4108252b9a1ba019e2c94f061b"
+  },
+  {
+   "path": "random/distilbert/test_labels.npy",
+   "bytes": 106232,
+   "sha256": "0fb38038830134082806b15cd2e264259639719fe0fcf177fd74e03ccffa8798"
+  },
+  {
+   "path": "random/distilbert/test_logits.npy",
+   "bytes": 106232,
+   "sha256": "5c9996bc3f7ca7b29de386aa469f2fbdce79c6472853682cd3c39d3e91cd2b55"
+  },
+  {
+   "path": "random/distilbert/train_log.txt",
+   "bytes": 893,
+   "sha256": "aefbaed94123deac18d72ca5dcd39b85798c0c774897d905046d48ad5458440f"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/dev_labels.npy",
+   "bytes": 118000,
+   "sha256": "cbb2af1ffeaa5386be46486a9555847418fc540d02fdc92ffca2d0815d52f33f"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/dev_logits.npy",
+   "bytes": 118000,
+   "sha256": "c18e574e71259d7354ce952c68f56f47a96c90482ef6c4277bb3200d12759a28"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/lora_scratch_config.json",
+   "bytes": 166,
+   "sha256": "587dcbebc8039dfafb2ead7106ed2d4b1087d6888e2a446f49802e7d4e81aff1"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/metrics.json",
+   "bytes": 1875,
+   "sha256": "fc438265c41abc062b29f93861b9a1606dd11b945a469a2bd41d8835be6d4672"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/request.json",
+   "bytes": 270,
+   "sha256": "94a008ba607fcffb283208f876c7c4851ec7a26fb516eca99583a572cd99ae83"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/run_config.yaml",
+   "bytes": 466,
+   "sha256": "623151f632669edc5f1796941ad888a1f0a5de4108252b9a1ba019e2c94f061b"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/test_labels.npy",
+   "bytes": 106232,
+   "sha256": "0fb38038830134082806b15cd2e264259639719fe0fcf177fd74e03ccffa8798"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/test_logits.npy",
+   "bytes": 106232,
+   "sha256": "705b5955aa9fbc71010628fd7e76f84b6fb46366223fc287ec0ffb22bab1ef08"
+  },
+  {
+   "path": "random/distilbert_lora_scratch/train_log.txt",
+   "bytes": 1025,
+   "sha256": "c78d4190f80a2c02ef395747a68bfcb2918b1a03f7c7cba2750592ecb63b058d"
+  },
+  {
+   "path": "time/distilbert/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "time/distilbert/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "78cad71d0f1eb62d0aa2e3cf93898cb4974a5b770b9cf542e3d5ce569bb5c90a"
+  },
+  {
+   "path": "time/distilbert/metrics.json",
+   "bytes": 1662,
+   "sha256": "3cc2a2f2f47c2131e679dba5790d9ce5e03fdf893e24e70eb54aa8f908fd82a3"
+  },
+  {
+   "path": "time/distilbert/request.json",
+   "bytes": 188,
+   "sha256": "44660851ab242710f92861c4fc16c9bc2109bda97f0568adf83e611cda655d06"
+  },
+  {
+   "path": "time/distilbert/run_config.yaml",
+   "bytes": 481,
+   "sha256": "5289681f8fa70439a7845a9dad16cff23f2823ae29c76622ea3e330a3cf3908f"
+  },
+  {
+   "path": "time/distilbert/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "time/distilbert/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "febd40ab1cc510d9614c98f11b50d6c88874d6258b9483fe9218005750105605"
+  },
+  {
+   "path": "time/distilbert/train_log.txt",
+   "bytes": 893,
+   "sha256": "64606faf4ee41d89817fa8a771835a062d4070660de80842d9bf279f006ad4fe"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "78c9b21ca851cead3625c7c4b0d13a429d9c6d1e6bcf91a470d2e6005862b6a3"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/lora_scratch_config.json",
+   "bytes": 166,
+   "sha256": "587dcbebc8039dfafb2ead7106ed2d4b1087d6888e2a446f49802e7d4e81aff1"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/metrics.json",
+   "bytes": 1881,
+   "sha256": "88b9eff860d95cd99d7443dc75fc4f61618d474ccf1a8ba4880c93e82bbe6d93"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/request.json",
+   "bytes": 275,
+   "sha256": "d234b1ba04f0a3530f0a76f30bfeb07a90aea0e4df1ff00f98d9638ffddd9fb5"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/run_config.yaml",
+   "bytes": 481,
+   "sha256": "5289681f8fa70439a7845a9dad16cff23f2823ae29c76622ea3e330a3cf3908f"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "2b57b2d53b16a7ab62a5aab833f31e0ee878804bdab552d816f325963ff405a5"
+  },
+  {
+   "path": "time/distilbert_lora_scratch/train_log.txt",
+   "bytes": 1025,
+   "sha256": "dc84b2c68c61c9cacb91e7f4b9202e3ff0795b354d6f2f870d8ae6154faf1b85"
+  }
+ ]
+}

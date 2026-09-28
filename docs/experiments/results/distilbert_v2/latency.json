@@ -1,0 +1,151 @@
+{
+ "split": "time",
+ "plan": "docs/experiments/phase2_analysis_plan.md",
+ "test": {
+  "rows": 13921,
+  "negative": 3921,
+  "positive": 10000,
+  "sha256": "07429dd59e7cea222f201d9ab6e92848093f9fe466dc52f9ae3fbb2e8352dc7c"
+ },
+ "sample": {
+  "reviews": 500,
+  "seed": 0,
+  "mean_characters": 130.8
+ },
+ "hardware": {
+  "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+  "cpu_count": 2,
+  "torch_threads": 1,
+  "gpu": "Tesla T4",
+  "python": "3.13.15",
+  "torch": "2.11.0+cu128",
+  "transformers": "4.56.2",
+  "scikit_learn": "1.6.1"
+ },
+ "notes": {
+  "cpu": "text to label on the CPU, tokenization or TF-IDF included. At batch 1, ms_per_batch_median and ms_per_batch_p95 are the latency of one review.",
+  "whole_test": "Naive Bayes on the CPU in one call; DistilBERT on the GPU in batches of 64, in fp32 as when its test logits were saved.",
+  "size_mb": "Naive Bayes: the pickled pipeline, without the list of dropped terms that older scikit-learn keeps for inspection. DistilBERT: the weights file. The scratch LoRA is merged before saving, so its weights match the full fine-tune's in size; adapter_mb is its adapters and head alone.",
+  "agrees": "reviews on which the timed model gave the prediction that was scored."
+ },
+ "models": {
+  "tfidf_nb": {
+   "path": "runs/classical_v2_time/best_classical.joblib",
+   "size_mb": 3.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 0.619,
+     "ms_per_review": 1.238,
+     "ms_per_batch_median": 1.168,
+     "ms_per_batch_p95": 1.635,
+     "reviews_per_second": 807.8,
+     "agrees": 498
+    },
+    "batch_32": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 0.04,
+     "ms_per_review": 0.079,
+     "ms_per_batch_median": 2.494,
+     "ms_per_batch_p95": 2.776,
+     "reviews_per_second": 12640.6,
+     "agrees": 498
+    }
+   },
+   "cpu_whole_test": {
+    "batch_size": 13921,
+    "reviews": 13921,
+    "warmup_batches": 0,
+    "seconds": 0.504,
+    "ms_per_review": 0.036,
+    "ms_per_batch_median": 504.474,
+    "ms_per_batch_p95": 504.474,
+    "reviews_per_second": 27595.1,
+    "agrees": 13906
+   }
+  },
+  "distilbert": {
+   "path": "runs/distilbert_v2_time",
+   "size_mb": 255.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 32.644,
+     "ms_per_review": 65.288,
+     "ms_per_batch_median": 57.212,
+     "ms_per_batch_p95": 124.417,
+     "reviews_per_second": 15.3,
+     "agrees": 500
+    },
+    "batch_32": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 67.466,
+     "ms_per_review": 134.931,
+     "ms_per_batch_median": 3619.77,
+     "ms_per_batch_p95": 7249.638,
+     "reviews_per_second": 7.4,
+     "agrees": 500
+    }
+   },
+   "gpu_whole_test": {
+    "batch_size": 64,
+    "reviews": 13921,
+    "warmup_batches": 3,
+    "seconds": 54.704,
+    "ms_per_review": 3.93,
+    "ms_per_batch_median": 243.934,
+    "ms_per_batch_p95": 399.704,
+    "reviews_per_second": 254.5,
+    "agrees": 13921
+   }
+  },
+  "distilbert_lora_scratch": {
+   "path": "runs/distilbert_v2_time_lora_scratch",
+   "size_mb": 255.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 31.974,
+     "ms_per_review": 63.949,
+     "ms_per_batch_median": 56.974,
+     "ms_per_batch_p95": 115.191,
+     "reviews_per_second": 15.6,
+     "agrees": 500
+    },
+    "batch_32": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 66.935,
+     "ms_per_review": 133.87,
+     "ms_per_batch_median": 3772.271,
+     "ms_per_batch_p95": 7993.578,
+     "reviews_per_second": 7.5,
+     "agrees": 500
+    }
+   },
+   "adapter_mb": 2.8,
+   "gpu_whole_test": {
+    "batch_size": 64,
+    "reviews": 13921,
+    "warmup_batches": 3,
+    "seconds": 61.024,
+    "ms_per_review": 4.384,
+    "ms_per_batch_median": 273.232,
+    "ms_per_batch_p95": 449.287,
+    "reviews_per_second": 228.1,
+    "agrees": 13921
+   }
+  }
+ }
+}

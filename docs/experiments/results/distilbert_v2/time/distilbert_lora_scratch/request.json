@@ -1,0 +1,16 @@
+{
+ "commit": "994a103574d07833d466e9553680a9cab46bfe76",
+ "gpu": "Tesla T4",
+ "module": "reviewnlp.llm.train_distilbert_lora",
+ "config": "configs/distilbert_v2_time.yaml",
+ "extra_args": [
+  "--r",
+  "8",
+  "--alpha",
+  "16",
+  "--dropout",
+  "0.0",
+  "--lr",
+  "1e-4"
+ ]
+}
