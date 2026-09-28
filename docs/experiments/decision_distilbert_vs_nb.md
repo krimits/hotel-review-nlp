@@ -5,10 +5,13 @@
   was committed before any model was trained.
 - **Runs.** The runs, their logs and their logits are in
   [`results/distilbert_v2/`](results/distilbert_v2/).
-- **Numbers.** Every number below is in
-  [`model_comparison_v2.json`](results/model_comparison_v2.json) or
-  [`latency.json`](results/distilbert_v2/latency.json). The CI recomputes the comparison from
-  the logits.
+- **Numbers.** The results and costs come from
+  [`model_comparison_v2.json`](results/model_comparison_v2.json) and
+  [`latency.json`](results/distilbert_v2/latency.json).
+  - The CI recomputes the comparison from the logits.
+  - The Naive Bayes fit time comes from the
+    [phase 1 metrics](results/v2_splits/time/classical_metrics.json).
+  - The legacy figures come from the [legacy run](results/distilbert_legacy_full_v1/README.md).
 
 ## The answer
 
