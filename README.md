@@ -579,7 +579,7 @@ and praise by topic, with quotes and a suggested action.
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
 - The unified five-family **clean-split** comparison is **not published yet**: the historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact. The newly published `runs/benchmark/results.json` covers the clean classical baseline only; the legacy DistilBERT pair is independently machine-verified. On the v2 splits, too, only the classical baseline has been measured ([`split_views.json`](docs/experiments/results/split_views.json)); DistilBERT is next.
-- The complaint-trend analysis names topics with a lexicon. Its precision was checked only by Claude, on 20 quotes per topic and period, and its recall is not measured. A [pilot evaluation](docs/annotation/pilot_protocol.md) with two annotators is planned; its protocol is a draft.
+- The complaint-trend analysis names topics with a lexicon. Its precision was checked only by Claude, on 20 quotes per topic and period, and its recall is not measured. A [pilot evaluation](docs/annotation/pilot_protocol.md) with two annotators comes next: its protocol and scoring rules are locked, and notebook 09 draws the sample.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
 </details>
@@ -603,11 +603,11 @@ spaces/hotel-ops-demo/           the Greek operations demo (Gradio Space)
 configs/           YAML configs for CLI experiments
 data/eval/         label sets for the demo (ids and labels only)
 notebooks/         Colab templates (no saved outputs — see notebooks/README.md)
-scripts/           data fetch, split views, complaint trends, evaluation, verification, API utilities
+scripts/           data fetch, split views, complaint trends, pilot sampling and scoring, evaluation, verification, API utilities
 tests/             data, splits, LoRA/PEFT, metrics, SQL, API, demo, Greek, ABSA checks
 docs/experiments/  preserved runs, manifests, verified handoff
 docs/case_study/   the complaint-trend report and its results
-docs/annotation/   pilot protocol and labelling guideline (drafts)
+docs/annotation/   pilot protocol and labelling guideline (locked)
 docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 ```
 
@@ -649,7 +649,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
 - [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
 - [ ] Re-run the remaining model families on the **v2 splits**, DistilBERT first, to replace the historical comparison
-- [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([draft protocol](docs/annotation/pilot_protocol.md))
+- [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion
 - [ ] Experiment with **ONNX Runtime** for further CPU speedups
@@ -669,7 +669,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
 - 🗺️ **Evidence map**: [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) — what the project shows for a junior data scientist role, and what is not done yet
 - 📈 **Case study**: [Which complaints are rising?](docs/case_study/complaint_trends.md)
-- 🏷️ **Pilot evaluation**: [protocol and labelling guideline](docs/annotation/) (drafts)
+- 🏷️ **Pilot evaluation**: [protocol and labelling guideline](docs/annotation/)
 - 🏨 **Hotel-operations demo**: [spaces/hotel-ops-demo/](spaces/hotel-ops-demo/)
 
 ## License

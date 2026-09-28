@@ -48,7 +48,6 @@ import hashlib
 import html
 import importlib.util
 import json
-import math
 import random
 import re
 import sys
@@ -58,6 +57,10 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from reviewnlp.evaluation.metrics import wilson_interval  # noqa: E402
+
 EVAL = ROOT / "data" / "eval"
 REVIEWS = ROOT / "data" / "raw" / "hotel_reviews.csv"
 SHORT = {"positive": "pos", "negative": "neg"}
@@ -96,10 +99,8 @@ def wilson(hits: int, total: int) -> str:
     """Share with a 95% Wilson interval."""
     if not total:
         return "n/a"
-    p, z = hits / total, 1.96
-    centre = (p + z * z / (2 * total)) / (1 + z * z / total)
-    half = z * math.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / (1 + z * z / total)
-    return f"{p:.0%} ({hits}/{total}, 95% CI {centre - half:.0%}-{centre + half:.0%})"
+    low, high = wilson_interval(hits, total)
+    return f"{hits / total:.0%} ({hits}/{total}, 95% CI {low:.0%}-{high:.0%})"
 
 
 # --- Set A -------------------------------------------------------------------

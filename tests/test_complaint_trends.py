@@ -126,6 +126,18 @@ def test_guest_type_city_and_topics():
     assert {"room.size", "facilities.wifi"} <= set(topics)
 
 
+def test_load_reviews_keeps_the_csv_row_through_deduplication(tmp_path):
+    row = {"Hotel_Name": "Hotel A", "Hotel_Address": "A street 1 Paris France", "Review_Date": "3/15/2016",
+           "Reviewer_Nationality": " Greece ", "Reviewer_Score": 8.0, "Negative_Review": "noisy street",
+           "Positive_Review": "nice staff", "Tags": "[' Leisure trip ', ' Couple ']"}
+    other = dict(row, Negative_Review="No Negative")
+    path = tmp_path / "reviews.csv"
+    pd.DataFrame([row, row, other]).to_csv(path, index=False)
+    frame, source = trends.load_reviews(path)
+    assert frame["raw_row"].tolist() == [0, 2]
+    assert source["duplicate_rows_dropped"] == 1
+
+
 def test_every_topic_has_an_english_label():
     assert set(trends.TOPIC_LABELS) == set(trends.TRIAGE.TOPICS)
 
