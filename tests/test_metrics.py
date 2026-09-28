@@ -156,6 +156,23 @@ def test_newcombe_interval_matches_the_published_example():
     assert low < 0 < high and low == pytest.approx(-high)
 
 
+def test_paired_bootstrap_difference():
+    from reviewnlp.evaluation.metrics import paired_bootstrap_diff
+
+    rng = np.random.default_rng(0)
+    truth = np.where(rng.random(3000) < 0.3, "negative", "positive")
+    flip = {"negative": "positive", "positive": "negative"}
+    worse = np.array([flip[label] if r < 0.15 else label for label, r in zip(truth, rng.random(3000), strict=True)])
+    better = np.array([flip[label] if r < 0.03 else label for label, r in zip(truth, rng.random(3000), strict=True)])
+    assert paired_bootstrap_diff(truth, worse, worse, n_resamples=100) == (0.0, 0.0, 0.0)
+    difference, low, high = paired_bootstrap_diff(truth, worse, better, n_resamples=300)
+    assert 0 < low < difference < high
+    assert paired_bootstrap_diff(truth, worse, better, n_resamples=300) == (difference, low, high)
+    assert paired_bootstrap_diff(truth, better, worse, n_resamples=300)[0] == -difference
+    with pytest.raises(ValueError):
+        paired_bootstrap_diff(truth, worse, better[:-1])
+
+
 def test_bootstrap_interval_of_a_perfect_model_is_one():
     from reviewnlp.evaluation.metrics import bootstrap_ci
 

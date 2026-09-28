@@ -4,7 +4,7 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Hotel review classification and an emerging hotel-operations product, with an API, aspect extraction and hotel-scoped recommendations. On a test set that shares no review text with training, TF-IDF + Naive Bayes, chosen on dev, reaches **0.9347 macro-F1 / 95.10% accuracy**. The higher figures below (DistilBERT 0.9634) come from an earlier split whose test set shares 170 texts with training; they are kept as [history](#historical-results-legacy-split-text-overlap). What this project demonstrates, with links to the evidence: [evidence map](docs/EVIDENCE_MAP.md).
+> Hotel review classification and an emerging hotel-operations product, with an API, aspect extraction and hotel-scoped recommendations. On test sets that share no review text with training, fine-tuned DistilBERT reaches **0.9642 macro-F1** on a random split and **0.9491** on reviews written after the training period. That is about 3 points above TF-IDF + Naive Bayes chosen on dev, a gain that meets a rule fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md)). Earlier figures, from a split whose test set shares 170 texts with training, are kept as [history](#historical-results-legacy-split-text-overlap). What this project demonstrates, with links to the evidence: [evidence map](docs/EVIDENCE_MAP.md).
 
  **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)**  · **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** .**📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
 
@@ -21,7 +21,7 @@ Manual triage doesn't scale. Keyword rules miss sarcasm, mixed sentiment, and co
 A **binary sentiment classifier** trained on about **118,000 real Booking.com reviews** that:
 
 - Supports CPU inference; the archived FastAPI load test measured `/predict` p50 **360 ms under load** on its Windows CPU
-- Reaches **0.9347 macro-F1** (TF-IDF + Naive Bayes, chosen on dev) on a test set that shares no review text with training
+- Reaches **0.9642 macro-F1** with fine-tuned DistilBERT on a test set that shares no review text with training, and 0.9491 on reviews written after the training period; a TF-IDF + Naive Bayes baseline, 3 points lower, answers in about 1 ms on a CPU
 - Exposes a **FastAPI service** — `/predict` for scoring, `/absa` for per-aspect extraction — with health checks and batch paths for both
 - Ships as a Docker image and includes an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md)
 - Includes a reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run
@@ -39,8 +39,8 @@ a word TF-IDF + Naive Bayes model selected on dev reached **0.9347 macro-F1** an
 **95.10% accuracy**. Its fingerprints, rejected duplicates, per-class metrics and
 explicit missing-model list are in [the benchmark](runs/benchmark/README.md), the
 [four candidate metrics](docs/experiments/results/classical_clean_uploaded_metrics.json) and
-[`results.json`](runs/benchmark/results.json). No neural model has been re-run on
-a clean split yet.
+[`results.json`](runs/benchmark/results.json). Only the classical baseline was run on
+this cleaned split; DistilBERT was re-run on the rebuilt splits below.
 
 **Rebuilt from the raw file.** The Booking CSV is not in the repository, but a
 byte-identical copy of the Kaggle file is on the Hugging Face Hub. `make data`
@@ -74,6 +74,44 @@ The selected pipeline is word TF-IDF + Naive Bayes on all three splits.
 The results, manifests and test predictions are in
 [`docs/experiments/results/split_views.json`](docs/experiments/results/split_views.json) and
 [`v2_splits/`](docs/experiments/results/v2_splits/).
+
+**DistilBERT on the same test sets.**
+- **What was trained.** DistilBERT was fine-tuned on the random and out-of-time splits, in
+  full and with the scratch LoRA, with the settings of the legacy run.
+- **Fixed in advance.** The comparisons and the rule for a meaningful gain were committed
+  before training ([plan](docs/experiments/phase2_analysis_plan.md)).
+
+| Model | Random: macro-F1 (95% CI) | Out-of-time: macro-F1 (95% CI) | Errors, out-of-time |
+| :--- | ---: | ---: | ---: |
+| TF-IDF + Naive Bayes, chosen on dev | 0.9351 (0.9303–0.9398) | 0.9184 (0.9133–0.9230) | 930 |
+| **DistilBERT, full fine-tune** | **0.9642** (0.9605–0.9677) | **0.9491** (0.9450–0.9531) | **578** |
+| DistilBERT, scratch LoRA | 0.9576 (0.9537–0.9613) | 0.9424 (0.9380–0.9465) | 657 |
+
+- **The primary comparison meets the rule.**
+  - On the out-of-time test, DistilBERT beats Naive Bayes by 3.1 points, with a paired 95%
+    interval of 2.6–3.5 points and 38% fewer errors.
+  - The rule asks for an interval that excludes zero and a gain of at least one point.
+- **Not more robust over time.** All three models lose 1.5–1.7 points on later reviews.
+  DistilBERT keeps its lead.
+- **Negative reviews.** DistilBERT misses 233 of the 3,921 negative reviews instead of 393,
+  and flags 345 positive reviews as negative instead of 537.
+- **LoRA.**
+  - It is 0.7 points below the full fine-tune on both tests: clear but small.
+  - It trains in a third less time with 39% less GPU memory.
+- **Cost.**
+  - On one CPU thread, DistilBERT takes 57 ms per review against 1.2 ms.
+  - It weighs 255 MiB against 3.4 MiB.
+  - On a T4 GPU it scores 254 reviews per second.
+- **Decision.**
+  - For scoring reviews in batches: DistilBERT.
+  - For one review at a time on a CPU: it depends on the time allowed
+    ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
+
+- **The intervals** in this table use 2,000 resamples, as the plan fixed. The table of the
+  three splits used 1,000, hence the small differences for Naive Bayes.
+- **Evidence.** The runs, logits and checks are in
+  [`results/distilbert_v2/`](docs/experiments/results/distilbert_v2/). The CI recomputes the
+  comparison from the logits on every push.
 
 **Which complaints are rising.** A SQL analysis of the same reviews asks which
 complaint topics became more frequent within the same hotels.
@@ -134,7 +172,14 @@ the DistilBERT pair is also recomputed from saved logits by
 
 </details>
 
-On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶), and **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53). None of these models has been re-run on the clean splits yet, so the comparisons are not confirmed there.
+On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶), and **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53).
+
+**Since then:**
+- **DistilBERT and the scratch LoRA were re-run on the clean splits** (above).
+  - They score about the same there (0.9642 and 0.9576).
+  - Full fine-tuning again beats LoRA, by 0.66–0.68 points.
+- **The BiLSTM and Qwen have not been re-run**, so their comparisons are not confirmed on
+  clean splits.
 
 ### Archived API load test (CPU, FastAPI)
 
@@ -357,9 +402,10 @@ flowchart LR
     V --> B[Labelling<br/>duplicates removed before splitting]
     B --> C[Three v2 splits with manifests<br/>random · out-of-time · unseen hotels]
     C --> D[Classical baseline<br/>chosen on dev, bootstrap CI]
+    C --> F[DistilBERT full FT · scratch LoRA<br/>random + out-of-time, paired bootstrap]
     V --> S[SQLite + SQL<br/>complaint trends]
     L[Legacy frozen split<br/>test shares texts with train] -.-> E[BiLSTM · DistilBERT · LoRA · Qwen<br/>historical results]
-    D & E --> H[Saved artifacts]
+    D & F & E --> H[Saved artifacts]
     H --> I[FastAPI serving<br/>stub / classical / encoder / Qwen]
 ```
 
@@ -382,12 +428,17 @@ flowchart LR
      hash, the split fingerprints, date ranges, hotels and a zero-overlap check.
 4. **Training and selection.**
    - **Classical baseline.** Chosen on dev, on all three splits.
-   - **Neural models.** The BiLSTM, DistilBERT (full fine-tune and scratch LoRA)
-     and Qwen2.5-0.5B QLoRA were trained only on the legacy frozen split
-     (118,990 / 14,872 / 13,278). That split's test set shares 170 texts with
-     training, so their results are kept as history.
-5. **Evaluation.** Macro-F1 with bootstrap intervals, per-class metrics and
-   confusion matrices, and exact paired McNemar tests for pairs of models.
+   - **DistilBERT.** Fine-tuned in full and with the scratch LoRA on the random
+     and out-of-time splits. It keeps the epoch with the best dev macro-F1.
+   - **Other neural models.** The BiLSTM and Qwen2.5-0.5B QLoRA were trained
+     only on the legacy frozen split (118,990 / 14,872 / 13,278). That split's
+     test set shares 170 texts with training, so their results are kept as
+     history.
+5. **Evaluation.**
+   - Macro-F1 with bootstrap intervals, per-class metrics and confusion
+     matrices.
+   - For pairs of models: exact paired McNemar tests, and a paired bootstrap
+     interval of the difference in macro-F1.
 6. **Analysis.** A SQLite database and SQL queries ask which complaint topics
    are rising within the same hotels
    ([case study](docs/case_study/complaint_trends.md)).
@@ -444,7 +495,16 @@ h = W₀x + (α/r) · B(A(x))
 
 It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and dropout on the adapter path, and supports merge/unmerge. [`tests/test_lora.py`](tests/test_lora.py) checks initial behavior, gradient flow, frozen base weights, merge/unmerge, and numerical agreement with PEFT on a locally constructed tiny BERT after copying weights.
 
-**Result on the legacy split**: LoRA trains **1.10% of parameters** with **35% less time** and **38.3% less peak GPU memory** for **0.61 pp lower macro-F1** than full fine-tuning — a trade-off worth documenting rather than hiding. It has not been re-measured on the clean splits.
+**Result on the legacy split**: LoRA trains **1.10% of parameters** with **35% less time** and **38.3% less peak GPU memory** for **0.61 pp lower macro-F1** than full fine-tuning — a trade-off worth documenting rather than hiding.
+
+**On the clean splits the trade-off holds.**
+- **Savings.** LoRA trains 1.10% of the parameters, in a third less time, with 39% less
+  peak GPU memory.
+- **Price.** Its macro-F1 is 0.66 points lower on the random test and 0.68 on the
+  out-of-time test.
+- **Verdict.** The paired intervals exclude zero. By the plan's rule, the full fine-tune is
+  better by a clear but small margin
+  ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
 
 ---
 
@@ -553,10 +613,14 @@ and praise by topic, with quotes and a suggested action.
 <details>
 <summary><b>Training setup</b></summary>
 
-- **Hardware**: Google Colab Tesla T4 (both runs)
-- **Seed**: 42, two epochs, batch size 32, max length 256, FP16
-- **Full fine-tune**: 872.6 s, peak 2,534 MiB, lr 2e-5, best dev F1 0.9602
-- **Scratch LoRA**: 567.2 s, peak 1,563 MiB, lr 1e-4, best dev F1 0.9522
+- **Hardware**: Google Colab Tesla T4 (all runs)
+- **Seed**: 42, two epochs, batch size 32, max length 256, FP16; lr 2e-5 (full fine-tune) and 1e-4 (scratch LoRA)
+- **Clean splits** ([runs](docs/experiments/results/distilbert_v2/)):
+  - full fine-tune: 13.6 / 13.3 min (random / out-of-time), peak 2,543 MiB;
+  - scratch LoRA: 9.0 / 8.9 min, peak 1,558 MiB.
+- **Legacy split**:
+  - full fine-tune: 872.6 s, peak 2,534 MiB, best dev F1 0.9602;
+  - scratch LoRA: 567.2 s, peak 1,563 MiB, best dev F1 0.9522.
 - **LoRA parameters**: 147,456 adapter + 592,130 task head = 739,586 total
 
 </details>
@@ -566,7 +630,12 @@ and praise by topic, with quotes and a suggested action.
 
 - **Primary metric**: macro-F1 (balanced across positive/negative classes)
 - **Significance**: exact paired McNemar test on classification errors
-- **Verification**: [`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) reproduces all published metrics, saved arrays, hashes, and the McNemar calculation without a GPU
+- **Comparing two models**: a paired bootstrap interval of the macro-F1 difference on the same test reviews.
+  - A gain counts as meaningful when that interval excludes zero and the gain is at least one point.
+  - The rule was fixed before training ([plan](docs/experiments/phase2_analysis_plan.md)).
+- **Verification**, without a GPU:
+  - [`scripts/verify_distilbert_handoff.py`](scripts/verify_distilbert_handoff.py) reproduces the legacy metrics, saved arrays, hashes and the McNemar calculation;
+  - [`tests/test_phase2_results.py`](tests/test_phase2_results.py) recomputes the clean-split comparison from the committed logits on every CI run.
 
 </details>
 
@@ -578,7 +647,11 @@ and praise by topic, with quotes and a suggested action.
 - The Qwen QLoRA run used a **20k subset**, not the full 118,990 rows.
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
-- The unified five-family **clean-split** comparison is **not published yet**: the historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact. The newly published `runs/benchmark/results.json` covers the clean classical baseline only; the legacy DistilBERT pair is independently machine-verified. On the v2 splits, too, only the classical baseline has been measured ([`split_views.json`](docs/experiments/results/split_views.json)); DistilBERT is next.
+- The five-family comparison is **not complete on clean splits**.
+  - The historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact.
+  - On the v2 random and out-of-time splits, two families are measured and verified from committed logits: the classical baseline and DistilBERT, fine-tuned in full and with the scratch LoRA ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
+  - The BiLSTM and Qwen are not.
+  - Each DistilBERT result comes from one training seed.
 - The complaint-trend analysis names topics with a lexicon. Its precision was checked only by Claude, on 20 quotes per topic and period, and its recall is not measured. A [pilot evaluation](docs/annotation/pilot_protocol.md) with two annotators comes next: its protocol and scoring rules are locked, and notebook 09 draws the sample.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
@@ -603,9 +676,9 @@ spaces/hotel-ops-demo/           the Greek operations demo (Gradio Space)
 configs/           YAML configs for CLI experiments
 data/eval/         label sets for the demo (ids and labels only)
 notebooks/         Colab templates (no saved outputs — see notebooks/README.md)
-scripts/           data fetch, split views, complaint trends, pilot sampling and scoring, evaluation, verification, API utilities
+scripts/           data fetch, split views, model comparison and latency, complaint trends, pilot sampling and scoring, evaluation, verification, API utilities
 tests/             data, splits, LoRA/PEFT, metrics, SQL, API, demo, Greek, ABSA checks
-docs/experiments/  preserved runs, manifests, verified handoff
+docs/experiments/  phase 2 plan and decision note, preserved runs, manifests, verified handoffs
 docs/case_study/   the complaint-trend report and its results
 docs/annotation/   pilot protocol and labelling guideline (locked)
 docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
@@ -632,8 +705,14 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
   - The complaint lexicon's precision was checked on a small sample, by an AI
     reader. Its recall was not checked at all.
   - So the report says both, and a pilot with two people comes next.
-- **Full fine-tuning beat LoRA on the legacy split.** With 118k training rows,
-  LoRA's parameter savings did not translate into accuracy there.
+- **Decide what counts as a win before training.**
+  - The comparison and the rule were committed before the first DistilBERT run: a
+    paired interval above zero and a gain of at least one point.
+  - DistilBERT then beat Naive Bayes by 3.1 points on later reviews.
+  - CI checks that the rule has not changed since.
+- **Full fine-tuning beat LoRA, on the legacy split and again on the clean
+  splits** (by 0.6–0.7 points). With 118k training rows, LoRA's parameter savings
+  did not translate into accuracy.
 - **Decoder models aren't automatically better.** On the legacy split,
   Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA. Its inference cost on CPU was
   far higher: about 1–3 s against 25 ms per review in the demo. For
@@ -648,7 +727,9 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Audit the uploaded parquets and re-run the classical baseline, including character n-grams, on independently identified clean splits
 - [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
 - [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
-- [ ] Re-run the remaining model families on the **v2 splits**, DistilBERT first, to replace the historical comparison
+- [x] Re-run DistilBERT (full fine-tune and scratch LoRA) on the v2 random and out-of-time splits, under a plan fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md))
+- [ ] Re-run the BiLSTM and Qwen QLoRA on the **v2 splits**, to complete the clean comparison
+- [ ] Sort reviews by length before batching on a CPU: batches of 32 were slower per review than single reviews on one thread
 - [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion
@@ -664,7 +745,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 ## Links
 
 - 📓 **Notebooks**: [executed runs with outputs](docs/experiments/notebooks/) · [Colab templates](notebooks/) ([what each needs](notebooks/README.md)) — the templates are committed without outputs and are meant to be run, not read as results
-- 📊 **Results**: [preserved run artifacts](docs/experiments/results/) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
+- 📊 **Results**: [DistilBERT or Naive Bayes? decision note](docs/experiments/decision_distilbert_vs_nb.md) · [preserved run artifacts](docs/experiments/results/) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
 - 🏗️ **Design**: [DESIGN.md](DESIGN.md) — evaluation methodology, what I'd do with more compute
 - 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
 - 🗺️ **Evidence map**: [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) — what the project shows for a junior data scientist role, and what is not done yet

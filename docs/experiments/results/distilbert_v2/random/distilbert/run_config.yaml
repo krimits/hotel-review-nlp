@@ -1,0 +1,22 @@
+# DistilBERT on the v2 random split (phase 2, docs/experiments/phase2_analysis_plan.md).
+# The same settings as configs/distilbert.yaml: only the data changes.
+seed: 42
+
+model:
+  name: distilbert-base-uncased
+  max_length: 256
+
+data:
+  processed_dir: data/processed_v2
+
+train:
+  batch_size: 32
+  eval_batch_size: 64
+  epochs: 2
+  lr: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.06
+  fp16: true             # ignored on CPU
+
+output:
+  model_dir: runs/distilbert_v2
