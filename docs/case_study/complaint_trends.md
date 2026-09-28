@@ -88,7 +88,9 @@ bar.
 
 **Next step in real work.**
 - **Measure the lexicon.** Two people label a pilot sample for the five topics:
-  precision and recall in both periods.
+  precision and recall in both periods
+  ([protocol](../annotation/pilot_protocol.md), locked before the sample was
+  drawn).
 - **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.

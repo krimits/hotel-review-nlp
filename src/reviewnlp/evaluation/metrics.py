@@ -79,6 +79,30 @@ def bootstrap_ci(y_true, y_pred, labels=LABELS, n_resamples: int = 1000, seed: i
     return round(float(low), 4), round(float(high), 4)
 
 
+Z95 = 1.959964
+
+
+def wilson_interval(successes: int, total: int, z: float = Z95) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion, clipped to [0, 1]."""
+    if total <= 0 or not 0 <= successes <= total:
+        raise ValueError(f"need 0 <= successes <= total and total > 0, got {successes}/{total}")
+    p = successes / total
+    denominator = 1 + z * z / total
+    centre = (p + z * z / (2 * total)) / denominator
+    half = z * np.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denominator
+    return max(0.0, float(centre - half)), min(1.0, float(centre + half))
+
+
+def newcombe_interval(x1: int, n1: int, x2: int, n2: int, z: float = Z95) -> tuple[float, float]:
+    """Newcombe's hybrid score interval (method 10) for the difference p2 - p1."""
+    p1, p2 = x1 / n1, x2 / n2
+    low1, high1 = wilson_interval(x1, n1, z)
+    low2, high2 = wilson_interval(x2, n2, z)
+    difference = p2 - p1
+    return (float(difference - np.sqrt((p2 - low2) ** 2 + (high1 - p1) ** 2)),
+            float(difference + np.sqrt((high2 - p2) ** 2 + (p1 - low1) ** 2)))
+
+
 def discordant_counts(y_true, preds_a, preds_b, model_a: str, model_b: str) -> tuple[int, int]:
     """Return (n01, n10): a-wrong/b-right and a-right/b-wrong counts.
 

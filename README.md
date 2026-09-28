@@ -130,11 +130,11 @@ the DistilBERT pair is also recomputed from saved logits by
 | DistilBERT full vs Qwen | 320 | 4.2 × 10⁻⁵ | ✅ |
 | **DistilBERT LoRA vs Qwen QLoRA** | **300** | **0.53** | ❌ |
 
-**9 of 10 pairwise differences are statistically significant.** LoRA and QLoRA are indistinguishable on this task — 739K adapter parameters match a 0.5B LLM fine-tuned with 4-bit quantization.
+**On this legacy test set, 9 of 10 pairwise differences are statistically significant.** LoRA and QLoRA are indistinguishable there: 739K adapter parameters match a 0.5B LLM fine-tuned with 4-bit quantization.
 
 </details>
 
-**Full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶). **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53) — a useful negative result for anyone deciding between encoder and decoder approaches on tight budgets.
+On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶), and **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53). None of these models has been re-run on the clean splits yet, so the comparisons are not confirmed there.
 
 ### Archived API load test (CPU, FastAPI)
 
@@ -159,7 +159,9 @@ the DistilBERT pair is also recomputed from saved logits by
 - **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** —
   dedicated Greek-language demo (GreekBERT, single tab).
   
-Paste any hotel review and get a live prediction. No setup required.
+Paste any hotel review and get a live prediction. No setup required. The deployed
+models were trained on the legacy split (see
+[Historical results](#historical-results-legacy-split-text-overlap)).
 
 ![The hotel-review-demo Space comparing DistilBERT and Qwen QLoRA on one review](docs/images/space_demo.png)
 
@@ -351,23 +353,46 @@ returns `200` with an empty list.
 
 ```mermaid
 flowchart LR
-    A[Booking.com CSV<br/>515k raw rows] --> B[Labeling + preprocessing]
-    B --> C[Frozen splits<br/>118,990 / 14,872 / 13,278]
-    C --> D[Classical + BiLSTM]
-    C --> E[DistilBERT full FT + scratch LoRA]
-    C --> F[Qwen2.5 QLoRA]
-    D & E & F --> G[Unified benchmark + McNemar]
-    G --> H[Saved artifacts]
+    A[Booking.com CSV<br/>515,738 rows] --> V[Pinned download<br/>size + SHA-256 check]
+    V --> B[Labelling<br/>duplicates removed before splitting]
+    B --> C[Three v2 splits with manifests<br/>random · out-of-time · unseen hotels]
+    C --> D[Classical baseline<br/>chosen on dev, bootstrap CI]
+    V --> S[SQLite + SQL<br/>complaint trends]
+    L[Legacy frozen split<br/>test shares texts with train] -.-> E[BiLSTM · DistilBERT · LoRA · Qwen<br/>historical results]
+    D & E --> H[Saved artifacts]
     H --> I[FastAPI serving<br/>stub / classical / encoder / Qwen]
 ```
 
-**Pipeline in five stages:**
+**Pipeline:**
 
-1. **Labeling** — Each raw review has separate `Positive_Review` / `Negative_Review` fields. The pipeline labels positive-only and negative-only reviews, excludes mixed reviews, and does not impose a `Reviewer_Score` cutoff.
-2. **Splitting** — Fingerprinted train/dev/test splits preserved as parquet. The archived preprocessing run retained **147,140 reviews** from 515,738 raw rows.
-3. **Training** — Five model families trained on identical splits: classical baselines, a pure-PyTorch BiLSTM, DistilBERT full fine-tune, DistilBERT with a from-scratch LoRA implementation, and Qwen2.5-0.5B with QLoRA.
-4. **Evaluation** — Unified benchmark with per-class metrics, confusion matrices, and exact paired McNemar tests across all model pairs.
-5. **Serving** — FastAPI backend with pluggable model types (`stub`, `classical`, `encoder`, `qwen`) for CI-safe testing and flexible deployment.
+1. **Raw data.** `make data` downloads the Booking CSV from a pinned revision.
+   It refuses the file unless its size and SHA-256 match the Kaggle download
+   ([`data/raw/README.md`](data/raw/README.md)).
+2. **Labelling.** Each raw review has separate `Positive_Review` /
+   `Negative_Review` fields. The pipeline labels positive-only and negative-only
+   reviews, excludes mixed reviews, and does not impose a `Reviewer_Score`
+   cutoff.
+3. **Splitting.**
+   - **Duplicates first.** Duplicate texts are removed before splitting, so one
+     text cannot land in two splits.
+   - **Three splits.** Built from the same deduplicated reviews, they answer
+     different questions: random (117,880 / 14,734 / 13,263 train / dev / test),
+     out-of-time and unseen hotels.
+   - **Manifests.** Every split directory has a manifest with the raw file's
+     hash, the split fingerprints, date ranges, hotels and a zero-overlap check.
+4. **Training and selection.**
+   - **Classical baseline.** Chosen on dev, on all three splits.
+   - **Neural models.** The BiLSTM, DistilBERT (full fine-tune and scratch LoRA)
+     and Qwen2.5-0.5B QLoRA were trained only on the legacy frozen split
+     (118,990 / 14,872 / 13,278). That split's test set shares 170 texts with
+     training, so their results are kept as history.
+5. **Evaluation.** Macro-F1 with bootstrap intervals, per-class metrics and
+   confusion matrices, and exact paired McNemar tests for pairs of models.
+6. **Analysis.** A SQLite database and SQL queries ask which complaint topics
+   are rising within the same hotels
+   ([case study](docs/case_study/complaint_trends.md)).
+7. **Serving.** FastAPI backend with pluggable model types (`stub`, `classical`,
+   `encoder`, `qwen`) for CI-safe testing and flexible deployment.
 
 ---
 
@@ -419,7 +444,7 @@ h = W₀x + (α/r) · B(A(x))
 
 It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and dropout on the adapter path, and supports merge/unmerge. [`tests/test_lora.py`](tests/test_lora.py) checks initial behavior, gradient flow, frozen base weights, merge/unmerge, and numerical agreement with PEFT on a locally constructed tiny BERT after copying weights.
 
-**Result**: LoRA trains **1.10% of parameters** with **35% less time** and **38.3% less peak GPU memory** for **0.61 pp lower macro-F1** than full fine-tuning — a trade-off worth documenting rather than hiding.
+**Result on the legacy split**: LoRA trains **1.10% of parameters** with **35% less time** and **38.3% less peak GPU memory** for **0.61 pp lower macro-F1** than full fine-tuning — a trade-off worth documenting rather than hiding. It has not been re-measured on the clean splits.
 
 ---
 
@@ -456,11 +481,15 @@ asserted, and the failure mode itself is pinned in
 [`tests/test_absa.py`](tests/test_absa.py).
 
 ```bash
-# Per-aspect records + summary.json for a sample of the frozen test split
+# Per-aspect records + summary.json for a sample of the v2 test split built by `make data`
 python scripts/run_absa.py --variant base \
-    --test-parquet data/processed/test.parquet \
+    --test-parquet data/processed_v2/test.parquet \
+    --data-manifest data/processed_v2/data_manifest.json \
     --output-dir runs/absa_base
 ```
+
+The runner checks the split against its manifest. Without `--data-manifest` it
+accepts only the archived legacy test parquet, checked by its SHA-256.
 
 Every generation is parsed with quality flags: JSON recovered from surrounding
 prose is flagged as `salvaged`, and aspects with missing or invented supporting
@@ -485,6 +514,37 @@ set or resulting performance figures have been published yet.
 - **The generation loop is not covered offline.** `absa/pipeline.py` needs a
   model download, so CI exercises the taxonomy, parser, vote and runner helpers
   around it, not the batched `generate` call.
+
+---
+
+## Hotel-operations demo (Greek)
+
+[`spaces/hotel-ops-demo/`](spaces/hotel-ops-demo/) is a demo for the owner of a
+hotel or an apartment. Paste English reviews and it answers in Greek: complaints
+and praise by topic, with quotes and a suggested action.
+
+**How it differs from the Qwen prototype above.**
+- Rules split each review into clauses.
+- A lexicon names the topic, out of 30 topics in 8 categories.
+- An aspect-sentiment model
+  ([`yangheng/deberta-v3-base-absa-v1.1`](https://huggingface.co/yangheng/deberta-v3-base-absa-v1.1))
+  reads each clause once per topic.
+- The complaint-trend analysis uses the same lexicon to name its topics.
+- The Space itself is private.
+
+**How well it works.** It is measured on three label sets
+([details](spaces/hotel-ops-demo/README.md#how-well-it-works)):
+- **Set A.** Six apartment reviews that the project owner checked finding by
+  finding. Each error became an acceptance test.
+- **Set B.** 300 Booking.com TEST reviews in which the guests themselves wrote
+  what they liked and disliked. A complaint is found in 77% of the reviews that
+  have one (95% CI 70–83%).
+- **Set C.** 40 reviews that the project owner labelled by topic, without seeing
+  the output.
+  - **8 categories.** 63% of the complaints the demo reports are labelled, and
+    83% of the labelled ones are found.
+  - **30 topics.** 53% and 46%.
+  - **One annotator.** There is no agreement measure yet.
 
 ---
 
@@ -513,12 +573,13 @@ set or resulting performance figures have been published yet.
 <details>
 <summary><b>Known limitations</b></summary>
 
-- The **historical training run** recorded normalized-text overlap (180 train/dev, 170 train/test, 24 dev/test). The newly uploaded three parquets were separately audited: they have **zero cross-split text overlap**, but 676 within-split duplicate rows and 19 train text groups with conflicting labels. The new clean baseline uses derived splits; the legacy five-model results do not become leakage-free by uploading later files.
+- The **historical training run** recorded normalized-text overlap (180 train/dev, 170 train/test, 24 dev/test). The newly uploaded three parquets were separately audited: they have **zero cross-split text overlap**, but 676 within-split duplicate rows and 19 train text groups with conflicting labels. The new clean baseline uses derived splits; the legacy five-model results do not become leakage-free by uploading later files. The v2 splits are rebuilt from the hash-checked raw file with duplicates removed before splitting, and their manifests record zero overlap between splits.
 - The classical baseline rows are **historical runs** that predate the fix moving model selection to dev. The old `*_char` rows used the wrong analyzer and are excluded from the summary table.
 - The Qwen QLoRA run used a **20k subset**, not the full 118,990 rows.
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
-- The unified five-family **clean-split** comparison is **not published yet**: the historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact. The newly published `runs/benchmark/results.json` covers the clean classical baseline only; the legacy DistilBERT pair is independently machine-verified.
+- The unified five-family **clean-split** comparison is **not published yet**: the historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact. The newly published `runs/benchmark/results.json` covers the clean classical baseline only; the legacy DistilBERT pair is independently machine-verified. On the v2 splits, too, only the classical baseline has been measured ([`split_views.json`](docs/experiments/results/split_views.json)); DistilBERT is next.
+- The complaint-trend analysis names topics with a lexicon. Its precision was checked only by Claude, on 20 quotes per topic and period, and its recall is not measured. A [pilot evaluation](docs/annotation/pilot_protocol.md) with two annotators comes next: its protocol and scoring rules are locked, and notebook 09 draws the sample.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
 </details>
@@ -528,20 +589,26 @@ set or resulting performance figures have been published yet.
 
 ```text
 src/reviewnlp/
-  data/            schema labels, preprocessing, split fingerprints
+  data/            schema labels, preprocessing, split policies, manifests
   baselines/       TF-IDF + NB / LR-SGD, pure-PyTorch BiLSTM
   lora/            scratch LoRA layers, merge/unmerge
   llm/             DistilBERT full FT / scratch LoRA, Qwen QLoRA
-  evaluation/      metrics, benchmark, McNemar, plots
+  evaluation/      metrics, bootstrap intervals, benchmark, McNemar, plots
   serving/         FastAPI; stub, classical, encoder, Qwen backends
   analytics/       SQLite aspect storage, complaint ranking and recommendations
   greek/           Greek fine-tune: config, splits, baseline, evaluation
   absa/            aspect taxonomy, strict JSON parser, per-aspect vote
+analysis/complaint_trends/sql/   SQL for the complaint-trend analysis
+spaces/hotel-ops-demo/           the Greek operations demo (Gradio Space)
 configs/           YAML configs for CLI experiments
+data/eval/         label sets for the demo (ids and labels only)
 notebooks/         Colab templates (no saved outputs — see notebooks/README.md)
-scripts/           verification, quantization, API utilities
-tests/             data, LoRA/PEFT, metrics, API, Greek, ABSA checks
+scripts/           data fetch, split views, complaint trends, pilot sampling and scoring, evaluation, verification, API utilities
+tests/             data, splits, LoRA/PEFT, metrics, SQL, API, demo, Greek, ABSA checks
 docs/experiments/  preserved runs, manifests, verified handoff
+docs/case_study/   the complaint-trend report and its results
+docs/annotation/   pilot protocol and labelling guideline (locked)
+docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 ```
 
 </details>
@@ -550,8 +617,27 @@ docs/experiments/  preserved runs, manifests, verified handoff
 
 ## What I learned
 
-- **Full fine-tuning still wins on small datasets.** With 118k training rows, LoRA's parameter savings don't translate to accuracy. On a 10× larger dataset, the gap would likely narrow.
-- **Decoder models aren't automatically better.** Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA but at **100× the inference cost** on CPU. Encoder models remain the pragmatic choice for classification.
+- **A clean test set has to be built, not assumed.**
+  - The first split shared 170 texts between train and test.
+  - What makes overlap checkable: rebuilding the splits from a hash-checked raw
+    file, removing duplicates before splitting, and recording the overlap in a
+    manifest.
+- **What the test set holds decides what the number means.** The same pipeline
+  scores 1.7 macro-F1 points lower on reviews written after the training period.
+  Unseen hotels show similar observed performance.
+- **A step in the data can look like a trend.**
+  - One jump in February 2016 lifted every complaint topic at once.
+  - Comparing only the months after it changed which topics looked like rises.
+- **Say what was measured, and by whom.**
+  - The complaint lexicon's precision was checked on a small sample, by an AI
+    reader. Its recall was not checked at all.
+  - So the report says both, and a pilot with two people comes next.
+- **Full fine-tuning beat LoRA on the legacy split.** With 118k training rows,
+  LoRA's parameter savings did not translate into accuracy there.
+- **Decoder models aren't automatically better.** On the legacy split,
+  Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA. Its inference cost on CPU was
+  far higher: about 1–3 s against 25 ms per review in the demo. For
+  classification here, the encoder is the pragmatic choice.
 - **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers in 25 ms.
 - **Quantization deserves a full-test check.** A 32-example observation is a prompt for a larger, saved experiment, not a guarantee about accuracy or serialized model size.
 
@@ -560,7 +646,11 @@ docs/experiments/  preserved runs, manifests, verified handoff
 ## Roadmap
 
 - [x] Audit the uploaded parquets and re-run the classical baseline, including character n-grams, on independently identified clean splits
-- [ ] Re-run the remaining model families on those **same clean splits** to replace the historical comparison
+- [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
+- [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
+- [ ] Re-run the remaining model families on the **v2 splits**, DistilBERT first, to replace the historical comparison
+- [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md))
+- [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion
 - [ ] Experiment with **ONNX Runtime** for further CPU speedups
 - [ ] Add **calibration** (temperature scaling) so confidence scores are usable downstream
@@ -577,6 +667,10 @@ docs/experiments/  preserved runs, manifests, verified handoff
 - 📊 **Results**: [preserved run artifacts](docs/experiments/results/) · [verification report](docs/experiments/results/distilbert_legacy_full_v1/verification.json)
 - 🏗️ **Design**: [DESIGN.md](DESIGN.md) — evaluation methodology, what I'd do with more compute
 - 🧪 **Experiment log**: [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md)
+- 🗺️ **Evidence map**: [docs/EVIDENCE_MAP.md](docs/EVIDENCE_MAP.md) — what the project shows for a junior data scientist role, and what is not done yet
+- 📈 **Case study**: [Which complaints are rising?](docs/case_study/complaint_trends.md)
+- 🏷️ **Pilot evaluation**: [protocol and labelling guideline](docs/annotation/)
+- 🏨 **Hotel-operations demo**: [spaces/hotel-ops-demo/](spaces/hotel-ops-demo/)
 
 ## License
 

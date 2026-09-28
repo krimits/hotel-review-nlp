@@ -1,9 +1,13 @@
 # Pilot evaluation of the complaint lexicon: protocol
 
-**Status: draft.** The commit that adds the sampling and scoring code locks this
-protocol. The sample's manifest records this file's SHA-256, and no sheet is
-shared before that commit. Any later change is listed at the end, with the
-reason.
+**Status: locked.**
+- **When.** The commit that added
+  [`scripts/annotation_sample.py`](../../scripts/annotation_sample.py) and
+  [`scripts/score_annotations.py`](../../scripts/score_annotations.py) locked
+  this protocol, before any sheet was drawn.
+- **Record.** The sample's manifest records this file's SHA-256 and the code
+  commit.
+- **Changes.** Any later change is listed at the end, with the reason.
 
 ## Question
 
@@ -72,7 +76,7 @@ when a number is reported.
   M strata. These 80 texts are labelled by a second annotator as well.
 - **Total.** 2 × (100 + 50) = 300 draws. Duplicates across M strata would give
   fewer unique texts, and the manifest records how many.
-- **Seed and order.** The seed is fixed and recorded in the manifest. Items are
+- **Seed and order.** The seed is 0, recorded in the manifest. Items are
   numbered in a random order.
 
 ## Sheets and labels
@@ -225,6 +229,9 @@ A blank cell is never read as 0.
 
 ## Files
 
+- **Drawn by**
+  [`notebooks/09_annotation_sample_colab.ipynb`](../../notebooks/09_annotation_sample_colab.ipynb),
+  which runs `scripts/annotation_sample.py --expect-hotels 863`.
 - **Not committed** (`runs/annotation/`, these hold review text):
   - `sheet_A.csv`, `sheet_B.csv`;
   - `key.csv`, `manifest.json`.

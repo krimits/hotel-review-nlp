@@ -132,6 +132,30 @@ def test_bootstrap_interval_brackets_the_point_estimate():
     assert bootstrap_ci(truth, guess, n_resamples=300, seed=1) == (low, high)
 
 
+def test_wilson_interval_known_values():
+    from reviewnlp.evaluation.metrics import wilson_interval
+
+    assert wilson_interval(0, 10) == pytest.approx((0.0, 0.2775), abs=1e-4)
+    assert wilson_interval(10, 10) == pytest.approx((0.7225, 1.0), abs=1e-4)
+    # The Wilson interval behind the Newcombe example below.
+    low, high = wilson_interval(56, 70)
+    assert (low, high) == pytest.approx((0.6918, 0.8770), abs=1e-3)
+    with pytest.raises(ValueError):
+        wilson_interval(3, 0)
+    with pytest.raises(ValueError):
+        wilson_interval(5, 4)
+
+
+def test_newcombe_interval_matches_the_published_example():
+    from reviewnlp.evaluation.metrics import newcombe_interval
+
+    # Newcombe (1998): 56/70 against 48/80 gives 0.0524 to 0.3339 for p1 - p2,
+    # so -0.3339 to -0.0524 for p2 - p1.
+    assert newcombe_interval(56, 70, 48, 80) == pytest.approx((-0.3339, -0.0524), abs=1e-3)
+    low, high = newcombe_interval(10, 20, 10, 20)
+    assert low < 0 < high and low == pytest.approx(-high)
+
+
 def test_bootstrap_interval_of_a_perfect_model_is_one():
     from reviewnlp.evaluation.metrics import bootstrap_ci
 

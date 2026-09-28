@@ -133,6 +133,9 @@ def load_reviews(csv_path: Path, limit: int | None = None) -> tuple[pd.DataFrame
     frame["trip_type"] = [trip for trip, _ in types]
     frame["traveller_type"] = [traveller for _, traveller in types]
     frame["has_complaint_text"] = frame["negative"].map(has_complaint)
+    # The review's 0-based data row in the CSV, kept through deduplication, so a
+    # label can point at a review without storing its text.
+    frame["raw_row"] = frame.index
     frame = frame.reset_index(drop=True)
     return frame, {"rows_read": before, "duplicate_rows_dropped": before - len(frame), "reviews": len(frame)}
 
