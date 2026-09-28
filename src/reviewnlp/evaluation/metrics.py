@@ -79,6 +79,22 @@ def bootstrap_ci(y_true, y_pred, labels=LABELS, n_resamples: int = 1000, seed: i
     return round(float(low), 4), round(float(high), 4)
 
 
+def paired_bootstrap_diff(y_true, pred_a, pred_b, labels=LABELS, n_resamples: int = 2000, seed: int = 0,
+                          level: float = 0.95) -> tuple[float, float, float]:
+    """Macro-F1 of b minus a, with a percentile interval that resamples the same reviews for both."""
+    y_true, pred_a, pred_b = np.asarray(y_true), np.asarray(pred_a), np.asarray(pred_b)
+    if not len(y_true) == len(pred_a) == len(pred_b) or len(y_true) == 0:
+        raise ValueError("need three non-empty arrays of the same length")
+    point = _macro_f1(y_true, pred_b, labels) - _macro_f1(y_true, pred_a, labels)
+    rng = np.random.default_rng(seed)
+    differences = []
+    for _ in range(n_resamples):
+        rows = rng.integers(0, len(y_true), len(y_true))
+        differences.append(_macro_f1(y_true[rows], pred_b[rows], labels) - _macro_f1(y_true[rows], pred_a[rows], labels))
+    low, high = np.quantile(differences, [(1 - level) / 2, (1 + level) / 2])
+    return round(float(point), 4), round(float(low), 4), round(float(high), 4)
+
+
 Z95 = 1.959964
 
 

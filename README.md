@@ -40,7 +40,8 @@ a word TF-IDF + Naive Bayes model selected on dev reached **0.9347 macro-F1** an
 explicit missing-model list are in [the benchmark](runs/benchmark/README.md), the
 [four candidate metrics](docs/experiments/results/classical_clean_uploaded_metrics.json) and
 [`results.json`](runs/benchmark/results.json). No neural model has been re-run on
-a clean split yet.
+a clean split yet. The DistilBERT re-run has its comparisons and its rule for a
+meaningful gain fixed before training ([plan](docs/experiments/phase2_analysis_plan.md)).
 
 **Rebuilt from the raw file.** The Booking CSV is not in the repository, but a
 byte-identical copy of the Kaggle file is on the Hugging Face Hub. `make data`
@@ -648,7 +649,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Audit the uploaded parquets and re-run the classical baseline, including character n-grams, on independently identified clean splits
 - [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
 - [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
-- [ ] Re-run the remaining model families on the **v2 splits**, DistilBERT first, to replace the historical comparison
+- [ ] Re-run the remaining model families on the **v2 splits**, DistilBERT first, to replace the historical comparison ([plan, fixed before training](docs/experiments/phase2_analysis_plan.md))
 - [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion
