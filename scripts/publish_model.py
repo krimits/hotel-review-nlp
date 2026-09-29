@@ -656,6 +656,7 @@ def check_demo(api, connect: Callable, state: dict, state_path: Path, space_id: 
             last = f"stage {runtime.stage}, runtime commit {runtime_commit}"
         if clock() > deadline:
             raise PublishError(f"the demo did not serve the new model in {timeout / 60:.0f} minutes; last: {last}")
+        print("check-demo: waiting;", last, flush=True)
         sleep(poll)
     predictions = {want: label_of(client.predict(text, api_name="/predict_distilbert"))
                    for want, text in EXAMPLES.items()}
