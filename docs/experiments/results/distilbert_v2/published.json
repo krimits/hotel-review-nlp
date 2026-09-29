@@ -1,0 +1,115 @@
+{
+ "code_commit": "21d535ceafb6d1b95d4747d806c6153c2471718d",
+ "demo_check": {
+  "checked_at": "2026-09-29T09:13:27+00:00",
+  "model_info": {
+   "distilbert_repo": "krimits/distilbert-hotel-reviews",
+   "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+   "loaded_commit": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+   "weights_sha256": "f2a2bbc9a31c8f3b1d9bee46ec11bb3d8942e7e59c0ef4711c3cb2a6c1cf81c2"
+  },
+  "predictions": {
+   "negative": "negative",
+   "positive": "positive"
+  },
+  "runtime_commit": "328a3065eb69b34914276330e25f420c7bdede33",
+  "stage": "RUNNING"
+ },
+ "gradio_version": "6.27.0",
+ "legacy_tag": {
+  "commit": "9fe2f7f9963c206294200880b2401347804a80d6",
+  "name": "legacy-split-v1"
+ },
+ "logits_check": {
+  "argmax_agree": 1024,
+  "atol": 0.001,
+  "examples": 1024,
+  "finite": true,
+  "max_abs_diff": 3.635883331298828e-06,
+  "name": "agreement check on 1,024 examples",
+  "passed": true,
+  "rtol": 0.0,
+  "same_shape": true,
+  "within_tolerance": true
+ },
+ "manifest": {
+  "README.md": {
+   "git_sha1": "c0dca49353049de76b5743f7c08ce23af2d4dea9",
+   "sha256": "42c18c832146c4913385b9c19b5b8adf22588adacec9961cad93589dd50c0dae"
+  },
+  "config.json": {
+   "git_sha1": "e2b94901b97b306b1370056d3e6b76737fbbfbcd",
+   "sha256": "c70c6077460c480419f918fdf5986d4c60a960c3484a9fe8dbe26d88f21b76ce"
+  },
+  "dev_labels.npy": {
+   "git_sha1": "d6cd10b1da643089b3c5d433cd99359a5d9fa576",
+   "sha256": "cbb2af1ffeaa5386be46486a9555847418fc540d02fdc92ffca2d0815d52f33f"
+  },
+  "dev_logits.npy": {
+   "git_sha1": "e1557f83bc7c2b5e5e9efbd46bc2c489b5f08228",
+   "sha256": "2910f842d1c71ff29061cdf88a9c252f66ca8982076992c7150f9c06b01b3e24"
+  },
+  "metrics.json": {
+   "git_sha1": "d7977a8e154a0244ce908eede6701488c475bbfe",
+   "sha256": "d9d8280d4f9d47bdb64bd819548cfe2be7cd11481f24be44ec88373d7e0e659f"
+  },
+  "model.safetensors": {
+   "git_sha1": "f65db0bc6b52cd3892e73d0e25d9c6bcb9288fb8",
+   "sha256": "f2a2bbc9a31c8f3b1d9bee46ec11bb3d8942e7e59c0ef4711c3cb2a6c1cf81c2"
+  },
+  "request.json": {
+   "git_sha1": "5b57ee1431769b2c207789dc7803dd06cddb1d37",
+   "sha256": "1979be632babd6fd5181aa44d44eb2167aa7ea8018743d138895353d39d6aa24"
+  },
+  "run_config.yaml": {
+   "git_sha1": "554929693f4ab33be98076a9eb8e14f3f79105fe",
+   "sha256": "623151f632669edc5f1796941ad888a1f0a5de4108252b9a1ba019e2c94f061b"
+  },
+  "special_tokens_map.json": {
+   "git_sha1": "a8b3208c2884c4efb86e49300fdd3dc877220cdf",
+   "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+  },
+  "test_labels.npy": {
+   "git_sha1": "877e95c3fbe9285f72ad393a7e3b1d8173fec8d4",
+   "sha256": "0fb38038830134082806b15cd2e264259639719fe0fcf177fd74e03ccffa8798"
+  },
+  "test_logits.npy": {
+   "git_sha1": "f9954182da36394bb0e569ef63721dfe4b96f7f9",
+   "sha256": "5c9996bc3f7ca7b29de386aa469f2fbdce79c6472853682cd3c39d3e91cd2b55"
+  },
+  "tokenizer.json": {
+   "git_sha1": "7e0493c68135095c7ff802eb9c150e3e5cb8d41f",
+   "sha256": "8b79639ec74b46604e730f505186eaafb1006d2fd00f2c4930d168bb7f894680"
+  },
+  "tokenizer_config.json": {
+   "git_sha1": "ca078cbed9874571e1790b3704a58c00f0dc7556",
+   "sha256": "a3c9410f27554c6e26af779fd147e536c6c5f9e5cb0e6b8f38ddaa25e1b0f6af"
+  },
+  "train.log": {
+   "git_sha1": "fb14856db883981c64f01ca884af91c77128399c",
+   "sha256": "aefbaed94123deac18d72ca5dcd39b85798c0c774897d905046d48ad5458440f"
+  },
+  "vocab.txt": {
+   "git_sha1": "fb140275c155a9c7c5a3b3e0e77a9e839594a938",
+   "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  }
+ },
+ "model_commit": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+ "model_repo": "krimits/distilbert-hotel-reviews",
+ "new_model_sha256": "f2a2bbc9a31c8f3b1d9bee46ec11bb3d8942e7e59c0ef4711c3cb2a6c1cf81c2",
+ "old_hub_commit": "9fe2f7f9963c206294200880b2401347804a80d6",
+ "old_model_sha256": "f30daa44e795b7015151892ff5ec285e14a916e122902aa0617a15bf96ec54b7",
+ "packages": {
+  "gradio_client": "1.13.3",
+  "huggingface_hub": "0.36.2",
+  "numpy": "2.1.3",
+  "pandas": "2.2.3",
+  "tokenizers": "0.22.2",
+  "torch": "2.11.0+cu128",
+  "transformers": "4.56.2"
+ },
+ "space_commit": "328a3065eb69b34914276330e25f420c7bdede33",
+ "space_parent_commit": "f4362f1351cb85427aae352cdb36666294172d44",
+ "space_repo": "krimits/hotel-review-demo",
+ "training_commit": "994a103574d07833d466e9553680a9cab46bfe76"
+}

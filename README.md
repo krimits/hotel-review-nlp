@@ -112,6 +112,13 @@ The results, manifests and test predictions are in
 - **Evidence.** The runs, logits and checks are in
   [`results/distilbert_v2/`](docs/experiments/results/distilbert_v2/). The CI recomputes the
   comparison from the logits on every push.
+- **Published.** The random-split full fine-tune is now the Hub model
+  [`krimits/distilbert-hotel-reviews`](https://huggingface.co/krimits/distilbert-hotel-reviews/tree/7306aebcaaebc00d579f5d0a91001ae376f18158)
+  and the demo's DistilBERT, both at commit `7306aeb`.
+  - Before any write, its weights reproduced the saved test logits on 1,024 reviews.
+  - The previous model is kept under the tag `legacy-split-v1`.
+  - The steps, checks and records are in the
+    [publication record](docs/experiments/results/distilbert_v2/README.md#published).
 
 **Which complaints are rising.** A SQL analysis of the same reviews asks which
 complaint topics became more frequent within the same hotels.
@@ -204,9 +211,14 @@ On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-
 - **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** —
   dedicated Greek-language demo (GreekBERT, single tab).
   
-Paste any hotel review and get a live prediction. No setup required. The deployed
-models were trained on the legacy split (see
-[Historical results](#historical-results-legacy-split-text-overlap)).
+Paste any hotel review and get a live prediction. No setup required.
+- **DistilBERT** is the clean-split model: 0.9642 macro-F1 on a test set that shares no review
+  text with training. The demo loads it at Hub commit
+  [`7306aeb`](https://huggingface.co/krimits/distilbert-hotel-reviews/tree/7306aebcaaebc00d579f5d0a91001ae376f18158)
+  ([publication record](docs/experiments/results/distilbert_v2/README.md#published)).
+- **Qwen QLoRA** was trained on the legacy split (see
+  [Historical results](#historical-results-legacy-split-text-overlap)), and **GreekBERT** on Greek tweets.
+  Their numbers come from other test sets and are not comparable with DistilBERT's.
 
 ![The hotel-review-demo Space comparing DistilBERT and Qwen QLoRA on one review](docs/images/space_demo.png)
 
@@ -218,8 +230,10 @@ cd hotel-review-nlp
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,serving]"
 
-# Download the fine-tuned encoder from HF Hub
-hf download krimits/distilbert-hotel-reviews --local-dir models/distilbert
+# Download the fine-tuned encoder from HF Hub, at the published commit
+# (the previous, legacy-split model: --revision legacy-split-v1)
+hf download krimits/distilbert-hotel-reviews --revision 7306aebcaaebc00d579f5d0a91001ae376f18158 \
+  --local-dir models/distilbert
 
 # Serve it
 MODEL_TYPE=encoder MODEL_PATH=models/distilbert make serve
@@ -255,7 +269,8 @@ Weights are **never baked into the image** — mount them and point `MODEL_PATH`
 mount, or the container exits at startup:
 
 ```bash
-hf download krimits/distilbert-hotel-reviews --local-dir models/distilbert
+hf download krimits/distilbert-hotel-reviews --revision 7306aebcaaebc00d579f5d0a91001ae376f18158 \
+  --local-dir models/distilbert
 
 docker run -p 8000:8000 \
   -v "$(pwd)/models:/models:ro" \
