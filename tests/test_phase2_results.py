@@ -52,7 +52,8 @@ def test_every_file_matches_the_manifest():
         assert len(content) == entry["bytes"], entry["path"]
         assert hashlib.sha256(content).hexdigest() == entry["sha256"], entry["path"]
     present = {path.relative_to(BUNDLE).as_posix() for path in BUNDLE.rglob("*") if path.is_file()}
-    assert present - listed == {"artifact_manifest.json", "README.md"}
+    # The manifest describes the bundle as it came from Colab; the publication records were added later.
+    assert present - listed == {"artifact_manifest.json", "README.md", "published.json", "model_card.md"}
 
 
 def test_every_run_comes_from_the_same_commit():
