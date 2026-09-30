@@ -1,0 +1,312 @@
+"""The Jev harness, offline: which texts it sends, when it sends nothing, and how it scores.
+
+No test reaches the network. The sender is replaced by a fake that answers in the form the
+System One API documents (the wire schema of the provider's typesafe-sdk 0.7.2).
+"""
+
+from __future__ import annotations
+
+import csv
+import http.client
+import importlib.util
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+from reviewnlp.evaluation.metrics import wilson_interval
+from reviewnlp.evaluation.significance import mcnemar_exact
+
+ROOT = Path(__file__).resolve().parents[1]
+FOLDER = ROOT / "docs" / "experiments" / "jev_topic_benchmark"
+GUIDELINE = ROOT / "docs" / "annotation" / "complaint_topics_guideline.md"
+DRAFT_COMMIT = "2c0847b3293945cfd875dd96163f2925dfaea0bc"
+
+
+def _load(name: str):
+    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+bench = _load("benchmark_jev_topics")
+score = _load("score_annotations")
+KEY = bench.read_key(bench.RESULTS / "key.csv")
+GOLD = bench.read_gold(bench.RESULTS / "labels_final.csv")
+RANDOM = sorted(item for item, row in KEY.items() if row["in_R"])
+
+
+def text_of(item: int) -> str:
+    return f"made-up review {item} TEXTMARK"
+
+
+def answer(choice: str) -> dict:
+    probabilities = {label: (0.8 if label == choice else 0.1) for label in bench.LABELS}
+    return {"type": "choice", "choice": choice, "confidence": 0.7, "probabilities": probabilities}
+
+
+class FakeAPI:
+    """Answers like the System One API and records every request.
+
+    By default it answers responsiveness as the final labels do and 0 for the other topics.
+    `plan` maps a call number to the (status, headers, body) to return instead.
+    """
+
+    def __init__(self, plan: dict | None = None):
+        self.plan, self.calls, self.sleeps = plan or {}, [], []
+
+    def __call__(self, body: dict, api_key: str, timeout: float):
+        self.calls.append((body, api_key))
+        if len(self.calls) in self.plan:
+            planned = self.plan[len(self.calls)]
+            if isinstance(planned, Exception):
+                raise planned
+            status, headers, payload = planned
+            return status, headers, json.dumps(payload).encode()
+        item = int(body["state"].split()[2])
+        choices = {t: GOLD[item][t] if t == "responsiveness" else "0" for t in bench.TOPICS}
+        response = {"model": "jev-2026-09-15", "answers": {t: answer(c) for t, c in choices.items()},
+                    "usage": {"input_tokens": 900, "output_tokens": 5}}
+        return 200, {}, json.dumps(response).encode()
+
+
+@pytest.fixture
+def runs(tmp_path, monkeypatch):
+    monkeypatch.setattr(bench, "RUNS", tmp_path / "runs")
+    return tmp_path / "runs"
+
+
+@pytest.fixture
+def texts(tmp_path):
+    """A sheet laid out like sheet A, with a made-up text for each of the 300 items."""
+    path = tmp_path / "sheet.csv"
+    with open(path, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["item", "text", *bench.TOPICS, "done", "note"])
+        for item in sorted(KEY):
+            writer.writerow([item, text_of(item), *["0"] * len(bench.TOPICS), "yes", ""])
+    return path
+
+
+def run(monkeypatch, fake: FakeAPI, texts: Path, output: Path, *extra: str) -> None:
+    monkeypatch.setattr(bench, "post", fake)
+    monkeypatch.setattr(bench.time, "sleep", fake.sleeps.append)
+    bench.main(["--texts", str(texts), "--output", str(output), *extra])
+
+
+def test_the_committed_labels_give_the_pilot_baseline():
+    assert len(RANDOM) == 200
+    positives = {t: sum(GOLD[i][t] == "1" for i in RANDOM) for t in bench.TOPICS}
+    assert positives == {"bathroom": 13, "cleanliness": 11, "air_conditioning": 18, "pests": 2,
+                         "responsiveness": 16}
+    assert sum(GOLD[i]["responsiveness"] == "1" and KEY[i]["responsiveness"] for i in RANDOM) == 2
+
+
+def test_without_the_flag_nothing_is_sent(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev")
+    assert fake.calls == []
+    assert [path.name for path in (runs / "jev").iterdir()] == ["request_example.json"]
+
+
+def test_the_flag_without_a_key_sends_nothing(runs, texts, monkeypatch):
+    monkeypatch.delenv(bench.KEY_ENV, raising=False)
+    fake = FakeAPI()
+    with pytest.raises(SystemExit, match="set TYPESAFE_API_KEY"):
+        run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api")
+    assert fake.calls == []
+
+
+def test_the_run_folder_must_be_inside_runs(runs, texts, tmp_path, monkeypatch):
+    for output in (tmp_path / "elsewhere", runs):
+        with pytest.raises(SystemExit, match="inside"):
+            run(monkeypatch, FakeAPI(), texts, output)
+
+
+def test_a_run_sends_each_random_text_once_and_writes_no_text_or_key(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api")
+    assert [body["state"] for body, _ in fake.calls] == [text_of(item) for item in RANDOM]
+    assert all(body == bench.request_body(body["state"]) for body, _ in fake.calls)
+    assert {api_key for _, api_key in fake.calls} == {"sk-test-secret"}
+    folder = runs / "jev"
+    for path in folder.iterdir():
+        assert "sk-test-secret" not in path.read_text(encoding="utf-8"), path.name
+    for name in ("summary.json", "predictions.csv", "run.json"):
+        assert "TEXTMARK" not in (folder / name).read_text(encoding="utf-8"), name
+    with open(folder / "predictions.csv", newline="", encoding="utf-8") as handle:
+        assert [int(row["item"]) for row in csv.DictReader(handle)] == RANDOM
+
+
+def test_a_run_on_texts_other_than_the_handed_in_sheet_does_not_decide(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    run(monkeypatch, FakeAPI(), texts, runs / "jev", "--allow-external-api")
+    summary = json.loads((runs / "jev" / "summary.json").read_text(encoding="utf-8"))
+    decision = summary["decision"]
+    assert (decision["only_jev"], decision["only_lexicon"]) == (14, 0)
+    assert decision["jev_better"] and decision["guard_holds"] and not decision["rule_applies"]
+    assert decision["outcome"] == "not decided: the texts file is not the handed-in sheet A"
+    assert summary["texts"] == {**summary["texts"], "random": 200, "selected": 200, "answered": 200}
+    assert summary["models_answered"] == ["jev-2026-09-15"]
+    assert summary["tokens"] == {"input": 200 * 900, "output": 200 * 5}
+
+
+def test_a_smoke_run_is_marked_and_does_not_decide(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api", "--limit", "3")
+    assert len(fake.calls) == 3
+    decision = json.loads((runs / "jev" / "summary.json").read_text(encoding="utf-8"))["decision"]
+    assert decision["outcome"].startswith("not decided: smoke run on 3 of 200 texts")
+
+
+def test_a_stopped_run_resumes_without_sending_a_text_twice(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    first = FakeAPI(plan={51: (401, {}, {"error": "invalid key"})})
+    with pytest.raises(SystemExit, match="HTTP 401"):
+        run(monkeypatch, first, texts, runs / "jev", "--allow-external-api")
+    assert len(first.calls) == 51 and first.sleeps == []
+    second = FakeAPI()
+    run(monkeypatch, second, texts, runs / "jev", "--allow-external-api")
+    assert [body["state"] for body, _ in second.calls] == [text_of(item) for item in RANDOM[50:]]
+    summary = json.loads((runs / "jev" / "summary.json").read_text(encoding="utf-8"))
+    assert summary["texts"]["answered"] == 200 and summary["requests"]["sent"] == 200
+
+
+def test_retries_wait_as_the_server_asks_and_a_client_error_stops_at_once(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    busy = FakeAPI(plan={1: (429, {"Retry-After-Ms": "1500"}, {"error": "slow down"}),
+                         2: (503, {}, {"error": "busy"}),
+                         3: http.client.IncompleteRead(b"")})
+    run(monkeypatch, busy, texts, runs / "busy", "--allow-external-api", "--limit", "1")
+    assert len(busy.calls) == 4 and busy.sleeps == [1.5, 4.0, 8.0]
+    assert json.loads((runs / "busy" / "summary.json").read_text(encoding="utf-8"))["requests"]["retried"] == 3
+    refused = FakeAPI(plan={1: (422, {}, {"detail": [{"loc": ["body", "state"], "msg": "bad"}]})})
+    with pytest.raises(SystemExit, match="HTTP 422"):
+        run(monkeypatch, refused, texts, runs / "refused", "--allow-external-api")
+    assert len(refused.calls) == 1 and refused.sleeps == []
+
+
+def test_an_answer_in_another_form_stops_after_that_text(runs, texts, monkeypatch):
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    no_confidence = {t: {**answer("0"), "confidence": None} for t in bench.TOPICS}
+    for number, response in enumerate(({"model": "jev", "answers": {"bathroom": answer("1")}, "usage": {}},
+                                       {"model": "jev", "answers": no_confidence, "usage": {}})):
+        fake = FakeAPI(plan={1: (200, {}, response)})
+        with pytest.raises(SystemExit, match="not in the documented form"):
+            run(monkeypatch, fake, texts, runs / f"jev{number}", "--allow-external-api")
+        assert len(fake.calls) == 1
+        assert len((runs / f"jev{number}" / "responses.jsonl").read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_scoring_only_reproduces_the_summary_and_refuses_other_inputs(runs, texts, tmp_path, monkeypatch):
+    with pytest.raises(SystemExit, match="no saved answers"):
+        run(monkeypatch, FakeAPI(), texts, runs / "jev", "--score-only")
+    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    run(monkeypatch, FakeAPI(), texts, runs / "jev", "--allow-external-api")
+    summary = (runs / "jev" / "summary.json").read_text(encoding="utf-8")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev", "--score-only")
+    assert fake.calls == [] and (runs / "jev" / "summary.json").read_text(encoding="utf-8") == summary
+    other = tmp_path / "other.csv"
+    other.write_text(texts.read_text(encoding="utf-8").replace("made-up", "changed"), encoding="utf-8")
+    with pytest.raises(SystemExit, match="differ"):
+        run(monkeypatch, fake, other, runs / "jev", "--score-only")
+
+
+def test_scoring_on_a_known_example():
+    items = list(range(1, 31))
+    key = {i: {"in_R": True, **{t: i in (1, 2, 14) and t == "responsiveness" for t in bench.TOPICS}} for i in items}
+    gold = {i: {t: "0" for t in bench.TOPICS} for i in items}
+    choices = dict.fromkeys(items, "0")
+    for i in range(1, 13):
+        gold[i]["responsiveness"] = "1"
+    gold[13]["responsiveness"] = "unsure"
+    choices.update({i: "1" for i in (1, *range(3, 11), 15)} | {11: "unsure", 16: "unsure"})
+    answers = {i: bench.read_answers({"answers": {t: answer(choices[i] if t == "responsiveness" else "0")
+                                                  for t in bench.TOPICS}}) for i in items}
+    report = bench.score(items, key, gold, answers)
+    result = report["responsiveness"]
+    assert (result["texts"], result["gold_unsure_left_out"]) == (29, 1)
+    lexicon, jev = result["lexicon"], result["jev"]
+    assert (lexicon["true_positives"], lexicon["false_positives"], lexicon["missed"]) == (2, 1, 10)
+    assert (jev["true_positives"], jev["false_positives"], jev["missed"]) == (9, 1, 3)
+    assert jev["recall"]["wilson95"] == [round(x, 4) for x in wilson_interval(9, 12)]
+    assert jev["precision"]["estimate"] == 0.9
+    assert jev["unsure"] == {"on_gold_1": 1, "on_gold_0": 1}
+    assert jev["recall_if_unsure_counted_as_found"] == round(10 / 12, 4)
+    assert result["paired_recall"] == {"both": 1, "only_jev": 8, "only_lexicon": 1, "neither": 2,
+                                       "mcnemar_p": round(mcnemar_exact(8, 1)["p_value"], 4)}
+    assert result["paired_false_positives"] == {"both": 0, "only_jev": 1, "only_lexicon": 1,
+                                                "neither": 15, "mcnemar_p": 1.0}
+    assert result["jev_calibration_error"] == pytest.approx(abs(24 / 27 - 0.8))
+    assert report["pests"]["jev"]["precision"] == {"numerator": 0, "denominator": 0,
+                                                   "status": "insufficient sample"}
+    decision = bench.decide(report, [])
+    assert decision["jev_better"] and decision["guard_holds"] and decision["outcome"].startswith("Jev finds more")
+    assert bench.decide(report, ["a reason"])["outcome"] == "not decided: a reason"
+
+
+def _verdict(only_jev: int, only_lexicon: int, true_positives: int, false_positives: int) -> dict:
+    report = {"responsiveness": {"paired_recall": {"only_jev": only_jev, "only_lexicon": only_lexicon},
+                                 "jev": {"true_positives": true_positives, "false_positives": false_positives}}}
+    return bench.decide(report, [])
+
+
+def test_the_decision_rule_at_its_edges():
+    assert not _verdict(5, 0, 7, 0)["jev_better"]  # p = 0.0625
+    assert _verdict(6, 0, 8, 0)["jev_better"]  # p = 0.03125
+    assert not _verdict(7, 1, 9, 0)["jev_better"] and _verdict(8, 1, 10, 0)["jev_better"]
+    assert _verdict(6, 0, 8, 8)["guard_holds"]  # exactly half of the flagged texts are right
+    assert _verdict(6, 0, 8, 9)["outcome"] == "keep the lexicon"
+    assert _verdict(0, 0, 0, 0)["outcome"] == "keep the lexicon"
+
+
+def test_the_statistics_match_the_project_code():
+    for total in range(1, 40):
+        for successes in range(total + 1):
+            assert bench.wilson(successes, total) == wilson_interval(successes, total)
+            assert bench.proportion(successes, total) == score._proportion(successes, total)
+    for b in range(25):
+        for c in range(25):
+            assert bench.mcnemar_p(b, c) == pytest.approx(mcnemar_exact(b, c)["p_value"], rel=1e-9)
+
+
+def test_the_questions_carry_the_guidelines_rules():
+    questions = json.dumps(bench.QUESTIONS).lower()
+    guideline = " ".join(GUIDELINE.read_text(encoding="utf-8").lower().split())
+    for rule in ("a suggestion or wish that implies a lack", "a mild complaint is still 1",
+                 "only the setting of another complaint", "neutral mention",
+                 "mark bathroom 1 only if something else about the bathroom is also criticised",
+                 "booking.com, not the hotel, failing to pass something on"):
+        assert rule in guideline and rule in questions, rule
+    assert all(set(q["criteria"]) == set(bench.LABELS) for q in bench.QUESTIONS.values())
+
+
+def test_the_questions_and_the_rule_are_the_ones_fixed_in_the_decision_note():
+    note = (FOLDER / "DECISION_v2.md").read_text(encoding="utf-8")
+    assert f"`{bench.QUESTIONS_SHA256}`" in note
+    assert (bench.PRIMARY_TOPIC, bench.ALPHA, bench.MIN_PRECISION, bench.MODEL) == (
+        "responsiveness", 0.05, 0.5, "jev-latest")
+
+
+def _git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True)
+
+
+def test_the_first_draft_is_kept_as_committed():
+    draft = _git("show", f"{DRAFT_COMMIT}:docs/experiments/jev_topic_benchmark/DECISION.md")
+    if draft.returncode != 0:
+        pytest.skip("the draft's commit is not in this clone")
+    assert (FOLDER / "DECISION.md").read_bytes() == draft.stdout
+
+
+def test_the_default_run_folder_is_ignored_by_git():
+    for name in ("responses.jsonl", "request_example.json", "run.json", "summary.json", "predictions.csv"):
+        assert _git("check-ignore", "-q", f"runs/jev_topic_benchmark/{name}").returncode == 0, name
