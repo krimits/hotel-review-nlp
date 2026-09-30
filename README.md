@@ -98,10 +98,12 @@ The results, manifests and test predictions are in
 - **LoRA.**
   - It is 0.7 points below the full fine-tune on both tests: clear but small.
   - It trains in a third less time with 39% less GPU memory.
-- **Cost.**
-  - On one CPU thread, DistilBERT takes 57 ms per review against 1.2 ms.
+- **Cost**, timed with the models of the out-of-time split.
+  - On one CPU thread, one review at a time, from text to label: DistilBERT takes 57 ms per
+    review (median; 124 ms at the 95th percentile) against 1.2 ms.
   - It weighs 255 MiB against 3.4 MiB.
-  - On a T4 GPU it scores 254 reviews per second.
+  - On a T4 GPU, in batches of 64, it labels 254 reviews per second. That is a throughput, not
+    the time to answer one review.
 - **Decision.**
   - For scoring reviews in batches: DistilBERT.
   - For one review at a time on a CPU: it depends on the time allowed
@@ -206,8 +208,7 @@ On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-
 👉 Try the deployed models interactively:
 
 - **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)** —
-  DistilBERT (25 ms) vs Qwen2.5-0.5B QLoRA (~1–3 s) vs GreekBERT (86 ms), three tabs
-  on one review text.
+  DistilBERT vs Qwen2.5-0.5B QLoRA vs GreekBERT, side by side on one review text.
 - **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** —
   dedicated Greek-language demo (GreekBERT, single tab).
   
@@ -219,6 +220,18 @@ Paste any hotel review and get a live prediction. No setup required.
 - **Qwen QLoRA** was trained on the legacy split (see
   [Historical results](#historical-results-legacy-split-text-overlap)), and **GreekBERT** on Greek tweets.
   Their numbers come from other test sets and are not comparable with DistilBERT's.
+- **Speed.** Each answer shows its server processing time on the Space's CPU: tokenization,
+  inference and output processing, without queueing, network or rendering in the browser. No
+  benchmark of the demo has been run.
+  - The project's benchmark ([`latency.json`](docs/experiments/results/distilbert_v2/latency.json))
+    timed the out-of-time DistilBERT checkpoint, which has the same architecture and size as the
+    demo's. It is not a measurement of the published random-split checkpoint in the Space.
+  - On one CPU thread, one review at a time, tokenization included: 57.2 ms median, 124.4 ms at the
+    95th percentile.
+  - On a T4, in batches of 64: 254.5 reviews per second. That is a throughput, not the time to
+    answer one request.
+  - Qwen generates the label token by token. Its speed relative to the other models in the Space
+    has not been measured.
 
 ![The hotel-review-demo Space comparing DistilBERT and Qwen QLoRA on one review](docs/images/space_demo.png)
 
@@ -250,6 +263,9 @@ curl -X POST http://localhost:8000/predict \
 ```json
 { "label": "positive", "confidence": 0.9985, "latency_ms": 24.9 }
 ```
+
+This response is an illustrative example, not a recorded request. `latency_ms` is the server's
+processing time for that one request, and it depends on the hardware.
 
 `bash scripts/demo_api.sh` exercises `/health`, both `/predict` paths and `/predict/batch` against a
 real encoder checkpoint:
@@ -729,10 +745,11 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
   splits** (by 0.6–0.7 points). With 118k training rows, LoRA's parameter savings
   did not translate into accuracy.
 - **Decoder models aren't automatically better.** On the legacy split,
-  Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA. Its inference cost on CPU was
-  far higher: about 1–3 s against 25 ms per review in the demo. For
-  classification here, the encoder is the pragmatic choice.
-- **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers in 25 ms.
+  Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA. Qwen generates the label token
+  by token; its speed relative to DistilBERT has not been measured. For
+  classification here, the encoder is the pragmatic choice: it has 67M parameters
+  against 0.5B, and it returns class probabilities rather than a generated word.
+- **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers quickly.
 - **Quantization deserves a full-test check.** A 32-example observation is a prompt for a larger, saved experiment, not a guarantee about accuracy or serialized model size.
 
 ---
