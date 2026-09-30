@@ -244,4 +244,8 @@ A blank cell is never read as 0.
 
 ## Changes after locking
 
-None yet.
+- **30 September 2026: the draw's manifest is committed as well.**
+  - The draw's `manifest.json` holds counts, hashes and commits, and no text.
+  - It is committed as `docs/case_study/results/annotation/sample_manifest.json`, so that the sample's
+    provenance stays with its results.
+  - This adds a record. It changes no part of the design, the labels or the estimators.
