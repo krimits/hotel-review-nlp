@@ -113,3 +113,19 @@ at commit [`21d535ceafb6d1b95d4747d806c6153c2471718d`](https://github.com/krimit
   - `7306aeb…` held the 15 files and `.gitattributes`, and the card on `main` was 4,789 bytes;
   - the tag resolved;
   - the demo's `app.py` at `328a306…` pinned `7306aeb…`.
+
+**Later: a text-only change to the demo, 30 September 2026.**
+- **What changed.** The demo's README and interface gave response times that no recorded measurement
+  supports: ~25 ms, ~50 ms, ~1–3 s and ~100–200 ms. They were removed in commit
+  [`9265c76a748e0a9b3a65d601c6206549535500aa`](https://huggingface.co/spaces/krimits/hotel-review-demo/tree/9265c76a748e0a9b3a65d601c6206549535500aa),
+  after `328a306…`. The time shown with each answer is now called server processing time. The model
+  pin and the app's logic did not change.
+- **Checks before the change:**
+  - Both files were rebuilt from the published patch and matched `328a306…` byte for byte.
+  - The new `app.py` was built with stand-in models on the Space's versions: Gradio 6.27.0,
+    transformers 5.17.0 and peft 0.20.0.
+- **Checks after the change:**
+  - The two files on the Space's `main` had the SHA-256 of the files that were prepared.
+  - A call to the running demo reported the running commit `9265c76…` and the model commit
+    `7306aeb…`, with the weights' SHA-256 `f2a2bbc9…`.
+  - The demo answered two calls to `/predict_distilbert`.
