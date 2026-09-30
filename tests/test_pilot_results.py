@@ -1,4 +1,4 @@
-"""The pilot's committed agreement: no review text, the drawn items, and kappa reproduced from the labels.
+"""The pilot's committed results: no review text, the drawn items, and every number reproduced from the labels.
 
 The labels came back on 30 September 2026 (docs/case_study/results/annotation/README.md). The
 sheets hold review text and are not committed, so these checks use only the committed ids, labels
@@ -32,19 +32,21 @@ def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _labels(key: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    """Each annotator's labels, read back through the scorer's own check."""
-    raw = pd.read_csv(RESULTS / "labels_raw.csv", dtype=str, keep_default_na=False)
-    expected = {"A": set(key.index), "B": set(key.index[key["in_B"] == 1])}
+def _labels(key: pd.DataFrame, name: str = "labels_raw.csv") -> dict[str, pd.DataFrame]:
+    """Labels per annotator ('A', 'B' or 'final'), read back through the scorer's own check."""
+    rows = pd.read_csv(RESULTS / name, dtype=str, keep_default_na=False)
+    expected = {"A": set(key.index), "B": set(key.index[key["in_B"] == 1]), "final": set(key.index)}
     return {who: score.check_sheet(frame.assign(done="yes"), expected[who], f"committed labels of {who}")
-            for who, frame in raw.groupby("annotator")}
+            for who, frame in rows.groupby("annotator")}
 
 
 def test_no_review_text_is_committed():
-    assert list(pd.read_csv(RESULTS / "labels_raw.csv", nrows=0).columns) == ["item", "annotator", *score.TOPICS]
+    for name in ("labels_raw.csv", "labels_final.csv"):
+        assert list(pd.read_csv(RESULTS / name, nrows=0).columns) == ["item", "annotator", *score.TOPICS]
     assert {"text", "note"}.isdisjoint(pd.read_csv(RESULTS / "key.csv", nrows=0).columns)
     assert sorted(path.name for path in RESULTS.iterdir()) == [
-        "README.md", "agreement.json", "key.csv", "labels_raw.csv", "sample_manifest.json"]
+        "README.md", "agreement.json", "key.csv", "labels_final.csv", "labels_raw.csv", "metrics.json",
+        "sample_manifest.json"]
 
 
 def test_the_labels_cover_exactly_the_drawn_items():
@@ -61,6 +63,24 @@ def test_kappa_is_reproduced_from_the_committed_labels():
     labels = _labels(key)
     recomputed = json.loads(json.dumps(score.agreement(key, labels["A"], labels["B"], seed=0)))
     assert recomputed == _json(RESULTS / "agreement.json")["topics"]
+
+
+def test_the_final_labels_are_a_outside_the_double_labelled_texts_and_keep_every_agreement():
+    key = score.read_key(RESULTS / "key.csv")
+    raw, final = _labels(key), _labels(key, "labels_final.csv")["final"]
+    a, b, final = raw["A"].astype(str), raw["B"].astype(str), final.astype(str)  # cells are 1, 0 or 'unsure'
+    single = sorted(set(key.index) - set(b.index))
+    assert (final.loc[single] == a.loc[single]).all().all()
+    agreed = a.loc[b.index] == b
+    assert ((final.loc[b.index] == b) | ~agreed).all().all()  # the discussion changed only disagreements
+    assert int((~agreed).sum().sum()) == 7
+
+
+def test_precision_and_recall_are_reproduced_from_the_final_labels():
+    key = score.read_key(RESULTS / "key.csv")
+    final = _labels(key, "labels_final.csv")["final"]
+    recomputed = json.loads(json.dumps(score.metrics(key, final)))
+    assert recomputed == _json(RESULTS / "metrics.json")["topics"]
 
 
 def _git(*args: str) -> subprocess.CompletedProcess:

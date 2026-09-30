@@ -4,8 +4,8 @@
 topics became more frequent? Does a rise hold within the same hotels, or does
 it come from a change in which hotels and which guests were reviewed?
 
-**Status.** Two runs on all 515K reviews are done. People have not yet measured
-the lexicon's precision and recall; that is the next step.
+**Status.** Two runs on all 515K reviews are done. Two people have measured the
+lexicon's precision and recall in a pilot ([results](results/annotation/README.md)).
 - **First run.** It compares September 2015–July 2016 with September 2016–July
   2017. It found a step in February 2016 that lifts every topic, possibly a
   change in how reviews were collected or recorded.
@@ -43,6 +43,12 @@ How the columns below are measured:
 | Pests | 0.22% → 0.33% | +0.09 points (+40%) | +33% | 18/20 → 19/20 | 28% |
 
 - **Precision.** In the sampled quotes it is high in both periods.
+- **The pilot.**
+  - Measured by two people, precision is 0.75 for bathroom and about 0.9 for air
+    conditioning in both periods. Pests had too few texts.
+  - Its intervals for the change between the periods contain both zero and the
+    fall that would erase each rise. So these rises stay unconfirmed
+    ([the pilot](#the-pilot-precision-and-recall-measured-by-two-people)).
 - **Bathroom & shower.** It has the largest rise in points. Of its +14%, about
   5% is the general growth in topic mentions, which lifts every topic.
 - **Pests.** They are rare, about 1 review in 300 in 2017, but serious: bed bugs,
@@ -62,6 +68,11 @@ How the columns below are measured:
 - **Responsiveness errors.** Phrases such as "the answer was yes".
 - **Why not yet findings.** A relative fall in precision of 14% or 17% would
   erase these rises, and 20 quotes per period cannot rule that out.
+- **The pilot agrees, and cannot rule it out either.**
+  - Measured by two people, precision is 0.47–0.54 for cleanliness and 0.33–0.58
+    for responsiveness.
+  - For responsiveness, the lexicon also names only 2 of the 16 complaints people
+    found among the random texts. Its rate covers a small part of them.
 
 **3. Not rising faster than other topics.**
 - **Bed.** +8% within the same hotels, under the 10% bar, and +2.5% against other
@@ -74,11 +85,13 @@ were reviewed. Within the same hotels the rise is +0.52 points (+7%), under the
 bar.
 
 **Limits.**
-- **Topics come from a lexicon, not a model.** Only its precision was checked,
-  by Claude, on 20 quotes per topic and period. About three quarters of the 480
-  quotes read are about the named topic.
-- **Recall is not measured.** A rise could also come from guests using words the
-  lexicon catches more often.
+- **Topics come from a lexicon, not a model.**
+  - First, Claude read 20 quotes per topic and period. About three quarters of the
+    480 quotes are about the named topic.
+  - Then two people measured precision and recall in a pilot.
+- **A change in recall is not measured.** The pilot reports recall pooled over
+  the periods, or for one period only. So a rise could still come from guests
+  using words the lexicon catches more often.
 - **The step in February 2016.** Its cause is unknown. The second run avoids it,
   whatever caused it.
 - **Short periods.** Each period is six months, and the data end in August 2017.
@@ -87,10 +100,9 @@ bar.
   [the second run](#second-run-after-the-february-2016-step)).
 
 **Next step in real work.**
-- **Measure the lexicon.** Two people label a pilot sample for the five topics:
-  precision and recall in both periods
-  ([protocol](../annotation/pilot_protocol.md), locked before the sample was
-  drawn).
+- **A larger sample.** The pilot was too small for pests, and for recall in each
+  period. A larger labelled sample, drawn the same way, would measure both.
+- **Improve the responsiveness rules.** They miss most responsiveness complaints.
 - **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.
@@ -171,7 +183,7 @@ adds four things to the SQL:
 | A change in how reviews were collected or recorded | The monthly share of reviews with any complaint (query 07). The second run uses only months after the February 2016 step. |
 | Complaints that name more topics | Each topic's share of all topic mentions, in the same hotels at the base period's mix (from query 04). |
 | A change in Booking's tags | Tag shares that swap between two labels (query 05). |
-| The lexicon misreading words | 20 quotes per period read for precision. Recall is not measured. |
+| The lexicon misreading words | 20 quotes per period read for precision, then a pilot in which two people measured precision and recall. A change in recall is not measured. |
 | Chance, with 29 topics tested | The stricter interval and the 10% minimum. |
 
 ## Results
@@ -405,6 +417,47 @@ named topic.
 | Cleanliness | 10/20 → 12/20 | 13.6% |
 | Responsiveness | 11/20 → 10/20 | 16.8% |
 
+### The pilot: precision and recall measured by two people
+
+**What was done.**
+- The [protocol](../annotation/pilot_protocol.md) was locked before the sample was
+  drawn.
+- Two people labelled 300 negative texts from the 863 compared hotels, 150 per
+  period. 80 of them were labelled by both.
+- They agreed well: kappa 0.83 to 1.00 per topic.
+- Their disagreements were settled in a discussion.
+- The pilot evaluates the lexicon, not a sentiment model.
+- Full results, provenance and caveats: [results/annotation](results/annotation/README.md).
+
+| Topic | Precision, 2016 → 2017 | Change (95% interval) | Recall, both periods |
+|---|---|---|---|
+| Bathroom & shower | 12/16 → 12/16 (0.75 → 0.75) | 0.00 (−0.29 to +0.29) | 12/13 (0.92) |
+| Air conditioning & ventilation | 11/12 → 18/20 (0.92 → 0.90) | −0.02 (−0.23 to +0.26) | 16/18 (0.89) |
+| Pests | 7/7 → 6/7, too few texts | not reported | 2/2, too few texts |
+| Cleanliness | 8/17 → 14/26 (0.47 → 0.54) | +0.07 (−0.22 to +0.34) | 9/11 (0.82) |
+| Responsiveness | 5/15 → 11/19 (0.33 → 0.58) | +0.25 (−0.08 to +0.51) | 2/16 (0.13) |
+
+**What it shows.**
+- **Precision.** The lexicon is reliable for air conditioning and fairly so for
+  bathroom. For cleanliness and responsiveness it is right about half the time
+  or less, as the quote reading found.
+- **Recall.** It names most bathroom, air conditioning and cleanliness
+  complaints, but only 2 of the 16 responsiveness complaints in the random texts.
+- **Bathroom is lower than the quote reading.** Precision for bathroom is below
+  the quote reading's 36/40. The two differ in readers, in samples, and in
+  following a written guideline.
+
+**What it does not show.**
+- **No change in precision is told apart from zero.** Each interval also contains
+  the fall that would erase the topic's rise (the table above). So the pilot
+  neither confirms the rises nor explains them away.
+- **It builds no corrected trend.** The estimates are per period, at each
+  period's own hotel mix.
+- **It is only a pilot.** Pests had too few texts, and recall could not be
+  compared between the periods.
+- **All seven disagreements were settled on one annotator's label**, the project
+  owner's. This is reported with the results.
+
 ## Supplementary: a hypothetical sensitivity analysis
 
 This section asks how the reading bears on the falls above. It rests on
@@ -439,3 +492,7 @@ real, and the answer at the top does not use them.
   is quite possible.
 - **Only the pilot can test it.** The pilot evaluation, with two people and
   recall included, can test this. This section cannot.
+- **What the pilot found.** Its intervals for the change in precision are too wide
+  to settle it. For the four topics with enough texts, each interval contains both
+  no change and the fall that would erase the rise. Pests had too few texts
+  ([the pilot](#the-pilot-precision-and-recall-measured-by-two-people)).
