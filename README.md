@@ -137,8 +137,16 @@ complaint topics became more frequent within the same hotels.
   the topics is right in only about half of their sampled quotes.
 - **Not rising faster than other topics: bed.** Most of its rise in the first run
   came from the February 2016 step.
-- **Not measured yet: the lexicon's recall.** A pilot evaluation by two people
-  comes next.
+- **The lexicon, measured by two people.** A pilot tested the lexicon, not a
+  sentiment model, under a protocol locked before the sample was drawn:
+  300 texts, 80 labelled twice, kappa 0.83–1.00.
+  - Precision is about 0.9 for air conditioning, 0.75 for bathroom, about half
+    for cleanliness, and a third to a half for responsiveness.
+  - The lexicon finds most bathroom, air conditioning and cleanliness complaints,
+    but only 2 of 16 responsiveness ones.
+  - No change in precision between the periods can be told apart from zero, nor
+    from the fall that would erase each rise. So the rises above stay unconfirmed.
+  - [Results and caveats](docs/case_study/results/annotation/README.md).
 
 The queries, checks, charts and caveats are in the
 [case study](docs/case_study/complaint_trends.md).

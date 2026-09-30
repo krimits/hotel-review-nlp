@@ -1,0 +1,151 @@
+{
+ "protocol": "docs/annotation/pilot_protocol.md",
+ "step": "agreement, before any discussion",
+ "sheets": {
+  "A": {
+   "sha256": "6bc124aa951631ccc2d12ecf382dcd516b1aca9f1cc8fb5672fb972a601dd1be",
+   "items": 300
+  },
+  "B": {
+   "sha256": "461653221c303e1dae153743dc0a34516bfeb1dd7e84c1bc16fe137f4d233a39",
+   "items": 80
+  }
+ },
+ "topics": {
+  "bathroom": {
+   "counted": 79,
+   "left_out_unsure": 1,
+   "positives": {
+    "A": 11,
+    "B": 11
+   },
+   "table_rows_A_columns_B": [
+    [
+     68,
+     0
+    ],
+    [
+     0,
+     11
+    ]
+   ],
+   "raw_agreement": 1.0,
+   "status": "ok",
+   "kappa": 1.0,
+   "bootstrap95": [
+    1.0,
+    1.0
+   ],
+   "resamples": 2000,
+   "resamples_dropped_undefined": 0
+  },
+  "cleanliness": {
+   "counted": 80,
+   "left_out_unsure": 0,
+   "positives": {
+    "A": 12,
+    "B": 13
+   },
+   "table_rows_A_columns_B": [
+    [
+     67,
+     1
+    ],
+    [
+     0,
+     12
+    ]
+   ],
+   "raw_agreement": 0.9875,
+   "status": "ok",
+   "kappa": 0.9526,
+   "bootstrap95": [
+    0.8361,
+    1.0
+   ],
+   "resamples": 2000,
+   "resamples_dropped_undefined": 0
+  },
+  "air_conditioning": {
+   "counted": 80,
+   "left_out_unsure": 0,
+   "positives": {
+    "A": 10,
+    "B": 10
+   },
+   "table_rows_A_columns_B": [
+    [
+     70,
+     0
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "raw_agreement": 1.0,
+   "status": "ok",
+   "kappa": 1.0,
+   "bootstrap95": [
+    1.0,
+    1.0
+   ],
+   "resamples": 2000,
+   "resamples_dropped_undefined": 0
+  },
+  "pests": {
+   "counted": 80,
+   "left_out_unsure": 0,
+   "positives": {
+    "A": 8,
+    "B": 8
+   },
+   "table_rows_A_columns_B": [
+    [
+     72,
+     0
+    ],
+    [
+     0,
+     8
+    ]
+   ],
+   "raw_agreement": 1.0,
+   "status": "ok",
+   "kappa": 1.0,
+   "bootstrap95": [
+    1.0,
+    1.0
+   ],
+   "resamples": 2000,
+   "resamples_dropped_undefined": 0
+  },
+  "responsiveness": {
+   "counted": 79,
+   "left_out_unsure": 1,
+   "positives": {
+    "A": 15,
+    "B": 13
+   },
+   "table_rows_A_columns_B": [
+    [
+     63,
+     1
+    ],
+    [
+     3,
+     12
+    ]
+   ],
+   "raw_agreement": 0.9494,
+   "status": "ok",
+   "kappa": 0.8266,
+   "bootstrap95": [
+    0.6321,
+    0.9617
+   ],
+   "resamples": 2000,
+   "resamples_dropped_undefined": 0
+  }
+ }
+}

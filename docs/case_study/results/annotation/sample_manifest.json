@@ -1,0 +1,112 @@
+{
+ "protocol": "docs/annotation/pilot_protocol.md",
+ "protocol_sha256": "9c84f3c93cc7362fb9df28223dfef80810ae43046423457bb5ac30fad34ff3b7",
+ "code_commit": "06bf23de83f1c882980ba0dc5112605c27e424fd",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+ "reviews": 515173,
+ "seed": 0,
+ "windows": {
+  "base_start": "2016-02",
+  "base_end": "2016-07",
+  "recent_start": "2017-02",
+  "recent_end": "2017-07",
+  "min_hotel_reviews": "30"
+ },
+ "hotels_compared": 863,
+ "design": {
+  "R": 100,
+  "M": {
+   "bathroom": 8,
+   "cleanliness": 14,
+   "air_conditioning": 8,
+   "pests": 6,
+   "responsiveness": 14
+  },
+  "B_from_R": 20,
+  "B_from_M": 20
+ },
+ "periods": {
+  "base": {
+   "population": 81711,
+   "lexicon_matches": {
+    "bathroom": 10483,
+    "cleanliness": 6030,
+    "air_conditioning": 5071,
+    "pests": 269,
+    "responsiveness": 1105
+   },
+   "R": 100,
+   "M": {
+    "bathroom": 8,
+    "cleanliness": 14,
+    "air_conditioning": 8,
+    "pests": 6,
+    "responsiveness": 14
+   },
+   "M_shortfall": {
+    "bathroom": 0,
+    "cleanliness": 0,
+    "air_conditioning": 0,
+    "pests": 0,
+    "responsiveness": 0
+   },
+   "M_texts": 50,
+   "texts_drawn_for_two_topics": 0,
+   "B_from_R": 20,
+   "B_from_M": 20,
+   "placeholder_or_empty": 28936,
+   "excluded_by_filter": 8928
+  },
+  "recent": {
+   "population": 78339,
+   "lexicon_matches": {
+    "bathroom": 11148,
+    "cleanliness": 6687,
+    "air_conditioning": 5608,
+    "pests": 369,
+    "responsiveness": 1254
+   },
+   "R": 100,
+   "M": {
+    "bathroom": 8,
+    "cleanliness": 14,
+    "air_conditioning": 8,
+    "pests": 6,
+    "responsiveness": 14
+   },
+   "M_shortfall": {
+    "bathroom": 0,
+    "cleanliness": 0,
+    "air_conditioning": 0,
+    "pests": 0,
+    "responsiveness": 0
+   },
+   "M_texts": 50,
+   "texts_drawn_for_two_topics": 0,
+   "B_from_R": 20,
+   "B_from_M": 20,
+   "placeholder_or_empty": 24904,
+   "excluded_by_filter": 8414
+  }
+ },
+ "items": 300,
+ "second_annotator_items": 80,
+ "topics": {
+  "bathroom": "room.bathroom",
+  "cleanliness": "cleanliness.general",
+  "air_conditioning": "room.climate",
+  "pests": "cleanliness.pests",
+  "responsiveness": "staff.response"
+ },
+ "sheet_columns": [
+  "item",
+  "text",
+  "bathroom",
+  "cleanliness",
+  "air_conditioning",
+  "pests",
+  "responsiveness",
+  "done",
+  "note"
+ ]
+}
