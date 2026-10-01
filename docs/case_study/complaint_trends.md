@@ -103,9 +103,11 @@ bar.
 - **A larger sample.** The pilot was too small for pests, and for recall in each
   period. A larger labelled sample, drawn the same way, would measure both.
 - **Improve the responsiveness rules.** They miss most responsiveness complaints.
-  One option is a model that reads the whole text. A
-  [comparison with TypeSafe's Jev](../experiments/jev_topic_benchmark/README.md)
-  on the pilot's random texts is fixed but not yet run.
+  One option is a model that reads the whole text. In a
+  [comparison with TypeSafe's Jev](../experiments/jev_topic_benchmark/results/README.md),
+  fixed before it was run, Jev found 13 of the 16 responsiveness complaints in the
+  pilot's random texts and the lexicon 2, but 10 of Jev's 23 flags were wrong.
+  That needs confirming on new texts before any use.
 - **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.

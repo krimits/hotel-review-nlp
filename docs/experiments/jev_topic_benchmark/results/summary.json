@@ -1,0 +1,410 @@
+{
+ "design": "docs/experiments/jev_topic_benchmark/DECISION_v2.md",
+ "script_sha256": "4c1f98f8eb8c301411c0150db9f71064153d23e808f762cabbccaf2fe57c52b2",
+ "inputs": {
+  "texts_sha256": "6bc124aa951631ccc2d12ecf382dcd516b1aca9f1cc8fb5672fb972a601dd1be",
+  "texts_are_the_handed_in_sheet_a": true,
+  "key_sha256": "61a2234edc48134c7360973ec84a7c28b2099051a17db997cd6a1d75c90eb105",
+  "gold_sha256": "4739aeafea2817201411a06cc6670140bb912041852cee4c51100c034a35eac3",
+  "questions_sha256": "96462e1e7c03e823d860742124eea948173418bb98336dc0f3a063633d619754",
+  "route": "openrouter",
+  "endpoint": "https://openrouter.ai/api/v1/systemone",
+  "model_requested": "jev-latest"
+ },
+ "models_answered": [
+  "typesafe/jev-1.13-20260917"
+ ],
+ "texts": {
+  "random": 200,
+  "selected": 200,
+  "answered": 200,
+  "item_ids_sha256": "b0cc8dd51712dd83b47b95406545431ddfbea0b03d3950e1ffceba95acd4f609"
+ },
+ "requests": {
+  "sent": 200,
+  "unreadable_answers": 0,
+  "retried": 0,
+  "first_utc": "2026-10-01T08:48:53+00:00",
+  "last_utc": "2026-10-01T08:52:30+00:00"
+ },
+ "decision": {
+  "primary_topic": "responsiveness",
+  "only_jev": 11,
+  "only_lexicon": 0,
+  "mcnemar_p": 0.001,
+  "jev_better": true,
+  "jev_precision": 0.5652,
+  "guard_precision_at_least": 0.5,
+  "guard_holds": true,
+  "rule_applies": true,
+  "outcome": "Jev finds more responsiveness complaints: confirm on a new sample before any use"
+ },
+ "topics": {
+  "bathroom": {
+   "texts": 200,
+   "gold_unsure_left_out": 0,
+   "lexicon": {
+    "true_positives": 12,
+    "false_positives": 4,
+    "missed": 1,
+    "precision": {
+     "numerator": 12,
+     "denominator": 16,
+     "status": "ok",
+     "estimate": 0.75,
+     "wilson95": [
+      0.505,
+      0.8982
+     ]
+    },
+    "recall": {
+     "numerator": 12,
+     "denominator": 13,
+     "status": "ok",
+     "estimate": 0.9231,
+     "wilson95": [
+      0.6669,
+      0.9863
+     ]
+    },
+    "f1": 0.8276
+   },
+   "jev": {
+    "true_positives": 13,
+    "false_positives": 2,
+    "missed": 0,
+    "precision": {
+     "numerator": 13,
+     "denominator": 15,
+     "status": "ok",
+     "estimate": 0.8667,
+     "wilson95": [
+      0.6212,
+      0.9626
+     ]
+    },
+    "recall": {
+     "numerator": 13,
+     "denominator": 13,
+     "status": "ok",
+     "estimate": 1.0,
+     "wilson95": [
+      0.7719,
+      1.0
+     ]
+    },
+    "f1": 0.9286,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 1.0
+   },
+   "paired_recall": {
+    "both": 12,
+    "only_jev": 1,
+    "only_lexicon": 0,
+    "neither": 0,
+    "mcnemar_p": 1.0
+   },
+   "paired_false_positives": {
+    "both": 1,
+    "only_jev": 1,
+    "only_lexicon": 3,
+    "neither": 182,
+    "mcnemar_p": 0.625
+   },
+   "jev_calibration_error": 0.012900000000000007
+  },
+  "cleanliness": {
+   "texts": 199,
+   "gold_unsure_left_out": 1,
+   "lexicon": {
+    "true_positives": 9,
+    "false_positives": 6,
+    "missed": 2,
+    "precision": {
+     "numerator": 9,
+     "denominator": 15,
+     "status": "ok",
+     "estimate": 0.6,
+     "wilson95": [
+      0.3575,
+      0.8018
+     ]
+    },
+    "recall": {
+     "numerator": 9,
+     "denominator": 11,
+     "status": "ok",
+     "estimate": 0.8182,
+     "wilson95": [
+      0.523,
+      0.9486
+     ]
+    },
+    "f1": 0.6923
+   },
+   "jev": {
+    "true_positives": 10,
+    "false_positives": 3,
+    "missed": 1,
+    "precision": {
+     "numerator": 10,
+     "denominator": 13,
+     "status": "ok",
+     "estimate": 0.7692,
+     "wilson95": [
+      0.4974,
+      0.9182
+     ]
+    },
+    "recall": {
+     "numerator": 10,
+     "denominator": 11,
+     "status": "ok",
+     "estimate": 0.9091,
+     "wilson95": [
+      0.6226,
+      0.9838
+     ]
+    },
+    "f1": 0.8333,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 0.9091
+   },
+   "paired_recall": {
+    "both": 8,
+    "only_jev": 2,
+    "only_lexicon": 1,
+    "neither": 0,
+    "mcnemar_p": 1.0
+   },
+   "paired_false_positives": {
+    "both": 1,
+    "only_jev": 2,
+    "only_lexicon": 5,
+    "neither": 180,
+    "mcnemar_p": 0.4531
+   },
+   "jev_calibration_error": 0.018492462311557854
+  },
+  "air_conditioning": {
+   "texts": 200,
+   "gold_unsure_left_out": 0,
+   "lexicon": {
+    "true_positives": 16,
+    "false_positives": 1,
+    "missed": 2,
+    "precision": {
+     "numerator": 16,
+     "denominator": 17,
+     "status": "ok",
+     "estimate": 0.9412,
+     "wilson95": [
+      0.7302,
+      0.9895
+     ]
+    },
+    "recall": {
+     "numerator": 16,
+     "denominator": 18,
+     "status": "ok",
+     "estimate": 0.8889,
+     "wilson95": [
+      0.672,
+      0.969
+     ]
+    },
+    "f1": 0.9143
+   },
+   "jev": {
+    "true_positives": 17,
+    "false_positives": 2,
+    "missed": 1,
+    "precision": {
+     "numerator": 17,
+     "denominator": 19,
+     "status": "ok",
+     "estimate": 0.8947,
+     "wilson95": [
+      0.6861,
+      0.9706
+     ]
+    },
+    "recall": {
+     "numerator": 17,
+     "denominator": 18,
+     "status": "ok",
+     "estimate": 0.9444,
+     "wilson95": [
+      0.7424,
+      0.9901
+     ]
+    },
+    "f1": 0.9189,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 0.9444
+   },
+   "paired_recall": {
+    "both": 15,
+    "only_jev": 2,
+    "only_lexicon": 1,
+    "neither": 0,
+    "mcnemar_p": 1.0
+   },
+   "paired_false_positives": {
+    "both": 1,
+    "only_jev": 1,
+    "only_lexicon": 0,
+    "neither": 180,
+    "mcnemar_p": 1.0
+   },
+   "jev_calibration_error": 0.007649999999999997
+  },
+  "pests": {
+   "texts": 200,
+   "gold_unsure_left_out": 0,
+   "lexicon": {
+    "true_positives": 2,
+    "false_positives": 0,
+    "missed": 0,
+    "precision": {
+     "numerator": 2,
+     "denominator": 2,
+     "status": "insufficient sample"
+    },
+    "recall": {
+     "numerator": 2,
+     "denominator": 2,
+     "status": "insufficient sample"
+    },
+    "f1": 1.0
+   },
+   "jev": {
+    "true_positives": 2,
+    "false_positives": 0,
+    "missed": 0,
+    "precision": {
+     "numerator": 2,
+     "denominator": 2,
+     "status": "insufficient sample"
+    },
+    "recall": {
+     "numerator": 2,
+     "denominator": 2,
+     "status": "insufficient sample"
+    },
+    "f1": 1.0,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 1.0
+   },
+   "paired_recall": {
+    "both": 2,
+    "only_jev": 0,
+    "only_lexicon": 0,
+    "neither": 0,
+    "mcnemar_p": 1.0
+   },
+   "paired_false_positives": {
+    "both": 0,
+    "only_jev": 0,
+    "only_lexicon": 0,
+    "neither": 198,
+    "mcnemar_p": 1.0
+   },
+   "jev_calibration_error": 0.0020000000000000018
+  },
+  "responsiveness": {
+   "texts": 200,
+   "gold_unsure_left_out": 0,
+   "lexicon": {
+    "true_positives": 2,
+    "false_positives": 4,
+    "missed": 14,
+    "precision": {
+     "numerator": 2,
+     "denominator": 6,
+     "status": "insufficient sample"
+    },
+    "recall": {
+     "numerator": 2,
+     "denominator": 16,
+     "status": "ok",
+     "estimate": 0.125,
+     "wilson95": [
+      0.035,
+      0.3602
+     ]
+    },
+    "f1": 0.1818
+   },
+   "jev": {
+    "true_positives": 13,
+    "false_positives": 10,
+    "missed": 3,
+    "precision": {
+     "numerator": 13,
+     "denominator": 23,
+     "status": "ok",
+     "estimate": 0.5652,
+     "wilson95": [
+      0.3681,
+      0.7437
+     ]
+    },
+    "recall": {
+     "numerator": 13,
+     "denominator": 16,
+     "status": "ok",
+     "estimate": 0.8125,
+     "wilson95": [
+      0.5699,
+      0.9341
+     ]
+    },
+    "f1": 0.6667,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 0.8125
+   },
+   "paired_recall": {
+    "both": 2,
+    "only_jev": 11,
+    "only_lexicon": 0,
+    "neither": 3,
+    "mcnemar_p": 0.001
+   },
+   "paired_false_positives": {
+    "both": 2,
+    "only_jev": 8,
+    "only_lexicon": 2,
+    "neither": 172,
+    "mcnemar_p": 0.1094
+   },
+   "jev_calibration_error": 0.034949999999999995
+  }
+ },
+ "jev_calibration_error_all_topics": 0.006986986986986979,
+ "seconds_per_text": {
+  "p50": 0.5964,
+  "p95": 0.9214,
+  "measured": "on the machine that ran the script, network included"
+ },
+ "tokens": {
+  "input": 411382,
+  "output": 39000
+ },
+ "cost": null
+}
