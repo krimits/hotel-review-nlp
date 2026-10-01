@@ -12,6 +12,8 @@ import importlib.util
 import json
 import subprocess
 import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
@@ -38,6 +40,8 @@ score = _load("score_annotations")
 KEY = bench.read_key(bench.RESULTS / "key.csv")
 GOLD = bench.read_gold(bench.RESULTS / "labels_final.csv")
 RANDOM = sorted(item for item, row in KEY.items() if row["in_R"])
+KEY_ENV = bench.ROUTES["typesafe"]["key_env"]
+OPENROUTER_ENV = bench.ROUTES["openrouter"]["key_env"]
 
 
 def text_of(item: int) -> str:
@@ -57,10 +61,11 @@ class FakeAPI:
     """
 
     def __init__(self, plan: dict | None = None):
-        self.plan, self.calls, self.sleeps = plan or {}, [], []
+        self.plan, self.calls, self.urls, self.sleeps = plan or {}, [], [], []
 
-    def __call__(self, body: dict, api_key: str, timeout: float):
+    def __call__(self, url: str, body: dict, api_key: str, timeout: float):
         self.calls.append((body, api_key))
+        self.urls.append(url)
         if len(self.calls) in self.plan:
             planned = self.plan[len(self.calls)]
             if isinstance(planned, Exception):
@@ -107,7 +112,7 @@ def test_the_committed_labels_give_the_pilot_baseline():
 
 
 def test_without_the_flag_nothing_is_sent(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     fake = FakeAPI()
     run(monkeypatch, fake, texts, runs / "jev")
     assert fake.calls == []
@@ -115,7 +120,7 @@ def test_without_the_flag_nothing_is_sent(runs, texts, monkeypatch):
 
 
 def test_the_flag_without_a_key_sends_nothing(runs, texts, monkeypatch):
-    monkeypatch.delenv(bench.KEY_ENV, raising=False)
+    monkeypatch.delenv(KEY_ENV, raising=False)
     fake = FakeAPI()
     with pytest.raises(SystemExit, match="set TYPESAFE_API_KEY"):
         run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api")
@@ -129,7 +134,7 @@ def test_the_run_folder_must_be_inside_runs(runs, texts, tmp_path, monkeypatch):
 
 
 def test_a_run_sends_each_random_text_once_and_writes_no_text_or_key(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     fake = FakeAPI()
     run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api")
     assert [body["state"] for body, _ in fake.calls] == [text_of(item) for item in RANDOM]
@@ -144,8 +149,131 @@ def test_a_run_sends_each_random_text_once_and_writes_no_text_or_key(runs, texts
         assert [int(row["item"]) for row in csv.DictReader(handle)] == RANDOM
 
 
+def test_the_openrouter_route_has_its_own_endpoint_and_key(runs, texts, monkeypatch):
+    monkeypatch.setenv(KEY_ENV, "sk-typesafe-secret")
+    monkeypatch.setenv(OPENROUTER_ENV, "sk-or-secret")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev", "--route", "openrouter", "--allow-external-api",
+        "--limit", "2")
+    assert set(fake.urls) == {"https://openrouter.ai/api/v1/systemone"}
+    assert {api_key for _, api_key in fake.calls} == {"sk-or-secret"}
+    assert all(body == bench.request_body(body["state"]) for body, _ in fake.calls)
+    record = json.loads((runs / "jev" / "run.json").read_text(encoding="utf-8"))
+    assert (record["route"], record["endpoint"], record["model_requested"]) == (
+        "openrouter", "https://openrouter.ai/api/v1/systemone", "jev-latest")
+    assert record["questions_sha256"] == bench.QUESTIONS_SHA256
+    assert json.loads((runs / "jev" / "summary.json").read_text(encoding="utf-8"))["inputs"] == record
+    for path in (runs / "jev").iterdir():
+        for secret in ("sk-or-secret", "sk-typesafe-secret"):
+            assert secret not in path.read_text(encoding="utf-8"), path.name
+
+
+def test_a_model_name_for_the_route_changes_the_request_and_not_the_questions(runs, texts, monkeypatch):
+    monkeypatch.setenv(OPENROUTER_ENV, "sk-or-secret")
+    fake = FakeAPI()
+    run(monkeypatch, fake, texts, runs / "jev", "--route", "openrouter", "--model", "~typesafe/jev-latest",
+        "--allow-external-api", "--limit", "1")
+    body, _ = fake.calls[0]
+    assert body["model"] == "~typesafe/jev-latest" and body["questions"] == bench.QUESTIONS
+    record = json.loads((runs / "jev" / "run.json").read_text(encoding="utf-8"))
+    assert record["model_requested"] == "~typesafe/jev-latest"
+    assert record["questions_sha256"] == bench.QUESTIONS_SHA256
+
+
+def test_a_key_is_never_sent_to_the_other_provider(runs, texts, monkeypatch):
+    fake = FakeAPI()
+    monkeypatch.setenv(KEY_ENV, "sk-typesafe-secret")
+    monkeypatch.delenv(OPENROUTER_ENV, raising=False)
+    with pytest.raises(SystemExit, match="set OPENROUTER_API_KEY"):
+        run(monkeypatch, fake, texts, runs / "one", "--route", "openrouter", "--allow-external-api")
+    monkeypatch.delenv(KEY_ENV, raising=False)
+    monkeypatch.setenv(OPENROUTER_ENV, "sk-or-secret")
+    with pytest.raises(SystemExit, match="set TYPESAFE_API_KEY"):
+        run(monkeypatch, fake, texts, runs / "two", "--allow-external-api")
+    assert fake.calls == []
+
+
+def test_a_run_cannot_go_on_with_another_route_or_model(runs, texts, monkeypatch):
+    monkeypatch.setenv(KEY_ENV, "sk-typesafe-secret")
+    monkeypatch.setenv(OPENROUTER_ENV, "sk-or-secret")
+    stopped = FakeAPI(plan={3: (401, {}, {"error": "invalid key"})})
+    with pytest.raises(SystemExit, match="HTTP 401"):
+        run(monkeypatch, stopped, texts, runs / "jev", "--allow-external-api")
+    other = FakeAPI()
+    for extra in (("--route", "openrouter"), ("--model", "another-model")):
+        with pytest.raises(SystemExit, match="differ"):
+            run(monkeypatch, other, texts, runs / "jev", "--allow-external-api", *extra)
+    assert other.calls == []
+
+
+def test_an_unknown_route_is_refused(runs, texts, monkeypatch):
+    fake = FakeAPI()
+    with pytest.raises(SystemExit):
+        run(monkeypatch, fake, texts, runs / "jev", "--route", "elsewhere", "--allow-external-api")
+    assert fake.calls == []
+
+
+def test_the_default_run_folder_depends_on_the_route_and_the_dry_run_names_the_endpoint(
+        runs, texts, tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(bench, "ROOT", tmp_path)
+    bench.main(["--texts", str(texts), "--route", "openrouter"])
+    assert (runs / "jev_topic_benchmark_openrouter" / "request_example.json").exists()
+    assert not (runs / "jev_topic_benchmark_typesafe").exists()
+    printed = capsys.readouterr().out
+    assert "Nothing was sent" in printed and "https://openrouter.ai/api/v1/systemone" in printed
+
+
+@pytest.fixture
+def local_servers(monkeypatch):
+    """An 'api' that records what it gets or redirects, and an 'other' host that records any visit."""
+    monkeypatch.setenv("no_proxy", "127.0.0.1")
+    monkeypatch.setenv("NO_PROXY", "127.0.0.1")
+    seen = {"api": [], "other": []}
+
+    def handler(name: str, redirect_to: str | None = None):
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                seen[name].append((self.path, dict(self.headers), json.loads(body)))
+                if redirect_to and self.path == "/redirect":
+                    self.send_response(302)
+                    self.send_header("Location", f"{redirect_to}/stolen")
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"ok": true}')
+
+            def log_message(self, *args):
+                pass
+        return Handler
+
+    other = ThreadingHTTPServer(("127.0.0.1", 0), handler("other"))
+    api = ThreadingHTTPServer(("127.0.0.1", 0), handler("api", f"http://127.0.0.1:{other.server_port}"))
+    threads = [threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
+               for server in (api, other)]
+    for thread in threads:
+        thread.start()
+    yield f"http://127.0.0.1:{api.server_port}", seen
+    for server in (api, other):
+        server.shutdown()
+        server.server_close()
+
+
+def test_a_request_is_sent_as_the_providers_documents_and_a_redirect_does_not_carry_the_key(local_servers):
+    base, seen = local_servers
+    status, _, raw = bench.post(f"{base}/v1/systemone", {"state": "hello"}, "sk-secret", 10)
+    assert (status, json.loads(raw)) == (200, {"ok": True})
+    path, headers, body = seen["api"][0]
+    assert (path, body) == ("/v1/systemone", {"state": "hello"})
+    assert headers["Authorization"] == "Bearer sk-secret" and headers["Content-Type"] == "application/json"
+    status, _, _ = bench.post(f"{base}/redirect", {"state": "hello"}, "sk-secret", 10)
+    assert status == 302 and seen["other"] == []
+
+
 def test_a_run_on_texts_other_than_the_handed_in_sheet_does_not_decide(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     run(monkeypatch, FakeAPI(), texts, runs / "jev", "--allow-external-api")
     summary = json.loads((runs / "jev" / "summary.json").read_text(encoding="utf-8"))
     decision = summary["decision"]
@@ -158,7 +286,7 @@ def test_a_run_on_texts_other_than_the_handed_in_sheet_does_not_decide(runs, tex
 
 
 def test_a_smoke_run_is_marked_and_does_not_decide(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     fake = FakeAPI()
     run(monkeypatch, fake, texts, runs / "jev", "--allow-external-api", "--limit", "3")
     assert len(fake.calls) == 3
@@ -167,7 +295,7 @@ def test_a_smoke_run_is_marked_and_does_not_decide(runs, texts, monkeypatch):
 
 
 def test_a_stopped_run_resumes_without_sending_a_text_twice(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     first = FakeAPI(plan={51: (401, {}, {"error": "invalid key"})})
     with pytest.raises(SystemExit, match="HTTP 401"):
         run(monkeypatch, first, texts, runs / "jev", "--allow-external-api")
@@ -180,7 +308,7 @@ def test_a_stopped_run_resumes_without_sending_a_text_twice(runs, texts, monkeyp
 
 
 def test_retries_wait_as_the_server_asks_and_a_client_error_stops_at_once(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     busy = FakeAPI(plan={1: (429, {"Retry-After-Ms": "1500"}, {"error": "slow down"}),
                          2: (503, {}, {"error": "busy"}),
                          3: http.client.IncompleteRead(b"")})
@@ -194,7 +322,7 @@ def test_retries_wait_as_the_server_asks_and_a_client_error_stops_at_once(runs, 
 
 
 def test_an_answer_in_another_form_stops_after_that_text(runs, texts, monkeypatch):
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     no_confidence = {t: {**answer("0"), "confidence": None} for t in bench.TOPICS}
     for number, response in enumerate(({"model": "jev", "answers": {"bathroom": answer("1")}, "usage": {}},
                                        {"model": "jev", "answers": no_confidence, "usage": {}})):
@@ -208,7 +336,7 @@ def test_an_answer_in_another_form_stops_after_that_text(runs, texts, monkeypatc
 def test_scoring_only_reproduces_the_summary_and_refuses_other_inputs(runs, texts, tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="no saved answers"):
         run(monkeypatch, FakeAPI(), texts, runs / "jev", "--score-only")
-    monkeypatch.setenv(bench.KEY_ENV, "sk-test-secret")
+    monkeypatch.setenv(KEY_ENV, "sk-test-secret")
     run(monkeypatch, FakeAPI(), texts, runs / "jev", "--allow-external-api")
     summary = (runs / "jev" / "summary.json").read_text(encoding="utf-8")
     fake = FakeAPI()
@@ -307,6 +435,7 @@ def test_the_first_draft_is_kept_as_committed():
     assert (FOLDER / "DECISION.md").read_bytes() == draft.stdout
 
 
-def test_the_default_run_folder_is_ignored_by_git():
-    for name in ("responses.jsonl", "request_example.json", "run.json", "summary.json", "predictions.csv"):
-        assert _git("check-ignore", "-q", f"runs/jev_topic_benchmark/{name}").returncode == 0, name
+def test_the_default_run_folders_are_ignored_by_git():
+    for route in bench.ROUTES:
+        for name in ("responses.jsonl", "request_example.json", "run.json", "summary.json", "predictions.csv"):
+            assert _git("check-ignore", "-q", f"runs/jev_topic_benchmark_{route}/{name}").returncode == 0, name

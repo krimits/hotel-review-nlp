@@ -14,14 +14,18 @@ It replaces the first draft, DECISION.md, under which no request was sent.
 The texts come from a local sheet with `item` and `text` columns, such as the handed-in
 sheet_A.csv; no other column is read. Nothing leaves this machine unless
 --allow-external-api is given, and everything a run writes goes under runs/, which git
-ignores. The API key is read from TYPESAFE_API_KEY and never written anywhere.
+ignores. The texts can go to one of two places, chosen with --route: TypeSafe's own API
+(`typesafe`, the key in TYPESAFE_API_KEY) or OpenRouter's System One endpoint (`openrouter`,
+the key in OPENROUTER_API_KEY). A key is only ever sent to its own provider, and is never
+written anywhere.
 
     # offline: checks the inputs and writes the first request to runs/; sends nothing
     python scripts/benchmark_jev_topics.py --texts path/to/sheet_A.csv
 
     # the real run, only once the provider's data terms have been checked
-    set TYPESAFE_API_KEY=...
-    python scripts/benchmark_jev_topics.py --texts path/to/sheet_A.csv --allow-external-api
+    set OPENROUTER_API_KEY=...
+    python scripts/benchmark_jev_topics.py --texts path/to/sheet_A.csv --route openrouter ^
+        --allow-external-api
 
 A run that stops part-way resumes from its saved answers when the same command is run
 again. --score-only scores the saved answers without sending anything.
@@ -49,9 +53,14 @@ DESIGN = "docs/experiments/jev_topic_benchmark/DECISION_v2.md"
 
 TOPICS = ("bathroom", "cleanliness", "air_conditioning", "pests", "responsiveness")
 LABELS = ("1", "0", "unsure")
-API_URL = "https://api.typesafe.ai/v1/systemone"
 MODEL = "jev-latest"
-KEY_ENV = "TYPESAFE_API_KEY"
+SYSTEM_ONE_PATH = "/v1/systemone"
+# The only two places the texts can be sent to, each with the variable that holds its key.
+ROUTES = {
+    "typesafe": {"base_url": "https://api.typesafe.ai", "key_env": "TYPESAFE_API_KEY"},
+    "openrouter": {"base_url": "https://openrouter.ai/api", "key_env": "OPENROUTER_API_KEY"},
+}
+DEFAULT_ROUTE = "typesafe"
 
 # The decision rule of DECISION_v2.md.
 PRIMARY_TOPIC = "responsiveness"
@@ -135,8 +144,12 @@ QUESTIONS_SHA256 = hashlib.sha256(
     json.dumps({"model": MODEL, "questions": QUESTIONS}, sort_keys=True).encode("utf-8")).hexdigest()
 
 
-def request_body(text: str) -> dict:
-    return {"state": text, "model": MODEL, "questions": QUESTIONS}
+def request_body(text: str, model: str = MODEL) -> dict:
+    return {"state": text, "model": model, "questions": QUESTIONS}
+
+
+def endpoint(route: str) -> str:
+    return ROUTES[route]["base_url"] + SYSTEM_ONE_PATH
 
 
 def sha256_file(path: Path) -> str:
@@ -198,14 +211,21 @@ def output_dir(path: Path) -> Path:
 
 # Sending ---------------------------------------------------------------------------------------
 
-def post(body: dict, api_key: str, timeout: float) -> tuple[int, dict[str, str], bytes]:
-    """One POST to the System One endpoint: (status, headers, body). Network failures raise OSError."""
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """A redirect is an error: urllib would otherwise carry the key to the address it points to."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def post(url: str, body: dict, api_key: str, timeout: float) -> tuple[int, dict[str, str], bytes]:
+    """One POST to a System One endpoint: (status, headers, body). Network failures raise OSError."""
     request = urllib.request.Request(
-        API_URL, data=json.dumps(body).encode("utf-8"), method="POST",
+        url, data=json.dumps(body).encode("utf-8"), method="POST",
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
                  "Accept": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.build_opener(_NoRedirect).open(request, timeout=timeout) as response:
             return response.status, dict(response.headers), response.read()
     except urllib.error.HTTPError as error:
         return error.code, dict(error.headers or {}), error.read()
@@ -222,12 +242,12 @@ def retry_delay(headers: dict[str, str], attempt: int) -> float:
     return min(2.0 ** attempt, 60.0)
 
 
-def ask(text: str, api_key: str, timeout: float) -> tuple[dict, float, int]:
+def ask(url: str, model: str, text: str, api_key: str, timeout: float) -> tuple[dict, float, int]:
     """Send one text: (response, seconds of the answered attempt, attempts). Stops the run on an error it cannot retry."""
     for attempt in range(1, MAX_ATTEMPTS + 1):
         start = time.perf_counter()
         try:
-            status, headers, raw = post(request_body(text), api_key, timeout)
+            status, headers, raw = post(url, request_body(text, model), api_key, timeout)
         except (OSError, http.client.HTTPException) as error:
             status, headers, problem = None, {}, f"network error: {error!r}"
         seconds = time.perf_counter() - start
@@ -294,23 +314,24 @@ def check_run_record(output: Path, inputs: dict, create: bool) -> None:
     path = output / "run.json"
     if path.exists():
         if json.loads(path.read_text(encoding="utf-8")) != inputs:
-            raise SystemExit(f"{path}: the texts, labels, key or questions differ from those of the "
-                             "saved answers; use a new --output")
+            raise SystemExit(f"{path}: the texts, labels, key, questions, route or model differ from "
+                             "those of the saved answers; use a new --output")
     elif create:
         path.write_text(json.dumps(inputs, indent=1) + "\n", encoding="utf-8")
     else:
         raise SystemExit(f"{path} is missing: there are no saved answers to score")
 
 
-def send_all(items: list[int], texts: dict[int, str], output: Path, api_key: str, timeout: float) -> None:
+def send_all(items: list[int], texts: dict[int, str], output: Path, url: str, model: str,
+             api_key: str, timeout: float) -> None:
     log_path = output / "responses.jsonl"
     usable, _ = read_log(log_path)
     todo = [item for item in items if item not in usable]
-    print(f"{len(items) - len(todo)} of {len(items)} texts already answered; sending {len(todo)}")
+    print(f"{len(items) - len(todo)} of {len(items)} texts already answered; sending {len(todo)} to {url}")
     with open(log_path, "a", encoding="utf-8") as log:
         for count, item in enumerate(todo, 1):
             sent = datetime.now(timezone.utc).isoformat(timespec="seconds")
-            response, seconds, attempts = ask(texts[item], api_key, timeout)
+            response, seconds, attempts = ask(url, model, texts[item], api_key, timeout)
             log.write(json.dumps({"item": item, "questions_sha256": QUESTIONS_SHA256, "sent_utc": sent,
                                   "seconds": round(seconds, 4), "attempts": attempts,
                                   "response": response}) + "\n")
@@ -493,9 +514,10 @@ def write_results(items: list[int], n_random: int, key: dict, gold: dict, output
     return summary
 
 
-def dry_run(items: list[int], texts: dict[int, str], key: dict, gold: dict, output: Path) -> None:
+def dry_run(items: list[int], texts: dict[int, str], key: dict, gold: dict, output: Path,
+            url: str, model: str) -> None:
     example = output / "request_example.json"
-    example.write_text(json.dumps(request_body(texts[items[0]]), indent=1) + "\n", encoding="utf-8")
+    example.write_text(json.dumps(request_body(texts[items[0]], model), indent=1) + "\n", encoding="utf-8")
     usable, _ = read_log(output / "responses.jsonl")
     print(f"{len(items)} random texts, each with a text. Labelled 1, and found by the lexicon:")
     for topic in TOPICS:
@@ -504,7 +526,7 @@ def dry_run(items: list[int], texts: dict[int, str], key: dict, gold: dict, outp
     print(f"questions sha256 {QUESTIONS_SHA256}")
     print(f"wrote {example}, the request for item {items[0]}")
     print(f"Nothing was sent. With --allow-external-api, {len([i for i in items if i not in usable])} "
-          f"texts would go to {API_URL}.")
+          f"texts would go to {url}, as model {model}.")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -512,7 +534,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--texts", type=Path, required=True, help="local CSV with item and text columns")
     parser.add_argument("--key", type=Path, default=RESULTS / "key.csv")
     parser.add_argument("--gold", type=Path, default=RESULTS / "labels_final.csv")
-    parser.add_argument("--output", type=Path, default=Path("runs/jev_topic_benchmark"), help="a folder inside runs/")
+    parser.add_argument("--route", choices=sorted(ROUTES), default=DEFAULT_ROUTE,
+                        help="where the texts go: TypeSafe's API or OpenRouter's System One endpoint")
+    parser.add_argument("--model", default=MODEL, help="the model name the route expects (default: %(default)s)")
+    parser.add_argument("--output", type=Path, default=None,
+                        help="a folder inside runs/ (default: runs/jev_topic_benchmark_<route>)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--allow-external-api", action="store_true", help="send the texts; without it nothing is sent")
     mode.add_argument("--score-only", action="store_true", help="score the saved answers; send nothing")
@@ -525,7 +551,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.limit is not None and args.limit < 1:
         raise SystemExit("--limit must be at least 1")
 
-    output = output_dir(args.output)
+    output = output_dir(args.output or Path(f"runs/jev_topic_benchmark_{args.route}"))
+    url, key_env = endpoint(args.route), ROUTES[args.route]["key_env"]
     key, gold = read_key(args.key), read_gold(args.gold)
     n_random = sum(row["in_R"] for row in key.values())
     items = random_items(key, gold, args.limit)
@@ -537,18 +564,19 @@ def main(argv: list[str] | None = None) -> None:
     texts_sha256 = sha256_file(args.texts)
     inputs = {"texts_sha256": texts_sha256, "texts_are_the_handed_in_sheet_a": texts_sha256 == handed_in,
               "key_sha256": sha256_file(args.key), "gold_sha256": sha256_file(args.gold),
-              "questions_sha256": QUESTIONS_SHA256, "model_requested": MODEL}
+              "questions_sha256": QUESTIONS_SHA256, "route": args.route, "endpoint": url,
+              "model_requested": args.model}
     output.mkdir(parents=True, exist_ok=True)
 
     if not (args.allow_external_api or args.score_only):
-        dry_run(items, texts, key, gold, output)
+        dry_run(items, texts, key, gold, output, url, args.model)
         return
     if args.allow_external_api:
-        api_key = os.environ.get(KEY_ENV, "").strip()
+        api_key = os.environ.get(key_env, "").strip()
         if not api_key:
-            raise SystemExit(f"set {KEY_ENV} first; nothing was sent")
+            raise SystemExit(f"set {key_env} first (the key for --route {args.route}); nothing was sent")
         check_run_record(output, inputs, create=True)
-        send_all(items, texts, output, api_key, args.timeout)
+        send_all(items, texts, output, url, args.model, api_key, args.timeout)
     else:
         check_run_record(output, inputs, create=False)
     summary = write_results(items, n_random, key, gold, output, inputs, args)
