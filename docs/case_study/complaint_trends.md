@@ -107,7 +107,8 @@ bar.
   [comparison with TypeSafe's Jev](../experiments/jev_topic_benchmark/results/README.md),
   fixed before it was run, Jev found 13 of the 16 responsiveness complaints in the
   pilot's random texts and the lexicon 2, but 10 of Jev's 23 flags were wrong.
-  That needs confirming on new texts before any use.
+  That needs confirming on new texts before any use, and the
+  [protocol](../annotation/confirmation_protocol.md) for that is fixed.
 - **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.

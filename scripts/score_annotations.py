@@ -61,9 +61,10 @@ def read_key(path: Path) -> pd.DataFrame:
     return key.set_index("item", drop=False)
 
 
-def check_sheet(sheet: pd.DataFrame, expected: set[int], name: str) -> pd.DataFrame:
+def check_sheet(sheet: pd.DataFrame, expected: set[int], name: str,
+                topics: tuple[str, ...] = TOPICS) -> pd.DataFrame:
     """Labels indexed by item, each 1, 0 or 'unsure'; refuses the whole sheet on any problem."""
-    missing_columns = [column for column in ("item", *TOPICS, "done") if column not in sheet.columns]
+    missing_columns = [column for column in ("item", *topics, "done") if column not in sheet.columns]
     if missing_columns:
         raise SubmissionError(f"{name}: missing columns {missing_columns}")
     problems, labels, seen = [], {}, set()
@@ -79,7 +80,7 @@ def check_sheet(sheet: pd.DataFrame, expected: set[int], name: str) -> pd.DataFr
             problems.append(f"item {item} is not in this sheet's sample")
         seen.add(item)
         row = {}
-        for topic in TOPICS:
+        for topic in topics:
             value = str(record[topic]).strip().lower()
             if value not in VALUES:
                 problems.append(f"item {item}: {topic} is {record[topic]!r}, not 1, 0 or unsure")
@@ -91,11 +92,12 @@ def check_sheet(sheet: pd.DataFrame, expected: set[int], name: str) -> pd.DataFr
     if problems:
         listed = "\n".join(problems[:60]) + (f"\n... and {len(problems) - 60} more" if len(problems) > 60 else "")
         raise SubmissionError(f"{name}: {len(problems)} problem(s), nothing scored:\n{listed}")
-    return pd.DataFrame.from_dict(labels, orient="index")[list(TOPICS)].sort_index()
+    return pd.DataFrame.from_dict(labels, orient="index")[list(topics)].sort_index()
 
 
-def read_sheet(path: Path, expected: set[int], name: str) -> pd.DataFrame:
-    return check_sheet(pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig"), expected, name)
+def read_sheet(path: Path, expected: set[int], name: str, topics: tuple[str, ...] = TOPICS) -> pd.DataFrame:
+    return check_sheet(pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig"), expected, name,
+                       topics)
 
 
 def _kappa(x: np.ndarray, y: np.ndarray) -> float:

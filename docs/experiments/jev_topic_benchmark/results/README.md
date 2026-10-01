@@ -103,7 +103,8 @@ difference. The rule fixed beforehand is met.
 - **How it does on other texts.** There are 16 positives, so the recall
   interval spans 0.57 to 0.93. The 300 texts are now a test set, so nothing is
   tuned on them. Confirmation needs new random texts, labelled without seeing
-  either system's answers, under the same rule fixed beforehand.
+  either system's answers, under the same rule fixed beforehand. The
+  [protocol](../../../annotation/confirmation_protocol.md) for that is locked.
 - **That its flags can be trusted.** Ten of the 23 were wrong, so on these texts
   about four alerts in ten were false.
 - **That the labels are the last word.** They are the project owner's, with a

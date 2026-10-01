@@ -8,6 +8,8 @@ that names the complaint topics. It uses the pilot's 200 random texts.
 - [DECISION.md](DECISION.md): the first draft, kept as it was committed. It
   was replaced before any request was sent; version 2 says why.
 - [results/README.md](results/README.md): what the run found, with its files.
+- [The confirmation protocol](../../annotation/confirmation_protocol.md): how the result is to be checked on
+  400 new random texts, labelled for responsiveness alone. It is fixed, and the sample has not been drawn yet.
 - The script:
   [`scripts/benchmark_jev_topics.py`](../../../scripts/benchmark_jev_topics.py).
   It is tested offline, with a fake API, in

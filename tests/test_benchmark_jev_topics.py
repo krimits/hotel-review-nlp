@@ -7,6 +7,7 @@ System One API documents (the wire schema of the provider's typesafe-sdk 0.7.2).
 from __future__ import annotations
 
 import csv
+import hashlib
 import http.client
 import importlib.util
 import json
@@ -439,3 +440,135 @@ def test_the_default_run_folders_are_ignored_by_git():
     for route in bench.ROUTES:
         for name in ("responses.jsonl", "request_example.json", "run.json", "summary.json", "predictions.csv"):
             assert _git("check-ignore", "-q", f"runs/jev_topic_benchmark_{route}/{name}").returncode == 0, name
+
+
+# --- The confirmation stage: new texts, responsiveness alone -------------------------------------------------------
+
+NEW_ITEMS = list(range(1, 41))
+
+
+class ScriptedAPI(FakeAPI):
+    """Answers responsiveness `1` for the items it is told to flag, `unsure` for some, and `0` for the rest."""
+
+    def __init__(self, flagged, unsure=()):
+        super().__init__()
+        self.flagged, self.unsure = set(flagged), set(unsure)
+
+    def __call__(self, url: str, body: dict, api_key: str, timeout: float):
+        self.calls.append((body, api_key))
+        self.urls.append(url)
+        item = int(body["state"].split()[2])
+        choice = "1" if item in self.flagged else "unsure" if item in self.unsure else "0"
+        response = {"model": "jev-2026-09-15", "usage": {"input_tokens": 900, "output_tokens": 5},
+                    "answers": {t: answer(choice if t == "responsiveness" else "0") for t in bench.TOPICS}}
+        return 200, {}, json.dumps(response).encode()
+
+
+@pytest.fixture
+def new_files(tmp_path):
+    """Forty new texts: 1-12 are complaints, 13 is `unsure`, the rest are not; the lexicon matches 1, 2 and 14."""
+    sheet = tmp_path / "new_sheet.csv"
+    with open(sheet, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["item", "text", "responsiveness", "done", "note"])
+        writer.writerows([item, text_of(item), "", "yes", ""] for item in NEW_ITEMS)
+    key = tmp_path / "new_key.csv"
+    with open(key, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["item", "in_R", *(f"lex_{t}" for t in bench.TOPICS)])
+        for item in NEW_ITEMS:
+            writer.writerow([item, 1, *[int(item in (1, 2, 14) and t == "responsiveness") for t in bench.TOPICS]])
+    gold = tmp_path / "new_labels.csv"
+    with open(gold, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["item", "annotator", "responsiveness"])
+        writer.writerows([item, "final", "1" if item <= 12 else "unsure" if item == 13 else "0"]
+                         for item in NEW_ITEMS)
+    return sheet, key, gold
+
+
+def run_confirmation(monkeypatch, runs, files, api, *extra, sha: str | None = None) -> dict:
+    sheet, key, gold = files
+    sha = sha or hashlib.sha256(sheet.read_bytes()).hexdigest()
+    monkeypatch.setenv(OPENROUTER_ENV, "sk-or-secret")
+    run(monkeypatch, api, sheet, runs / "new", "--stage", "confirmation", "--key", str(key), "--gold", str(gold),
+        "--expected-texts-sha256", sha, "--route", "openrouter", "--allow-external-api", *extra)
+    return json.loads((runs / "new" / "summary.json").read_text(encoding="utf-8"))
+
+
+def test_the_confirmation_stage_scores_responsiveness_alone_on_the_new_texts(runs, new_files, monkeypatch):
+    api = ScriptedAPI(flagged=[*range(1, 11), 15, 16])
+    summary = run_confirmation(monkeypatch, runs, new_files, api)
+    assert [body["state"] for body, _ in api.calls] == [text_of(item) for item in NEW_ITEMS]
+    assert summary["design"] == "docs/annotation/confirmation_protocol.md"
+    assert summary["inputs"]["stage"] == "confirmation" and summary["inputs"]["topics_scored"] == ["responsiveness"]
+    assert summary["texts"]["random"] == summary["texts"]["selected"] == summary["texts"]["answered"] == 40
+    assert list(summary["topics"]) == ["responsiveness"]
+    result = summary["topics"]["responsiveness"]
+    assert (result["texts"], result["gold_unsure_left_out"]) == (39, 1)
+    assert (result["jev"]["true_positives"], result["jev"]["false_positives"]) == (10, 2)
+    assert (result["lexicon"]["true_positives"], result["lexicon"]["false_positives"]) == (2, 1)
+    decision = summary["decision"]
+    assert (decision["only_jev"], decision["only_lexicon"], decision["mcnemar_p"]) == (8, 0, 0.0078)
+    assert decision["jev_precision"] == 0.8333 and decision["rule_applies"]
+    assert decision["outcome"].startswith("confirmed: Jev finds more responsiveness complaints on new texts too")
+
+
+@pytest.mark.parametrize("flagged, outcome", [
+    ([*range(1, 11), *range(15, 29)], "not confirmed as a whole: Jev finds more, but fewer than half"),
+    ([1, 2], "not confirmed: the pilot's result did not repeat; keep the lexicon"),
+    ([1, 2, 3, 4, 5, 15], "not confirmed: the pilot's result did not repeat; keep the lexicon"),
+])
+def test_the_confirmation_outcomes_follow_the_protocols_table(runs, new_files, monkeypatch, flagged, outcome):
+    # 1-10 plus 14 false flags: precision 10/24, below the guard. Only the two the lexicon has: nothing more.
+    # Three more than the lexicon (3, 4, 5) and one false flag: b = 3, c = 0, p = 0.25, so Jev does not find more.
+    summary = run_confirmation(monkeypatch, runs, new_files, ScriptedAPI(flagged=flagged))
+    assert summary["decision"]["outcome"].startswith(outcome)
+    assert summary["decision"]["rule_applies"]
+
+
+def test_a_confirmation_on_another_sheet_than_the_recorded_one_does_not_decide(runs, new_files, monkeypatch):
+    summary = run_confirmation(monkeypatch, runs, new_files, ScriptedAPI(flagged=range(1, 11)), sha="0" * 64)
+    assert summary["decision"]["outcome"] == "not decided: the texts file is not the sheet the labels came back on"
+    assert not summary["decision"]["rule_applies"]
+
+
+def test_a_confirmation_smoke_run_does_not_decide(runs, new_files, monkeypatch):
+    summary = run_confirmation(monkeypatch, runs, new_files, ScriptedAPI(flagged=range(1, 11)), "--limit", "3")
+    assert summary["decision"]["outcome"] == "not decided: smoke run on 3 of 40 texts"
+
+
+def test_the_topics_scored_must_include_the_one_the_rule_is_about(runs, new_files, monkeypatch):
+    sheet, key, gold = new_files
+    with pytest.raises(SystemExit, match="must include responsiveness"):
+        run(monkeypatch, FakeAPI(), sheet, runs / "new", "--stage", "confirmation", "--topics", "bathroom",
+            "--key", str(key), "--gold", str(gold))
+
+
+def test_a_key_and_labels_for_one_topic_are_read_only_when_one_topic_is_asked_for(new_files):
+    _, key, gold = new_files
+    with pytest.raises(SystemExit, match="missing columns"):
+        bench.read_gold(gold)
+    assert bench.read_gold(gold, ("responsiveness",))[13] == {"responsiveness": "unsure"}
+    assert bench.read_key(key)[14]["responsiveness"] is True
+    assert bench.read_key(key, ("responsiveness",))[3] == {"in_R": True, "responsiveness": False}
+
+
+def test_a_dry_run_of_the_confirmation_names_responsiveness_only(runs, new_files, monkeypatch, capsys):
+    sheet, key, gold = new_files
+    run(monkeypatch, FakeAPI(), sheet, runs / "new", "--stage", "confirmation", "--key", str(key),
+        "--gold", str(gold), "--route", "openrouter")
+    printed = capsys.readouterr().out
+    assert "responsiveness" in printed and "bathroom" not in printed and "Nothing was sent" in printed
+
+
+def test_the_stages_differ_only_in_what_they_read_and_say():
+    pilot, confirmation = bench.STAGES["pilot"], bench.STAGES["confirmation"]
+    assert pilot["topics"] == bench.TOPICS and confirmation["topics"] == (bench.PRIMARY_TOPIC,)
+    assert pilot["design"].endswith("DECISION_v2.md") and confirmation["design"].endswith("confirmation_protocol.md")
+    assert confirmation["key"].parent == confirmation["gold"].parent == bench.COMMITTED
+    assert (ROOT / confirmation["design"]).exists()
+    protocol = (ROOT / confirmation["design"]).read_text(encoding="utf-8")
+    assert f"`{bench.QUESTIONS_SHA256}`" in protocol  # the confirmation asks the same questions
+    for outcome in ("**Confirmed.**", "**Not confirmed as a whole.**", "**Not confirmed.**"):
+        assert outcome in protocol
