@@ -160,3 +160,33 @@ one endpoint decides.
 Written on 30 September 2026, at the project owner's request, before any
 request was sent. The script that carries it out, and the offline tests of
 that script, were committed together with this note.
+
+## Changes after locking
+
+**1 October 2026: a second route to the same model.** The project owner's API
+key is an OpenRouter key, which TypeSafe's own API refuses. The first attempt,
+on 30 September, sent one request (item 1) to `api.typesafe.ai` with that key.
+It was refused at authentication, before any answer, so no answer exists and
+nothing was scored.
+
+OpenRouter serves the same System One endpoint. The script now takes
+`--route typesafe` (as before) or `--route openrouter`
+(`https://openrouter.ai/api/v1/systemone`, key from `OPENROUTER_API_KEY`).
+Those are the only two places the texts can go.
+
+- **Unchanged:** the texts, the gold, the questions (the hash above), the model
+  name `jev-latest`, the decision rule and its guard. The route is not part of
+  the rule.
+- **Recorded:** the route and the endpoint go into the run's record, next to the
+  model that answers. Through OpenRouter, that model is reported under
+  OpenRouter's own id. A run cannot be resumed on another route or model.
+- **Keys:** a key is sent only to its own provider, and a redirect is not
+  followed.
+- **A second party:** OpenRouter handles the texts as well as TypeSafe. Its
+  data settings are checked, with the provider's terms, before the flag is
+  used.
+- **Not tested against the real service:** the OpenRouter request was written
+  from its published description, and the environment that wrote it cannot
+  reach OpenRouter. A first run of 3 texts (`--limit 3`) shows whether the
+  answers come back in the documented form. If they do not, the run stops after
+  that text, and the saved answer shows what differs.
