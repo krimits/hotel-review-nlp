@@ -24,12 +24,15 @@ complaints on new texts too, and at least half of its flags are right.**
   `jev-latest`. It answered as `typesafe/jev-1.13-20260917`, the version that
   answered in the pilot, and each answer names TypeSafe as its provider. So the
   texts went to OpenRouter and to TypeSafe.
-- **One run:** 400 requests, from 08:39:05 to 08:51:28 UTC, in item order. Every
-  one was answered on the first attempt, and none was retried or unreadable. The
-  saved log holds no other request. It has one pause of 534 seconds, after item
-  252, and it does not say why. Every other gap is 1 second or less. The script
-  resumes a stopped run only if the texts, labels, key, questions, route and
-  model are the same as before.
+- **One run, stopped once and resumed:** 400 requests, from 08:39:05 to 08:51:28
+  UTC, in item order. The saved log holds one answer for each text and no other
+  request. None of the logged answers needed a retry, and none is unreadable. The
+  log has one pause of 534 seconds, after item 252, and every other gap is 1
+  second or less. The owner says the OpenRouter credits ran out there, that they
+  topped them up, and that the run continued with the same command. The log shows
+  the gap and not the cause. The script resumes a stopped run only if the texts,
+  labels, key, questions, route and model are the same as before, and every
+  answer is to the same questions and from the same model version.
 - **Complete:** 400 of 400 answered, and `--limit` was not used. The summary
   records the hashes of the script, the sheet of texts (the sheet the labels came
   back on), the key, the labels and the questions. The
