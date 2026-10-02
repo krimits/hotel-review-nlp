@@ -107,8 +107,12 @@ bar.
   [comparison with TypeSafe's Jev](../experiments/jev_topic_benchmark/results/README.md),
   fixed before it was run, Jev found 13 of the 16 responsiveness complaints in the
   pilot's random texts and the lexicon 2, but 10 of Jev's 23 flags were wrong.
-  That needs confirming on new texts before any use, and the
-  [protocol](../annotation/confirmation_protocol.md) for that is fixed.
+  The [confirmation](../experiments/jev_topic_benchmark/confirmation/results/README.md)
+  on 400 new texts, under a [protocol](../annotation/confirmation_protocol.md)
+  fixed before they were drawn, met the same rule: Jev found 19 of 33 and the
+  lexicon 2, and 7 of Jev's 26 flags were wrong. That is not yet a reason to use
+  it. It sends guest reviews to outside companies, and that needs a separate
+  decision on the data, the cost and the false alarms a hotel owner would accept.
 - **By hotel and city.** Break the rising topics down by hotel and city to find
   whether a few hotels drive each rise. Query 03 already holds the per-hotel
   counts.

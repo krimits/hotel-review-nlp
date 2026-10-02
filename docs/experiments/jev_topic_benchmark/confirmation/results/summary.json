@@ -1,0 +1,130 @@
+{
+ "design": "docs/annotation/confirmation_protocol.md",
+ "script_sha256": "ec1fc873e4dcdfca5c4b3ac8835aba701fc7dba9c319cb4b78b6b0db47fdf891",
+ "inputs": {
+  "texts_sha256": "895abeac160366d6015e1e355fbb2853c6fe522e315fb83cabc73428259aca18",
+  "texts_are_the_handed_in_sheet_a": true,
+  "key_sha256": "f0fdf1d810c22fe8249b204e56f26e9f180c2fd5a20dcc08cccc361e30ca5274",
+  "gold_sha256": "a422bcc439f3af63fe9dcebe6001c9bcd8904719ba9558db895382edaf02c3ca",
+  "questions_sha256": "96462e1e7c03e823d860742124eea948173418bb98336dc0f3a063633d619754",
+  "route": "openrouter",
+  "endpoint": "https://openrouter.ai/api/v1/systemone",
+  "model_requested": "jev-latest",
+  "stage": "confirmation",
+  "topics_scored": [
+   "responsiveness"
+  ]
+ },
+ "models_answered": [
+  "typesafe/jev-1.13-20260917"
+ ],
+ "texts": {
+  "random": 400,
+  "selected": 400,
+  "answered": 400,
+  "item_ids_sha256": "659b7a9d71c7a0bb41467c74cfe3d8be4bbbc6a2f15962a315b1c95de975b6a2"
+ },
+ "requests": {
+  "sent": 400,
+  "unreadable_answers": 0,
+  "retried": 0,
+  "first_utc": "2026-10-02T08:39:05+00:00",
+  "last_utc": "2026-10-02T08:51:28+00:00"
+ },
+ "decision": {
+  "primary_topic": "responsiveness",
+  "only_jev": 17,
+  "only_lexicon": 0,
+  "mcnemar_p": 0.0,
+  "jev_better": true,
+  "jev_precision": 0.7308,
+  "guard_precision_at_least": 0.5,
+  "guard_holds": true,
+  "rule_applies": true,
+  "outcome": "confirmed: Jev finds more responsiveness complaints on new texts too, and at least half of its flags are right"
+ },
+ "topics": {
+  "responsiveness": {
+   "texts": 395,
+   "gold_unsure_left_out": 5,
+   "lexicon": {
+    "true_positives": 2,
+    "false_positives": 6,
+    "missed": 31,
+    "precision": {
+     "numerator": 2,
+     "denominator": 8,
+     "status": "insufficient sample"
+    },
+    "recall": {
+     "numerator": 2,
+     "denominator": 33,
+     "status": "ok",
+     "estimate": 0.0606,
+     "wilson95": [
+      0.0168,
+      0.1961
+     ]
+    },
+    "f1": 0.0976
+   },
+   "jev": {
+    "true_positives": 19,
+    "false_positives": 7,
+    "missed": 14,
+    "precision": {
+     "numerator": 19,
+     "denominator": 26,
+     "status": "ok",
+     "estimate": 0.7308,
+     "wilson95": [
+      0.5392,
+      0.863
+     ]
+    },
+    "recall": {
+     "numerator": 19,
+     "denominator": 33,
+     "status": "ok",
+     "estimate": 0.5758,
+     "wilson95": [
+      0.4081,
+      0.7276
+     ]
+    },
+    "f1": 0.6441,
+    "unsure": {
+     "on_gold_1": 0,
+     "on_gold_0": 0
+    },
+    "recall_if_unsure_counted_as_found": 0.5758
+   },
+   "paired_recall": {
+    "both": 2,
+    "only_jev": 17,
+    "only_lexicon": 0,
+    "neither": 14,
+    "mcnemar_p": 0.0
+   },
+   "paired_false_positives": {
+    "both": 1,
+    "only_jev": 6,
+    "only_lexicon": 5,
+    "neither": 350,
+    "mcnemar_p": 1.0
+   },
+   "jev_calibration_error": 0.016784810126582252
+  }
+ },
+ "jev_calibration_error_all_topics": 0.016784810126582252,
+ "seconds_per_text": {
+  "p50": 0.5452,
+  "p95": 0.6481,
+  "measured": "on the machine that ran the script, network included"
+ },
+ "tokens": {
+  "input": 824179,
+  "output": 78000
+ },
+ "cost": null
+}
