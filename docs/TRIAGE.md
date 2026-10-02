@@ -78,8 +78,10 @@ that the text is a whole review and that praise for other things does not cancel
 The rules for each topic are the guideline's, in the benchmark's words; a test checks that they have not
 drifted.
 
-The benchmark's result therefore does **not** carry over. It measured the negative field and, in the pilot,
-responsiveness only. Jev on whole reviews, with these questions, has not been measured.
+The benchmark's result therefore does **not** carry over. The pilot measured the negative field, reporting five
+topics and deciding on one (responsiveness). Its [confirmation](experiments/jev_topic_benchmark/confirmation/results/README.md)
+on 400 new texts scored responsiveness alone and met the same rule. Jev on whole reviews, with these questions,
+has not been measured.
 
 ## What checks the Qwen output, and what cannot
 

@@ -7,6 +7,10 @@ it on 1 October 2026, from their own machine, with the committed
 **Outcome under the locked rule: Jev finds more responsiveness complaints than
 the lexicon. The rule says to confirm this on a new sample before any use.**
 
+*Added on 2 October 2026:* the confirmation on 400 new texts met the same rule.
+Its results are in [confirmation/results](../confirmation/results/README.md). The
+rest of this page is as it was written after the pilot.
+
 ## What was run
 
 - **Texts:** the pilot's 200 random texts, 100 per period, sent one by one,
