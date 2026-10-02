@@ -9,16 +9,19 @@ from __future__ import annotations
 import importlib
 import logging
 import threading
+import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
+from reviewnlp.analytics.store import AspectStore, get_aspect_store
+from reviewnlp.serving.analytics_router import NO_STORE_DETAIL
 from reviewnlp.serving.model_wrapper import ModelWrapper
 from reviewnlp.serving.security import authorize_hotel
 from reviewnlp.triage.jev_client import JevClient, JevConfig
-from reviewnlp.triage.pipeline import TriagePipeline
+from reviewnlp.triage.pipeline import TriagePipeline, hotel_context
 from reviewnlp.triage.qwen_generator import QwenActionGenerator
-from reviewnlp.triage.schemas import TriageRequest, TriageResponse
+from reviewnlp.triage.schemas import TriageRequest, TriageResponse, TriageSummaryResponse
 
 log = logging.getLogger("reviewnlp.serving")
 router = APIRouter(tags=["Triage"])
@@ -46,22 +49,45 @@ def get_triage_pipeline(wrapper: Annotated[ModelWrapper, Depends(get_sentiment_w
 def triage_review(
     request: TriageRequest,
     pipeline: Annotated[TriagePipeline, Depends(get_triage_pipeline)],
+    store: Annotated[AspectStore | None, Depends(get_aspect_store)],
     x_api_key: str | None = Header(default=None),
 ) -> TriageResponse:
     """Sentiment from the app's model, complaint topics from Jev and suggested actions from Qwen.
 
     Only the sentiment stage is required. If Jev or Qwen is off, the response says so; if one fails, the response
     is partial and names the kind of failure. Every response says `validation_status: unvalidated`: no stage has
-    been measured on whole or mixed reviews.
+    been measured on whole or mixed reviews. With a database configured the result is stored, without the review
+    text, and `/hotels/{hotel_id}/triage/summary` reads it back.
     """
     authorize_hotel(request.hotel_id, x_api_key)
-    review_id = request.review_id
+    review_id = request.review_id or (uuid.uuid4().hex if store else None)
+    context = hotel_context(store, request.hotel_id) if store and pipeline.generator is not None else None
     try:
-        result = pipeline.run(request.text)
+        result = pipeline.run(request.text, hotel_context=context)
     except Exception as exc:  # noqa: BLE001
         log.exception("triage inference error")
         raise HTTPException(status_code=500, detail="inference failed") from exc
-    return TriageResponse(
-        hotel_id=request.hotel_id, review_id=review_id, stored=False, status=result.status,
+    response = TriageResponse(
+        hotel_id=request.hotel_id, review_id=review_id, stored=store is not None, status=result.status,
         sentiment=result.sentiment, complaints=result.complaints, routing=result.routing,
         actions=result.actions, timings=result.timings)
+    if store:
+        store.save_triage(hotel_id=request.hotel_id, review_id=review_id, source=request.source or "api",
+                          text=request.text, language=request.language, review_date=request.review_date,
+                          result=response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/hotels/{hotel_id}/triage/summary", response_model=TriageSummaryResponse,
+            responses={501: {"description": "No aspect store is configured"}})
+def triage_summary(
+    hotel_id: str,
+    store: Annotated[AspectStore | None, Depends(get_aspect_store)],
+    days: int = Query(default=30, ge=7, le=365),
+    x_api_key: str | None = Header(default=None),
+) -> TriageSummaryResponse:
+    """What triage found in this hotel's stored reviews: sentiment, complaint topics, actions, reviews to check."""
+    authorize_hotel(hotel_id, x_api_key)
+    if store is None:
+        raise HTTPException(status_code=501, detail=NO_STORE_DETAIL)
+    return TriageSummaryResponse(**store.triage_summary(hotel_id, days, limit_actions=20, limit_review=20))

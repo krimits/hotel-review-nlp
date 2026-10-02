@@ -47,6 +47,19 @@ class PipelineResult:
     timings: StageTimings
 
 
+def hotel_context(store, hotel_id: str, days: int = 30) -> str | None:
+    """A line of counts from the hotel's own stored aspects, for the suggestion stage. Counts only, no review text."""
+    from reviewnlp.analytics.recommendations import build_analytics
+
+    analytics = [item for item in build_analytics(store.aspect_rows(hotel_id, days),
+                                                  store.previous_period_rows(hotel_id, days))
+                 if item["negative_count"] > 0][:3]
+    if not analytics:
+        return None
+    return (f"Recent negative mentions at this hotel (last {days} days): "
+            + ", ".join(f"{item['aspect']} {item['negative_count']}" for item in analytics))
+
+
 def _ms(start: float, end: float) -> float:
     return round((end - start) * 1000, 2)
 
