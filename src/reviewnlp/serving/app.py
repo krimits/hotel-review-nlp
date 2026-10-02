@@ -4,6 +4,7 @@ Endpoints:
     GET  /health          liveness + model info (for k8s probes)
     POST /predict         single review
     POST /predict/batch   up to 256 reviews
+    POST /triage          sentiment, complaint topics and suggested actions (experimental)
 
 Configuration (env): MODEL_TYPE, MODEL_PATH - see model_wrapper.py.
 
@@ -34,6 +35,7 @@ from reviewnlp.serving.schemas import (
     PredictResponse,
 )
 from reviewnlp.serving.security import require_api_key, validate_production_config
+from reviewnlp.serving.triage_router import router as triage_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("reviewnlp.serving")
@@ -49,6 +51,7 @@ wrapper = ModelWrapper()
 app.include_router(absa_router)
 app.include_router(analytics_router)
 app.include_router(greek_router)
+app.include_router(triage_router)
 
 
 @app.get("/dashboard", include_in_schema=False)

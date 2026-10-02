@@ -29,6 +29,10 @@ written anywhere.
 
 A run that stops part-way resumes from its saved answers when the same command is run
 again. --score-only scores the saved answers without sending anything.
+
+--stage confirmation runs the same comparison on the new texts of
+docs/annotation/confirmation_protocol.md, scored on responsiveness alone, with the key, the
+labels and the sheet's hash taken from docs/experiments/jev_topic_benchmark/confirmation/.
 """
 
 from __future__ import annotations
@@ -66,6 +70,29 @@ DEFAULT_ROUTE = "typesafe"
 PRIMARY_TOPIC = "responsiveness"
 ALPHA = 0.05
 MIN_PRECISION = 0.5
+
+# The first comparison, on the pilot's random texts, and its confirmation on new texts. They differ only in
+# the files read, the topics scored and the words of the outcome; the questions and the rule are the same.
+COMMITTED = ROOT / "docs" / "experiments" / "jev_topic_benchmark" / "confirmation"
+STAGES = {
+    "pilot": {
+        "design": DESIGN, "folder": "jev_topic_benchmark", "topics": TOPICS,
+        "key": RESULTS / "key.csv", "gold": RESULTS / "labels_final.csv",
+        "not_the_sheet": "the texts file is not the handed-in sheet A",
+        "outcomes": {"met": "Jev finds more responsiveness complaints: confirm on a new sample before any use",
+                     "guard_fails": "keep the lexicon", "not_better": "keep the lexicon"},
+    },
+    "confirmation": {
+        "design": "docs/annotation/confirmation_protocol.md", "folder": "jev_confirmation",
+        "topics": (PRIMARY_TOPIC,), "key": COMMITTED / "key.csv", "gold": COMMITTED / "labels.csv",
+        "not_the_sheet": "the texts file is not the sheet the labels came back on",
+        "outcomes": {"met": "confirmed: Jev finds more responsiveness complaints on new texts too, and at least "
+                            "half of its flags are right",
+                     "guard_fails": "not confirmed as a whole: Jev finds more, but fewer than half of its flags "
+                                    "are right",
+                     "not_better": "not confirmed: the pilot's result did not repeat; keep the lexicon"},
+    },
+}
 
 # Reporting, as in the pilot: a proportion on fewer than 10 texts is shown as counts only.
 MIN_DENOMINATOR = 10
@@ -176,20 +203,28 @@ def read_texts(path: Path) -> dict[int, str]:
     return texts
 
 
-def read_key(path: Path) -> dict[int, dict]:
+def read_key(path: Path, topics: tuple[str, ...] = TOPICS) -> dict[int, dict]:
     """Item -> whether it is a random text, and whether the lexicon matched each topic."""
-    return {int(row["item"]): {"in_R": row["in_R"] == "1", **{t: row[f"lex_{t}"] == "1" for t in TOPICS}}
-            for row in _rows(path, {"item", "in_R", *(f"lex_{t}" for t in TOPICS)})}
+    return {int(row["item"]): {"in_R": row["in_R"] == "1", **{t: row[f"lex_{t}"] == "1" for t in topics}}
+            for row in _rows(path, {"item", "in_R", *(f"lex_{t}" for t in topics)})}
 
 
-def read_gold(path: Path) -> dict[int, dict[str, str]]:
+def read_gold(path: Path, topics: tuple[str, ...] = TOPICS) -> dict[int, dict[str, str]]:
     """Item -> final label per topic: '1', '0' or 'unsure'."""
     gold = {}
-    for row in _rows(path, {"item", "annotator", *TOPICS}):
-        if row["annotator"] != "final" or any(row[t] not in LABELS for t in TOPICS):
+    for row in _rows(path, {"item", "annotator", *topics}):
+        if row["annotator"] != "final" or any(row[t] not in LABELS for t in topics):
             raise SystemExit(f"{path}: item {row['item']} is not a final label of 1, 0 or unsure")
-        gold[int(row["item"])] = {t: row[t] for t in TOPICS}
+        gold[int(row["item"])] = {t: row[t] for t in topics}
     return gold
+
+
+def handed_in_sha256(stage: str) -> str | None:
+    """SHA-256 of the sheet the labels came back on, from the committed record of the stage."""
+    if stage == "pilot":
+        return json.loads((RESULTS / "agreement.json").read_text(encoding="utf-8"))["sheets"]["A"]["sha256"]
+    path = COMMITTED / "sheet_record.json"
+    return json.loads(path.read_text(encoding="utf-8"))["sheet_sha256"] if path.exists() else None
 
 
 def random_items(key: dict[int, dict], gold: dict[int, dict], limit: int | None) -> list[int]:
@@ -403,11 +438,11 @@ def _paired(pairs: list[tuple[bool, bool]]) -> dict:
 
 
 def score(items: list[int], key: dict[int, dict], gold: dict[int, dict],
-          answers: dict[int, dict]) -> dict:
+          answers: dict[int, dict], topics: tuple[str, ...] = TOPICS) -> dict:
     """Per topic, the lexicon and Jev against the final labels, on the same answered texts."""
     answered = [item for item in items if item in answers]
     report = {}
-    for topic in TOPICS:
+    for topic in topics:
         # (gold label, lexicon matched, Jev's label, Jev's probability of that label) per text
         rows = [(gold[i][topic], key[i][topic], answers[i][topic]["choice"], answers[i][topic]["p_choice"])
                 for i in answered if gold[i][topic] != "unsure"]
@@ -430,8 +465,9 @@ def score(items: list[int], key: dict[int, dict], gold: dict[int, dict],
     return report
 
 
-def decide(report: dict, reasons: list[str]) -> dict:
-    """The rule of DECISION_v2.md, on the primary topic."""
+def decide(report: dict, reasons: list[str], outcomes: dict[str, str] | None = None) -> dict:
+    """The rule of DECISION_v2.md, on the primary topic, with the words of the stage's outcomes."""
+    outcomes = outcomes or STAGES["pilot"]["outcomes"]
     topic = report[PRIMARY_TOPIC]
     b, c = topic["paired_recall"]["only_jev"], topic["paired_recall"]["only_lexicon"]
     p = mcnemar_p(b, c)
@@ -442,9 +478,11 @@ def decide(report: dict, reasons: list[str]) -> dict:
     if reasons:
         outcome = "not decided: " + "; ".join(reasons)
     elif better and guard:
-        outcome = "Jev finds more responsiveness complaints: confirm on a new sample before any use"
+        outcome = outcomes["met"]
+    elif better:
+        outcome = outcomes["guard_fails"]
     else:
-        outcome = "keep the lexicon"
+        outcome = outcomes["not_better"]
     return {"primary_topic": PRIMARY_TOPIC, "only_jev": b, "only_lexicon": c, "mcnemar_p": round(p, 4),
             "jev_better": better, "jev_precision": None if precision is None else round(precision, 4),
             "guard_precision_at_least": MIN_PRECISION, "guard_holds": guard,
@@ -457,7 +495,8 @@ def nearest_rank(values: list[float], share: float) -> float:
 
 
 def write_results(items: list[int], n_random: int, key: dict, gold: dict, output: Path,
-                  inputs: dict, args: argparse.Namespace) -> dict:
+                  inputs: dict, args: argparse.Namespace, topics: tuple[str, ...] = TOPICS,
+                  stage: str = "pilot") -> dict:
     usable, records = read_log(output / "responses.jsonl")
     used = {item: usable[item] for item in items if item in usable}
     answers = {item: read_answers(record["response"]) for item, record in used.items()}
@@ -467,8 +506,8 @@ def write_results(items: list[int], n_random: int, key: dict, gold: dict, output
     if len(used) < len(items):
         reasons.append(f"only {len(used)} of {len(items)} texts answered")
     if not inputs["texts_are_the_handed_in_sheet_a"]:
-        reasons.append("the texts file is not the handed-in sheet A")
-    topics = score(items, key, gold, answers)
+        reasons.append(STAGES[stage]["not_the_sheet"])
+    report = score(items, key, gold, answers, topics)
 
     fields = ("choice", "p_choice", "p1", "confidence")
     with open(output / "predictions.csv", "w", newline="", encoding="utf-8") as handle:
@@ -490,7 +529,7 @@ def write_results(items: list[int], n_random: int, key: dict, gold: dict, output
                 "price_per_million_output_tokens": args.price_per_million_output_tokens}
     sent = sorted(record["sent_utc"] for record in records)
     summary = {
-        "design": DESIGN,
+        "design": STAGES[stage]["design"],
         "script_sha256": sha256_file(Path(__file__)),
         "inputs": inputs,
         "models_answered": sorted({record["response"].get("model", "?") for record in used.values()}),
@@ -499,10 +538,10 @@ def write_results(items: list[int], n_random: int, key: dict, gold: dict, output
         "requests": {"sent": len(records), "unreadable_answers": len(records) - len(usable),
                      "retried": sum(record["attempts"] - 1 for record in records),
                      "first_utc": sent[0] if sent else None, "last_utc": sent[-1] if sent else None},
-        "decision": decide(topics, reasons),
-        "topics": topics,
+        "decision": decide(report, reasons, STAGES[stage]["outcomes"]),
+        "topics": report,
         "jev_calibration_error_all_topics": expected_calibration_error(
-            [(a[t]["p_choice"], a[t]["choice"] == gold[i][t]) for i, a in answers.items() for t in TOPICS
+            [(a[t]["p_choice"], a[t]["choice"] == gold[i][t]) for i, a in answers.items() for t in topics
              if a[t]["choice"] != "unsure" and gold[i][t] != "unsure"]),
         "seconds_per_text": {"p50": nearest_rank(seconds, 0.5), "p95": nearest_rank(seconds, 0.95),
                              "measured": "on the machine that ran the script, network included"}
@@ -515,12 +554,12 @@ def write_results(items: list[int], n_random: int, key: dict, gold: dict, output
 
 
 def dry_run(items: list[int], texts: dict[int, str], key: dict, gold: dict, output: Path,
-            url: str, model: str) -> None:
+            url: str, model: str, topics: tuple[str, ...] = TOPICS) -> None:
     example = output / "request_example.json"
     example.write_text(json.dumps(request_body(texts[items[0]], model), indent=1) + "\n", encoding="utf-8")
     usable, _ = read_log(output / "responses.jsonl")
     print(f"{len(items)} random texts, each with a text. Labelled 1, and found by the lexicon:")
-    for topic in TOPICS:
+    for topic in topics:
         positives = [i for i in items if gold[i][topic] == "1"]
         print(f"  {topic:17} {len(positives):3}  {sum(key[i][topic] for i in positives):3}")
     print(f"questions sha256 {QUESTIONS_SHA256}")
@@ -532,13 +571,19 @@ def dry_run(items: list[int], texts: dict[int, str], key: dict, gold: dict, outp
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--texts", type=Path, required=True, help="local CSV with item and text columns")
-    parser.add_argument("--key", type=Path, default=RESULTS / "key.csv")
-    parser.add_argument("--gold", type=Path, default=RESULTS / "labels_final.csv")
+    parser.add_argument("--stage", choices=sorted(STAGES), default="pilot",
+                        help="the first comparison (the pilot's texts) or its confirmation (new texts)")
+    parser.add_argument("--topics", nargs="+", choices=TOPICS, default=None,
+                        help="the topics to score (default: those of the stage)")
+    parser.add_argument("--key", type=Path, default=None, help="default: the stage's committed key")
+    parser.add_argument("--gold", type=Path, default=None, help="default: the stage's committed labels")
+    parser.add_argument("--expected-texts-sha256", default=None,
+                        help="SHA-256 of the sheet the labels came back on (default: the stage's committed record)")
     parser.add_argument("--route", choices=sorted(ROUTES), default=DEFAULT_ROUTE,
                         help="where the texts go: TypeSafe's API or OpenRouter's System One endpoint")
     parser.add_argument("--model", default=MODEL, help="the model name the route expects (default: %(default)s)")
     parser.add_argument("--output", type=Path, default=None,
-                        help="a folder inside runs/ (default: runs/jev_topic_benchmark_<route>)")
+                        help="a folder inside runs/ (default: runs/<stage's folder>_<route>)")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--allow-external-api", action="store_true", help="send the texts; without it nothing is sent")
     mode.add_argument("--score-only", action="store_true", help="score the saved answers; send nothing")
@@ -551,25 +596,34 @@ def main(argv: list[str] | None = None) -> None:
     if args.limit is not None and args.limit < 1:
         raise SystemExit("--limit must be at least 1")
 
-    output = output_dir(args.output or Path(f"runs/jev_topic_benchmark_{args.route}"))
+    stage = STAGES[args.stage]
+    topics = tuple(args.topics) if args.topics else stage["topics"]
+    if PRIMARY_TOPIC not in topics:
+        raise SystemExit(f"--topics must include {PRIMARY_TOPIC}, the topic the rule is about")
+    key_path, gold_path = args.key or stage["key"], args.gold or stage["gold"]
+    output = output_dir(args.output or Path(f"runs/{stage['folder']}_{args.route}"))
     url, key_env = endpoint(args.route), ROUTES[args.route]["key_env"]
-    key, gold = read_key(args.key), read_gold(args.gold)
+    key, gold = read_key(key_path, topics), read_gold(gold_path, topics)
     n_random = sum(row["in_R"] for row in key.values())
     items = random_items(key, gold, args.limit)
     texts = read_texts(args.texts)
     missing = [item for item in items if not texts.get(item, "").strip()]
     if missing:
         raise SystemExit(f"{args.texts}: no text for items {missing[:10]}")
-    handed_in = json.loads((RESULTS / "agreement.json").read_text(encoding="utf-8"))["sheets"]["A"]["sha256"]
+    handed_in = args.expected_texts_sha256 or handed_in_sha256(args.stage)
     texts_sha256 = sha256_file(args.texts)
     inputs = {"texts_sha256": texts_sha256, "texts_are_the_handed_in_sheet_a": texts_sha256 == handed_in,
-              "key_sha256": sha256_file(args.key), "gold_sha256": sha256_file(args.gold),
+              "key_sha256": sha256_file(key_path), "gold_sha256": sha256_file(gold_path),
               "questions_sha256": QUESTIONS_SHA256, "route": args.route, "endpoint": url,
               "model_requested": args.model}
+    if args.stage != "pilot":
+        inputs["stage"] = args.stage
+    if topics != TOPICS:
+        inputs["topics_scored"] = list(topics)
     output.mkdir(parents=True, exist_ok=True)
 
     if not (args.allow_external_api or args.score_only):
-        dry_run(items, texts, key, gold, output, url, args.model)
+        dry_run(items, texts, key, gold, output, url, args.model, topics)
         return
     if args.allow_external_api:
         api_key = os.environ.get(key_env, "").strip()
@@ -579,7 +633,7 @@ def main(argv: list[str] | None = None) -> None:
         send_all(items, texts, output, url, args.model, api_key, args.timeout)
     else:
         check_run_record(output, inputs, create=False)
-    summary = write_results(items, n_random, key, gold, output, inputs, args)
+    summary = write_results(items, n_random, key, gold, output, inputs, args, topics, args.stage)
     for topic, result in summary["topics"].items():
         cells = [f"{name} P {result[name]['precision'].get('estimate', '-')} R {result[name]['recall'].get('estimate', '-')}"
                  for name in ("lexicon", "jev")]

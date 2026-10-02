@@ -1,0 +1,50 @@
+{
+ "protocol": "docs/annotation/confirmation_protocol.md",
+ "protocol_sha256": "135d8a16f746234c7b99c62648d3ce3e3a8b4cd8ce47b7a7a8f4a3f76778cf64",
+ "guideline_sha256": "538971daa1f146cee4fc741656711c483eb4fe1c9cd68ff3d1a76ea93900ac41",
+ "code_commit": "6a47107be66f3e17273646eb9bdcf260f8b9d99d",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+ "reviews": 515173,
+ "seed": 1,
+ "windows": {
+  "base_start": "2016-02",
+  "base_end": "2016-07",
+  "recent_start": "2017-02",
+  "recent_end": "2017-07",
+  "min_hotel_reviews": "30"
+ },
+ "hotels_compared": 863,
+ "design": {
+  "topic": "responsiveness",
+  "texts_per_period": 200,
+  "left_out": {
+   "source": "docs/case_study/results/annotation/key.csv",
+   "texts": 300,
+   "raw_rows_sha256": "e37de6fa6a0a6c40b3b3d6958507ef9229674fb9987d418f640a361c01b6eaad"
+  }
+ },
+ "periods": {
+  "base": {
+   "population": 81711,
+   "excluded_pilot_texts": 150,
+   "drawn": 200,
+   "placeholder_or_empty": 28936,
+   "excluded_by_filter": 8928
+  },
+  "recent": {
+   "population": 78339,
+   "excluded_pilot_texts": 150,
+   "drawn": 200,
+   "placeholder_or_empty": 24904,
+   "excluded_by_filter": 8414
+  }
+ },
+ "items": 400,
+ "sheet_columns": [
+  "item",
+  "text",
+  "responsiveness",
+  "done",
+  "note"
+ ]
+}

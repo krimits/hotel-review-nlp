@@ -94,6 +94,29 @@ class ModelWrapper:
                 return [(str(lbl), None) for lbl in labels]
         raise RuntimeError("unreachable")
 
+    def distribution_batch(self, texts: list[str]) -> list[dict[str, float] | None]:
+        """Label -> probability for each text, or None where the model cannot give a distribution.
+
+        `predict_batch` returns only the chosen label and its probability. Triage routes on how sure the model is,
+        so it needs the whole distribution. The label that wins here is the one with the largest probability.
+        """
+        self.load()
+        if self.model_type == "stub":
+            # Same pseudo-classifier as predict_batch; "negative" comes first so a tie falls on it, as there.
+            out = []
+            for t in texts:
+                h = abs(hash(t)) % 1000 / 1000.0
+                out.append({"negative": 1 - h, "positive": h})
+            return out
+        with self._lock:
+            if self.model_type == "classical":
+                classes = [str(c) for c in self._obj.classes_]
+                return [dict(zip(classes, (float(p) for p in row), strict=True))
+                        for row in self._obj.predict_proba(texts)]
+            if self.model_type == "encoder":
+                return _distribution_encoder(self._obj, texts)
+        return [None] * len(texts)  # qwen_qlora generates a word and has no probabilities
+
     @property
     def info(self) -> dict:
         return {"model_type": self.model_type, "model_path": self.model_path, "device": DEVICE}
@@ -121,6 +144,16 @@ def _predict_encoder_fast(bundle: dict, texts: list[str]) -> list[tuple[str, flo
     conf, idx = probs.max(dim=-1)
     id2label = model.config.id2label
     return [(id2label[int(i)], float(c)) for i, c in zip(idx.cpu(), conf.cpu(), strict=False)]
+
+
+def _distribution_encoder(bundle: dict, texts: list[str]) -> list[dict[str, float]]:
+    tokenizer, model = bundle["tokenizer"], bundle["model"]
+    enc = tokenizer([str(t) for t in texts], truncation=True, max_length=256, padding=True, return_tensors="pt")
+    with torch.no_grad():
+        logits = model(**{k: v.to(DEVICE) for k, v in enc.items()}).logits
+    probs = torch.softmax(logits, dim=-1).cpu()
+    id2label = model.config.id2label
+    return [{id2label[i]: float(p) for i, p in enumerate(row)} for row in probs]
 
 
 def timed_predict(wrapper: ModelWrapper, text: str) -> dict:

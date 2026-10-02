@@ -1,0 +1,13 @@
+{
+ "protocol": "docs/annotation/confirmation_protocol.md",
+ "protocol_sha256": "135d8a16f746234c7b99c62648d3ce3e3a8b4cd8ce47b7a7a8f4a3f76778cf64",
+ "sample_code_commit": "6a47107be66f3e17273646eb9bdcf260f8b9d99d",
+ "topic": "responsiveness",
+ "items": 400,
+ "labels": {
+  "1": 33,
+  "0": 362,
+  "unsure": 5
+ },
+ "sheet_sha256": "895abeac160366d6015e1e355fbb2853c6fe522e315fb83cabc73428259aca18"
+}
