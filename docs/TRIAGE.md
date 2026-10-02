@@ -158,7 +158,10 @@ The section carries a notice that the flow is unvalidated.
      department right. That is the only evidence on their value.
 - **Real runs.** DistilBERT, Jev and Qwen have not been run together here: this environment has no weights, no
   keys and no access to the model hub. The tests use fakes for all three, and the dashboard was checked in a real
-  browser against those fakes.
+  browser against those fakes. Two things are checked against real data: the Jev client reads the 600 real
+  answers saved from the benchmark runs, and its request has the shape the provider accepted there. A
+  [smoke test](experiments/triage_smoke/README.md) on 14 invented reviews is ready to run in Colab. It has not
+  been run yet.
 - **Sentiment on mixed reviews.** The sentiment model gives one binary label. That label does not describe the
   individual complaints in a review that praises some things and criticises others, and the model has not been
   evaluated on mixed reviews. Under a clear labelling rule a mixed review could have an overall sentiment, but

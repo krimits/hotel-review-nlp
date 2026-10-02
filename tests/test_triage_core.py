@@ -51,6 +51,27 @@ def test_there_is_one_question_per_topic_and_one_for_any_other_complaint():
             question["instructions"].lower())
 
 
+def _shape(value):
+    """The keys and value types of a JSON value, without the words in it."""
+    if isinstance(value, dict):
+        return {key: _shape(item) for key, item in value.items()}
+    return type(value).__name__
+
+
+def test_the_request_has_the_shape_the_provider_accepted_in_the_benchmark_runs():
+    # The benchmark's requests were answered 600 times. Whatever the words, a request of the same shape is the same
+    # kind of request, including the sixth question, which the benchmark did not have.
+    theirs, ours = _benchmark().request_body("a review", "jev-latest"), questions.request_body("a review", "jev-latest")
+    assert set(ours) == set(theirs) == {"state", "model", "questions"}
+    assert _shape({k: v for k, v in ours.items() if k != "questions"}) == _shape(
+        {k: v for k, v in theirs.items() if k != "questions"})
+    shapes = {name: _shape(question) for name, question in theirs["questions"].items()}
+    assert len({json.dumps(shape, sort_keys=True) for shape in shapes.values()}) == 1  # all five alike
+    (benchmark_shape,) = {json.dumps(shape, sort_keys=True) for shape in shapes.values()}
+    for name, question in ours["questions"].items():
+        assert json.dumps(_shape(question), sort_keys=True) == benchmark_shape, name
+
+
 def test_the_version_and_hash_identify_the_questions_and_differ_from_the_benchmarks():
     expected = hashlib.sha256(json.dumps({"version": questions.QUESTIONS_VERSION, "questions": questions.QUESTIONS},
                                          sort_keys=True).encode("utf-8")).hexdigest()

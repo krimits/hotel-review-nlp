@@ -6,6 +6,7 @@ import json
 import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -14,6 +15,9 @@ from reviewnlp.triage.jev_client import JevClient, JevConfig, JevError
 from reviewnlp.triage.schemas import OTHER, TOPICS
 
 REVIEW = "SECRETWORD the shower was cold but the staff were lovely"
+BENCHMARK = Path(__file__).resolve().parents[1] / "docs" / "experiments" / "jev_topic_benchmark"
+REAL_ANSWERS = (BENCHMARK / "results" / "responses.jsonl",
+                BENCHMARK / "confirmation" / "results" / "responses.jsonl")
 
 
 def _answer(choice: str = "0", p_yes: float | None = None) -> dict:
@@ -283,3 +287,22 @@ def test_a_connection_that_is_refused_is_a_network_failure():
     with pytest.raises(JevError) as raised:
         sender.classify(REVIEW)
     assert raised.value.kind == "network"
+
+
+def test_the_client_reads_the_real_answers_saved_from_the_benchmark_runs():
+    """600 provider responses, as received. They have five answers, not six, so the sixth is given the shape of
+    the five. What is checked is that the real form is read, and read correctly."""
+    read = 0
+    for path in REAL_ANSWERS:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            response = json.loads(line)["response"]
+            body = {**response, "answers": {**response["answers"], questions.OTHER_QUESTION: response["answers"]["responsiveness"]}}
+            result = jev_client.parse_answer(json.dumps(body).encode("utf-8"), "openrouter")
+            assert [t.topic for t in result.topics] == list(TOPICS) and result.other_complaint.topic == OTHER
+            for topic in result.topics:
+                real = response["answers"][topic.topic]
+                assert topic.answer == jev_client.ANSWER_OF_LABEL[real["choice"]], topic.topic
+                assert topic.probability == pytest.approx(float(real["probabilities"]["1"])), topic.topic
+            assert (result.model, result.route) == (response["model"], "openrouter")
+            read += 1
+    assert read == 600

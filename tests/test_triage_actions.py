@@ -244,3 +244,22 @@ def test_a_model_that_generates_a_word_has_no_distribution():
     wrapper = ModelWrapper("qwen_qlora", "x")
     wrapper._loaded = True
     assert wrapper.distribution_batch(["a", "b"]) == [None, None]
+
+
+def test_the_model_is_loaded_in_bfloat16_only_on_a_gpu_that_has_it():
+    from types import SimpleNamespace
+
+    def fake_torch(capability):
+        return SimpleNamespace(bfloat16="bf16", float32="fp32",
+                               cuda=SimpleNamespace(get_device_capability=lambda device: capability))
+
+    assert qg._dtype_for(fake_torch((8, 0)), "cuda") == "bf16"      # A100, L4, H100
+    assert qg._dtype_for(fake_torch((9, 0)), "cuda:0") == "bf16"
+    assert qg._dtype_for(fake_torch((7, 5)), "cuda") == "fp32"      # a Colab T4: bfloat16 would be emulated
+    assert qg._dtype_for(fake_torch((8, 0)), "cpu") == "fp32"       # the capability is not even asked on a CPU
+
+    def refuse(device):
+        raise AssertionError("asked for a GPU's capability on a CPU")
+
+    cpu = SimpleNamespace(bfloat16="bf16", float32="fp32", cuda=SimpleNamespace(get_device_capability=refuse))
+    assert qg._dtype_for(cpu, "cpu") == "fp32"

@@ -150,14 +150,26 @@ class ActionGenerator(Protocol):
     def generate(self, review: str, signals: ActionSignals) -> GenerationResult: ...
 
 
+def _dtype_for(torch_module: Any, device: str) -> Any:
+    """bfloat16 on a GPU that has it natively (compute capability 8 or more), float32 everywhere else.
+
+    On a CPU, and on an older GPU such as a Colab T4, bfloat16 is slow or emulated, and float16 can overflow in
+    this model family. Half a billion parameters in float32 is 2 GB.
+    """
+    if str(device).startswith("cuda") and torch_module.cuda.get_device_capability(device)[0] >= 8:
+        return torch_module.bfloat16
+    return torch_module.float32
+
+
 def _load_qwen(model_id: str, device: str | None) -> tuple[Any, Any]:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
     tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=torch.bfloat16).eval()
-    return tokenizer, model.to(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=_dtype_for(torch, device)).eval()
+    return tokenizer, model.to(device)
 
 
 class QwenActionGenerator:
