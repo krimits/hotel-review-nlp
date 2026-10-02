@@ -11,9 +11,11 @@ complaints on new texts too, and at least half of its flags are right.**
 ## What was run
 
 - **Texts:** the 400 new random texts, 200 per period, labelled by the owner
-  before any system saw them. Each was sent on its own, with the five questions
-  of the first comparison. Only responsiveness is scored, because the other four
-  topics have no labels here.
+  before any request was sent. The protocol's rule is that the sheet carries no
+  system output and that the key, with the lexicon's verdicts, stays closed until
+  the labels are in. The files cannot show whether it did. Each text was sent on
+  its own, with the five questions of the first comparison. Only responsiveness
+  is scored, because the other four topics have no labels here.
 - **Order:** the labels, the key and the manifest were committed at 08:14 UTC on
   2 October. The first request was sent at 08:39 UTC. A
   [test](../../../../../tests/test_jev_confirmation_results.py) checks that
