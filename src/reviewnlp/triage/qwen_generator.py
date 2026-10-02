@@ -206,11 +206,12 @@ class QwenActionGenerator:
         prompt = tokenizer.apply_chat_template(build_messages(review, signals), tokenize=False,
                                                add_generation_prompt=True)
         encoded = tokenizer(prompt, return_tensors="pt")
-        encoded = {name: tensor.to(model.device) for name, tensor in encoded.items()}
+        # Only what generate() uses. A tokenizer that also returns token_type_ids would make it refuse the call.
+        inputs = {name: encoded[name].to(model.device) for name in ("input_ids", "attention_mask")}
         with self._run_lock, torch.inference_mode():
-            generated = model.generate(**encoded, max_new_tokens=self.max_new_tokens, do_sample=False,
+            generated = model.generate(**inputs, max_new_tokens=self.max_new_tokens, do_sample=False,
                                        pad_token_id=tokenizer.pad_token_id, eos_token_id=tokenizer.eos_token_id)
-        new_tokens = generated[0, encoded["input_ids"].shape[1]:]
+        new_tokens = generated[0, inputs["input_ids"].shape[1]:]
         eos = tokenizer.eos_token_id
         return GenerationResult(raw=tokenizer.decode(new_tokens, skip_special_tokens=True),
                                 hit_token_budget=eos is None or not bool((new_tokens == eos).any()),
