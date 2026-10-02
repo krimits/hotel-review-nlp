@@ -28,6 +28,7 @@ saved outputs.
 | `10_distilbert_v2_colab.ipynb` | a GPU; downloads the raw CSV, trains DistilBERT (full fine-tune and scratch LoRA) on the random and out-of-time splits, and measures latency ([plan](../docs/experiments/phase2_analysis_plan.md)) | Colab T4, about an hour |
 | `11_publish_model_colab.ipynb` | the phase 2 weights in Google Drive and a Hugging Face write token; no training. Checks the run and its weights, publishes the random-split DistilBERT to the Hub (the legacy model stays under a tag) and pins the demo to it, resumably | Colab CPU, 15–30 minutes |
 | `12_confirmation_sample_colab.ipynb` | nothing: downloads the raw CSV and draws 400 new texts for confirming Jev's responsiveness result ([protocol](../docs/annotation/confirmation_protocol.md)) | Colab CPU |
+| `13_triage_smoke_colab.ipynb` | nothing: downloads the published DistilBERT and the base Qwen and runs the triage chain on 14 invented reviews. Jev only if a Colab secret named `OPENROUTER_API_KEY` exists ([README](../docs/experiments/triage_smoke/README.md)) | Colab GPU, about 10 minutes |
 
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.

@@ -271,3 +271,39 @@ def test_the_default_output_is_a_timestamped_folder_inside_runs(runs_folder):
 def test_every_topic_the_fixture_expects_is_one_the_questions_ask_about():
     expected = {topic for review in REVIEWS for topic in review["expected_topics"]}
     assert expected <= {*TOPICS, OTHER} and OTHER in expected
+
+
+# --- The Colab notebook ---------------------------------------------------------------------------------------------
+
+NOTEBOOK = ROOT / "notebooks" / "13_triage_smoke_colab.ipynb"
+
+
+def _notebook_code() -> str:
+    notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+    return "\n".join("".join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "code")
+
+
+def test_the_notebook_runs_the_pinned_script_with_flags_that_script_has():
+    import subprocess
+
+    revision = re.search(r'REVISION = "([0-9a-f]{40})"', _notebook_code()).group(1)
+    shown = subprocess.run(["git", "show", f"{revision}:scripts/triage_smoke.py"], cwd=ROOT, capture_output=True)
+    if shown.returncode != 0:
+        pytest.skip("the pinned commit is not in this clone")
+    pinned_flags = set(re.findall(r'add_argument\("(--[a-z-]+)"', shown.stdout.decode("utf-8")))
+    used = set(re.findall(r"--[a-z][a-z-]+", _notebook_code())) - {"--quiet", "--no-deps", "--oneline"}  # pip's, git's
+    assert {"--output", "--allow-external-api", "--route"} <= used <= pinned_flags
+
+
+def test_the_notebook_reads_the_key_from_colab_secrets_and_never_shows_it():
+    code = _notebook_code()
+    assert 'userdata.get("OPENROUTER_API_KEY")' in code
+    assert jev_client.ROUTES["openrouter"]["key_env"] == "OPENROUTER_API_KEY"
+    assert not re.search(r"sk-[A-Za-z0-9]", NOTEBOOK.read_text(encoding="utf-8"))
+    assert not re.search(r"print\([^)]*(environ|userdata)", code)  # the value is never printed
+    assert "--allow-external-api" in code and "if USE_JEV" in code  # and Jev is off unless a key was found
+
+
+def test_the_pinned_distilbert_is_the_one_in_the_publication_record():
+    record = (ROOT / "docs" / "experiments" / "results" / "distilbert_v2" / "README.md").read_text(encoding="utf-8")
+    assert f"`{smoke_script.HUB_REPO}` at `{smoke_script.HUB_REVISION}`" in record
