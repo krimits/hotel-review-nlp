@@ -10,6 +10,7 @@ from triage_fakes import NEGATIVE, POSITIVE, REVIEW, FakeGenerator, FakeJev, Fak
 from reviewnlp.triage import questions
 from reviewnlp.triage.jev_client import JevError
 from reviewnlp.triage.pipeline import TriagePipeline
+from reviewnlp.triage.routing import REVIEW_REASONS
 from reviewnlp.triage.schemas import OTHER
 
 
@@ -110,6 +111,7 @@ def test_a_failing_generator_gives_a_partial_result_that_needs_a_look(generator,
     result = run(FakeWrapper(NEGATIVE), None, generator)
     assert (result.actions.status, result.actions.error, result.status) == (status, error, "partial")
     assert result.actions.actions == [] and reason in result.routing.review_reasons and result.routing.needs_review
+    assert set(result.routing.review_reasons) <= set(REVIEW_REASONS)
     assert "SECRETWORD" not in repr(result)
 
 
@@ -121,10 +123,41 @@ def test_actions_that_are_not_in_the_review_are_dropped_and_a_person_is_asked_to
     assert result.status == "partial" and "actions_ungrounded" in result.routing.review_reasons
 
 
-def test_the_model_saying_there_is_nothing_to_fix_is_an_answer_not_a_failure():
+def test_an_empty_list_after_a_flagged_review_is_an_answer_not_a_failure_but_a_person_is_asked_to_look():
     result = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw='{"actions": []}'))
-    assert (result.actions.status, result.actions.actions, result.status) == ("ok", [], "complete")
-    assert not result.routing.needs_review
+    assert (result.actions.status, result.actions.actions, result.actions.dropped) == ("ok", [], 0)
+    assert result.status == "complete"  # nothing failed
+    assert result.routing.needs_review and result.routing.review_reasons == ["no_actions_suggested"]
+    assert set(result.routing.review_reasons) <= set(REVIEW_REASONS)
+
+
+def test_an_empty_list_after_a_complaint_in_a_positive_review_also_asks_for_a_look():
+    result = run(FakeWrapper(POSITIVE), FakeJev(yes=["bathroom"]), FakeGenerator(raw='{"actions": []}'))
+    assert result.routing.reasons == ["complaint_detected"]
+    assert result.routing.needs_review and result.routing.review_reasons == ["no_actions_suggested"]
+
+
+def test_nothing_is_flagged_for_having_no_actions_when_none_were_asked_for():
+    generator = FakeGenerator(raw='{"actions": []}')
+    result = run(FakeWrapper(POSITIVE), FakeJev(), generator)  # confident positive, no complaint: not asked
+    assert (result.actions.status, generator.calls) == ("not_triggered", [])
+    assert not result.routing.needs_review and result.routing.review_reasons == []
+    off = run(FakeWrapper(NEGATIVE), None, None)  # asked for, but the stage is off: not a missing answer
+    assert off.actions.status == "disabled" and off.routing.review_reasons == []
+
+
+def test_a_review_with_usable_actions_is_not_flagged_for_having_none():
+    result = run(FakeWrapper(NEGATIVE), None, FakeGenerator())
+    assert result.actions.status == "ok" and len(result.actions.actions) == 1
+    assert not result.routing.needs_review and result.routing.review_reasons == []
+
+
+def test_a_yes_that_won_without_being_sure_asks_for_a_look_and_still_reaches_the_suggestion_stage():
+    jev, generator = FakeJev(yes=["bathroom"], yes_probability=0.36), FakeGenerator()
+    result = run(FakeWrapper(POSITIVE), jev, generator)
+    assert result.routing.reasons == ["complaint_detected", "uncertain_complaint"]
+    assert result.routing.needs_review and result.routing.review_reasons == ["uncertain_complaint"]
+    assert result.actions.status == "ok" and len(generator.calls) == 1
 
 
 # --- Timings --------------------------------------------------------------------------------------------------------------

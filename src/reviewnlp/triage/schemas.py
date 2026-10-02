@@ -90,6 +90,9 @@ class TriageResponse(BaseModel):
     hotel_id: str
     review_id: str | None
     stored: bool = False
+    not_stored_reason: Literal["no_database", "no_review_id"] | None = Field(
+        default=None, description="Why the result was not stored. A result is stored only with a database and a "
+                                  "review_id, so that running a review again replaces its result and is not counted twice")
     status: Literal["complete", "partial"] = Field(description="'partial' when a stage that was asked to run failed")
     sentiment: SentimentResult
     complaints: ComplaintsResult

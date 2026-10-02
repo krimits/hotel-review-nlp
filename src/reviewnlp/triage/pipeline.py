@@ -133,7 +133,12 @@ class TriagePipeline:
         actions = self._actions(text, sentiment, complaints, routing, hotel_context)
         end = self._clock()
 
+        # The suggestion stage was asked for because something was flagged. If nothing usable came back, a person
+        # looks: an empty list from a small model is not a finding that nothing needs doing. An empty list is an
+        # answer, not a failure, so it does not make the result partial.
         extra = {"error": "actions_failed", "no_grounded_actions": "actions_ungrounded"}.get(actions.status)
+        if actions.status == "ok" and not actions.actions:
+            extra = "no_actions_suggested"
         if extra:
             routing = routing.model_copy(update={"needs_review": True, "review_reasons": [*routing.review_reasons, extra]})
         partial = complaints.status == "error" or actions.status in {"error", "no_grounded_actions"}

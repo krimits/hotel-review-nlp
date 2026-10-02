@@ -123,7 +123,7 @@
     const topicNames = {bathroom:'Μπάνιο',cleanliness:'Καθαριότητα',air_conditioning:'Κλιματισμός / θέρμανση',pests:'Έντομα / τρωκτικά',responsiveness:'Ανταπόκριση',other:'Άλλο παράπονο'};
     const sentimentNames = {positive:'Θετικό',negative:'Αρνητικό'};
     const departmentNames = {reception:'Υποδοχή',housekeeping:'Housekeeping',maintenance:'Συντήρηση',food_and_beverage:'Φαγητό και ποτά',management:'Διεύθυνση',other:'Άλλο'};
-    const reasonNames = {uncertain_sentiment:'Αβέβαιο συναίσθημα',uncertain_complaint:'Αβέβαιο παράπονο',complaint_check_failed:'Απέτυχε ο εντοπισμός παραπόνων',actions_failed:'Απέτυχε η παραγωγή μέτρων',actions_ungrounded:'Τα προτεινόμενα μέτρα δεν στηρίζονταν στο κείμενο'};
+    const reasonNames = {uncertain_sentiment:'Αβέβαιο συναίσθημα',uncertain_complaint:'Αβέβαιο παράπονο',complaint_check_failed:'Απέτυχε ο εντοπισμός παραπόνων',actions_failed:'Απέτυχε η παραγωγή μέτρων',actions_ungrounded:'Τα προτεινόμενα μέτρα δεν στηρίζονταν στο κείμενο',no_actions_suggested:'Δεν προτάθηκε κανένα μέτρο για κριτική που σημάνθηκε'};
     const dateOf = value => new Date(value).toLocaleDateString('el-GR');
     function emptyRow(body, columns, text) { const tr=body.insertRow(); cell(tr,text,''); tr.firstChild.colSpan=columns; }
     function notice(text) { const note=document.createElement('p'); note.className='notice'; note.textContent=text; return note; }
@@ -138,16 +138,17 @@
           const box=document.createElement('div'), strong=document.createElement('strong'), name=document.createElement('span');
           strong.textContent=count; name.textContent=sentimentNames[label]||label; box.append(strong,name); sentiment.append(box);
         }
-        if (!data.complaints_evaluated) emptyRow(complaints, 4, 'Ο εντοπισμός παραπόνων δεν έτρεξε για αυτές τις κριτικές.');
+        if (!data.complaints_evaluated) emptyRow(complaints, 4, 'Ο εντοπισμός παραπόνων δεν έτρεξε για αυτές τις κριτικές. Αυτό δεν σημαίνει ότι δεν υπάρχουν παράπονα.');
         for (const [topic, counts] of Object.entries(data.complaints)) {
           const tr=complaints.insertRow(); cell(tr,topicNames[topic]||topic); cell(tr,counts.yes,'negative'); cell(tr,counts.no); cell(tr,counts.unsure);
         }
-        if (!data.actions.length) emptyRow(actions, 5, 'Δεν υπάρχουν προτεινόμενα μέτρα.');
+        if (data.complaints_evaluated && data.complaints_evaluated < data.reviews) emptyRow(complaints, 4, `Τα παράπονα εντοπίστηκαν σε ${data.complaints_evaluated} από ${data.reviews} κριτικές. Στις υπόλοιπες ο έλεγχος δεν έτρεξε ή απέτυχε, και δεν μετράνε εδώ.`);
+        if (!data.actions.length) emptyRow(actions, 5, 'Κανένα μέτρο δεν έχει προταθεί. Αυτό δεν σημαίνει ότι δεν χρειάζεται ενέργεια: δες και τον πίνακα «Χρειάζεται έλεγχος».');
         for (const item of data.actions) {
           const tr=actions.insertRow(); cell(tr,item.problem); cell(tr,`«${item.excerpt}»`); cell(tr,item.measure);
           cell(tr,departmentNames[item.department]||item.department); cell(tr,item.to_confirm.join('; ')||'—');
         }
-        if (!data.to_check.length) emptyRow(check, 3, 'Καμία κριτική δεν χρειάζεται έλεγχο.');
+        if (!data.to_check.length) emptyRow(check, 3, 'Καμία κριτική δεν σημάνθηκε για έλεγχο.');
         for (const item of data.to_check) {
           const tr=check.insertRow(); cell(tr,`${item.source} / ${item.review_id}`); cell(tr,dateOf(item.review_date));
           cell(tr,item.reasons.map(reason => reasonNames[reason]||reason).join('; '));
@@ -160,7 +161,7 @@
       try {
         const payload={hotel_id:hotel(),review_id:$('review-id').value.trim()||null,source:$('source').value.trim()||'manual',language:'en',text:$('review').value.trim()};
         const data=await request('/triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-        status.textContent=data.stored?`Αποθηκεύτηκε το αποτέλεσμα της κριτικής ${data.review_id}.`:'Το αποτέλεσμα δεν αποθηκεύτηκε: δεν έχει ρυθμιστεί βάση.';
+        status.textContent=data.stored?`Αποθηκεύτηκε το αποτέλεσμα της κριτικής ${data.review_id}.`:data.not_stored_reason==='no_review_id'?'Το αποτέλεσμα δεν αποθηκεύτηκε: χωρίς ID κριτικής δεν καταγράφεται. Συμπλήρωσε το ID, ώστε η κριτική να μετράει μία φορά.':'Το αποτέλεσμα δεν αποθηκεύτηκε: δεν έχει ρυθμιστεί βάση.';
         const output=$('triage-result'); output.replaceChildren();
         const confidence=data.sentiment.confidence===null?'':` (${percent(data.sentiment.confidence)})`;
         const lines=[`Συναίσθημα: ${sentimentNames[data.sentiment.label]||data.sentiment.label}${confidence}`];
@@ -168,11 +169,12 @@
           const found=[...data.complaints.topics, data.complaints.other_complaint].filter(item => item && item.answer!=='no');
           lines.push(found.length?`Παράπονα: ${found.map(item => `${topicNames[item.topic]||item.topic}${item.answer==='unsure'?' (αβέβαιο)':''}`).join(', ')}`:'Παράπονα: κανένα');
         } else if (data.complaints.status==='error') lines.push(`Ο εντοπισμός παραπόνων απέτυχε (${data.complaints.error}).`);
-        else lines.push('Ο εντοπισμός παραπόνων δεν είναι ενεργοποιημένος.');
+        else lines.push('Ο εντοπισμός παραπόνων δεν είναι ενεργοποιημένος. Αυτό δεν σημαίνει ότι δεν υπάρχουν παράπονα.');
         for (const line of lines) { const entry=document.createElement('p'); entry.className='pill'; entry.textContent=line; output.append(entry); }
         if (data.actions.status==='error') output.append(notice(`Η παραγωγή μέτρων απέτυχε (${data.actions.error}).`));
         else if (data.actions.status==='no_grounded_actions') output.append(notice('Το μοντέλο πρότεινε μέτρα, αλλά κανένα δεν στηριζόταν στο κείμενο της κριτικής.'));
         else if (data.actions.status==='disabled') output.append(notice('Η παραγωγή μέτρων δεν είναι ενεργοποιημένη.'));
+        else if (data.actions.status==='ok' && !data.actions.actions.length) output.append(notice('Το μοντέλο δεν πρότεινε κανένα μέτρο. Αυτό δεν σημαίνει ότι δεν χρειάζεται ενέργεια.'));
         for (const item of data.actions.actions) {
           const entry=document.createElement('p'); entry.className='pill';
           entry.textContent=`${departmentNames[item.department]||item.department}: ${item.measure} — «${item.excerpt}»${item.to_confirm.length?` · Να επιβεβαιωθεί: ${item.to_confirm.join('; ')}`:''}`;
