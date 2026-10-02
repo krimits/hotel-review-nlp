@@ -23,6 +23,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import sys
 import time
 from collections.abc import Mapping
@@ -49,6 +50,8 @@ LABEL_NAMES = frozenset({"negative", "positive"})
 SHORT = {"bathroom": "bath", "cleanliness": "clean", "air_conditioning": "ac", "pests": "pests",
          "responsiveness": "resp", OTHER: "other"}
 ARMS = ("without-jev", "with-jev")
+# The suggestion stage's statuses for a review it was asked about. 'not_triggered' and 'disabled' mean it was not.
+ASKED = ("ok", "no_grounded_actions", "error")
 
 
 # The reviews ------------------------------------------------------------------------------------------------------
@@ -113,6 +116,41 @@ def resolve_model_path(model_path: str | None, repo: str, revision: str) -> str:
     return snapshot_download(repo_id=repo, revision=revision)
 
 
+class RecordingGenerator:
+    """The suggestion model, with what it wrote or how it failed kept for the report.
+
+    The pipeline keeps neither: in use a review must not travel with a raw generation or an exception, so a failure
+    is reported by its kind alone ('generation_failed'). Here the reviews are invented, and a failure that says only
+    that would cost a round trip to Colab. The pipeline still sees exactly what it saw before: the result, or the
+    exception.
+    """
+
+    def __init__(self, inner):
+        self.inner, self.model_name, self.calls = inner, inner.model_name, []
+        self.worked, self.failure = False, None
+
+    def generate(self, review: str, signals):
+        if self.failure:  # it has never worked: trying again would repeat the same failure, slowly, for every review
+            self.calls.append({"error": self.failure, "seconds": 0.0})
+            raise RuntimeError(f"not tried again after its first failure: {self.failure}")
+        start = time.perf_counter()
+        try:
+            result = self.inner.generate(review, signals)
+        except Exception as error:  # noqa: BLE001 - recorded, then raised again for the pipeline to handle as before
+            text = f"{type(error).__name__}: {str(error)[:300]}"
+            self.calls.append({"error": text, "seconds": round(time.perf_counter() - start, 3)})
+            self.failure = None if self.worked else text  # a failure after it has worked belongs to that review alone
+            raise
+        self.worked = True
+        self.calls.append({"raw": result.raw, "hit_token_budget": result.hit_token_budget, "model": result.model,
+                           "seconds": round(time.perf_counter() - start, 3)})
+        return result
+
+    def drain(self) -> list[dict]:
+        calls, self.calls = self.calls, []
+        return calls
+
+
 def build_arms(args: argparse.Namespace) -> dict[str, TriagePipeline]:
     """One pipeline per arm, sharing the sentiment model and the generator. Nothing is loaded until it is used."""
     from reviewnlp.serving.model_wrapper import ModelWrapper
@@ -120,7 +158,8 @@ def build_arms(args: argparse.Namespace) -> dict[str, TriagePipeline]:
     wrapper = ModelWrapper(model_type="encoder",
                            model_path=resolve_model_path(args.model_path, args.hub_repo, args.revision))
     jev = build_jev(args.allow_external_api, args.route, args.jev_model)
-    qwen = None if args.no_qwen else QwenActionGenerator(model_id=args.qwen_model, device=args.device)
+    qwen = None if args.no_qwen else RecordingGenerator(
+        QwenActionGenerator(model_id=args.qwen_model, device=args.device))
     wanted = args.arms if args.arms != "auto" else ("both" if jev.enabled else "without-jev")
     if wanted in ("both", "with-jev") and not jev.enabled:
         raise SystemExit("--arms with-jev needs --allow-external-api")
@@ -148,11 +187,15 @@ def smoke(arms: Mapping[str, TriagePipeline], reviews: list[dict], progress=None
         for arm, pipeline in arms.items():
             record = {"id": review["id"], "kind": review["kind"], "arm": arm,
                       "expected_sentiment": review["expected_sentiment"],
-                      "expected_topics": review["expected_topics"], "result": None, "crashed": None}
+                      "expected_topics": review["expected_topics"], "result": None, "crashed": None,
+                      "generation": None}
             try:
                 record["result"] = _dump(pipeline.run(review["text"]))
             except Exception as error:  # noqa: BLE001 - a smoke test reports whatever happened
                 record["crashed"] = f"{type(error).__name__}: {str(error)[:200]}"
+            drain = getattr(pipeline.generator, "drain", None)  # what the suggestion model wrote, if it is recorded
+            calls = drain() if callable(drain) else []
+            record["generation"] = calls[-1] if calls else None
             records.append(record)
             if progress:
                 progress(number, len(reviews), record)
@@ -165,11 +208,17 @@ def _found(record: dict) -> list[str]:
     return [item["topic"] for item in answers if item["answer"] == "yes"]
 
 
-def check(records: list[dict]) -> tuple[list[str], list[str]]:
+def _generated(actions: dict) -> bool:
+    """Whether the suggestion model wrote something for this review, good or not."""
+    return actions["status"] in ("ok", "no_grounded_actions") or actions["error"] in ("invalid_output", "hit_token_budget")
+
+
+def check(records: list[dict], qwen_enabled: bool = True) -> tuple[list[str], list[str]]:
     """(problems, notes). A problem is the chain not working: a crash, labels the routing cannot read, a stage
-    that was switched on and failed. A note is something to look at in what a model said."""
+    that was switched on and failed, a suggestion model that did not run or was never asked. A note is something to
+    look at in what a model said, such as invalid output, an empty list or a cut-off generation."""
     problems, notes = [], []
-    labels_seen = set()
+    labels_seen, failures = set(), {}
     for record in records:
         where = f"{record['id']} ({record['arm']})"
         result = record["result"]
@@ -197,7 +246,10 @@ def check(records: list[dict]) -> tuple[list[str], list[str]]:
         elif complaints["status"] != "disabled":
             problems.append(f"{where}: the complaint stage ran in the arm without Jev")
         actions = result["actions"]
-        if actions["status"] in ("error", "no_grounded_actions"):
+        raised = (record.get("generation") or {}).get("error")
+        if actions["error"] == "generation_failed" or raised:
+            failures.setdefault(raised or "generation_failed", []).append(where)
+        elif actions["status"] in ("error", "no_grounded_actions"):
             notes.append(f"{where}: the suggestion stage gave {actions['status']}"
                          + (f" ({actions['error']})" if actions["error"] else f", {actions['dropped']} rejected"))
         elif actions["status"] == "ok" and not actions["actions"]:
@@ -212,10 +264,41 @@ def check(records: list[dict]) -> tuple[list[str], list[str]]:
                 notes.append(f"{where}: expected {missing}, not found")
             if extra:
                 notes.append(f"{where}: found {extra}, not expected")
+    asked = sum(1 for r in records if r["result"] and r["result"]["actions"]["status"] in ASKED)
+    for error, wheres in failures.items():  # one line for one failure, however many reviews it hit
+        problems.append(f"the suggestion model did not run on {len(wheres)} of the {asked} reviews it was asked about "
+                        f"(first: {wheres[0]}): {error}")
+    if qwen_enabled:  # a chain whose suggestion stage was never asked has not been tested
+        for arm in sorted({r["arm"] for r in records if r["result"]}):
+            statuses = [r["result"]["actions"]["status"] for r in records if r["arm"] == arm and r["result"]]
+            if all(status == "disabled" for status in statuses):
+                problems.append(f"{arm}: the suggestion stage is off in every review, though it was not switched off")
+            elif not any(status in ASKED for status in statuses):
+                problems.append(f"{arm}: the suggestion stage was not asked about any of the {len(statuses)} reviews, "
+                                "so nothing about it was tested")
     if labels_seen and not labels_seen <= LABEL_NAMES:
         problems.insert(0, f"the sentiment labels are {sorted(labels_seen)}, not negative and positive: the routing "
                            "would read every review as not negative")
     return problems, notes
+
+
+def stage_counts(records: list[dict]) -> dict:
+    """Per arm: how each stage answered, and for how many reviews the suggestion model wrote text."""
+    counts: dict[str, dict] = {}
+    for record in records:
+        arm = counts.setdefault(record["arm"], {"reviews": 0, "crashed": 0, "complaints": {}, "actions": {},
+                                                "suggestion_model_wrote": 0})
+        arm["reviews"] += 1
+        result = record["result"]
+        if result is None:
+            arm["crashed"] += 1
+            continue
+        actions = result["actions"]
+        for stage, key in (("complaints", result["complaints"]["status"]),
+                           ("actions", actions["status"] + (f":{actions['error']}" if actions["error"] else ""))):
+            arm[stage][key] = arm[stage].get(key, 0) + 1
+        arm["suggestion_model_wrote"] += _generated(actions)
+    return counts
 
 
 # The report -------------------------------------------------------------------------------------------------------
@@ -230,7 +313,8 @@ def _row(record: dict) -> list[str]:
         f"error {complaints['error']}" if complaints["status"] == "error" else ",".join(SHORT[t] for t in found) or "none")
     expected = ",".join(SHORT[t] for t in record["expected_topics"]) or "none"
     actions = result["actions"]
-    qwen = actions["status"] + (f" x{len(actions['actions'])}" if actions["status"] == "ok" else "")
+    qwen = actions["status"] + (f":{actions['error']}" if actions["error"] else "") + (
+        f" x{len(actions['actions'])}" if actions["status"] == "ok" else "")
     flags = ",".join(result["routing"]["review_reasons"]) or "-"
     timings = result["timings"]
     ms = "/".join("-" if value is None else f"{value:.0f}" for value in
@@ -268,7 +352,40 @@ def run_info(args: argparse.Namespace, records: list[dict], reviews_path: Path, 
             "jev": {"route": args.route, "model_requested": args.jev_model, "models_answered": answered,
                     "questions_version": QUESTIONS_VERSION, "questions_sha256": QUESTIONS_SHA256},
             "qwen": None if args.no_qwen else {"model": args.qwen_model, "prompt_version": PROMPT_VERSION},
-            "python": platform.python_version(), **versions}
+            "stages": stage_counts(records), "python": platform.python_version(), **versions}
+
+
+def _fenced(text: str) -> str:
+    """The text in a code fence that no backticks inside it can close."""
+    fence = "`" * max(3, max((len(run) for run in re.findall(r"`+", text)), default=0) + 1)
+    return f"{fence}\n{text}\n{fence}"
+
+
+def _stages_table(info: dict) -> list[str]:
+    def cells(counts: dict) -> str:
+        return ", ".join(f"{key} {number}" for key, number in sorted(counts.items())) or "-"
+
+    rows = ["| arm | reviews | complaint stage | suggestion stage | suggestion model wrote text for |",
+            "|---|---|---|---|---|"]
+    for arm, counts in sorted(info["stages"].items()):
+        rows.append(f"| {arm} | {counts['reviews']} | {cells(counts['complaints'])} | {cells(counts['actions'])} "
+                    f"| {counts['suggestion_model_wrote']} |")
+    return rows
+
+
+def _unusable_generations(records: list[dict], limit: int = 6, width: int = 800) -> list[str]:
+    """What the suggestion model wrote where it gave no usable actions: the cases to read."""
+    shown = [r for r in records if (r.get("generation") or {}).get("raw") is not None and r["result"]
+             and not (r["result"]["actions"]["status"] == "ok" and r["result"]["actions"]["actions"])]
+    lines = []
+    for record in shown[:limit]:
+        raw, actions = record["generation"]["raw"], record["result"]["actions"]
+        lines += [f"### {record['id']} ({record['arm']}): {actions['status']}"
+                  + (f", {actions['error']}" if actions["error"] else ""), "",
+                  _fenced(raw[:width] + (f"\n... ({len(raw) - width} more characters)" if len(raw) > width else "")), ""]
+    if len(shown) > limit:
+        lines.append(f"{len(shown) - limit} more are in results.jsonl.")
+    return lines
 
 
 def summary_markdown(info: dict, records: list[dict], problems: list[str], notes: list[str]) -> str:
@@ -279,9 +396,14 @@ def summary_markdown(info: dict, records: list[dict], problems: list[str], notes
            f"- Arms: {', '.join(info['arms'])}; reviews: {info['reviews']}",
            f"- Jev: {info['jev']['route']}, asked for {info['jev']['model_requested']}, answered by "
            f"{', '.join(info['jev']['models_answered']) or 'nobody'}", "", "```", format_table(records), "```", ""]
-    out += ["## Problems", ""] + ([f"- {p}" for p in problems] or ["None."]) + ["", "## Notes", ""]
-    out += [f"- {n}" for n in notes] or ["None."]
-    return "\n".join(out) + "\n"
+    out += ["## Stages", "", *_stages_table(info), "", "## Problems", ""]
+    out += ([f"- {p}" for p in problems] or ["None."]) + ["", "## Notes", ""]
+    out += ([f"- {n}" for n in notes] or ["None."]) + [""]
+    unusable = _unusable_generations(records)
+    if unusable:
+        out += ["## What the suggestion model wrote where it gave no usable actions", "",
+                "The full text of every generation is in results.jsonl.", "", *unusable]
+    return "\n".join(out).rstrip("\n") + "\n"
 
 
 def write_outputs(output: Path, info: dict, records: list[dict], problems: list[str], notes: list[str]) -> None:
@@ -330,11 +452,14 @@ def main(argv: list[str] | None = None, build=build_arms) -> int:
     clock = time.perf_counter()
     records = smoke(arms, reviews, progress)
     finished = datetime.now(timezone.utc)
-    problems, notes = check(records)
+    problems, notes = check(records, qwen_enabled=not args.no_qwen)
     info = run_info(args, records, args.reviews, started.isoformat(timespec="seconds"),
                     finished.isoformat(timespec="seconds"))
     write_outputs(output, info, records, problems, notes)
     print("\n" + format_table(records))
+    for arm, counts in sorted(info["stages"].items()):
+        print(f"{arm}: the suggestion model wrote text for {counts['suggestion_model_wrote']} of {counts['reviews']} reviews; "
+              f"suggestion stage {counts['actions']}")
     print(f"\n{len(problems)} problem(s), {len(notes)} note(s); {time.perf_counter() - clock:.0f} s; wrote {output}")
     for line in problems:
         print("PROBLEM:", line)

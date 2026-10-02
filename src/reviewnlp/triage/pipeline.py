@@ -112,9 +112,14 @@ class TriagePipeline:
             return ActionsResult(status="error", error="generation_failed", model=self.generator.model_name)
         base = {"model": generated.model, "prompt_version": generated.prompt_version}
         parsed = parse_actions(generated.raw, text)
+        if generated.hit_token_budget:
+            # The generation did not finish, so what the parser found is not the model's whole answer, even when it
+            # is valid JSON: it can be a complete object followed by more text, or a fragment of a cut-off one. It
+            # is an error whatever was parsed. The actions that passed every check are kept, and a person looks.
+            return ActionsResult(status="error", error="hit_token_budget", actions=parsed.actions,
+                                 dropped=parsed.dropped, **base)
         if not parsed.json_valid:
-            return ActionsResult(status="error", error="hit_token_budget" if generated.hit_token_budget
-                                 else "invalid_output", **base)
+            return ActionsResult(status="error", error="invalid_output", **base)
         if not parsed.actions and parsed.dropped:
             return ActionsResult(status="no_grounded_actions", dropped=parsed.dropped, **base)
         return ActionsResult(status="ok", actions=parsed.actions, dropped=parsed.dropped, **base)

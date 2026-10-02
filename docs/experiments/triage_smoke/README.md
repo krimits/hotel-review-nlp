@@ -26,9 +26,15 @@ recorded in the
 [publication record](../results/distilbert_v2/README.md), unless `--model-path` names a folder. Qwen is the base
 `Qwen/Qwen2.5-0.5B-Instruct`.
 
-It writes `results.jsonl` (one stage-by-stage result per review and arm), `run.json` (what ran: script and
-fixture hashes, the model revisions, the versions of the libraries, the Jev model that answered) and `summary.md`
-(a table, the problems and the notes) to a folder inside `runs/`, which git ignores.
+It writes `results.jsonl` (one stage-by-stage result per review and arm, with what the suggestion model wrote or
+how it failed), `run.json` (what ran: script and fixture hashes, the model revisions, the versions of the libraries,
+the Jev model that answered, and per arm how many reviews each stage answered how and for how many the suggestion
+model wrote text) and `summary.md` (a table, the stage counts, the problems and the notes, and the model's own words
+where it gave no usable actions) to a folder inside `runs/`, which git ignores.
+
+The pipeline keeps neither a raw generation nor an exception, because in use a review must not travel with them. The
+script wraps the suggestion model only to keep both for this report, so that a failure says what went wrong and not
+only `generation_failed`.
 
 ## Problems and notes
 
@@ -39,11 +45,15 @@ A **problem** means the chain is not working, and the exit code is 1:
   negative, without any error;
 - the sentiment probabilities do not add up to 1, or are missing;
 - Jev was switched on and failed (for example `http_402` when the credit has run out), did not answer the six
-  questions, or answered other questions than the committed ones.
+  questions, or answered other questions than the committed ones;
+- **the suggestion model did not run:** it raised an error, with the message in the report (a weights file that
+  would not load, a GPU that ran out of memory), or it was never asked about any review in an arm, so nothing about
+  it was tested. A run where Qwen never ran is not a pass.
 
-A **note** is something to look at in what a model said: the suggestion stage gave invalid output, actions that
-were not in the review, or an empty list; the sentiment disagrees with the author's reading; Jev found a topic the
-author did not expect, or missed one the author did.
+A **note** is something to look at in what a model said. The suggestion model ran, and it gave invalid output; or it
+ran out of tokens (an error in the result, flagged, even if what it wrote was valid JSON); or its actions were not
+in the review; or it gave an empty list. Or the sentiment disagrees with the author's reading, or Jev found a
+topic the author did not expect, or missed one the author did.
 
 ## What to look at
 

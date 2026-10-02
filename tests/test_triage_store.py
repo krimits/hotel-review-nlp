@@ -13,7 +13,15 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from triage_fakes import NEGATIVE, POSITIVE, REVIEW, FakeGenerator, FakeJev, FakeWrapper
+from triage_fakes import (
+    GOOD_ACTIONS,
+    NEGATIVE,
+    POSITIVE,
+    REVIEW,
+    FakeGenerator,
+    FakeJev,
+    FakeWrapper,
+)
 
 from reviewnlp.analytics.store import SqliteAspectStore, get_aspect_store
 from reviewnlp.serving import triage_router
@@ -114,6 +122,18 @@ def test_reviews_that_need_a_look_are_listed_with_their_reasons(store):
     save(store, "fine", wrapper=FakeWrapper(POSITIVE), jev=FakeJev(), generator=FakeGenerator())
     (check,) = store.triage_summary("hotel-a", 30)["to_check"]
     assert (check["review_id"], check["reasons"]) == ("failed", ["complaint_check_failed"])
+
+
+def test_a_result_that_hit_the_token_budget_keeps_its_error_and_its_actions_and_is_listed_to_check(store):
+    generator = FakeGenerator(raw=GOOD_ACTIONS + " and then more", hit_token_budget=True)
+    save(store, "cut", generator=generator)
+    with store._connection() as connection:
+        row = connection.execute("SELECT status, actions_status, actions_error FROM triage_runs").fetchone()
+    assert tuple(row) == ("partial", "error", "hit_token_budget")
+    summary = store.triage_summary("hotel-a", 30)
+    assert [a["review_id"] for a in summary["actions"]] == ["cut"]
+    (check,) = summary["to_check"]
+    assert (check["review_id"], check["reasons"]) == ("cut", ["actions_failed"])
 
 
 def test_an_excerpt_that_is_not_in_the_review_is_refused_and_nothing_is_stored(store):

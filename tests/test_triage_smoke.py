@@ -14,7 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from triage_fakes import NEGATIVE, POSITIVE, FakeGenerator, FakeJev, FakeWrapper
+from triage_fakes import GOOD_ACTIONS, NEGATIVE, POSITIVE, FakeGenerator, FakeJev, FakeWrapper
 
 from reviewnlp.triage import jev_client
 from reviewnlp.triage.pipeline import TriagePipeline
@@ -107,7 +107,7 @@ def test_the_stages_are_built_without_loading_anything(tmp_path, monkeypatch):
     assert list(arms) == ["without-jev"]  # no flag: only the arm that sends nothing
     pipeline = arms["without-jev"]
     assert pipeline.wrapper.model_path == str(tmp_path) and pipeline.wrapper._loaded is False
-    assert pipeline.generator is not None and pipeline.generator._bundle is None
+    assert isinstance(pipeline.generator, smoke_script.RecordingGenerator) and pipeline.generator.inner._bundle is None
     assert smoke_script.build_arms(args_for(model_path=str(tmp_path), no_qwen=True))["without-jev"].generator is None
 
 
@@ -207,6 +207,142 @@ def test_the_sentiment_that_disagrees_with_the_fixture_is_a_note():
     assert not any("sentiment is" in n for n in quiet)
 
 
+# --- The suggestion model: that it ran, what it wrote, and how it failed -----------------------------------------------
+
+def recorded(**kwargs):
+    return smoke_script.RecordingGenerator(FakeGenerator(**kwargs))
+
+
+def test_the_recorder_keeps_what_was_written_and_how_it_failed_and_the_pipeline_sees_no_difference():
+    generator = recorded(raw="some text", hit_token_budget=True)
+    assert generator.model_name == "fake/qwen"
+    result = generator.generate("a review", None)
+    assert (result.raw, result.hit_token_budget) == ("some text", True)
+    (call,) = generator.drain()
+    assert (call["raw"], call["hit_token_budget"], call["model"]) == ("some text", True, "fake/qwen")
+    assert generator.drain() == []  # drained
+    failing = recorded(error=RuntimeError("CUDA out of memory"))
+    with pytest.raises(RuntimeError, match="CUDA out of memory"):  # raised again, as it would have been
+        failing.generate("a review", None)
+    assert failing.drain()[0]["error"] == "RuntimeError: CUDA out of memory"
+
+
+def test_a_model_that_has_never_worked_is_not_tried_again_but_one_that_has_is():
+    class Flaky:
+        model_name = "fake/qwen"
+
+        def __init__(self, outcomes):
+            self.outcomes, self.calls = list(outcomes), 0
+
+        def generate(self, review, signals):
+            self.calls += 1
+            outcome = self.outcomes.pop(0)
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+
+    ok = FakeGenerator().generate("r", None)
+    never = smoke_script.RecordingGenerator(Flaky([OSError("cannot load"), ok, ok]))
+    with pytest.raises(OSError):
+        never.generate("a", None)
+    for _ in range(2):  # the second and third calls do not reach the model
+        with pytest.raises(RuntimeError, match="not tried again after its first failure: OSError: cannot load"):
+            never.generate("b", None)
+    assert never.inner.calls == 1
+    assert [c["error"] for c in never.drain()] == ["OSError: cannot load"] * 3  # all three are the same, first failure
+    worked = smoke_script.RecordingGenerator(Flaky([ok, OSError("this review only"), ok]))
+    worked.generate("a", None)
+    with pytest.raises(OSError):
+        worked.generate("b", None)
+    assert worked.generate("c", None) is ok and worked.inner.calls == 3  # it had worked, so it is tried again
+
+
+def test_each_record_carries_what_the_suggestion_model_wrote_for_that_review():
+    arms = two_arms(generator=recorded(raw="I cannot help."))
+    records = smoke_script.smoke(arms, REVIEWS[:2])
+    assert all(r["generation"]["raw"] == "I cannot help." for r in records)  # asked in both arms, for both reviews
+    plain = smoke_script.smoke(two_arms(), REVIEWS[:1])  # a generator that is not recorded
+    assert all(r["generation"] is None for r in plain)
+    quiet = smoke_script.smoke(two_arms(wrapper=FakeWrapper(POSITIVE), jev=FakeJev(), generator=recorded()), REVIEWS[:1])
+    assert all(r["generation"] is None for r in quiet)  # not asked, so nothing was written
+
+
+def test_a_suggestion_model_that_raises_on_every_review_is_a_problem_with_the_exception_in_it():
+    arms = two_arms(generator=recorded(error=RuntimeError("CUDA out of memory")))
+    records = smoke_script.smoke(arms, REVIEWS)
+    problems, notes = smoke_script.check(records)
+    assert problems == ["the suggestion model did not run on 28 of the 28 reviews it was asked about "
+                        "(first: pos-1 (without-jev)): RuntimeError: CUDA out of memory"]  # one line, not 28
+    assert not any("suggestion stage gave" in n for n in notes)
+    unrecorded = smoke_script.check(smoke_script.smoke(two_arms(generator=FakeGenerator(error=RuntimeError("x"))),
+                                                        REVIEWS[:2]))[0]
+    assert len(unrecorded) == 1 and unrecorded[0].endswith("): generation_failed")  # still a problem without the recorder
+
+
+def test_a_suggestion_stage_that_was_never_asked_has_not_been_tested_and_that_is_a_problem():
+    arms = two_arms(wrapper=FakeWrapper(POSITIVE), jev=FakeJev(), generator=recorded())  # nothing is flagged
+    problems, _ = smoke_script.check(smoke_script.smoke(arms, REVIEWS))
+    assert any("without-jev: the suggestion stage was not asked about any of the 14 reviews" in p for p in problems)
+    assert any("with-jev: the suggestion stage was not asked" in p for p in problems)
+    flagged = two_arms(wrapper=FakeWrapper(POSITIVE), jev=FakeJev(yes=["bathroom"]), generator=recorded())
+    problems, _ = smoke_script.check(smoke_script.smoke(flagged, REVIEWS))
+    assert len(problems) == 1 and problems[0].startswith("without-jev:")  # Jev flagged reviews, so that arm asked
+
+
+def test_a_suggestion_stage_that_is_off_is_a_problem_only_if_it_was_meant_to_be_on():
+    off = {"without-jev": TriagePipeline(FakeWrapper(NEGATIVE), None, None)}
+    records = smoke_script.smoke(off, REVIEWS[:3])
+    assert any("off in every review, though it was not switched off" in p for p in smoke_script.check(records)[0])
+    assert smoke_script.check(records, qwen_enabled=False)[0] == []
+
+
+def test_what_the_model_wrote_is_a_note_whether_it_was_invalid_cut_off_or_empty():
+    for generator, wanted in [(recorded(raw="I cannot help."), "error (invalid_output)"),
+                              (recorded(raw=GOOD_ACTIONS, hit_token_budget=True), "error (hit_token_budget)"),
+                              (recorded(raw='{"actions": []}'), "gave an empty list")]:
+        problems, notes = smoke_script.check(smoke_script.smoke(two_arms(generator=generator), REVIEWS[4:5]))
+        assert problems == [], wanted
+        assert any(wanted in note for note in notes), wanted
+
+
+def test_the_stage_counts_say_how_many_reviews_the_suggestion_model_wrote_for():
+    arms = two_arms(generator=recorded(raw="I cannot help."))
+    counts = smoke_script.stage_counts(smoke_script.smoke(arms, REVIEWS[:3]))
+    assert counts["without-jev"] == {"reviews": 3, "crashed": 0, "complaints": {"disabled": 3},
+                                     "actions": {"error:invalid_output": 3}, "suggestion_model_wrote": 3}
+    assert counts["with-jev"]["complaints"] == {"ok": 3}
+    mixed = smoke_script.stage_counts(smoke_script.smoke(two_arms(generator=recorded(error=RuntimeError("x"))),
+                                                         REVIEWS[:2]))
+    assert mixed["with-jev"]["actions"] == {"error:generation_failed": 2} and mixed["with-jev"]["suggestion_model_wrote"] == 0
+    crashed = smoke_script.stage_counts(smoke_script.smoke(two_arms(wrapper=FakeWrapper(error=RuntimeError("b"))),
+                                                           REVIEWS[:1]))
+    assert crashed["with-jev"]["crashed"] == 1 and crashed["with-jev"]["actions"] == {}
+
+
+def info_for(records, **changes):
+    args = SimpleNamespace(**{**dict(hub_repo="r/m", revision="rev", model_path=None, route="openrouter",
+                                     jev_model="jev-latest", no_qwen=False, qwen_model="Qwen/x"), **changes})
+    return smoke_script.run_info(args, records, smoke_script.DEFAULT_REVIEWS, "t0", "t1")
+
+
+def test_the_summary_shows_the_stages_and_what_the_model_wrote_only_where_it_gave_nothing_usable():
+    bad = smoke_script.smoke(two_arms(generator=recorded(raw="```json\nnot what was asked\n```")), REVIEWS[:2])
+    text = smoke_script.summary_markdown(info_for(bad), bad, *smoke_script.check(bad))
+    assert "## Stages" in text and "| with-jev | 2 | ok 2 | error:invalid_output 2 | 2 |" in text
+    assert "## What the suggestion model wrote where it gave no usable actions" in text and "not what was asked" in text
+    assert "````\n```json" in text  # the raw text has backticks, so its fence has four
+    good = smoke_script.smoke(two_arms(), REVIEWS[:2])
+    clean = smoke_script.summary_markdown(info_for(good), good, *smoke_script.check(good))
+    assert "## Stages" in clean and "What the suggestion model wrote" not in clean
+
+
+def test_a_long_output_is_cut_in_the_summary_and_kept_whole_in_the_results():
+    records = smoke_script.smoke(two_arms(generator=recorded(raw="x" * 2000)), REVIEWS[:1])
+    text = smoke_script.summary_markdown(info_for(records), records, *smoke_script.check(records))
+    assert "(1200 more characters)" in text and "x" * 801 not in text
+    assert len(records[0]["generation"]["raw"]) == 2000
+
+
 # --- The report and where it is written -----------------------------------------------------------------------------
 
 def test_the_table_has_a_row_per_review_and_arm_and_says_what_each_stage_did():
@@ -246,6 +382,24 @@ def test_the_command_writes_its_three_files_and_returns_zero_for_a_healthy_run(r
     assert info["reviews_sha256"] == smoke_script.sha256_file(smoke_script.DEFAULT_REVIEWS)
     assert info["sentiment"] == {"hub_repo": smoke_script.HUB_REPO, "revision": smoke_script.HUB_REVISION}
     assert "## Problems" in (folder / "summary.md").read_text(encoding="utf-8")
+
+
+def test_the_command_returns_one_and_says_why_when_the_suggestion_model_cannot_run(runs_folder, capsys):
+    broken = lambda args: two_arms(generator=recorded(error=OSError("cannot load the weights")))  # noqa: E731
+    assert smoke_script.main(["--limit", "2", "--output", "runs/t4"], build=broken) == 1
+    out = capsys.readouterr().out
+    assert "PROBLEM:" in out and "OSError: cannot load the weights" in out
+    assert "the suggestion model wrote text for 0 of 2 reviews" in out
+    info = json.loads((runs_folder / "t4" / "run.json").read_text(encoding="utf-8"))
+    assert info["stages"]["with-jev"]["suggestion_model_wrote"] == 0
+    assert len(info["problems"]) == 1 and "did not run on 4 of the 4 reviews" in info["problems"][0]
+
+
+def test_a_run_without_the_suggestion_model_by_choice_is_not_a_problem(runs_folder):
+    off = lambda args: {"without-jev": TriagePipeline(FakeWrapper(NEGATIVE), None, None)}  # noqa: E731
+    assert smoke_script.main(["--limit", "2", "--no-qwen", "--output", "runs/t5"], build=off) == 0
+    info = json.loads((runs_folder / "t5" / "run.json").read_text(encoding="utf-8"))
+    assert info["qwen"] is None and info["stages"]["without-jev"]["actions"] == {"disabled": 2}
 
 
 def test_the_command_returns_one_when_the_chain_has_a_problem(runs_folder, capsys):

@@ -5,7 +5,15 @@ from __future__ import annotations
 import json
 
 import pytest
-from triage_fakes import NEGATIVE, POSITIVE, REVIEW, FakeGenerator, FakeJev, FakeWrapper
+from triage_fakes import (
+    GOOD_ACTIONS,
+    NEGATIVE,
+    POSITIVE,
+    REVIEW,
+    FakeGenerator,
+    FakeJev,
+    FakeWrapper,
+)
 
 from reviewnlp.triage import questions
 from reviewnlp.triage.jev_client import JevError
@@ -121,6 +129,34 @@ def test_actions_that_are_not_in_the_review_are_dropped_and_a_person_is_asked_to
     result = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw=invented))
     assert (result.actions.status, result.actions.dropped, result.actions.actions) == ("no_grounded_actions", 1, [])
     assert result.status == "partial" and "actions_ungrounded" in result.routing.review_reasons
+
+
+def test_a_generation_that_hit_the_token_budget_is_an_error_even_when_what_it_wrote_is_valid_json():
+    raw = GOOD_ACTIONS + " And then it kept on writing until it ran out of room."
+    result = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw=raw, hit_token_budget=True))
+    assert (result.actions.status, result.actions.error) == ("error", "hit_token_budget")
+    assert len(result.actions.actions) == 1  # it passed every check, so it is kept and shown
+    assert result.status == "partial" and result.routing.needs_review
+    assert result.routing.review_reasons == ["actions_failed"]
+    # the same text from a generation that finished is a plain answer
+    finished = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw=raw, hit_token_budget=False))
+    assert (finished.actions.status, finished.actions.error, finished.status) == ("ok", None, "complete")
+
+
+def test_a_cut_off_generation_is_not_read_as_nothing_to_fix():
+    cut_off = '{"actions": [{"problem": "x", "to_confirm": [], "excerpt": "the shower was cold and'
+    result = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw=cut_off, hit_token_budget=True))
+    assert (result.actions.status, result.actions.error, result.actions.actions) == ("error", "hit_token_budget", [])
+    assert result.routing.review_reasons == ["actions_failed"]  # and not no_actions_suggested
+    assert result.status == "partial"
+
+
+def test_the_budget_decides_before_what_was_parsed_whatever_that_was():
+    for raw in ("", "I cannot help.", '{"actions": []}', json.dumps({"actions": [{"problem": "Broken lift",
+                "excerpt": "the lift was broken", "measure": "Repair it", "department": "maintenance"}]})):
+        result = run(FakeWrapper(NEGATIVE), None, FakeGenerator(raw=raw, hit_token_budget=True))
+        assert (result.actions.status, result.actions.error) == ("error", "hit_token_budget"), raw
+        assert result.routing.review_reasons == ["actions_failed"] and result.status == "partial", raw
 
 
 def test_an_empty_list_after_a_flagged_review_is_an_answer_not_a_failure_but_a_person_is_asked_to_look():

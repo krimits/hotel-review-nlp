@@ -80,7 +80,7 @@ under «Χρειάζεται έλεγχος».
 | `uncertain_sentiment` | As above. |
 | `uncertain_complaint` | As above. |
 | `complaint_check_failed` | The complaint stage failed. A confidently positive review cannot then be told from a positive review with a complaint. |
-| `actions_failed` | The suggestion stage failed, or its output was not JSON in the asked-for form, or it ran out of tokens. The result is partial. |
+| `actions_failed` | The suggestion stage failed, or its output was not JSON in the asked-for form, or it ran out of tokens. The result is partial. A generation that ran out of tokens is an error **even when what it wrote is valid JSON**: it did not finish, so it is not the model's whole answer. The actions in it that passed every check are kept and shown, with the flag. |
 | `actions_ungrounded` | Every action it gave was rejected: not words of the review, or a department off the list. The result is partial. |
 | `no_actions_suggested` | It was asked for actions and gave a valid empty list. That is an answer and not a failure, so the result is complete. But a small model's empty list does not show that nothing needs doing. |
 
@@ -113,7 +113,8 @@ The model is small, so its output is checked in code before it is shown:
   `food_and_beverage`, `management`, `other`), or the action is dropped, not coerced to `other`;
 - at most five actions, no duplicates; `to_confirm` lists what the review does not state.
 
-The response also says how many entries were dropped and whether the token budget was hit.
+The response also says how many entries were dropped and whether the token budget was hit (`error:
+hit_token_budget`, whatever the output held).
 
 **Code cannot check whether a suggestion is useful or right.** An action can quote the review and still be a bad
 measure. Only people reading them can say. Nothing here is a claim about quality.
