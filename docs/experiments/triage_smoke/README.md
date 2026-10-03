@@ -1,5 +1,13 @@
 # Triage smoke test
 
+## Recorded execution
+
+The [3 October 2026 real run](20261003T071410Z_18020ced/README.md) completed both
+arms on a Colab T4: Qwen wrote text for 6 cases without Jev and 9 with Jev.
+**Neither arm produced an accepted action.** This is execution evidence, not
+an evaluation. The follow-up is a
+[controlled generator comparison](../triage_generator/README.md) on new texts.
+
 A check that the triage chain runs with the real models, and a way to look at what each stage says about 14
 invented reviews: 4 positive, 4 negative, 5 mixed (praise and a complaint together) and one very short one.
 

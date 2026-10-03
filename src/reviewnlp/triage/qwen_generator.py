@@ -161,14 +161,15 @@ def _dtype_for(torch_module: Any, device: str) -> Any:
     return torch_module.float32
 
 
-def _load_qwen(model_id: str, device: str | None) -> tuple[Any, Any]:
+def _load_qwen(model_id: str, device: str | None, revision: str | None = None) -> tuple[Any, Any]:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    revision_args = {"revision": revision} if revision else {}
+    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, **revision_args)
     tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=_dtype_for(torch, device)).eval()
+    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=_dtype_for(torch, device), **revision_args).eval()
     return tokenizer, model.to(device)
 
 
@@ -176,10 +177,14 @@ class QwenActionGenerator:
     """Loads the model on the first review that needs it; one generation at a time."""
 
     def __init__(self, model_id: str = BASE_MODEL, device: str | None = None, max_new_tokens: int = MAX_NEW_TOKENS,
-                 loader: Callable[[], tuple[Any, Any]] | None = None):
+                 loader: Callable[[], tuple[Any, Any]] | None = None, *, revision: str | None = None,
+                 message_builder: Callable[[str, ActionSignals], list[dict]] = build_messages,
+                 prompt_version: str = PROMPT_VERSION):
         self.model_name = model_id
         self.max_new_tokens = max_new_tokens
-        self._loader = loader or (lambda: _load_qwen(model_id, device))
+        self.revision, self.prompt_version = revision, prompt_version
+        self._message_builder = message_builder
+        self._loader = loader or (lambda: _load_qwen(model_id, device, revision))
         self._load_lock, self._run_lock = threading.Lock(), threading.Lock()
         self._bundle: tuple[Any, Any] | None = None
 
@@ -203,7 +208,7 @@ class QwenActionGenerator:
         import torch
 
         tokenizer, model = self._models()
-        prompt = tokenizer.apply_chat_template(build_messages(review, signals), tokenize=False,
+        prompt = tokenizer.apply_chat_template(self._message_builder(review, signals), tokenize=False,
                                                add_generation_prompt=True)
         encoded = tokenizer(prompt, return_tensors="pt")
         # Only what generate() uses. A tokenizer that also returns token_type_ids would make it refuse the call.
@@ -215,4 +220,4 @@ class QwenActionGenerator:
         eos = tokenizer.eos_token_id
         return GenerationResult(raw=tokenizer.decode(new_tokens, skip_special_tokens=True),
                                 hit_token_budget=eos is None or not bool((new_tokens == eos).any()),
-                                model=self.model_name)
+                                model=self.model_name, prompt_version=self.prompt_version)

@@ -1,7 +1,8 @@
 # Triage: sentiment, complaint topics and suggested actions
 
 **Status: experimental and unvalidated.** Every response says `validation_status: "unvalidated"` and
-`thresholds_status: "provisional"`. The workflow runs, and its parts are tested with fakes. No stage has been
+`thresholds_status: "provisional"`. The workflow has completed a real-model smoke run, and its parts are tested
+with fakes. No stage has been
 measured on whole or mixed reviews, and the thresholds were chosen by hand.
 
 ## What it does
@@ -157,18 +158,21 @@ The section carries a notice that the flow is unvalidated.
      [confirmation](annotation/confirmation_protocol.md) did: the endpoints, the counts, the intervals;
   4. a person's judgement of the suggested actions: is the problem real, is the measure sensible, is the
      department right. That is the only evidence on their value.
-- **Real runs.** DistilBERT, Jev and Qwen have not been run together here: this environment has no weights, no
-  keys and no access to the model hub. The tests use fakes for all three, and the dashboard was checked in a real
-  browser against those fakes. Two things are checked against real data: the Jev client reads the 600 real
-  answers saved from the benchmark runs, and its request has the shape the provider accepted there. A
-  [smoke test](experiments/triage_smoke/README.md) on 14 invented reviews is ready to run in Colab. It has not
-  been run yet.
+- **Quality after real execution.** The
+  [3 October real-model smoke run](experiments/triage_smoke/20261003T071410Z_18020ced/README.md)
+  completed both arms on 14 invented reviews. Qwen wrote text for 6 cases without Jev and 9 with Jev;
+  neither arm produced an accepted action. Execution works, but useful measures remain unvalidated.
+  The next step is a [controlled generator experiment](experiments/triage_generator/README.md)
+  on new development cases, followed by human review and a frozen reserved evaluation. The existing tests
+  use fakes, while the Jev client is also checked against 600 recorded provider answers and the accepted
+  request shape. The application dashboard has been checked against fakes, not this real run.
 - **Sentiment on mixed reviews.** The sentiment model gives one binary label. That label does not describe the
   individual complaints in a review that praises some things and criticises others, and the model has not been
   evaluated on mixed reviews. Under a clear labelling rule a mixed review could have an overall sentiment, but
   there is no such rule and no such labels yet. That is why the complaint stage exists.
 - **Cost.** The time of each stage is recorded. Jev's tokens and cost are not, because the client keeps neither.
-  Comparing the flow with and without Jev needs them.
+  The new generator experiment records attempts and provider-reported usage/cost, with missing cost marked
+  unavailable. Production triage still lacks that accounting. Comparing the flow with and without Jev needs it.
 - **Calibration.** The probability Jev gives for `1` is not shown to be calibrated.
 
 Until the evaluation is done, the output is for a person to read, not to act on.

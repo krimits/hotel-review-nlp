@@ -1,0 +1,129 @@
+{
+  "version": "generator-cases-v1",
+  "split": "dev",
+  "provenance": "synthetic-authored",
+  "ground_truth_status": "none; independent human judgments pending",
+  "purpose": "prompt/model development",
+  "reviews": [
+    {
+      "id": "dev-01",
+      "author_scenario": "negative",
+      "text": "Water from the shower tray spread across the bathroom floor each morning."
+    },
+    {
+      "id": "dev-02",
+      "author_scenario": "negative",
+      "text": "The desk surface had sticky rings and crumbs when we checked in."
+    },
+    {
+      "id": "dev-03",
+      "author_scenario": "negative",
+      "text": "Our air conditioner blew warm air throughout the night despite the cold setting."
+    },
+    {
+      "id": "dev-04",
+      "author_scenario": "negative",
+      "text": "Small ants kept emerging from the wardrobe during our stay."
+    },
+    {
+      "id": "dev-05",
+      "author_scenario": "negative",
+      "text": "We reported a broken door latch twice, but nobody returned with an update."
+    },
+    {
+      "id": "dev-06",
+      "author_scenario": "negative",
+      "text": "The elevator stopped operating and we had to carry our suitcases up four floors."
+    },
+    {
+      "id": "dev-07",
+      "author_scenario": "negative",
+      "text": "Breakfast eggs arrived cold and the replacement was cold as well."
+    },
+    {
+      "id": "dev-08",
+      "author_scenario": "negative",
+      "text": "A loud pump outside the window woke us repeatedly after midnight."
+    },
+    {
+      "id": "dev-09",
+      "author_scenario": "mixed",
+      "text": "The lake view was wonderful, although the bathroom fan rattled whenever it was switched on."
+    },
+    {
+      "id": "dev-10",
+      "author_scenario": "mixed",
+      "text": "We loved the welcome drink. Unfortunately the duvet cover had dark stains."
+    },
+    {
+      "id": "dev-11",
+      "author_scenario": "mixed",
+      "text": "The beds were comfortable, but the cooling system leaked onto the carpet."
+    },
+    {
+      "id": "dev-12",
+      "author_scenario": "mixed",
+      "text": "Staff were friendly; however, a cockroach appeared beside the sink on both evenings."
+    },
+    {
+      "id": "dev-13",
+      "author_scenario": "mixed",
+      "text": "The rooftop was delightful, yet our request for fresh towels received no answer."
+    },
+    {
+      "id": "dev-14",
+      "author_scenario": "mixed",
+      "text": "Dinner tasted excellent but the corridor lighting was broken and hard to navigate."
+    },
+    {
+      "id": "dev-15",
+      "author_scenario": "mixed",
+      "text": "We would return for the location, though the accessible entrance was blocked by delivery boxes."
+    },
+    {
+      "id": "dev-16",
+      "author_scenario": "mixed",
+      "text": "The receptionist was cheerful, but the promised early breakfast was never available."
+    },
+    {
+      "id": "dev-17",
+      "author_scenario": "positive",
+      "text": "Fresh linen, quiet surroundings and a smooth arrival made this a relaxing visit."
+    },
+    {
+      "id": "dev-18",
+      "author_scenario": "positive",
+      "text": "Every breakfast item was hot, and the dining team refilled the trays promptly."
+    },
+    {
+      "id": "dev-19",
+      "author_scenario": "positive",
+      "text": "Our heating and cooling controls worked exactly as we expected."
+    },
+    {
+      "id": "dev-20",
+      "author_scenario": "positive",
+      "text": "The bath was spotless and hot water was available whenever we needed it."
+    },
+    {
+      "id": "dev-21",
+      "author_scenario": "resolved",
+      "text": "A bulb failed on arrival; the team replaced it immediately and it worked for the rest of the stay."
+    },
+    {
+      "id": "dev-22",
+      "author_scenario": "conditional",
+      "text": "It would be inconvenient if the lift broke, but it worked on every trip we made."
+    },
+    {
+      "id": "dev-23",
+      "author_scenario": "request",
+      "text": "Please consider adding a vegan dessert to the dinner menu in future."
+    },
+    {
+      "id": "dev-24",
+      "author_scenario": "edge",
+      "text": "Adequate for one night."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "execution_issues": [],
+  "counts": [
+    {
+      "arm": "without-jev",
+      "reviews": 14,
+      "jev_ok": 0,
+      "qwen_triggered": 6,
+      "qwen_wrote_text": 6,
+      "reviews_with_accepted_actions": 0,
+      "accepted_actions": 0,
+      "needs_review": 6
+    },
+    {
+      "arm": "with-jev",
+      "reviews": 14,
+      "jev_ok": 14,
+      "qwen_triggered": 9,
+      "qwen_wrote_text": 9,
+      "reviews_with_accepted_actions": 0,
+      "accepted_actions": 0,
+      "needs_review": 9
+    }
+  ],
+  "process_exit_code": 0,
+  "source_commit": "7da4eb83fff576c33a7a1ba492f29b0c0531fc07",
+  "environment": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu130",
+    "transformers": "4.56.2",
+    "huggingface_hub": "0.36.2",
+    "accelerate": "1.10.1",
+    "gpu": "Tesla T4"
+  }
+}
