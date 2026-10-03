@@ -30,6 +30,11 @@ saved outputs.
 | `12_confirmation_sample_colab.ipynb` | nothing: downloads the raw CSV and draws 400 new texts for confirming Jev's responsiveness result ([protocol](../docs/annotation/confirmation_protocol.md)) | Colab CPU |
 | `13_triage_smoke_colab.ipynb` | nothing: downloads the published DistilBERT and the base Qwen and runs the triage chain on 14 invented reviews. Jev only if a Colab secret named `OPENROUTER_API_KEY` exists ([README](../docs/experiments/triage_smoke/README.md)) | Colab GPU, about 10 minutes |
 
+Notebook 14 compares four Qwen prompt/model variants on 24 new synthetic development cases, sharing
+frozen DistilBERT/Jev results, and exports a human-review sheet. It needs Colab GPU and an enabled
+`OPENROUTER_API_KEY` Secret: [14_triage_generator_comparison_colab.ipynb](14_triage_generator_comparison_colab.ipynb)
+([protocol](../docs/experiments/triage_generator/README.md)). No training, holdout run, or automatic winner.
+
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.
 
