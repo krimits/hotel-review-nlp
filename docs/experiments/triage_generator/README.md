@@ -13,17 +13,32 @@ complaint questions. There is no training and no automatic deployment.
 | B | Qwen2.5-0.5B | actions-v2, shorter rules and two examples | prompt package vs A |
 | C | Qwen2.5-1.5B | same actions-v2 | model size vs B |
 | D | Qwen2.5-0.5B | actions-v2, sentiment metadata omitted | sentiment metadata vs B |
+| E | Qwen2.5-1.5B | actions-v3, explicit issue eligibility and manager actions | system instruction package vs C |
 
 B changes the instruction package and adds examples together; it does not
 isolate the contribution of few-shot examples. C is a capacity experiment in
 the same family, not a promise of improvement. D tests a hypothesis suggested
 by copied metadata in the smoke output.
 
+The default development command and notebook 14 still run A–D. E is a follow-up
+to C: it keeps C's two examples, user message, metadata and model size. Only
+the system instruction changes. It distinguishes reported pending issues
+from resolved, hypothetical and positive mentions, asks for evidence that
+supports the specific problem, and directs operational measures to the hotel
+manager. It returns the existing `actions` schema without a reasoning block.
+These instructions are a hypothesis, not verified semantic enforcement.
+
 All variants use greedy decoding, a 400 new-token budget, and the existing
 parser and department names. The new prompt asks for at most two concise
 actions to fit that budget. Budget exhaustion remains a failed completion,
 even if a fragment passes the parser. Raw output and accepted actions are
 stored separately. A still uses the production prompt exactly as written.
+
+The experiment also records `full_json_valid`, meaning the entire output is
+one JSON object without repeated keys or non-JSON constants. This is separate
+from `parser_json_valid`, which may accept recovered fragments. Neither is a
+measure of usefulness, evidence entailment, or strict schema conformance.
+Production parsing and its case/whitespace-normalized quote check stay unchanged.
 
 ## New cases and the reserved set
 
@@ -76,6 +91,37 @@ An omitted cost is null, never zero; a partial reported sum is not a total
 bill. Currency is not inferred, and local GPU billing is unavailable.
 If cost is absent, obtain the provider's usage/billing record before making
 a cost-benefit claim. Qwen comparison itself makes no extra Jev calls.
+
+## Follow-up: actions-v2 versus actions-v3 with the same upstream and weights
+
+Use [notebook 15](../../../notebooks/15_triage_prompt_v3_comparison_colab.ipynb)
+on Colab GPU and upload the previous generator-development ZIP
+(`20261003T084949Z_51c7a13e`). It checks the known run/upstream hashes, then
+compares C and E on the same 24 development cases with the same Qwen 1.5B
+commit. It makes **no new Jev requests**, does not load DistilBERT, and needs
+no OpenRouter Secret. It produces 48 outputs and a fresh human-review sheet.
+
+For another verified completed development run, extract its `run.json` and
+`upstream.json`, then use:
+
+~~~bash
+python scripts/compare_triage_generators.py dev \
+  --candidates C E --reference-run /path/to/previous_dev \
+  --output runs/generator_prompt_v3_dev_NEW_ID
+~~~
+
+Reference reuse checks the dataset, upstream configuration, responding Jev
+model, cache fingerprint, completed-run status, decoding settings and baseline
+prompt. Model commits come from that run rather than today's mutable Hub main.
+The reused upstream bytes and original run metadata are preserved in the new
+output. Current API attempts are zero; historical provider cost is labeled
+separately and local GPU billing is still unknown. Without `--reference-run`,
+fresh upstream calls still require `--allow-external-api`.
+
+Review C and E blindly using the same rubric below. Count false problems from
+praise/conditional/resolved passages, useful measures for pending problems,
+and missed genuine issues. Do not use more accepted actions as a quality score.
+The reserved set remains unopened until a human choice and freeze.
 
 ## Human usefulness, separately from parser acceptance
 
