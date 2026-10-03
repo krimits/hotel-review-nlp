@@ -33,6 +33,7 @@ from reviewnlp.triage.pipeline import TriagePipeline
 from reviewnlp.triage.questions import QUESTIONS_SHA256, QUESTIONS_VERSION
 from reviewnlp.triage.qwen_generator import MAX_NEW_TOKENS, ActionSignals, QwenActionGenerator
 from reviewnlp.triage.routing import RoutingThresholds
+from reviewnlp.triage.staged_generator import TwoStageGenerator, messages_measures
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs" / "experiments" / "triage_generator"
@@ -61,7 +62,6 @@ def prepare_upstream(rows, dataset_sha, output):
     if not key:
         raise ValueError("OPENROUTER_API_KEY is required; no requests sent")
     from huggingface_hub import snapshot_download
-
     from reviewnlp.serving.model_wrapper import ModelWrapper
 
     wrapper = ModelWrapper(model_type="encoder", model_path=snapshot_download(HUB_REPO, revision=HUB_REVISION))
@@ -185,6 +185,13 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
             generator = QwenActionGenerator(config["model"], device="cuda", revision=config["revision"],
                                             message_builder=builder(name),
                                             prompt_version=config["prompt"] + ("" if config["sentiment_metadata"] else "-no-sentiment"))
+            if name == "F":
+                def action_factory(pending, config=config):
+                    return QwenActionGenerator(config["model"], device="cuda", revision=config["revision"],
+                                               message_builder=lambda review, signals: messages_measures(review, pending),
+                                               prompt_version=config["prompt"] + ":measures")
+
+                generator = TwoStageGenerator(generator, action_factory)
             if bundle is not None:
                 generator._bundle = bundle  # experiment shares identical weights across prompt variants
             start = time.perf_counter()
@@ -223,8 +230,9 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
     summaries = {name: structural_summary([row for row in records if row["candidate"] == name]) for name in configs}
     complete = all(count["reviews_attempted"] == len(dataset["reviews"]) and not count["generation_errors"]
                    for count in summaries.values())
+    annotation_seed = 20261016 if "F" in configs else 20261003
     if records:
-        export_annotation(output, dataset["reviews"], records)
+        export_annotation(output, dataset["reviews"], records, shuffle_seed=annotation_seed)
     files = {name: digest_bytes((output / name).read_bytes()) for name in
              ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json", "reference_run.json")
              if (output / name).exists()}
@@ -234,9 +242,13 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
             "upstream_reused": bool(reference),
             "jev_model_resolved": jev_model,
             "warmups": warmups, "summary": summaries, "execution_complete": complete,
-            "quality_evaluated": False, "files": files, "python": platform.python_version(),
+            "quality_evaluated": False, "annotation_shuffle_seed": annotation_seed,
+            "files": files, "python": platform.python_version(),
             "torch": torch.__version__, "transformers": transformers.__version__,
             "gpu": torch.cuda.get_device_name(0), "max_new_tokens": MAX_NEW_TOKENS, "do_sample": False,
+            "generation_budget": {name: {"max_new_tokens_per_call": MAX_NEW_TOKENS,
+                                          "max_calls_per_review": config.get("max_generation_calls", 1)}
+                                  for name, config in configs.items()},
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "finished_utc": datetime.now(timezone.utc).isoformat()}
     if reference:
@@ -259,6 +271,13 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
                   "Case latency excludes warmup; local GPU billing is unknown.",
                   "API cost: " + json.dumps(cache["api_cost"])])
     lines.append("Whole JSON requires one complete JSON object without duplicate keys; it is not semantic validation.")
+    if "F" in configs:
+        count = summaries["F"]
+        lines.extend(["F is a workflow experiment: up to two 400-token calls, not the same inference budget as C.",
+                      f"F issue calls: {count['issue_calls']}; measure calls: {count['measure_calls']}; "
+                      f"workflow failures: {count['workflow_failures']}.",
+                      "F raw is assembled from issue IDs; actual model text and timings are in stages[].",
+                      "Duplicate JSON keys are rejected by the current parser; historical sheets are not reinterpreted."])
     if reference:
         lines.extend(["Reused upstream: no new Jev calls. The upstream API cost above belongs to the reference run.",
                       "Current API attempts: 0. Local GPU billing remains unknown."])

@@ -1,0 +1,2128 @@
+{
+  "dataset_sha256": "69718a4170ca151fe880455f17b243b79bc7eaa04ce4a9eea8048ef8f83ec6f8",
+  "config": {
+    "distilbert_repo": "krimits/distilbert-hotel-reviews",
+    "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+    "route": "openrouter",
+    "jev_model_requested": "jev-latest",
+    "questions_version": "full-review-v1",
+    "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42",
+    "thresholds": {
+      "sentiment_confidence_min": 0.8,
+      "doubtful_band": [
+        0.2,
+        0.5
+      ]
+    }
+  },
+  "records": [
+    {
+      "id": "dev-01",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9730697870254517,
+        "probabilities": {
+          "negative": 0.9730697870254517,
+          "positive": 0.02693021111190319
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "yes",
+            "probability": 0.99
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "yes",
+            "probability": 0.52
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.2
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7549.89,
+        "complaints_ms": 640.55,
+        "routing_ms": 0.05,
+        "actions_ms": null,
+        "total_ms": 8190.49
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.640365,
+          "usage": {
+            "cost": 0.00010521
+          },
+          "cost_reported": 0.00010521
+        }
+      ]
+    },
+    {
+      "id": "dev-02",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9785756468772888,
+        "probabilities": {
+          "negative": 0.9785756468772888,
+          "positive": 0.021424351260066032
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.26
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 13.43,
+        "complaints_ms": 353.74,
+        "routing_ms": 0.08,
+        "actions_ms": null,
+        "total_ms": 367.27
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.353596,
+          "usage": {
+            "cost": 0.00010521
+          },
+          "cost_reported": 0.00010521
+        }
+      ]
+    },
+    {
+      "id": "dev-03",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9767781496047974,
+        "probabilities": {
+          "negative": 0.9767781496047974,
+          "positive": 0.023221880197525024
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.01
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.66,
+        "complaints_ms": 345.19,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 353.91
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.345021,
+          "usage": {
+            "cost": 0.000105252
+          },
+          "cost_reported": 0.000105252
+        }
+      ]
+    },
+    {
+      "id": "dev-04",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9734512567520142,
+        "probabilities": {
+          "negative": 0.9734512567520142,
+          "positive": 0.026548713445663452
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.4
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.01
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 12.48,
+        "complaints_ms": 361.99,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 374.53
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.361823,
+          "usage": {
+            "cost": 0.000105126
+          },
+          "cost_reported": 0.000105126
+        }
+      ]
+    },
+    {
+      "id": "dev-05",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9578434228897095,
+        "probabilities": {
+          "negative": 0.9578434228897095,
+          "positive": 0.04215656965970993
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.19
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "yes",
+            "probability": 1.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.79
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 12.58,
+        "complaints_ms": 379.58,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 392.21
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.379423,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-06",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9766973257064819,
+        "probabilities": {
+          "negative": 0.9766973257064819,
+          "positive": 0.02330264449119568
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.04
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.98
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 11.24,
+        "complaints_ms": 352.56,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 363.85
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.352398,
+          "usage": {
+            "cost": 0.000105378
+          },
+          "cost_reported": 0.000105378
+        }
+      ]
+    },
+    {
+      "id": "dev-07",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9705425500869751,
+        "probabilities": {
+          "negative": 0.9705425500869751,
+          "positive": 0.02945742942392826
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.17
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.99
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 12.05,
+        "complaints_ms": 326.75,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 338.86
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.326593,
+          "usage": {
+            "cost": 0.000105252
+          },
+          "cost_reported": 0.000105252
+        }
+      ]
+    },
+    {
+      "id": "dev-08",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9843232035636902,
+        "probabilities": {
+          "negative": 0.9843232035636902,
+          "positive": 0.015676748007535934
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.03
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.99
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 10.62,
+        "complaints_ms": 377.21,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 387.86
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.377059,
+          "usage": {
+            "cost": 0.000105168
+          },
+          "cost_reported": 0.000105168
+        }
+      ]
+    },
+    {
+      "id": "dev-09",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.9708021283149719,
+        "probabilities": {
+          "negative": 0.029197821393609047,
+          "positive": 0.9708021283149719
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "yes",
+            "probability": 0.92
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.43
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.08,
+        "complaints_ms": 306.83,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 314.96
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.306678,
+          "usage": {
+            "cost": 0.00010542
+          },
+          "cost_reported": 0.00010542
+        }
+      ]
+    },
+    {
+      "id": "dev-10",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.7681582570075989,
+        "probabilities": {
+          "negative": 0.23184174299240112,
+          "positive": 0.7681582570075989
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.47
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "uncertain_sentiment",
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_sentiment",
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 10.27,
+        "complaints_ms": 338.17,
+        "routing_ms": 0.05,
+        "actions_ms": null,
+        "total_ms": 348.49
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.337979,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-11",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.8397443890571594,
+        "probabilities": {
+          "negative": 0.16025565564632416,
+          "positive": 0.8397443890571594
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.44
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "yes",
+            "probability": 0.95
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.39
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "complaint_detected",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 10.31,
+        "complaints_ms": 297.17,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 307.52
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.297032,
+          "usage": {
+            "cost": 0.000105252
+          },
+          "cost_reported": 0.000105252
+        }
+      ]
+    },
+    {
+      "id": "dev-12",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.6837251782417297,
+        "probabilities": {
+          "negative": 0.31627485156059265,
+          "positive": 0.6837251782417297
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "yes",
+            "probability": 0.64
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "yes",
+            "probability": 0.89
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "yes",
+            "probability": 1.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.01
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "uncertain_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_sentiment"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 9.83,
+        "complaints_ms": 378.73,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 388.6
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.378597,
+          "usage": {
+            "cost": 0.00010542
+          },
+          "cost_reported": 0.00010542
+        }
+      ]
+    },
+    {
+      "id": "dev-13",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.8499380350112915,
+        "probabilities": {
+          "negative": 0.1500619351863861,
+          "positive": 0.8499380350112915
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.11
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "yes",
+            "probability": 1.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.12
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 15.94,
+        "complaints_ms": 336.98,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 353.01
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.336849,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-14",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.8026372790336609,
+        "probabilities": {
+          "negative": 0.8026372790336609,
+          "positive": 0.1973627209663391
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.99
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.3,
+        "complaints_ms": 288.35,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 296.7
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.288212,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-15",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.975726306438446,
+        "probabilities": {
+          "negative": 0.024273693561553955,
+          "positive": 0.975726306438446
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.01
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.01
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.97
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.29,
+        "complaints_ms": 349.21,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 357.55
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.348989,
+          "usage": {
+            "cost": 0.000105378
+          },
+          "cost_reported": 0.000105378
+        }
+      ]
+    },
+    {
+      "id": "dev-16",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.8171660900115967,
+        "probabilities": {
+          "negative": 0.8171660900115967,
+          "positive": 0.18283388018608093
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "yes",
+            "probability": 0.85
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 1.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7.84,
+        "complaints_ms": 418.8,
+        "routing_ms": 0.04,
+        "actions_ms": null,
+        "total_ms": 426.69
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.418681,
+          "usage": {
+            "cost": 0.000105378
+          },
+          "cost_reported": 0.000105378
+        }
+      ]
+    },
+    {
+      "id": "dev-17",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.9980850219726562,
+        "probabilities": {
+          "negative": 0.0019149774452671409,
+          "positive": 0.9980850219726562
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": false,
+        "reasons": [],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7.72,
+        "complaints_ms": 353.84,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 361.6
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.353718,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-18",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9366058111190796,
+        "probabilities": {
+          "negative": 0.9366058111190796,
+          "positive": 0.06339417397975922
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7.73,
+        "complaints_ms": 402.7,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 410.47
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.40256,
+          "usage": {
+            "cost": 0.000105336
+          },
+          "cost_reported": 0.000105336
+        }
+      ]
+    },
+    {
+      "id": "dev-19",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.9066540598869324,
+        "probabilities": {
+          "negative": 0.09334596991539001,
+          "positive": 0.9066540598869324
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": false,
+        "reasons": [],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7.25,
+        "complaints_ms": 337.07,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 344.36
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.336944,
+          "usage": {
+            "cost": 0.000105126
+          },
+          "cost_reported": 0.000105126
+        }
+      ]
+    },
+    {
+      "id": "dev-20",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.9971325397491455,
+        "probabilities": {
+          "negative": 0.002867481904104352,
+          "positive": 0.9971325397491455
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.0
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": false,
+        "reasons": [],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.07,
+        "complaints_ms": 292.71,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 300.81
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.292524,
+          "usage": {
+            "cost": 0.000105294
+          },
+          "cost_reported": 0.000105294
+        }
+      ]
+    },
+    {
+      "id": "dev-21",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.8020338416099548,
+        "probabilities": {
+          "negative": 0.8020338416099548,
+          "positive": 0.19796614348888397
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.01
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.8
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": false,
+        "review_reasons": [],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.34,
+        "complaints_ms": 307.09,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 315.47
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.306953,
+          "usage": {
+            "cost": 0.000105546
+          },
+          "cost_reported": 0.000105546
+        }
+      ]
+    },
+    {
+      "id": "dev-22",
+      "sentiment": {
+        "label": "negative",
+        "confidence": 0.9087281823158264,
+        "probabilities": {
+          "negative": 0.9087281823158264,
+          "positive": 0.09127182513475418
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.27
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "negative_sentiment",
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 7.41,
+        "complaints_ms": 316.16,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 323.62
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.316041,
+          "usage": {
+            "cost": 0.00010542
+          },
+          "cost_reported": 0.00010542
+        }
+      ]
+    },
+    {
+      "id": "dev-23",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.572848916053772,
+        "probabilities": {
+          "negative": 0.42715105414390564,
+          "positive": 0.572848916053772
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "yes",
+          "probability": 0.95
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "uncertain_sentiment",
+          "complaint_detected"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_sentiment"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 8.39,
+        "complaints_ms": 338.35,
+        "routing_ms": 0.03,
+        "actions_ms": null,
+        "total_ms": 346.78
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.33823,
+          "usage": {
+            "cost": 0.00010521
+          },
+          "cost_reported": 0.00010521
+        }
+      ]
+    },
+    {
+      "id": "dev-24",
+      "sentiment": {
+        "label": "positive",
+        "confidence": 0.9885151982307434,
+        "probabilities": {
+          "negative": 0.011484847404062748,
+          "positive": 0.9885151982307434
+        },
+        "model_type": "encoder",
+        "model_path": "/root/.cache/huggingface/hub/models--krimits--distilbert-hotel-reviews/snapshots/7306aebcaaebc00d579f5d0a91001ae376f18158"
+      },
+      "complaints": {
+        "status": "ok",
+        "error": null,
+        "topics": [
+          {
+            "topic": "bathroom",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "cleanliness",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "air_conditioning",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "pests",
+            "answer": "no",
+            "probability": 0.0
+          },
+          {
+            "topic": "responsiveness",
+            "answer": "no",
+            "probability": 0.0
+          }
+        ],
+        "other_complaint": {
+          "topic": "other",
+          "answer": "no",
+          "probability": 0.26
+        },
+        "route": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "questions_version": "full-review-v1",
+        "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+      },
+      "routing": {
+        "qwen_triggered": true,
+        "reasons": [
+          "uncertain_complaint"
+        ],
+        "needs_review": true,
+        "review_reasons": [
+          "uncertain_complaint"
+        ],
+        "thresholds": {
+          "sentiment_confidence_min": 0.8,
+          "doubtful_band": [
+            0.2,
+            0.5
+          ]
+        },
+        "thresholds_status": "provisional"
+      },
+      "timings": {
+        "sentiment_ms": 25.48,
+        "complaints_ms": 302.33,
+        "routing_ms": 0.05,
+        "actions_ms": null,
+        "total_ms": 327.89
+      },
+      "api_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 0.302128,
+          "usage": {
+            "cost": 0.000104958
+          },
+          "cost_reported": 0.000104958
+        }
+      ]
+    }
+  ],
+  "api_cost": {
+    "attempts": 24,
+    "attempts_with_reported_cost": 24,
+    "reported_cost_sum": 0.002526804,
+    "complete_cost_available": true,
+    "cost_unit": "provider usage.cost; no currency inferred",
+    "local_gpu_charge": null
+  }
+}

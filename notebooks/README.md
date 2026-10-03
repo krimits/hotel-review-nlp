@@ -41,6 +41,15 @@ It reuses its verified upstream predictions, makes no new Jev calls and needs no
 [15_triage_prompt_v3_comparison_colab.ipynb](15_triage_prompt_v3_comparison_colab.ipynb)
 ([protocol](../docs/experiments/triage_generator/README.md)). Colab GPU; 48 outputs for human review.
 
+Notebook 16 compares C (actions-v2) with F (issue extraction, then measures linked to
+pending issue IDs), using the same Qwen 1.5B weights and frozen upstream from the
+notebook 15 ZIP. No new Jev calls or API key; Colab GPU. F uses up to two 400-token
+generations per case; this is a workflow comparison with a different inference budget:
+[16_triage_staged_comparison_colab.ipynb](16_triage_staged_comparison_colab.ipynb)
+([protocol](../docs/experiments/triage_generator/README.md)). Both candidates reject
+duplicate JSON keys. Raw text and timings of each stage support diagnosis; new
+human ratings are required, and usefulness remains unverified.
+
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.
 

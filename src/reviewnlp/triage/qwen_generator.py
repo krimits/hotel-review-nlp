@@ -5,6 +5,7 @@ guest reports, each with the exact words that show it, a measure, a department a
 check. The model is small, so nothing it says is trusted until it is checked here:
 
 - the output must be JSON in the asked-for form, and a malformed entry is dropped, not repaired;
+- duplicate keys in a decoded JSON object make the output invalid; no competing value is silently chosen;
 - the excerpt must be in the review (whitespace and case aside), or the action is dropped;
 - the department must be on the closed list, or the action is dropped, not coerced to `other`;
 - at most five actions are kept.
@@ -77,19 +78,35 @@ class ParsedActions:
     error: str | None = None
 
 
+class DuplicateJSONKey(ValueError):
+    """An ambiguous JSON object must not be interpreted with last-key-wins semantics."""
+
+
+def _unique_json_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateJSONKey("duplicate JSON keys")
+        result[key] = value
+    return result
+
+
 def _json_object(raw: str) -> Any | None:
     """The first JSON value in the text that is an object with an `actions` list, or a bare list of objects.
 
     A JSON value that is not that is skipped whole, so an empty list inside some other object is not mistaken
     for the model saying there is nothing to fix.
     """
-    decoder, position = json.JSONDecoder(), 0
+    decoder, position = json.JSONDecoder(object_pairs_hook=_unique_json_pairs), 0
     while position < len(raw):
         if raw[position] not in "{[":
             position += 1
             continue
         try:
             value, length = decoder.raw_decode(raw[position:])
+        except DuplicateJSONKey:
+            # Do not continue scanning into this object's arrays and salvage one interpretation.
+            raise
         except ValueError:
             position += 1
             continue
@@ -109,7 +126,10 @@ def _text(value: object, maximum: int = MAX_FIELD_CHARS) -> str | None:
 
 def parse_actions(raw: str, review: str) -> ParsedActions:
     """The valid, grounded actions in the generation, and how many entries were rejected."""
-    value = _json_object(str(raw))
+    try:
+        value = _json_object(str(raw))
+    except DuplicateJSONKey:
+        return ParsedActions([], 0, False, "duplicate JSON keys")
     if value is None:
         return ParsedActions([], 0, False, "no JSON with an actions list")
     entries = value if isinstance(value, list) else value["actions"]

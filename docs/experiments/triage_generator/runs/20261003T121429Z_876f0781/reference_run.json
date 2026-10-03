@@ -1,0 +1,131 @@
+{
+  "split": "dev",
+  "dataset_sha256": "69718a4170ca151fe880455f17b243b79bc7eaa04ce4a9eea8048ef8f83ec6f8",
+  "reviews": 24,
+  "candidates": {
+    "A": {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "prompt": "actions-v1",
+      "sentiment_metadata": true,
+      "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "prompt_sha256": "dc6f9cf2981698b473084c1129a403a9e537bb06c1032e999825ce6fcd0f0bdb"
+    },
+    "B": {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "prompt": "actions-v2",
+      "sentiment_metadata": true,
+      "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "prompt_sha256": "00479231af814c9ded4f8d934d908952e9e04c2ada04eea1b4375096fce3f3d5"
+    },
+    "C": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "prompt": "actions-v2",
+      "sentiment_metadata": true,
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "prompt_sha256": "00479231af814c9ded4f8d934d908952e9e04c2ada04eea1b4375096fce3f3d5"
+    },
+    "D": {
+      "model": "Qwen/Qwen2.5-0.5B-Instruct",
+      "prompt": "actions-v2",
+      "sentiment_metadata": false,
+      "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "prompt_sha256": "95af70ff436ffdbe8817d6c4ec37449c88344a639323c01079a25fc262a59fea"
+    }
+  },
+  "upstream_config": {
+    "distilbert_repo": "krimits/distilbert-hotel-reviews",
+    "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+    "route": "openrouter",
+    "jev_model_requested": "jev-latest",
+    "questions_version": "full-review-v1",
+    "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42",
+    "thresholds": {
+      "sentiment_confidence_min": 0.8,
+      "doubtful_band": [
+        0.2,
+        0.5
+      ]
+    }
+  },
+  "api_cost": {
+    "attempts": 24,
+    "attempts_with_reported_cost": 24,
+    "reported_cost_sum": 0.002526804,
+    "complete_cost_available": true,
+    "cost_unit": "provider usage.cost; no currency inferred",
+    "local_gpu_charge": null
+  },
+  "jev_model_resolved": "typesafe/jev-1.13-20260917",
+  "warmups": {
+    "A": {
+      "load_and_warmup_seconds": 15.888
+    },
+    "B": {
+      "load_and_warmup_seconds": 0.479
+    },
+    "C": {
+      "load_and_warmup_seconds": 61.818
+    },
+    "D": {
+      "load_and_warmup_seconds": 6.248
+    }
+  },
+  "summary": {
+    "A": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 13,
+      "reviews_with_accepted_actions": 3,
+      "accepted_actions": 3,
+      "empty_valid_answers": 7,
+      "human_quality": null
+    },
+    "B": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 24,
+      "reviews_with_accepted_actions": 0,
+      "accepted_actions": 0,
+      "empty_valid_answers": 24,
+      "human_quality": null
+    },
+    "C": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 24,
+      "reviews_with_accepted_actions": 18,
+      "accepted_actions": 24,
+      "empty_valid_answers": 6,
+      "human_quality": null
+    },
+    "D": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 24,
+      "reviews_with_accepted_actions": 0,
+      "accepted_actions": 0,
+      "empty_valid_answers": 24,
+      "human_quality": null
+    }
+  },
+  "execution_complete": true,
+  "quality_evaluated": false,
+  "files": {
+    "upstream.json": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235",
+    "results.jsonl": "ccc735beb203b61a9b25899d03c7520c9b93f6366ca3a7b6ad047da4f2b4f92e",
+    "human_review.csv": "a9a8958a93120dc5151874f151aa415ac3d000463ba6fa0d916b349212ecb61b",
+    "annotation_key.json": "aeb7938d6c88c3e706d9e2fcc04b7bad00caadfaab10eebcb7a1368be3b804d1"
+  },
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "gpu": "Tesla T4",
+  "max_new_tokens": 400,
+  "do_sample": false,
+  "source_commit": "13514c4f234cb44bfac09f40ecdac37b6277397e",
+  "finished_utc": "2026-10-03T08:55:27.265689+00:00"
+}

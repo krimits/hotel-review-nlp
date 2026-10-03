@@ -19,6 +19,7 @@ from reviewnlp.triage.qwen_generator import (
     parse_actions,
 )
 from reviewnlp.triage.schemas import DEPARTMENTS
+from reviewnlp.triage.staged_generator import messages_issues, messages_measures
 
 CANDIDATES = {
     "A": {"model": BASE_MODEL, "prompt": "actions-v1", "sentiment_metadata": True},
@@ -26,6 +27,8 @@ CANDIDATES = {
     "C": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v2", "sentiment_metadata": True},
     "D": {"model": BASE_MODEL, "prompt": "actions-v2", "sentiment_metadata": False},
     "E": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v3", "sentiment_metadata": True},
+    "F": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v4-staged", "sentiment_metadata": True,
+          "max_generation_calls": 2},
 }
 DEFAULT_CANDIDATES = ("A", "B", "C", "D")
 RATINGS = ("useful", "grounded", "department_correct", "no_invented_facts")
@@ -130,6 +133,8 @@ def builder(candidate: str):
         raise ValueError("unknown candidate")
     if candidate == "E":
         return messages_v3
+    if candidate == "F":
+        return messages_issues
     return lambda review, signals: messages_v2(
         review, signals, sentiment_metadata=CANDIDATES[candidate]["sentiment_metadata"])
 
@@ -165,7 +170,12 @@ def json_diagnostics(raw: str) -> dict:
 
 
 def prompt_fingerprint(candidate: str) -> str:
-    return digest_json(builder(candidate)("Fingerprint placeholder.", ActionSignals("positive", 0.9, ["bathroom"])))
+    review, signals = "Fingerprint placeholder.", ActionSignals("positive", 0.9, ["bathroom"])
+    if candidate == "F":
+        return digest_json({"issues": messages_issues(review, signals), "measures": messages_measures(review, [
+            {"issue_id": 1, "problem": "Placeholder", "excerpt": review, "status": "REAL_PENDING",
+             "department": "maintenance"}])})
+    return digest_json(builder(candidate)(review, signals))
 
 
 class RecordingTransport:
@@ -239,7 +249,7 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
                                 [item["topic"] for item in topics if item["answer"] == "yes"])
         record = {"candidate": candidate, "id": row["id"], "production_routed": stages["routing"]["qwen_triggered"],
                   "upstream_sha256": digest_json(stages), "raw": None, "error": None,
-                  "hit_token_budget": None, "json_valid": False, "full_json_valid": False,
+                  "hit_token_budget": None, "json_valid": False, "full_json_valid": False, "workflow_error": None,
                   "duplicate_json_keys": [], "actions": [], "dropped": 0}
         start = clock()
         try:
@@ -249,8 +259,21 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
             parsed = parse_actions(generated.raw, row["text"])
             record.update(json_valid=parsed.json_valid, dropped=parsed.dropped,
                           actions=[action.model_dump(mode="json") for action in parsed.actions])
+            if not parsed.json_valid:
+                record["workflow_error"] = "actions:invalid_output"
         except Exception as error:  # noqa: BLE001 - diagnostic run preserves failure type, never the API key
             record["error"] = type(error).__name__
+        if hasattr(generator, "last_stages"):
+            record.update(stages=generator.last_stages, extracted_issues=generator.issues,
+                          workflow_error=generator.workflow_error, output_origin=generator.output_origin)
+            for stage in record["stages"]:
+                stage.update(json_diagnostics(stage["raw"]))
+            record["full_json_valid"] = bool(record["stages"]) and all(
+                stage["full_json_valid"] for stage in record["stages"])
+            record["duplicate_json_keys"] = sorted({
+                key for stage in record["stages"] for key in stage["duplicate_json_keys"]})
+            if record["workflow_error"]:
+                record.update(json_valid=False, actions=[])
         record["seconds"] = round(clock() - start, 6)
         results.append(record)
         if record["error"]:
@@ -260,7 +283,8 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
 
 
 def structural_summary(records: list[dict]) -> dict:
-    complete = [item for item in records if not item["error"] and not item["hit_token_budget"]]
+    complete = [item for item in records if not item["error"] and not item["hit_token_budget"]
+                and not item.get("workflow_error")]
     return {"reviews_attempted": len(records), "generation_errors": sum(bool(item["error"]) for item in records),
             "token_budget_hits": sum(bool(item["hit_token_budget"]) for item in records),
             "parser_json_valid": sum(item["json_valid"] for item in complete),
@@ -269,20 +293,24 @@ def structural_summary(records: list[dict]) -> dict:
             "reviews_with_accepted_actions": sum(bool(item["actions"]) for item in complete),
             "accepted_actions": sum(len(item["actions"]) for item in complete),
             "empty_valid_answers": sum(item["json_valid"] and not item["actions"] and not item["dropped"] for item in complete),
+            "workflow_failures": sum(bool(item.get("workflow_error")) for item in records),
+            "issue_calls": sum(stage["stage"] == "issues" for item in records for stage in item.get("stages", [])),
+            "measure_calls": sum(stage["stage"] == "measures" for item in records for stage in item.get("stages", [])),
             "human_quality": None}
 
 
-def export_annotation(output: Path, rows: list[dict], records: list[dict]) -> None:
+def export_annotation(output: Path, rows: list[dict], records: list[dict], *, shuffle_seed=20261003) -> None:
     lookup = {row["id"]: row["text"] for row in rows}
     shuffled = records.copy()
-    random.Random(20261003).shuffle(shuffled)
+    random.Random(shuffle_seed).shuffle(shuffled)
     key, annotations = [], []
     for number, record in enumerate(shuffled, 1):
         blind_id = f"output-{number:04d}"
         key.append({"blind_id": blind_id, "candidate": record["candidate"], "review_id": record["id"]})
         annotations.append({"blind_id": blind_id, "review": lookup[record["id"]],
                             "accepted_actions": json.dumps(record["actions"], ensure_ascii=False),
-                            "execution_issue": record["error"] or ("hit_token_budget" if record["hit_token_budget"] else ""),
+                            "execution_issue": record["error"] or record.get("workflow_error")
+                            or ("hit_token_budget" if record["hit_token_budget"] else ""),
                             **dict.fromkeys(RATINGS, ""), "notes": ""})
     (output / "annotation_key.json").write_text(json.dumps(key, indent=2) + "\n", encoding="utf-8")
     with (output / "human_review.csv").open("w", newline="", encoding="utf-8") as handle:
@@ -321,7 +349,8 @@ def freeze_selection(run_dir: Path, ratings_path: Path, candidate: str) -> dict:
     for item in key:
         rating = lookup[item["blind_id"]]
         record = outputs[(item["candidate"], item["review_id"])]
-        if (record["error"] or record["hit_token_budget"]) and rating["useful"] != "0":
+        if (record["error"] or record["hit_token_budget"] or record.get("workflow_error")
+                or record.get("json_valid") is False) and rating["useful"] != "0":
             raise ValueError("failed or unfinished generation cannot be rated useful")
         if record["actions"] and any(rating[name] == "na" for name in RATINGS[1:]):
             raise ValueError("retained actions need all three quality judgments")
