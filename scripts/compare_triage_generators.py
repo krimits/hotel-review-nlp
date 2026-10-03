@@ -7,6 +7,7 @@ import gc
 import json
 import os
 import platform
+import re
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -14,6 +15,7 @@ from pathlib import Path
 
 from reviewnlp.triage.generator_experiment import (
     CANDIDATES,
+    DEFAULT_CANDIDATES,
     RecordingTransport,
     builder,
     cost_summary,
@@ -83,9 +85,7 @@ def prepare_upstream(rows, dataset_sha, output):
     return cache
 
 
-def pinned_configs(selection):
-    from huggingface_hub import HfApi
-
+def pinned_configs(selection, candidates=DEFAULT_CANDIDATES, reference=None):
     if selection:
         config = selection["config"]
         candidate = selection["candidate"]
@@ -95,16 +95,56 @@ def pinned_configs(selection):
         if selection["upstream_config"] != upstream_config():
             raise ValueError("frozen upstream config differs")
         return {candidate: config}
+    if not candidates or len(set(candidates)) != len(candidates) or any(name not in CANDIDATES for name in candidates):
+        raise ValueError("choose distinct known candidates")
     revisions = {}
-    for candidate in CANDIDATES.values():
-        model = candidate["model"]
-        if model not in revisions:
-            revisions[model] = HfApi().model_info(model).sha
+    if reference:
+        # Reuse the reference weights instead of resolving today's mutable model main.
+        for name in candidates:
+            model = CANDIDATES[name]["model"]
+            matching = [config for config in reference["info"]["candidates"].values() if config["model"] == model]
+            hashes = {config.get("revision") for config in matching}
+            if len(hashes) != 1 or not re.fullmatch(r"[a-f0-9]{40}", next(iter(hashes), "") or ""):
+                raise ValueError("reference does not identify one pinned revision for " + model)
+            revisions[model] = hashes.pop()
+            if name in reference["info"]["candidates"]:
+                old = reference["info"]["candidates"][name]
+                expected = {**CANDIDATES[name], "prompt_sha256": prompt_fingerprint(name)}
+                if any(old.get(key) != value for key, value in expected.items()):
+                    raise ValueError("reference baseline prompt/config differs: " + name)
+    else:
+        from huggingface_hub import HfApi
+
+        for name in candidates:
+            model = CANDIDATES[name]["model"]
+            if model not in revisions:
+                revisions[model] = HfApi().model_info(model).sha
     return {name: {**config, "revision": revisions[config["model"]], "prompt_sha256": prompt_fingerprint(name)}
-            for name, config in CANDIDATES.items()}
+            for name in candidates for config in [CANDIDATES[name]]}
 
 
-def compare(output, split, selection=None):
+def read_reference_run(path, rows, dataset_sha):
+    """Verify a completed dev run before reusing any prediction or model revision."""
+    info_bytes, cache_bytes = (path / "run.json").read_bytes(), (path / "upstream.json").read_bytes()
+    info, cache = json.loads(info_bytes), json.loads(cache_bytes)
+    if (info.get("split") != "dev" or info.get("execution_complete") is not True
+            or info.get("dataset_sha256") != dataset_sha or info.get("reviews") != len(rows)):
+        raise ValueError("reference must be a complete dev run on these same cases")
+    if info.get("max_new_tokens") != MAX_NEW_TOKENS or info.get("do_sample") is not False:
+        raise ValueError("reference decoding settings differ")
+    expected = info.get("files", {}).get("upstream.json")
+    if not expected or digest_bytes(cache_bytes) != expected:
+        raise ValueError("reference upstream fingerprint differs")
+    if info.get("upstream_config") != upstream_config():
+        raise ValueError("reference upstream configuration differs")
+    validate_upstream(cache, rows, dataset_sha, upstream_config())
+    if info.get("jev_model_resolved") != cache["records"][0]["complaints"]["model"]:
+        raise ValueError("reference responding Jev model differs")
+    return {"info": info, "cache": cache, "cache_bytes": cache_bytes,
+            "run_bytes": info_bytes, "run_sha256": digest_bytes(info_bytes), "upstream_sha256": expected}
+
+
+def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, reference_run=None):
     import torch
     import transformers
 
@@ -112,17 +152,26 @@ def compare(output, split, selection=None):
         raise ValueError("a CUDA GPU is required for this comparison")
     if split == "holdout" and not selection:
         raise ValueError("holdout requires a frozen selection")
+    if reference_run is not None and (split != "dev" or selection is not None):
+        raise ValueError("reference reuse is only for development")
     path = DATA / (split + ".json")
     dataset = read_dataset(path, split)
     dataset_sha = digest_bytes(path.read_bytes())
-    configs = pinned_configs(selection)
+    reference = read_reference_run(reference_run, dataset["reviews"], dataset_sha) if reference_run is not None else None
+    configs = pinned_configs(selection, candidates, reference)
     if selection:
         # Create this before any API call. Default reruns stop even after a partial final evaluation.
         marker = ROOT / "runs" / ("generator_holdout_" + digest_bytes(json.dumps(selection, sort_keys=True).encode()) + ".lock")
         marker.parent.mkdir(parents=True, exist_ok=True)
         with marker.open("x", encoding="utf-8") as handle:
             handle.write(str(output) + "\n")
-    cache = prepare_upstream(dataset["reviews"], dataset_sha, output)
+    if reference:
+        cache = reference["cache"]
+        (output / "upstream.json").write_bytes(reference["cache_bytes"])
+        (output / "reference_run.json").write_bytes(reference["run_bytes"])
+        print("Reusing reference upstream and pinned weights; no new Jev requests.", flush=True)
+    else:
+        cache = prepare_upstream(dataset["reviews"], dataset_sha, output)
     jev_model = cache["records"][0]["complaints"]["model"]
     if selection and selection.get("jev_model_resolved") != jev_model:
         raise ValueError("Jev changed after development selection; final generator evaluation was not run")
@@ -147,7 +196,8 @@ def compare(output, split, selection=None):
                 records.append({"candidate": name, "id": dataset["reviews"][0]["id"],
                                 "production_routed": cache["records"][0]["routing"]["qwen_triggered"],
                                 "upstream_sha256": None, "raw": None, "hit_token_budget": None,
-                                "json_valid": False, "actions": [], "dropped": 0,
+                                "json_valid": False, "full_json_valid": False, "duplicate_json_keys": [],
+                                "actions": [], "dropped": 0,
                                 "seconds": round(time.perf_counter() - start, 6),
                                 "error": "load_or_warmup:" + type(error).__name__})
                 with (output / "results.jsonl").open("w", encoding="utf-8") as handle:
@@ -176,9 +226,12 @@ def compare(output, split, selection=None):
     if records:
         export_annotation(output, dataset["reviews"], records)
     files = {name: digest_bytes((output / name).read_bytes()) for name in
-             ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json") if (output / name).exists()}
+             ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json", "reference_run.json")
+             if (output / name).exists()}
     info = {"split": split, "dataset_sha256": dataset_sha, "reviews": len(dataset["reviews"]),
-            "candidates": configs, "upstream_config": upstream_config(), "api_cost": cache["api_cost"],
+            "candidates": configs, "upstream_config": upstream_config(),
+            "api_cost": cost_summary([]) if reference else cache["api_cost"],
+            "upstream_reused": bool(reference),
             "jev_model_resolved": jev_model,
             "warmups": warmups, "summary": summaries, "execution_complete": complete,
             "quality_evaluated": False, "files": files, "python": platform.python_version(),
@@ -186,19 +239,29 @@ def compare(output, split, selection=None):
             "gpu": torch.cuda.get_device_name(0), "max_new_tokens": MAX_NEW_TOKENS, "do_sample": False,
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "finished_utc": datetime.now(timezone.utc).isoformat()}
+    if reference:
+        info["reference_run"] = {"run_sha256": reference["run_sha256"],
+                                 "upstream_sha256": reference["upstream_sha256"],
+                                 "source_commit": reference["info"].get("source_commit"),
+                                 "historical_api_cost": cache["api_cost"]}
     if selection:
         info["selection"] = selection
     write_json(output / "run.json", info)
     lines = ["# Generator comparison", "", "Synthetic cases; structural counts are not human usefulness.",
-             "", "| Candidate | Attempted | JSON valid | Reviews with accepted actions | Budget hits | Errors |",
-             "|---|---:|---:|---:|---:|---:|"]
+             "", "| Candidate | Attempted | Parser accepted JSON | Whole JSON, unique keys | Reviews with accepted actions | Budget hits | Errors |",
+             "|---|---:|---:|---:|---:|---:|---:|"]
     for name, count in summaries.items():
         lines.append(f"| {name} | {count['reviews_attempted']} | {count['parser_json_valid']} | "
-                     f"{count['reviews_with_accepted_actions']} | {count['token_budget_hits']} | {count['generation_errors']} |")
+                     f"{count['full_json_valid']} | {count['reviews_with_accepted_actions']} | "
+                     f"{count['token_budget_hits']} | {count['generation_errors']} |")
     lines.extend(["", "Human quality: pending. Fill human_review.csv using the protocol.",
                   "All cases are queried for generator diagnosis; production_routed preserves the actual routing.",
                   "Case latency excludes warmup; local GPU billing is unknown.",
                   "API cost: " + json.dumps(cache["api_cost"])])
+    lines.append("Whole JSON requires one complete JSON object without duplicate keys; it is not semantic validation.")
+    if reference:
+        lines.extend(["Reused upstream: no new Jev calls. The upstream API cost above belongs to the reference run.",
+                      "Current API attempts: 0. Local GPU billing remains unknown."])
     (output / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return 0 if complete else 1
 
@@ -210,6 +273,9 @@ def main():
     parser.add_argument("--dev-run", type=Path)
     parser.add_argument("--ratings", type=Path)
     parser.add_argument("--candidate", choices=list(CANDIDATES))
+    parser.add_argument("--candidates", nargs="+", choices=list(CANDIDATES), default=list(DEFAULT_CANDIDATES))
+    parser.add_argument("--reference-run", type=Path,
+                        help="reuse a completed dev run's upstream and pinned weights; no new Jev requests")
     parser.add_argument("--selection", type=Path)
     parser.add_argument("--allow-external-api", action="store_true")
     args = parser.parse_args()
@@ -222,7 +288,11 @@ def main():
             handle.write(json.dumps(selection, indent=2) + "\n")
         print("Selection frozen. Holdout has not been opened.")
         return 0
-    if not args.allow_external_api:
+    if args.reference_run is not None and args.stage != "dev":
+        parser.error("--reference-run is only valid for dev")
+    if len(args.candidates) != len(set(args.candidates)):
+        parser.error("--candidates must be distinct")
+    if not args.allow_external_api and args.reference_run is None:
         parser.error("this comparison needs --allow-external-api for the synthetic upstream cases")
     if not args.output:
         parser.error("--output is required")
@@ -235,7 +305,7 @@ def main():
         if not args.selection:
             parser.error("holdout requires --selection from the freeze step")
         selection = json.loads(args.selection.read_text(encoding="utf-8"))
-    return compare(output, args.stage, selection)
+    return compare(output, args.stage, selection, candidates=args.candidates, reference_run=args.reference_run)
 
 
 if __name__ == "__main__":

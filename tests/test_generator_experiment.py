@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 from reviewnlp.triage.generator_experiment import (
     CANDIDATES,
+    DEFAULT_CANDIDATES,
     EXAMPLES,
     RATINGS,
     RecordingTransport,
@@ -23,6 +24,8 @@ from reviewnlp.triage.generator_experiment import (
     digest_bytes,
     export_annotation,
     freeze_selection,
+    json_diagnostics,
+    prompt_fingerprint,
     read_dataset,
     run_candidate,
     structural_summary,
@@ -93,6 +96,35 @@ class ExperimentTests(unittest.TestCase):
             load.assert_called_once_with("fake/model", "cuda", "a" * 40)
             self.assertEqual(generator.prompt_version, "actions-v2")
         self.assertEqual(QwenActionGenerator().prompt_version, "actions-v1")
+
+    def test_v3_changes_only_system_rules_at_the_same_capacity_and_examples(self):
+        signals = ActionSignals("negative", 0.93, ["bathroom"])
+        old, new = builder("C")(TEXT, signals), builder("E")(TEXT, signals)
+        self.assertEqual(old[1:], new[1:])
+        self.assertNotEqual(old[0], new[0])
+        self.assertEqual(CANDIDATES["C"]["model"], CANDIDATES["E"]["model"])
+        self.assertEqual(DEFAULT_CANDIDATES, ("A", "B", "C", "D"))
+        self.assertEqual(prompt_fingerprint("C"), "00479231af814c9ded4f8d934d908952e9e04c2ada04eea1b4375096fce3f3d5")
+        rules = new[0]["content"]
+        for required in ("REAL_PENDING", "REAL_RESOLVED", "HYPOTHETICAL", "POSITIVE_COMMENT",
+                         "hints, not evidence", "hotel can take", "preserve negation", "no reasoning"):
+            self.assertIn(required, rules)
+        self.assertNotIn("<thinking>", rules)
+        self.assertNotIn('"proposals"', rules)
+
+    def test_full_json_diagnostic_does_not_turn_salvage_into_compliance(self):
+        value = json.dumps({"actions": [ACTION]})
+        self.assertTrue(json_diagnostics(value)["full_json_valid"])
+        for invalid in ('{"actions":[],"actions":[]}', "```json\n" + value + "\n```",
+                        value + " trailing text", '{"actions":[],"score":NaN}'):
+            with self.subTest(raw=invalid):
+                self.assertFalse(json_diagnostics(invalid)["full_json_valid"])
+        rows = [{"id": "one", "text": TEXT}]
+        records = run_candidate("E", rows, upstream(rows), Generator("```json\n" + value + "\n```"))
+        self.assertTrue(records[0]["json_valid"])
+        self.assertTrue(records[0]["actions"])
+        self.assertFalse(records[0]["full_json_valid"])
+        self.assertEqual(json_diagnostics('{"actions":[],"actions":[]}')["duplicate_json_keys"], ["actions"])
 
     def test_cost_absence_partial_cost_and_retries_are_not_free(self):
         responses = iter([(429, {}, b'{"usage":{}}'), (200, {}, b'{"usage":{"cost":0.02,"total_tokens":8}}')])
@@ -252,6 +284,103 @@ class ExperimentTests(unittest.TestCase):
                 self.assertTrue((failure / "human_review.csv").exists())
                 with self.assertRaises(ValueError):
                     script.compare(root, "holdout")
+
+    def test_reference_reuse_verifies_hashes_config_and_old_weights_without_hub(self):
+        spec = importlib.util.spec_from_file_location("reference_comparison", ROOT / "scripts/compare_triage_generators.py")
+        script = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(script)
+        rows = [{"id": "one", "text": TEXT}]
+        cache = upstream(rows)
+        cache["config"] = script.upstream_config()
+        cache["api_cost"] = cost_summary([])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache_bytes = json.dumps(cache).encode()
+            (root / "upstream.json").write_bytes(cache_bytes)
+            info = {"split": "dev", "execution_complete": True, "dataset_sha256": "dataset", "reviews": 1,
+                    "max_new_tokens": 400, "do_sample": False, "upstream_config": script.upstream_config(),
+                    "jev_model_resolved": "jev-fixed", "files": {"upstream.json": digest_bytes(cache_bytes)},
+                    "candidates": {"C": {**CANDIDATES["C"], "revision": "a" * 40,
+                                          "prompt_sha256": prompt_fingerprint("C")}}}
+            (root / "run.json").write_text(json.dumps(info))
+            reference = script.read_reference_run(root, rows, "dataset")
+            configs = script.pinned_configs(None, ("C", "E"), reference)
+            self.assertEqual(set(configs), {"C", "E"})
+            self.assertEqual(configs["C"]["revision"], configs["E"]["revision"])
+            self.assertEqual(configs["E"]["revision"], "a" * 40)
+            for field in ("split", "execution_complete", "dataset_sha256", "max_new_tokens", "do_sample", "jev_model_resolved"):
+                changed = dict(info)
+                changed[field] = None
+                (root / "run.json").write_text(json.dumps(changed))
+                with self.subTest(field=field), self.assertRaises(ValueError):
+                    script.read_reference_run(root, rows, "dataset")
+            (root / "run.json").write_text(json.dumps(info))
+            changed_info = json.loads(json.dumps(info))
+            changed_info["candidates"]["C"]["prompt_sha256"] = "bad"
+            with self.assertRaises(ValueError):
+                script.pinned_configs(None, ("C", "E"), {**reference, "info": changed_info})
+            (root / "upstream.json").write_bytes(cache_bytes + b"\n")
+            with self.assertRaises(ValueError):
+                script.read_reference_run(root, rows, "dataset")
+
+    def test_cached_comparison_runs_only_C_and_E_with_one_weight_load_and_no_upstream_calls(self):
+        spec = importlib.util.spec_from_file_location("cached_comparison", ROOT / "scripts/compare_triage_generators.py")
+        script = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(script)
+        torch = SimpleNamespace(__version__="fake", cuda=SimpleNamespace(
+            is_available=lambda: True, empty_cache=lambda: None,
+            synchronize=lambda: None, get_device_name=lambda index: "fake GPU"))
+
+        class FakeQwen(Generator):
+            loads = 0
+            revisions = []
+
+            def __init__(self, model, **kwargs):
+                super().__init__(json.dumps({"actions": [ACTION]}))
+                self._bundle = None
+                self.revisions.append(kwargs["revision"])
+
+            def generate(self, review, signals):
+                if self._bundle is None:
+                    type(self).loads += 1
+                    self._bundle = ("tokenizer", "weights")
+                return super().generate(review, signals)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            rows = [{"id": "one", "text": TEXT}]
+            dataset_bytes = json.dumps({"split": "dev", "provenance": "synthetic-authored", "reviews": rows}).encode()
+            (root / "dev.json").write_bytes(dataset_bytes)
+            reference_dir = root / "reference"
+            reference_dir.mkdir()
+            cache = upstream(rows)
+            cache.update(config=script.upstream_config(), dataset_sha256=digest_bytes(dataset_bytes),
+                         api_cost=cost_summary([{"cost_reported": 0.02}]))
+            cache_bytes = json.dumps(cache).encode()
+            (reference_dir / "upstream.json").write_bytes(cache_bytes)
+            info = {"split": "dev", "execution_complete": True, "dataset_sha256": digest_bytes(dataset_bytes),
+                    "reviews": 1, "max_new_tokens": 400, "do_sample": False,
+                    "upstream_config": script.upstream_config(), "jev_model_resolved": "jev-fixed",
+                    "files": {"upstream.json": digest_bytes(cache_bytes)}, "candidates": {
+                        "C": {**CANDIDATES["C"], "revision": "a" * 40, "prompt_sha256": prompt_fingerprint("C")}}}
+            (reference_dir / "run.json").write_text(json.dumps(info))
+            output = root / "result"
+            output.mkdir()
+            with patch.dict(sys.modules, {"torch": torch, "transformers": SimpleNamespace(__version__="fake")}), \
+                    patch.object(script, "DATA", root), patch.object(script, "QwenActionGenerator", FakeQwen), \
+                    patch.object(script, "prepare_upstream", side_effect=AssertionError("no new upstream calls")), \
+                    patch.object(script.subprocess, "check_output", return_value="b" * 40):
+                self.assertEqual(script.compare(output, "dev", candidates=("C", "E"), reference_run=reference_dir), 0)
+                with self.assertRaises(ValueError):
+                    script.compare(output, "holdout", {"candidate": "C"}, reference_run=reference_dir)
+            result = json.loads((output / "run.json").read_text())
+            self.assertEqual(set(result["candidates"]), {"C", "E"})
+            self.assertEqual(FakeQwen.revisions, ["a" * 40, "a" * 40])
+            self.assertEqual(FakeQwen.loads, 1)
+            self.assertEqual(result["api_cost"]["attempts"], 0)
+            self.assertEqual(result["reference_run"]["historical_api_cost"]["reported_cost_sum"], 0.02)
+            self.assertEqual((output / "upstream.json").read_bytes(), cache_bytes)
+            self.assertFalse(result["quality_evaluated"])
 
 
 if __name__ == "__main__":

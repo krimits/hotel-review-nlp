@@ -35,6 +35,12 @@ frozen DistilBERT/Jev results, and exports a human-review sheet. It needs Colab 
 `OPENROUTER_API_KEY` Secret: [14_triage_generator_comparison_colab.ipynb](14_triage_generator_comparison_colab.ipynb)
 ([protocol](../docs/experiments/triage_generator/README.md)). No training, holdout run, or automatic winner.
 
+Notebook 15 compares actions-v2 (C) and actions-v3 (E) on the same Qwen 1.5B weights and
+24 development cases. Upload the previous generator development ZIP when prompted.
+It reuses its verified upstream predictions, makes no new Jev calls and needs no API key:
+[15_triage_prompt_v3_comparison_colab.ipynb](15_triage_prompt_v3_comparison_colab.ipynb)
+([protocol](../docs/experiments/triage_generator/README.md)). Colab GPU; 48 outputs for human review.
+
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.
 
