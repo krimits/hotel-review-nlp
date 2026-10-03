@@ -173,6 +173,7 @@ class ExperimentTests(unittest.TestCase):
             (root / "results.jsonl").write_text(json.dumps(records[0]) + "\n")
             export_annotation(root, rows, records)
             info = {"split": "dev", "execution_complete": True, "candidates": {"B": CANDIDATES["B"]},
+                    "jev_model_resolved": "jev-fixed",
                     "upstream_config": {"fixed": True}, "files": {
                         name: digest_bytes((root / name).read_bytes()) for name in
                         ("results.jsonl", "annotation_key.json", "human_review.csv")}}
@@ -189,6 +190,7 @@ class ExperimentTests(unittest.TestCase):
                 writer.writerows(sheet)
             frozen = freeze_selection(root, path, "B")
             self.assertEqual(frozen["human_counts"]["B"]["useful_grounded_measures"], 1)
+            self.assertEqual(frozen["jev_model_resolved"], "jev-fixed")
             (root / "results.jsonl").write_text("changed")
             with self.assertRaises(ValueError):
                 freeze_selection(root, path, "B")

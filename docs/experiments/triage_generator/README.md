@@ -126,6 +126,8 @@ records the choice, human judgments' hash, prompt hash and pinned model commit.
 This is a minimal selection guard, not a quality threshold.
 
 The holdout command requires that record and uses exactly its configuration.
+It also requires the actual responding Jev version recorded during development;
+if the request alias has changed models, it stops before final Qwen generation.
 A marker in runs/ blocks a repeated final evaluation in that checkout, even
 after failure. This is a workflow guard, not a security boundary: preserve the
 record across Colab sessions and do not reset it to tune on the reserved set.

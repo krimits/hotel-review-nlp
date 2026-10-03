@@ -123,6 +123,9 @@ def compare(output, split, selection=None):
         with marker.open("x", encoding="utf-8") as handle:
             handle.write(str(output) + "\n")
     cache = prepare_upstream(dataset["reviews"], dataset_sha, output)
+    jev_model = cache["records"][0]["complaints"]["model"]
+    if selection and selection.get("jev_model_resolved") != jev_model:
+        raise ValueError("Jev changed after development selection; final generator evaluation was not run")
     records, warmups, bundle, active_model = [], {}, None, None
     try:
         for name, config in configs.items():
@@ -176,6 +179,7 @@ def compare(output, split, selection=None):
              ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json") if (output / name).exists()}
     info = {"split": split, "dataset_sha256": dataset_sha, "reviews": len(dataset["reviews"]),
             "candidates": configs, "upstream_config": upstream_config(), "api_cost": cache["api_cost"],
+            "jev_model_resolved": jev_model,
             "warmups": warmups, "summary": summaries, "execution_complete": complete,
             "quality_evaluated": False, "files": files, "python": platform.python_version(),
             "torch": torch.__version__, "transformers": transformers.__version__,

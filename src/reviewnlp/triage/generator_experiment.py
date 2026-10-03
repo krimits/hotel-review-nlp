@@ -274,6 +274,7 @@ def freeze_selection(run_dir: Path, ratings_path: Path, candidate: str) -> dict:
         raise ValueError("the selected candidate has no human-rated useful, grounded measures")
     return {"candidate": candidate, "config": info["candidates"][candidate],
             "upstream_config": info["upstream_config"],
+            "jev_model_resolved": info["jev_model_resolved"],
             "dev_run_sha256": digest_bytes((run_dir / "run.json").read_bytes()),
             "human_ratings_sha256": digest_bytes(ratings_path.read_bytes()),
             "human_counts": judged, "selection_method": "explicit human choice after development review",
