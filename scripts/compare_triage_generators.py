@@ -62,6 +62,7 @@ def prepare_upstream(rows, dataset_sha, output):
     if not key:
         raise ValueError("OPENROUTER_API_KEY is required; no requests sent")
     from huggingface_hub import snapshot_download
+
     from reviewnlp.serving.model_wrapper import ModelWrapper
 
     wrapper = ModelWrapper(model_type="encoder", model_path=snapshot_download(HUB_REPO, revision=HUB_REVISION))
