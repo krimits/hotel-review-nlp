@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 
 from reviewnlp.triage.qwen_generator import MAX_FIELD_CHARS, ActionSignals, GenerationResult
@@ -58,6 +59,13 @@ def messages_measures(review: str, pending: list[dict]) -> list[dict]:
 
 
 def strict_object(raw: str, key: str) -> list:
+    """Read one whole object, optionally inside one complete JSON Markdown fence."""
+    if not isinstance(raw, str):
+        raise ValueError("invalid_json_text")
+    envelope = re.fullmatch(r"```(?:json)?[ \t]*\r?\n(.*?)\r?\n[ \t]*```",
+                            raw.strip(), flags=re.DOTALL | re.IGNORECASE)
+    body = envelope.group(1) if envelope else raw
+
     def pairs(items):
         result = {}
         for name, value in items:
@@ -69,7 +77,7 @@ def strict_object(raw: str, key: str) -> list:
     def constant(value):
         raise ValueError("non_json_constant")
 
-    value = json.loads(raw, object_pairs_hook=pairs, parse_constant=constant)
+    value = json.loads(body, object_pairs_hook=pairs, parse_constant=constant)
     if not isinstance(value, dict) or set(value) != {key} or not isinstance(value[key], list):
         raise ValueError("invalid_" + key + "_schema")
     return value[key]

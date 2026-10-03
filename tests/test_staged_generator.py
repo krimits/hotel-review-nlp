@@ -115,10 +115,48 @@ def test_raw_failure_is_retained_and_the_next_review_resets_diagnostics():
 
 
 @pytest.mark.parametrize("raw", ['{"issues":[],"issues":[]}', '{"issues":[],"extra":1}',
-                                 '```json\n{"issues":[]}\n```', '{"issues":[],"x":NaN}'])
+                                 '{"issues":[],"x":NaN}'])
 def test_extraction_requires_one_unambiguous_object(raw):
     with pytest.raises(ValueError):
         parse_issues(raw, TEXT)
+
+
+@pytest.mark.parametrize("language", ["json", "", "JSON"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_a_single_whole_fence_preserves_the_schema_and_the_actual_model_response(language, newline):
+    generator, actioner, _ = staged(issues=[ISSUE])
+    generator.extractor.raw = "```" + language + newline + generator.extractor.raw + newline + "```"
+    actioner.raw = "```" + language + newline + actioner.raw + newline + "```"
+    parsed = parse_actions(generator.generate(TEXT, SIGNALS).raw, TEXT)
+    assert parsed.json_valid and len(parsed.actions) == 1 and not generator.workflow_error
+    assert parsed.actions[0].excerpt == ISSUE["excerpt"]
+    assert generator.last_stages[0]["raw"] == generator.extractor.raw
+    assert generator.last_stages[1]["raw"] == actioner.raw
+
+
+@pytest.mark.parametrize("raw", [
+    'Text before\n```json\n{"issues":[]}\n```',
+    '```json\n{"issues":[]}\n```\nText after',
+    '```json\n{"issues":[]}\n```\n```json\n{"issues":[]}\n```',
+    '```json\n{"issues":[]}',
+    '```python\n{"issues":[]}\n```',
+    '```json\n{"issues":[]} {"issues":[]}\n```',
+    '```json\n{"issues":[],"issues":[]}\n```',
+    '```json\n{"issues":[],"extra":1}\n```',
+    '```json\n{"issues":[],"x":NaN}\n```',
+    '```json\n[]\n```',
+])
+def test_fences_do_not_allow_prose_fragments_multiple_objects_or_ambiguous_json(raw):
+    with pytest.raises(ValueError):
+        parse_issues(raw, TEXT)
+
+
+def test_a_fence_does_not_bypass_the_measure_id_or_duplicate_key_guards():
+    pending = parse_issues(json.dumps({"issues": [ISSUE]}), TEXT)
+    for body in (json.dumps({"actions": [{**MEASURE, "issue_id": 99}]}),
+                 '{"actions":[{"issue_id":1,"measure":"Repair it","measure":"Ignore it","to_confirm":[]}]}'):
+        with pytest.raises(ValueError):
+            assemble_actions("```json\n" + body + "\n```", pending)
 
 
 def test_duplicate_issue_ids_and_duplicate_measure_keys_are_rejected():

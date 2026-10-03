@@ -195,6 +195,10 @@ The extraction can still misclassify praise, miss an issue or choose the wrong
 department, and a measure can still be inappropriate. Human review is essential.
 
 Each stage requires one JSON object with unique keys and its own exact schema.
+One complete JSON/unlabelled Markdown fence is also accepted as an envelope;
+prose outside it, incomplete fences and multiple objects remain failures. The
+original model text remains in stages[].raw. Literal whole-JSON diagnostics
+describe that text, including rejected workflows.
 Invalid output and either exhausted token budget remain explicit workflow
 failures, not valid abstentions. Actual model text, stage timings, extracted
 issues and failure stage are saved in results.jsonl. F's top-level raw is
@@ -212,8 +216,12 @@ an initial screen, not independent agreement or held-out performance.
 
 The notebook checks that the second stage was actually exercised at least once,
 then downloads diagnostic artifacts even on failure. It performs no training,
-freeze, reserved evaluation or Space deployment. Improvement remains untested
-until a real GPU run and the quality review.
+freeze, reserved evaluation or Space deployment. The
+[3 October staged run and offline parser replay](staged_run_review.md) found
+five JSON-wrapper rejections and serious first-stage classification errors.
+The original GPU run produced zero accepted F actions; replaying the exact
+saved text with wrapper support recovers five structurally valid measures.
+Human quality remains unvalidated, and F is not selected for the demo.
 
 ## Freeze, then one reserved evaluation
 

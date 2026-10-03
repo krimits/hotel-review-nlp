@@ -283,13 +283,14 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
 
 
 def structural_summary(records: list[dict]) -> dict:
+    """Count raw syntax diagnostics on all outputs, including rejected workflows."""
     complete = [item for item in records if not item["error"] and not item["hit_token_budget"]
                 and not item.get("workflow_error")]
     return {"reviews_attempted": len(records), "generation_errors": sum(bool(item["error"]) for item in records),
             "token_budget_hits": sum(bool(item["hit_token_budget"]) for item in records),
             "parser_json_valid": sum(item["json_valid"] for item in complete),
-            "full_json_valid": sum(item.get("full_json_valid", False) for item in complete),
-            "outputs_with_duplicate_keys": sum(bool(item.get("duplicate_json_keys")) for item in complete),
+            "full_json_valid": sum(item.get("full_json_valid", False) for item in records),
+            "outputs_with_duplicate_keys": sum(bool(item.get("duplicate_json_keys")) for item in records),
             "reviews_with_accepted_actions": sum(bool(item["actions"]) for item in complete),
             "accepted_actions": sum(len(item["actions"]) for item in complete),
             "empty_valid_answers": sum(item["json_valid"] and not item["actions"] and not item["dropped"] for item in complete),
