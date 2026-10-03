@@ -1,0 +1,10 @@
+{
+  "source_archive": "triage_smoke_20261003T071410Z_18020ced.zip",
+  "files": {
+    "summary.md": "88fa6d4a7020dadc6a56a947354cad7dc711c87e6c529eedc0841bebe44bee96",
+    "results.jsonl": "abcf54d5c9e2a19fa33e762d5937f7bddaf916c7a2300cfd39c8ae7307c62c11",
+    "run.json": "24c0a0c51c39cb4bf4cb93400ad50e87ee3c4eec793494bf974cb94e593e0d70",
+    "execution.txt": "34ae50c43723584ec4a5e256855df04ab79779822ee95c5d057e89f0631c1134",
+    "notebook_checks.json": "2306e2f9e232ff5888ebbe71e11b1dafc4dc658d54ce15995694ca6a139775d0"
+  }
+}

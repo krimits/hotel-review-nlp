@@ -37,15 +37,17 @@ class FakeJev:
     enabled = True
     config = SimpleNamespace(route="typesafe")
 
-    def __init__(self, yes=(), unsure=(), other="no", error: Exception | None = None, enabled=True):
+    def __init__(self, yes=(), unsure=(), other="no", error: Exception | None = None, enabled=True,
+                 yes_probability: float = 0.97):
         self.yes, self.unsure, self.other, self.error, self.enabled, self.calls = yes, unsure, other, error, enabled, []
+        self.yes_probability = yes_probability
 
     def classify(self, text):
         self.calls.append(text)
         if self.error:
             raise self.error
         topics = [ComplaintTopic(topic=t, answer="yes" if t in self.yes else "unsure" if t in self.unsure else "no",
-                                 probability=0.97 if t in self.yes else 0.0) for t in TOPICS]
+                                 probability=self.yes_probability if t in self.yes else 0.0) for t in TOPICS]
         other = ComplaintTopic(topic=OTHER, answer=self.other, probability=0.9 if self.other == "yes" else 0.0)
         return JevResult(topics=topics, other_complaint=other, model="typesafe/jev-test", route="typesafe")
 

@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from reviewnlp.triage import questions
-from reviewnlp.triage.routing import RoutingThresholds, decide, is_negative
+from reviewnlp.triage.routing import REVIEW_REASONS, RoutingThresholds, decide, is_negative
 from reviewnlp.triage.schemas import (
     OTHER,
     TOPICS,
@@ -51,6 +51,27 @@ def test_there_is_one_question_per_topic_and_one_for_any_other_complaint():
             question["instructions"].lower())
 
 
+def _shape(value):
+    """The keys and value types of a JSON value, without the words in it."""
+    if isinstance(value, dict):
+        return {key: _shape(item) for key, item in value.items()}
+    return type(value).__name__
+
+
+def test_the_request_has_the_shape_the_provider_accepted_in_the_benchmark_runs():
+    # The benchmark's requests were answered 600 times. Whatever the words, a request of the same shape is the same
+    # kind of request, including the sixth question, which the benchmark did not have.
+    theirs, ours = _benchmark().request_body("a review", "jev-latest"), questions.request_body("a review", "jev-latest")
+    assert set(ours) == set(theirs) == {"state", "model", "questions"}
+    assert _shape({k: v for k, v in ours.items() if k != "questions"}) == _shape(
+        {k: v for k, v in theirs.items() if k != "questions"})
+    shapes = {name: _shape(question) for name, question in theirs["questions"].items()}
+    assert len({json.dumps(shape, sort_keys=True) for shape in shapes.values()}) == 1  # all five alike
+    (benchmark_shape,) = {json.dumps(shape, sort_keys=True) for shape in shapes.values()}
+    for name, question in ours["questions"].items():
+        assert json.dumps(_shape(question), sort_keys=True) == benchmark_shape, name
+
+
 def test_the_version_and_hash_identify_the_questions_and_differ_from_the_benchmarks():
     expected = hashlib.sha256(json.dumps({"version": questions.QUESTIONS_VERSION, "questions": questions.QUESTIONS},
                                          sort_keys=True).encode("utf-8")).hexdigest()
@@ -74,18 +95,22 @@ def sentiment(label: str = "positive", confidence: float | None = 0.97) -> Senti
     return SentimentResult(label=label, confidence=confidence, probabilities=None, model_type="stub", model_path="")
 
 
-def complaints(status: str = "ok", yes=(), unsure=(), doubtful: dict | None = None, other: str = "no") -> ComplaintsResult:
-    """Every topic answers no with probability 0, except the ones named."""
-    doubtful = doubtful or {}
+def complaints(status: str = "ok", yes=(), unsure=(), doubtful: dict | None = None, other: str = "no",
+               weak_yes: dict | None = None, other_probability: float = 0.9) -> ComplaintsResult:
+    """Every topic answers no with probability 0, except the ones named. `weak_yes` maps a topic to the
+    probability of a 'yes' that won without being sure."""
+    doubtful, weak_yes = doubtful or {}, weak_yes or {}
     topics = []
     for topic in TOPICS:
-        if topic in yes:
+        if topic in weak_yes:
+            topics.append(ComplaintTopic(topic=topic, answer="yes", probability=weak_yes[topic]))
+        elif topic in yes:
             topics.append(ComplaintTopic(topic=topic, answer="yes", probability=0.97))
         elif topic in unsure:
             topics.append(ComplaintTopic(topic=topic, answer="unsure", probability=0.4))
         else:
             topics.append(ComplaintTopic(topic=topic, answer="no", probability=doubtful.get(topic, 0.0)))
-    extra = ComplaintTopic(topic=OTHER, answer=other, probability=0.9 if other == "yes" else 0.0)
+    extra = ComplaintTopic(topic=OTHER, answer=other, probability=other_probability if other == "yes" else 0.0)
     return ComplaintsResult(status=status, topics=topics if status == "ok" else [], other_complaint=extra if status == "ok" else None,
                             questions_version=questions.QUESTIONS_VERSION, questions_sha256=questions.QUESTIONS_SHA256)
 
@@ -121,11 +146,23 @@ def test_which_labels_are_negative(label, expected):
     ("the complaint stage failed on a negative review", sentiment("negative", 0.95), complaints("error"), True,
      ["negative_sentiment"], ["complaint_check_failed"]),
     ("the complaint stage is switched off", sentiment(), complaints("disabled"), False, [], []),
+    ("a yes that won with 0.36 against 0.34 for no", sentiment(), complaints(weak_yes={"bathroom": 0.36}), True,
+     ["complaint_detected", "uncertain_complaint"], ["uncertain_complaint"]),
+    ("a yes just under the top edge", sentiment(), complaints(weak_yes={"bathroom": 0.49}), True,
+     ["complaint_detected", "uncertain_complaint"], ["uncertain_complaint"]),
+    ("a yes at the top edge", sentiment(), complaints(weak_yes={"bathroom": 0.5}), True, ["complaint_detected"], []),
+    ("a yes that is clearly a yes", sentiment(), complaints(weak_yes={"bathroom": 0.75}), True,
+     ["complaint_detected"], []),
+    ("another complaint answered yes without being sure", sentiment(), complaints(other="yes", other_probability=0.4),
+     True, ["complaint_detected", "uncertain_complaint"], ["uncertain_complaint"]),
+    ("a sure yes next to an unsure one", sentiment(), complaints(yes=["pests"], unsure=["bathroom"]), True,
+     ["complaint_detected", "uncertain_complaint"], ["uncertain_complaint"]),
 ])
 def test_routing_rules(case, senti, comp, qwen, reasons, review):
     decision = decide(senti, comp)
     assert (decision.qwen_triggered, decision.reasons, decision.review_reasons) == (qwen, reasons, review), case
     assert decision.needs_review is bool(review)
+    assert set(decision.review_reasons) <= set(REVIEW_REASONS)
 
 
 def test_the_thresholds_are_applied_and_reported_as_provisional():
@@ -135,3 +172,25 @@ def test_the_thresholds_are_applied_and_reported_as_provisional():
     assert decision.thresholds == {"sentiment_confidence_min": 0.5, "doubtful_band": [0.4, 0.6]}
     assert decide(sentiment(), complaints()).thresholds == {"sentiment_confidence_min": 0.8, "doubtful_band": [0.2, 0.5]}
     assert decision.thresholds_status == "provisional"
+
+
+def test_the_docs_name_every_reason_a_review_can_be_flagged_for():
+    doc = (Path(__file__).resolve().parents[1] / "docs" / "TRIAGE.md").read_text(encoding="utf-8")
+    assert len(set(REVIEW_REASONS)) == len(REVIEW_REASONS) == 6
+    for reason in REVIEW_REASONS:
+        assert f"`{reason}`" in doc, reason
+    assert "Without a `review_id` nothing is stored" in doc
+
+
+def test_the_upper_edge_of_the_band_also_decides_when_a_yes_is_doubtful():
+    thresholds = RoutingThresholds(doubtful_band=(0.4, 0.6))
+    assert decide(sentiment(), complaints(weak_yes={"bathroom": 0.55}), thresholds).review_reasons == [
+        "uncertain_complaint"]
+    assert decide(sentiment(), complaints(weak_yes={"bathroom": 0.65}), thresholds).review_reasons == []
+    # with the default band the same 0.55 is a clear enough yes
+    assert decide(sentiment(), complaints(weak_yes={"bathroom": 0.55})).review_reasons == []
+
+
+def test_a_yes_that_won_with_a_probability_above_the_edge_is_not_caught_because_only_its_probability_is_kept():
+    # P(yes)=0.52 against P(no)=0.47 is a narrow win, but the result holds only the probability of 'yes'.
+    assert decide(sentiment(), complaints(weak_yes={"bathroom": 0.52})).review_reasons == []

@@ -93,6 +93,7 @@ def test_a_request_gets_the_whole_workflow(client, stages):
     assert response.status_code == 200
     body = response.json()
     assert (body["hotel_id"], body["review_id"], body["stored"], body["status"]) == ("hotel-a", "r-1", False, "complete")
+    assert body["not_stored_reason"] == "no_database"  # the review has an id, but there is nowhere to keep the result
     assert body["validation_status"] == "unvalidated"
     assert body["sentiment"] == {"label": "negative", "confidence": 0.95, "model_type": "fake", "model_path": "models/fake",
                                  "probabilities": {"negative": 0.95, "positive": 0.05}}

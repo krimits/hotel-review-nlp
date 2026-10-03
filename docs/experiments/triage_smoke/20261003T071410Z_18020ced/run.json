@@ -1,0 +1,83 @@
+{
+ "started_utc": "2026-10-03T07:14:10+00:00",
+ "finished_utc": "2026-10-03T07:15:38+00:00",
+ "script_sha256": "c5f024d609d27b74ed3ab9ec61395b7c05aafd91f1c24495f93c064a0c24159a",
+ "reviews_file": "docs/experiments/triage_smoke/reviews.json",
+ "reviews_sha256": "9fcb58a6e41ed0a7464160fa029f811e715a91a33053a8aed49d6d235670b768",
+ "reviews": 14,
+ "arms": [
+  "with-jev",
+  "without-jev"
+ ],
+ "sentiment": {
+  "hub_repo": "krimits/distilbert-hotel-reviews",
+  "revision": "7306aebcaaebc00d579f5d0a91001ae376f18158"
+ },
+ "jev": {
+  "route": "openrouter",
+  "model_requested": "jev-latest",
+  "models_answered": [
+   "typesafe/jev-1.13-20260917"
+  ],
+  "questions_version": "full-review-v1",
+  "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42"
+ },
+ "qwen": {
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "prompt_version": "actions-v1"
+ },
+ "stages": {
+  "without-jev": {
+   "reviews": 14,
+   "crashed": 0,
+   "complaints": {
+    "disabled": 14
+   },
+   "actions": {
+    "not_triggered": 8,
+    "ok": 1,
+    "error:invalid_output": 4,
+    "no_grounded_actions": 1
+   },
+   "suggestion_model_wrote": 6
+  },
+  "with-jev": {
+   "reviews": 14,
+   "crashed": 0,
+   "complaints": {
+    "ok": 14
+   },
+   "actions": {
+    "not_triggered": 5,
+    "error:invalid_output": 3,
+    "ok": 2,
+    "no_grounded_actions": 4
+   },
+   "suggestion_model_wrote": 9
+  }
+ },
+ "python": "3.13.15",
+ "torch": "2.11.0+cu130",
+ "transformers": "4.56.2",
+ "problems": [],
+ "notes": [
+  "neg-1 (without-jev): the suggestion stage was asked and gave an empty list",
+  "neg-1 (with-jev): the suggestion stage gave error (invalid_output)",
+  "neg-1 (with-jev): found ['other'], not expected",
+  "neg-2 (without-jev): the suggestion stage gave error (invalid_output)",
+  "neg-2 (with-jev): the suggestion stage gave error (invalid_output)",
+  "neg-3 (without-jev): the suggestion stage gave error (invalid_output)",
+  "neg-3 (with-jev): the suggestion stage was asked and gave an empty list",
+  "neg-3 (with-jev): found ['other'], not expected",
+  "neg-4 (without-jev): the suggestion stage gave error (invalid_output)",
+  "neg-4 (with-jev): the suggestion stage gave no_grounded_actions, 3 rejected",
+  "neg-4 (with-jev): found ['cleanliness'], not expected",
+  "mix-1 (with-jev): the suggestion stage was asked and gave an empty list",
+  "mix-2 (without-jev): the suggestion stage gave no_grounded_actions, 3 rejected",
+  "mix-2 (with-jev): the suggestion stage gave no_grounded_actions, 3 rejected",
+  "mix-3 (with-jev): the suggestion stage gave no_grounded_actions, 1 rejected",
+  "mix-4 (with-jev): the suggestion stage gave no_grounded_actions, 2 rejected",
+  "mix-5 (without-jev): the suggestion stage gave error (invalid_output)",
+  "mix-5 (with-jev): the suggestion stage gave error (invalid_output)"
+ ]
+}

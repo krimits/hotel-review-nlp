@@ -71,8 +71,11 @@ class SuggestedAction(BaseModel):
 
 class ActionsResult(BaseModel):
     status: Literal["not_triggered", "disabled", "ok", "no_grounded_actions", "error"]
-    error: str | None = None
-    actions: list[SuggestedAction] = Field(default_factory=list)
+    error: str | None = Field(
+        default=None, description="The kind of failure: generation_failed, invalid_output or hit_token_budget")
+    actions: list[SuggestedAction] = Field(
+        default_factory=list, description="Those that passed every check. With error hit_token_budget they come from "
+                                          "a generation that did not finish, and the review is flagged")
     dropped: int = Field(default=0, description="Generated actions rejected: malformed, ungrounded or off the list")
     model: str | None = None
     prompt_version: str | None = None
@@ -90,6 +93,9 @@ class TriageResponse(BaseModel):
     hotel_id: str
     review_id: str | None
     stored: bool = False
+    not_stored_reason: Literal["no_database", "no_review_id"] | None = Field(
+        default=None, description="Why the result was not stored. A result is stored only with a database and a "
+                                  "review_id, so that running a review again replaces its result and is not counted twice")
     status: Literal["complete", "partial"] = Field(description="'partial' when a stage that was asked to run failed")
     sentiment: SentimentResult
     complaints: ComplaintsResult

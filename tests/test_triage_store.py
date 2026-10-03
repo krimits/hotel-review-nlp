@@ -13,13 +13,22 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from triage_fakes import NEGATIVE, POSITIVE, REVIEW, FakeGenerator, FakeJev, FakeWrapper
+from triage_fakes import (
+    GOOD_ACTIONS,
+    NEGATIVE,
+    POSITIVE,
+    REVIEW,
+    FakeGenerator,
+    FakeJev,
+    FakeWrapper,
+)
 
 from reviewnlp.analytics.store import SqliteAspectStore, get_aspect_store
 from reviewnlp.serving import triage_router
 from reviewnlp.serving.app import app
 from reviewnlp.triage.jev_client import JevError
 from reviewnlp.triage.pipeline import TriagePipeline
+from reviewnlp.triage.routing import REVIEW_REASONS
 from reviewnlp.triage.schemas import TOPICS, TriageResponse
 
 DASHBOARD = Path(__file__).resolve().parents[1] / "src" / "reviewnlp" / "serving" / "dashboard.html"
@@ -115,6 +124,18 @@ def test_reviews_that_need_a_look_are_listed_with_their_reasons(store):
     assert (check["review_id"], check["reasons"]) == ("failed", ["complaint_check_failed"])
 
 
+def test_a_result_that_hit_the_token_budget_keeps_its_error_and_its_actions_and_is_listed_to_check(store):
+    generator = FakeGenerator(raw=GOOD_ACTIONS + " and then more", hit_token_budget=True)
+    save(store, "cut", generator=generator)
+    with store._connection() as connection:
+        row = connection.execute("SELECT status, actions_status, actions_error FROM triage_runs").fetchone()
+    assert tuple(row) == ("partial", "error", "hit_token_budget")
+    summary = store.triage_summary("hotel-a", 30)
+    assert [a["review_id"] for a in summary["actions"]] == ["cut"]
+    (check,) = summary["to_check"]
+    assert (check["review_id"], check["reasons"]) == ("cut", ["actions_failed"])
+
+
 def test_an_excerpt_that_is_not_in_the_review_is_refused_and_nothing_is_stored(store):
     bad = result_for()
     bad["actions"]["actions"][0]["excerpt"] = "words the guest never wrote"
@@ -153,16 +174,55 @@ def api(store, monkeypatch):
 
 def test_a_triage_request_is_stored_summarised_and_deletable(api):
     client, _ = api
-    body = {"hotel_id": "hotel-a", "text": REVIEW}
+    body = {"hotel_id": "hotel-a", "review_id": "booking-123", "text": REVIEW}
     response = client.post("/triage", json=body)
     assert response.status_code == 200 and response.json()["stored"] is True
-    review_id = response.json()["review_id"]
-    assert re.fullmatch(r"[0-9a-f]{32}", review_id)  # generated, as /absa does
+    assert (response.json()["review_id"], response.json()["not_stored_reason"]) == ("booking-123", None)
     summary = client.get("/hotels/hotel-a/triage/summary").json()
-    assert summary["reviews"] == 1 and summary["actions"][0]["review_id"] == review_id
+    assert summary["reviews"] == 1 and summary["actions"][0]["review_id"] == "booking-123"
     assert summary["validation_status"] == "unvalidated" and summary["complaints"]["bathroom"]["yes"] == 1
-    assert client.delete(f"/hotels/hotel-a/reviews/{review_id}", params={"source": "api"}).status_code == 204
+    assert client.delete("/hotels/hotel-a/reviews/booking-123", params={"source": "api"}).status_code == 204
     assert client.get("/hotels/hotel-a/triage/summary").json()["reviews"] == 0
+
+
+def test_a_request_without_a_review_id_is_answered_but_not_stored(api, store):
+    client, _ = api
+    for _ in range(2):  # the same review sent twice must not become two reviews
+        response = client.post("/triage", json={"hotel_id": "hotel-a", "text": REVIEW})
+        body = response.json()
+        assert response.status_code == 200 and body["sentiment"]["label"] == "negative" and body["actions"]["actions"]
+        assert (body["stored"], body["review_id"], body["not_stored_reason"]) == (False, None, "no_review_id")
+    assert client.get("/hotels/hotel-a/triage/summary").json()["reviews"] == 0
+    with store._connection() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM triage_runs").fetchone()[0] == 0
+
+
+def test_running_a_review_again_replaces_its_result_and_it_is_counted_once(api):
+    client, (_, jev, _) = api
+    body = {"hotel_id": "hotel-a", "review_id": "booking-123", "text": REVIEW}
+    assert client.post("/triage", json=body).json()["stored"] is True
+    first = client.get("/hotels/hotel-a/triage/summary").json()
+    assert first["reviews"] == 1 and first["complaints"]["bathroom"] == {"yes": 1, "no": 0, "unsure": 0}
+    assert len(first["actions"]) == 1
+    client.post("/triage", json=body)  # the same run again: nothing grows
+    again = client.get("/hotels/hotel-a/triage/summary").json()
+    assert (again["reviews"], again["complaints"], len(again["actions"])) == (
+        1, first["complaints"], 1)
+    jev.yes = ["cleanliness"]  # a later run with another answer replaces the earlier one entirely
+    client.post("/triage", json=body)
+    latest = client.get("/hotels/hotel-a/triage/summary").json()
+    assert latest["reviews"] == 1 and latest["complaints"]["bathroom"] == {"yes": 0, "no": 1, "unsure": 0}
+    assert latest["complaints"]["cleanliness"]["yes"] == 1 and len(latest["actions"]) == 1
+
+
+def test_the_same_review_id_under_another_source_or_hotel_is_another_review(api):
+    client, _ = api
+    body = {"hotel_id": "hotel-a", "review_id": "r-1", "text": REVIEW}
+    client.post("/triage", json=body)
+    client.post("/triage", json={**body, "source": "booking.com"})
+    client.post("/triage", json={**body, "hotel_id": "hotel-b"})
+    assert client.get("/hotels/hotel-a/triage/summary").json()["reviews"] == 2
+    assert client.get("/hotels/hotel-b/triage/summary").json()["reviews"] == 1
 
 
 def test_the_summary_enforces_hotel_access(api, monkeypatch):
@@ -182,7 +242,9 @@ def test_without_a_database_a_triage_request_still_works_and_the_summary_says_th
     try:
         client = TestClient(app)
         body = client.post("/triage", json={"hotel_id": "hotel-a", "text": REVIEW}).json()
-        assert body["stored"] is False and body["review_id"] is None
+        assert body["stored"] is False and body["review_id"] is None and body["not_stored_reason"] == "no_database"
+        with_id = client.post("/triage", json={"hotel_id": "hotel-a", "review_id": "r-1", "text": REVIEW}).json()
+        assert (with_id["stored"], with_id["review_id"], with_id["not_stored_reason"]) == (False, "r-1", "no_database")
         assert client.get("/hotels/hotel-a/triage/summary").status_code == 501
     finally:
         app.dependency_overrides.pop(get_aspect_store, None)
@@ -210,6 +272,17 @@ def test_the_dashboard_has_the_four_views_and_reads_the_summary():
         assert f"<h3>{title}</h3>" in page
     assert "/triage/summary?days=" in page and "request('/triage'" in page
     assert "δεν έχει επικυρωθεί" in page.lower() and "unvalidated" not in page
+
+
+def test_the_dashboard_names_every_reason_and_does_not_read_an_empty_result_as_nothing_to_do():
+    page = DASHBOARD.read_text(encoding="utf-8")
+    names = re.search(r"const reasonNames = \{(.*?)\};", page, re.S).group(1)
+    assert set(re.findall(r"(\w+):'", names)) == set(REVIEW_REASONS)
+    assert "Δεν υπάρχουν προτεινόμενα μέτρα." not in page and "Καμία κριτική δεν χρειάζεται έλεγχο." not in page
+    assert page.count("Αυτό δεν σημαίνει ότι δεν χρειάζεται ενέργεια") >= 2  # the table and the analysed review
+    assert "Αυτό δεν σημαίνει ότι δεν υπάρχουν παράπονα" in page  # complaints not looked for are not 'none'
+    assert "complaints_evaluated} από ${data.reviews}" in page  # the complaint counts say how many reviews they cover
+    assert "not_stored_reason" in page  # the analyse button says why a result was not kept
 
 
 def test_the_dashboards_script_writes_text_only_and_is_valid_javascript():

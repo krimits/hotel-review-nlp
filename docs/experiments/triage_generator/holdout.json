@@ -1,0 +1,129 @@
+{
+  "version": "generator-cases-v1",
+  "split": "holdout",
+  "provenance": "synthetic-authored",
+  "ground_truth_status": "none; independent human judgments pending",
+  "purpose": "reserved final check after freezing; not a representative real-review evaluation",
+  "reviews": [
+    {
+      "id": "holdout-01",
+      "author_scenario": "negative",
+      "text": "The toilet continued running all night and its flush handle stuck."
+    },
+    {
+      "id": "holdout-02",
+      "author_scenario": "negative",
+      "text": "There were greasy fingerprints on the mirror and hairs on the pillow at arrival."
+    },
+    {
+      "id": "holdout-03",
+      "author_scenario": "negative",
+      "text": "The room stayed very hot because the thermostat would not respond to changes."
+    },
+    {
+      "id": "holdout-04",
+      "author_scenario": "negative",
+      "text": "We saw insects moving around the breakfast cereal dispenser."
+    },
+    {
+      "id": "holdout-05",
+      "author_scenario": "negative",
+      "text": "Three calls about missing bed linen were unanswered before we gave up."
+    },
+    {
+      "id": "holdout-06",
+      "author_scenario": "negative",
+      "text": "The bedside power socket came loose from the wall when we unplugged our charger."
+    },
+    {
+      "id": "holdout-07",
+      "author_scenario": "negative",
+      "text": "The advertised evening shuttle did not arrive and the desk offered no explanation."
+    },
+    {
+      "id": "holdout-08",
+      "author_scenario": "negative",
+      "text": "Music from the banquet room carried into our bedroom well past bedtime."
+    },
+    {
+      "id": "holdout-09",
+      "author_scenario": "mixed",
+      "text": "The courtyard was beautiful, but the bathtub drain took almost an hour to empty."
+    },
+    {
+      "id": "holdout-10",
+      "author_scenario": "mixed",
+      "text": "The swimming pool was lovely; crumbs from previous guests remained under our bedside table."
+    },
+    {
+      "id": "holdout-11",
+      "author_scenario": "mixed",
+      "text": "Our welcome was warm, although the air conditioning switched itself off every few minutes."
+    },
+    {
+      "id": "holdout-12",
+      "author_scenario": "mixed",
+      "text": "We enjoyed the terrace, but flies covered the uncovered fruit at breakfast."
+    },
+    {
+      "id": "holdout-13",
+      "author_scenario": "mixed",
+      "text": "A great city location, yet nobody responded when we asked to fix the loose shower rail."
+    },
+    {
+      "id": "holdout-14",
+      "author_scenario": "mixed",
+      "text": "The room was spacious. The fire exit in our corridor was blocked by spare mattresses."
+    },
+    {
+      "id": "holdout-15",
+      "author_scenario": "mixed",
+      "text": "We appreciated the late checkout, but the lift buttons were too high for our wheelchair user."
+    },
+    {
+      "id": "holdout-16",
+      "author_scenario": "mixed",
+      "text": "Friendly staff and tasty coffee, though the breakfast labels did not identify allergens."
+    },
+    {
+      "id": "holdout-17",
+      "author_scenario": "positive",
+      "text": "Arrival took only a few minutes, and the staff explained every facility clearly."
+    },
+    {
+      "id": "holdout-18",
+      "author_scenario": "positive",
+      "text": "The room temperature stayed pleasant and the bathroom was thoroughly cleaned."
+    },
+    {
+      "id": "holdout-19",
+      "author_scenario": "positive",
+      "text": "Our requests for an extra blanket and a wakeup call were both handled promptly."
+    },
+    {
+      "id": "holdout-20",
+      "author_scenario": "positive",
+      "text": "A restful visit with an excellent evening meal and attentive service."
+    },
+    {
+      "id": "holdout-21",
+      "author_scenario": "resolved",
+      "text": "A dripping tap was repaired as soon as we reported it, and it stayed dry afterwards."
+    },
+    {
+      "id": "holdout-22",
+      "author_scenario": "conditional",
+      "text": "We worried about noise from the nearby road, but heard nothing with the windows closed."
+    },
+    {
+      "id": "holdout-23",
+      "author_scenario": "request",
+      "text": "A later gym opening time would suit guests who finish work after dinner."
+    },
+    {
+      "id": "holdout-24",
+      "author_scenario": "edge",
+      "text": "Nothing else to add."
+    }
+  ]
+}

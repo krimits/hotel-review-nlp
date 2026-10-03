@@ -1,0 +1,61 @@
+{
+ "note": "Invented by the author of the smoke test. No guest wrote these. expected_topics and expected_sentiment are the author's own reading, so that the output can be looked at quickly. They are not labels: nothing is scored on them, and no threshold or prompt may be tuned on them.",
+ "reviews": [
+  {
+   "id": "pos-1", "kind": "positive", "expected_sentiment": "positive", "expected_topics": [],
+   "text": "Lovely stay. The room was spotless, the bed was very comfortable and the breakfast had plenty of choice. The staff were friendly and helpful throughout. We would happily stay again."
+  },
+  {
+   "id": "pos-2", "kind": "positive", "expected_sentiment": "positive", "expected_topics": [],
+   "text": "Great location, five minutes from the station. The room was quiet, the shower was powerful and the air conditioning worked perfectly in the heat. Excellent value for money."
+  },
+  {
+   "id": "pos-3", "kind": "positive", "expected_sentiment": "positive", "expected_topics": [],
+   "text": "No problems at all. Check-in was quick, everything was clean and the staff answered every question straight away."
+  },
+  {
+   "id": "pos-4", "kind": "positive", "expected_sentiment": "positive", "expected_topics": [],
+   "text": "Perfect for a short city break. The bathroom was modern and spotless, and the reception team arranged a late checkout for us without any fuss."
+  },
+  {
+   "id": "neg-1", "kind": "negative", "expected_sentiment": "negative", "expected_topics": ["bathroom", "responsiveness"],
+   "text": "The shower was freezing cold every morning and the water pressure was almost non-existent. I told reception twice and nobody ever came to fix it. Very disappointing for the price."
+  },
+  {
+   "id": "neg-2", "kind": "negative", "expected_sentiment": "negative", "expected_topics": ["cleanliness", "responsiveness"],
+   "text": "The room smelled of smoke and there was dust on every shelf. The sheets had stains on them. We asked for the room to be cleaned again and nothing happened."
+  },
+  {
+   "id": "neg-3", "kind": "negative", "expected_sentiment": "negative", "expected_topics": ["air_conditioning"],
+   "text": "The air conditioning was broken and the room was unbearably hot. We could not sleep, and the fan made a horrible noise all night."
+  },
+  {
+   "id": "neg-4", "kind": "negative", "expected_sentiment": "negative", "expected_topics": ["pests", "responsiveness"],
+   "text": "We found a cockroach in the room on our second night. We reported it to reception and nobody ever came to deal with it."
+  },
+  {
+   "id": "mix-1", "kind": "mixed", "expected_sentiment": null, "expected_topics": ["air_conditioning", "responsiveness"],
+   "text": "The staff were lovely and breakfast was great, but the air conditioning in our room did not work and nobody came to fix it when we reported it."
+  },
+  {
+   "id": "mix-2", "kind": "mixed", "expected_sentiment": null, "expected_topics": ["bathroom"],
+   "text": "Beautiful hotel in a great location. Sadly the bathroom was tiny, the toilet kept running and the shower drain was blocked."
+  },
+  {
+   "id": "mix-3", "kind": "mixed", "expected_sentiment": null, "expected_topics": ["cleanliness", "responsiveness"],
+   "text": "Comfortable beds and a fantastic view. The room was not cleaned once during our four-night stay, and it took three phone calls before anyone brought fresh towels."
+  },
+  {
+   "id": "mix-4", "kind": "mixed", "expected_sentiment": null, "expected_topics": ["other"],
+   "text": "Friendly staff and a decent breakfast. The street outside was very noisy at night, which made it hard to sleep."
+  },
+  {
+   "id": "mix-5", "kind": "mixed", "expected_sentiment": null, "expected_topics": ["other"],
+   "text": "Nothing was wrong with the room, but I did not like the breakfast because there was no vegetarian choice and the coffee was cold."
+  },
+  {
+   "id": "edge-1", "kind": "edge", "expected_sentiment": null, "expected_topics": [],
+   "text": "Fine."
+  }
+ ]
+}

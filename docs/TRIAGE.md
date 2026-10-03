@@ -1,7 +1,8 @@
 # Triage: sentiment, complaint topics and suggested actions
 
 **Status: experimental and unvalidated.** Every response says `validation_status: "unvalidated"` and
-`thresholds_status: "provisional"`. The workflow runs, and its parts are tested with fakes. No stage has been
+`thresholds_status: "provisional"`. The workflow has completed a real-model smoke run, and its parts are tested
+with fakes. No stage has been
 measured on whole or mixed reviews, and the thresholds were chosen by hand.
 
 ## What it does
@@ -46,10 +47,10 @@ The Qwen weights load on the first review that needs them, not at start-up.
 - The key is never logged, never in a response, and never in the repository. A failed call is recorded by its
   kind only.
 - Redirects are not followed, so a key is not sent to another host.
-- With a database configured, a result is stored **without the review text.** The stored row holds a SHA-256 of
-  the text, the stage results, and the short excerpts the suggested actions quote (at most 400 characters
-  each), which are checked to be words of the review. Deleting a review through the existing delete endpoint
-  also deletes its triage rows.
+- With a database configured and a `review_id` in the request, a result is stored **without the review text.**
+  The stored row holds a SHA-256 of the text, the stage results, and the short excerpts the suggested actions
+  quote (at most 400 characters each), which are checked to be words of the review. Deleting a review through
+  the existing delete endpoint also deletes its triage rows.
 
 ## Routing
 
@@ -61,13 +62,33 @@ Qwen is asked for actions when any of these holds. The rules are in
 | `negative_sentiment` | The sentiment label is negative. |
 | `uncertain_sentiment` | Its probability is below 0.80. Also flags the review for a person. |
 | `complaint_detected` | Jev answered `1` for any topic. A positive review with a complaint is asked for. |
-| `uncertain_complaint` | Jev answered `unsure`, or answered `0` with a probability of `1` in 0.20 to 0.50. Also flags the review for a person. |
+| `uncertain_complaint` | Jev answered `unsure`; or answered `0` with a probability of `1` in 0.20 to 0.50; or answered `1` with a probability of `1` below 0.50, that is, it won without being sure. Also flags the review for a person. |
 
-If the complaint stage failed, a confidently positive review cannot be told from a positive review with a
-complaint, so the review is flagged (`complaint_check_failed`).
+Jev's answer is the label with the most probability, which is not the same as being sure of it: a `1` can win with
+0.36 against 0.34 for `0`. Only the probability of `1` is kept, so a `1` that won narrowly with 0.50 or more
+(0.52 against 0.47) is not flagged.
 
 **The thresholds are provisional.** 0.80 and the band 0.20–0.50 are not the result of any measurement. The
 evaluation below is where they get chosen.
+
+## When a person is asked to look
+
+The response says `needs_review`, with the reasons, when any of these holds. The dashboard lists these reviews
+under «Χρειάζεται έλεγχος».
+
+| Reason | When |
+|---|---|
+| `uncertain_sentiment` | As above. |
+| `uncertain_complaint` | As above. |
+| `complaint_check_failed` | The complaint stage failed. A confidently positive review cannot then be told from a positive review with a complaint. |
+| `actions_failed` | The suggestion stage failed, or its output was not JSON in the asked-for form, or it ran out of tokens. The result is partial. A generation that ran out of tokens is an error **even when what it wrote is valid JSON**: it did not finish, so it is not the model's whole answer. The actions in it that passed every check are kept and shown, with the flag. |
+| `actions_ungrounded` | Every action it gave was rejected: not words of the review, or a department off the list. The result is partial. |
+| `no_actions_suggested` | It was asked for actions and gave a valid empty list. That is an answer and not a failure, so the result is complete. But a small model's empty list does not show that nothing needs doing. |
+
+A stage that is **switched off** is not a reason. Nothing was looked for, so nothing is flagged, and the result
+says `disabled`. That is not the same as «no complaints»: with Jev off, a positive review with a complaint in it
+passes without a flag. The dashboard says that the check did not run, and that this does not mean there were no
+complaints.
 
 ## The questions are not the benchmark's
 
@@ -93,26 +114,37 @@ The model is small, so its output is checked in code before it is shown:
   `food_and_beverage`, `management`, `other`), or the action is dropped, not coerced to `other`;
 - at most five actions, no duplicates; `to_confirm` lists what the review does not state.
 
-The response also says how many entries were dropped and whether the token budget was hit.
+The response also says how many entries were dropped and whether the token budget was hit (`error:
+hit_token_budget`, whatever the output held).
 
 **Code cannot check whether a suggestion is useful or right.** An action can quote the review and still be a bad
 measure. Only people reading them can say. Nothing here is a claim about quality.
 
 ## Storage and the dashboard
 
-With `REVIEWNLP_DB_PATH` set, `POST /triage` stores the result under the hotel and the review id, and
-`GET /hotels/{hotel_id}/triage/summary?days=30` reads it back. The dashboard (`/dashboard`) has four views on it:
+With `REVIEWNLP_DB_PATH` set, `POST /triage` stores the result when the request has a `review_id`, and
+`GET /hotels/{hotel_id}/triage/summary?days=30` reads it back.
+
+**One result per review.** A result is stored under the hotel, the source (`api` when none is given) and the
+`review_id`. Running the same review again replaces its earlier result, with its complaints and actions, so the
+summary counts distinct reviews, each by its latest run. The same id under another source, or in another hotel,
+is another review. **Without a `review_id` nothing is stored:** the response has `stored: false` and
+`not_stored_reason: "no_review_id"` (or `"no_database"`), because a generated id would make every run of the
+same review a new review in the counts. (`/absa` still generates an id when none is given.)
+
+The dashboard (`/dashboard`) has four views on the summary:
 
 - **Συνολικό συναίσθημα**: the number of reviews per sentiment label;
-- **Εντοπισμένα παράπονα**: per topic, how many reviews Jev answered yes, no and unsure (and a note when the
-  complaint stage did not run);
+- **Εντοπισμένα παράπονα**: per topic, how many reviews Jev answered yes, no and unsure. When the complaint stage
+  did not run for some of the reviews, a row says how many of them the counts cover. When it ran for none, the
+  view says so, and that this does not mean there were no complaints;
 - **Προτεινόμενα μέτρα**: each suggested action with its problem, the quoted excerpt, the measure, the
-  department and what to confirm;
-- **Χρειάζεται έλεγχος**: reviews a person should look at, with the reasons.
+  department and what to confirm. An empty table says that this does not mean nothing needs doing;
+- **Χρειάζεται έλεγχος**: the reviews flagged above, with the reasons. An empty table means none was flagged.
 
-The dashboard also has a button to run triage on a pasted review. The tables are additive (`triage_runs`,
-`triage_complaints`, `triage_actions`), so an existing database keeps working. The section carries a notice that
-the flow is unvalidated.
+The dashboard also has a button to run triage on a pasted review, which says why a result was not stored. The
+tables are additive (`triage_runs`, `triage_complaints`, `triage_actions`), so an existing database keeps working.
+The section carries a notice that the flow is unvalidated.
 
 ## What has not been done
 
@@ -126,11 +158,21 @@ the flow is unvalidated.
      [confirmation](annotation/confirmation_protocol.md) did: the endpoints, the counts, the intervals;
   4. a person's judgement of the suggested actions: is the problem real, is the measure sensible, is the
      department right. That is the only evidence on their value.
-- **Real runs.** DistilBERT, Jev and Qwen have not been run together here: this environment has no weights, no
-  keys and no access to the model hub. The tests use fakes for all three, and the dashboard was checked in a real
-  browser against those fakes.
-- **Sentiment on mixed reviews.** The sentiment model was trained to say positive or negative. A review that is
-  both has no right answer from it, which is why the complaint stage exists.
+- **Quality after real execution.** The
+  [3 October real-model smoke run](experiments/triage_smoke/20261003T071410Z_18020ced/README.md)
+  completed both arms on 14 invented reviews. Qwen wrote text for 6 cases without Jev and 9 with Jev;
+  neither arm produced an accepted action. Execution works, but useful measures remain unvalidated.
+  The next step is a [controlled generator experiment](experiments/triage_generator/README.md)
+  on new development cases, followed by human review and a frozen reserved evaluation. The existing tests
+  use fakes, while the Jev client is also checked against 600 recorded provider answers and the accepted
+  request shape. The application dashboard has been checked against fakes, not this real run.
+- **Sentiment on mixed reviews.** The sentiment model gives one binary label. That label does not describe the
+  individual complaints in a review that praises some things and criticises others, and the model has not been
+  evaluated on mixed reviews. Under a clear labelling rule a mixed review could have an overall sentiment, but
+  there is no such rule and no such labels yet. That is why the complaint stage exists.
+- **Cost.** The time of each stage is recorded. Jev's tokens and cost are not, because the client keeps neither.
+  The new generator experiment records attempts and provider-reported usage/cost, with missing cost marked
+  unavailable. Production triage still lacks that accounting. Comparing the flow with and without Jev needs it.
 - **Calibration.** The probability Jev gives for `1` is not shown to be calibrated.
 
 Until the evaluation is done, the output is for a person to read, not to act on.

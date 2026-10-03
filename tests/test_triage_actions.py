@@ -175,8 +175,21 @@ def test_the_generator_loads_once_greedily_and_returns_the_text_and_whether_it_w
     assert loads == [1] and len(model.calls) == 2 and len(tokenizer.prompts) == 2
     call = model.calls[0]
     assert call["do_sample"] is False and call["max_new_tokens"] == qg.MAX_NEW_TOKENS
+    assert set(call) == {"input_ids", "attention_mask", "max_new_tokens", "do_sample", "pad_token_id", "eos_token_id"}
     assert (first.model, first.prompt_version, first.hit_token_budget) == ("fake/qwen", "actions-v1", False)
     assert parse_actions(first.raw, REVIEW).actions and second.raw == first.raw
+
+
+def test_a_tokenizer_that_returns_more_than_the_model_takes_does_not_break_the_call():
+    gen, tokenizer, model, _ = generator(raw(entry()))
+    plain = tokenizer.__class__.__call__
+    tokenizer.__class__.__call__ = lambda self, prompt, return_tensors="pt": {
+        **plain(self, prompt, return_tensors), "token_type_ids": torch.tensor([[0, 0, 0]])}
+    try:
+        gen.generate(REVIEW, ActionSignals("negative", 0.9))
+    finally:
+        tokenizer.__class__.__call__ = plain
+    assert "token_type_ids" not in model.calls[0]
 
 
 def test_a_generation_that_never_emitted_the_end_token_is_marked_as_cut_off():
@@ -244,3 +257,22 @@ def test_a_model_that_generates_a_word_has_no_distribution():
     wrapper = ModelWrapper("qwen_qlora", "x")
     wrapper._loaded = True
     assert wrapper.distribution_batch(["a", "b"]) == [None, None]
+
+
+def test_the_model_is_loaded_in_bfloat16_only_on_a_gpu_that_has_it():
+    from types import SimpleNamespace
+
+    def fake_torch(capability):
+        return SimpleNamespace(bfloat16="bf16", float32="fp32",
+                               cuda=SimpleNamespace(get_device_capability=lambda device: capability))
+
+    assert qg._dtype_for(fake_torch((8, 0)), "cuda") == "bf16"      # A100, L4, H100
+    assert qg._dtype_for(fake_torch((9, 0)), "cuda:0") == "bf16"
+    assert qg._dtype_for(fake_torch((7, 5)), "cuda") == "fp32"      # a Colab T4: bfloat16 would be emulated
+    assert qg._dtype_for(fake_torch((8, 0)), "cpu") == "fp32"       # the capability is not even asked on a CPU
+
+    def refuse(device):
+        raise AssertionError("asked for a GPU's capability on a CPU")
+
+    cpu = SimpleNamespace(bfloat16="bf16", float32="fp32", cuda=SimpleNamespace(get_device_capability=refuse))
+    assert qg._dtype_for(cpu, "cpu") == "fp32"

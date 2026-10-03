@@ -9,7 +9,6 @@ from __future__ import annotations
 import importlib
 import logging
 import threading
-import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -56,11 +55,14 @@ def triage_review(
 
     Only the sentiment stage is required. If Jev or Qwen is off, the response says so; if one fails, the response
     is partial and names the kind of failure. Every response says `validation_status: unvalidated`: no stage has
-    been measured on whole or mixed reviews. With a database configured the result is stored, without the review
-    text, and `/hotels/{hotel_id}/triage/summary` reads it back.
+    been measured on whole or mixed reviews. With a database configured and a `review_id` given, the result is
+    stored without the review text, one per hotel, source and review id: running the review again replaces it, so
+    it is counted once. `/hotels/{hotel_id}/triage/summary` reads the stored results back.
     """
     authorize_hotel(request.hotel_id, x_api_key)
-    review_id = request.review_id or (uuid.uuid4().hex if store else None)
+    # Stored under the review's own id only. A generated id would make every run of the same review a new review
+    # in the counts, so without an id the result is returned and not kept.
+    stored = store is not None and request.review_id is not None
     context = hotel_context(store, request.hotel_id) if store and pipeline.generator is not None else None
     try:
         result = pipeline.run(request.text, hotel_context=context)
@@ -68,11 +70,12 @@ def triage_review(
         log.exception("triage inference error")
         raise HTTPException(status_code=500, detail="inference failed") from exc
     response = TriageResponse(
-        hotel_id=request.hotel_id, review_id=review_id, stored=store is not None, status=result.status,
-        sentiment=result.sentiment, complaints=result.complaints, routing=result.routing,
+        hotel_id=request.hotel_id, review_id=request.review_id, stored=stored,
+        not_stored_reason=None if stored else "no_database" if store is None else "no_review_id",
+        status=result.status, sentiment=result.sentiment, complaints=result.complaints, routing=result.routing,
         actions=result.actions, timings=result.timings)
-    if store:
-        store.save_triage(hotel_id=request.hotel_id, review_id=review_id, source=request.source or "api",
+    if stored:
+        store.save_triage(hotel_id=request.hotel_id, review_id=request.review_id, source=request.source or "api",
                           text=request.text, language=request.language, review_date=request.review_date,
                           result=response.model_dump(mode="json"))
     return response
