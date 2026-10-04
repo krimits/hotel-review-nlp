@@ -61,6 +61,14 @@ or Space publication. Real-weight execution and quality assessment are pending.
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.
 
+Notebook 18 prepares, checks with real weights, and publishes the **experimental G snapshot** to
+the separate `krimits/hotel-triage-demo` on ZeroGPU. It uses an isolated environment, a pinned source
+commit and SHA-256 allowlist. Colab GPU and an `HF_TOKEN` write Secret are needed for publication:
+[18_publish_triage_space_colab.ipynb](18_publish_triage_space_colab.ipynb)
+([publication procedure](../docs/TRIAGE_SPACE_DEPLOYMENT.md)). Jev stays off, the reserved set stays closed,
+and a functional check does not select G or establish hotel-use reliability. Upload and live verification
+are recorded separately; startup failure is not described as a working demo.
+
 `data/raw/booking_reviews_515k.csv` is not in the repository — see
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
