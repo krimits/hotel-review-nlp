@@ -16,6 +16,7 @@ from triage_fakes import POSITIVE, FakeGenerator, FakeWrapper
 from reviewnlp.triage.demo_service import DISTILBERT_REVISION, DemoService, PinnedSentiment
 from reviewnlp.triage.evidence_generator import EvidenceFirstGenerator
 from reviewnlp.triage.jev_client import JevConfig
+from reviewnlp.triage.space_runtime import SpaceRuntime, WorkerGenerator, run_worker
 
 ROOT = Path(__file__).resolve().parents[1]
 TEXT = "The cupboard was dusty."
@@ -71,6 +72,76 @@ def test_failed_jev_retains_measures_and_reports_partial_with_unknown_cost():
     assert secret not in json.dumps(result)
 
 
+@pytest.mark.parametrize("stage,error,expected", [
+    ("issues", '{"issues":[', "invalid_json"),
+    ("issues", '{"issues":[{"extra":"SECRET"}]}', "invalid_evidence_issue_schema"),
+    ("measures", "SECRET broken JSON", "invalid_json"),
+])
+def test_failures_name_the_stage_without_raw_output_or_exception_text(stage, error, expected):
+    demo, extractor = service(raw=error if stage == "measures" else None)
+    if stage == "issues":
+        extractor.raw = error
+    result = demo.analyze(TEXT)
+    assert result["stage_failure"] == {"stage": stage, "status": "error", "error": expected}
+    assert result["status"] == "partial"
+    assert "SECRET" not in json.dumps(result) and "raw" not in json.dumps(result)
+    assert demo.generator.last_stages == [] and demo.generator.workflow_error is None
+
+
+def test_worker_returns_issue_assessments_even_when_its_local_state_is_cleared():
+    original, _ = service()
+    def worker(review, signals):
+        return json.loads(json.dumps(run_worker(original.generator, review, signals)))
+    adapter = WorkerGenerator(worker)
+    demo = DemoService(FakeWrapper(POSITIVE), adapter)
+    result = demo.analyze(TEXT)
+    assert original.generator.issues == [] and adapter.issues == []
+    assert result["issue_assessments"][0]["department"] == "housekeeping"
+    assert result["actions"]["actions"][0]["measure"] == "Clean the cupboard."
+    assert {item["stage"] for item in result["stage_reports"]} == {"sentiment", "jev", "issues", "measures"}
+    assert not result["stage_failure"]
+
+
+def test_gpu_timeout_becomes_a_visible_partial_response_without_error_details():
+    def fail(*args):
+        raise RuntimeError("SECRET provider exception")
+
+    demo = DemoService(FakeWrapper(POSITIVE), WorkerGenerator(fail))
+    result = demo.analyze(TEXT)
+    assert result["stage_failure"]["stage"] == "qwen_runtime"
+    assert result["stage_failure"]["error"] == "gpu_unavailable_or_timeout"
+    assert result["status"] == "partial" and "SECRET" not in json.dumps(result)
+
+
+def test_worker_generation_exception_names_the_failing_substage_and_retains_issues():
+    original, _ = service()
+    original.generator.action_factory = lambda pending: FakeGenerator(error=RuntimeError("SECRET"))
+    demo = DemoService(FakeWrapper(POSITIVE), WorkerGenerator(
+        lambda review, signals: run_worker(original.generator, review, signals)))
+    result = demo.analyze(TEXT)
+    assert result["stage_failure"] == {"stage": "measures", "status": "error", "error": "generation_failed"}
+    assert result["issue_assessments"] and "SECRET" not in json.dumps(result)
+
+
+def test_startup_loading_failure_is_recorded_once_without_model_error_text():
+    demo, extractor = service()
+    wrapper = SimpleNamespace(_models=lambda: None)
+    loads = []
+
+    def load():
+        loads.append(1)
+        raise RuntimeError("SECRET model path")
+
+    extractor._models = load
+    runtime = SpaceRuntime(lambda *args: None, wrapper=wrapper, generator=demo.generator)
+    runtime.preload()
+    runtime.preload()
+    assert len(loads) == 1
+    assert runtime.information()["startup_failure"] == {"stage": "qwen_load", "status": "error", "error": "model_load_failed"}
+    assert not runtime.information()["ready"]
+    assert "SECRET" not in json.dumps(runtime.information())
+
+
 def test_real_gradio_build_has_endpoints_and_displays_uncertainty_empty_and_failure_separately():
     app = load_script("triage_space_app", ROOT / "spaces/hotel-triage-demo/app.py")
     assert {"analyze", "model_info"} <= {item.get("api_name") for item in app.demo.config["dependencies"]}
@@ -117,6 +188,8 @@ def test_space_package_contains_only_allowed_sources_and_imports_without_the_ori
     package = tmp_path / "package"
     manifest = script.build_package(ROOT, package, source_commit="a" * 40)
     assert manifest["hub_writes"] is False
+    assert manifest["runtime_snapshot"]["candidate"] == "G"
+    assert manifest["selection_status"] == "experimental_not_selected_not_promoted"
     for name, expected in manifest["files"].items():
         assert hashlib.sha256((package / name).read_bytes()).hexdigest() == expected
     assert not any("data/" in name or "runs/" in name or "token" in name for name in manifest["files"])

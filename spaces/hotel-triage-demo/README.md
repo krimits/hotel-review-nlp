@@ -5,7 +5,7 @@ colorFrom: blue
 colorTo: green
 sdk: gradio
 sdk_version: 5.49.1
-python_version: "3.11"
+python_version: "3.12.12"
 app_file: app.py
 license: mit
 models:
@@ -17,7 +17,13 @@ models:
 
 Greek UI, English input. One review (3–4,000 characters) per request. DistilBERT gives overall sentiment;
 optional Jev supplies complaint hints; Qwen extracts evidence and then proposes measures for reported
-problems. **Quality evaluation is pending.** This workflow has no validated hotel-action accuracy.
+problems. **Experimental snapshot of candidate G — not selected, not promoted for production.**
+Independent quality evaluation is pending. This workflow has no validated hotel-action accuracy.
+
+Notebook 17 provides development evidence from 24 authored synthetic cases. It found missed problems,
+invented issues, wrong departments and extraction failures. Development ratings are not production
+accuracy, and this Space does not use them as a headline score. No reserved evaluation was opened for
+this deployment. The comparison's historical decision record remains unchanged.
 
 Every review reaches issue extraction, even with confidently positive sentiment. This is a diagnostic
 demo policy, separate from the existing API's default routing. Uncertain classifications, unsuccessful
@@ -36,8 +42,18 @@ Suggested measures require a person's confirmation; they do not create work orde
 - Literal quote presence and evidence consistency checks do not establish semantic truth. A copied
   workaround can still be misread as resolution. Human review is necessary.
 - No constrained decoding or new training. No Space latency benchmark; elapsed time is per request.
-- GPU is used by Qwen when available; CPU is supported with no response-time promise. No automatic
-  paid-hardware request. The existing loader uses float32 on T4/CPU and bfloat16 on supported GPUs.
+- Target hardware: ZeroGPU, with a 60-second maximum GPU function duration. Models load during startup;
+  both Qwen calls run inside one GPU function. DistilBERT and optional Jev run outside GPU allocation.
+- ZeroGPU uses bfloat16; local CPU/T4 uses float32. This differs from the T4 development experiment.
+  Deterministic decoding is not a promise of identical outputs across precision or hardware changes.
+- Python 3.12.12, torch 2.11.0, Gradio 5.49.1 and model-library pins are recorded in this package.
+  `spaces` is managed by the HF SDK image; its actual version is reported at runtime.
+- No automatic paid-hardware request or GPU billing estimate. Per-request time includes waiting inside
+  the analysis handler, including GPU acquisition; Gradio queue waiting before the handler is excluded.
+- Literal quote or JSON failure names the failed extraction/measures stage. A GPU failure is visible;
+  an empty suggestion is not interpreted as absence of a complaint.
+- Known limitations: UNCERTAIN issues receive no measures, at most two measures may leave more issues
+  uncovered, and literal evidence can still be misinterpreted. Every displayed issue needs review.
 
 ## Run locally
 
@@ -53,7 +69,8 @@ python spaces/hotel-triage-demo/app.py
 The checkbox is off by default. To enable it, configure Space Variables:
 `REVIEWNLP_JEV_ENABLED=1`, `REVIEWNLP_JEV_ROUTE=openrouter`, and Secret `OPENROUTER_API_KEY`.
 There is no key input in the UI. Selecting Jev sends the review to that provider. Provider-reported usage
-and cost are returned for this request only; missing cost is unknown. The Jev route can resolve a newer
+and cost are returned for this request only; missing cost is unknown, incomplete sums are marked partial,
+and no currency is inferred from `usage.cost`. The Jev route can resolve a newer
 provider model and is recorded per request rather than claimed immutable. There is no review database.
 
 ## Build a reviewable Space package
@@ -66,5 +83,9 @@ python scripts/prepare_triage_space.py --output runs/hotel-triage-space
 ```
 
 This copies an explicit module allowlist and adds SHA-256 manifest/provenance. It performs no Hub writes.
-Review this package and complete the notebook 17 comparison before selecting the final generator.
+The manifest records model revisions, prompt fingerprint, category mapping, Jev questions, routing,
+decoding, limits and precision policy. The `/model_info` endpoint reports this snapshot and actual runtime.
+No human annotations, evaluation key, review datasets, run outputs or credentials are uploaded.
+Review the package and run `scripts/check_triage_space.py` with real weights before deployment.
+An experimental deployment does not select a final generator or establish hotel-use reliability.
 The existing ABSA demo and published sentiment Space are separate applications and are not replaced.
