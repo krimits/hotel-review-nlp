@@ -109,6 +109,8 @@ has not been measured.
 The model is small, so its output is checked in code before it is shown:
 
 - it must be JSON in the asked-for form; a malformed entry is dropped, not repaired;
+- repeated keys in a decoded JSON object make the output invalid (`invalid_output`), rather than
+  silently replacing an earlier value; the review is flagged and the result is partial;
 - the `excerpt` must be words of the review (whitespace and case aside), or the action is dropped;
 - the `department` must be on the closed list (`reception`, `housekeeping`, `maintenance`,
   `food_and_beverage`, `management`, `other`), or the action is dropped, not coerced to `other`;

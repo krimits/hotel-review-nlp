@@ -13,6 +13,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from reviewnlp.triage.evidence_generator import EvidenceFirstGenerator, messages_evidence_measures
 from reviewnlp.triage.generator_experiment import (
     CANDIDATES,
     DEFAULT_CANDIDATES,
@@ -33,6 +34,8 @@ from reviewnlp.triage.pipeline import TriagePipeline
 from reviewnlp.triage.questions import QUESTIONS_SHA256, QUESTIONS_VERSION
 from reviewnlp.triage.qwen_generator import MAX_NEW_TOKENS, ActionSignals, QwenActionGenerator
 from reviewnlp.triage.routing import RoutingThresholds
+from reviewnlp.triage.staged_generator import TwoStageGenerator, messages_measures
+from reviewnlp.triage.workflow_review import export_coverage_review
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs" / "experiments" / "triage_generator"
@@ -185,6 +188,16 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
             generator = QwenActionGenerator(config["model"], device="cuda", revision=config["revision"],
                                             message_builder=builder(name),
                                             prompt_version=config["prompt"] + ("" if config["sentiment_metadata"] else "-no-sentiment"))
+            if name in {"F", "G"}:
+                measure_builder = messages_measures if name == "F" else messages_evidence_measures
+
+                def action_factory(pending, config=config, measure_builder=measure_builder):
+                    return QwenActionGenerator(config["model"], device="cuda", revision=config["revision"],
+                                               message_builder=lambda review, signals: measure_builder(review, pending),
+                                               prompt_version=config["prompt"] + ":measures")
+
+                generator_type = TwoStageGenerator if name == "F" else EvidenceFirstGenerator
+                generator = generator_type(generator, action_factory)
             if bundle is not None:
                 generator._bundle = bundle  # experiment shares identical weights across prompt variants
             start = time.perf_counter()
@@ -223,10 +236,13 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
     summaries = {name: structural_summary([row for row in records if row["candidate"] == name]) for name in configs}
     complete = all(count["reviews_attempted"] == len(dataset["reviews"]) and not count["generation_errors"]
                    for count in summaries.values())
+    annotation_seed = 20261017 if "G" in configs else (20261016 if "F" in configs else 20261003)
     if records:
-        export_annotation(output, dataset["reviews"], records)
+        export_annotation(output, dataset["reviews"], records, shuffle_seed=annotation_seed)
+        if "G" in configs:
+            export_coverage_review(output, dataset["reviews"], records)
     files = {name: digest_bytes((output / name).read_bytes()) for name in
-             ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json", "reference_run.json")
+             ("upstream.json", "results.jsonl", "human_review.csv", "annotation_key.json", "reference_run.json", "coverage_review.csv")
              if (output / name).exists()}
     info = {"split": split, "dataset_sha256": dataset_sha, "reviews": len(dataset["reviews"]),
             "candidates": configs, "upstream_config": upstream_config(),
@@ -234,9 +250,13 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
             "upstream_reused": bool(reference),
             "jev_model_resolved": jev_model,
             "warmups": warmups, "summary": summaries, "execution_complete": complete,
-            "quality_evaluated": False, "files": files, "python": platform.python_version(),
+            "quality_evaluated": False, "annotation_shuffle_seed": annotation_seed,
+            "files": files, "python": platform.python_version(),
             "torch": torch.__version__, "transformers": transformers.__version__,
             "gpu": torch.cuda.get_device_name(0), "max_new_tokens": MAX_NEW_TOKENS, "do_sample": False,
+            "generation_budget": {name: {"max_new_tokens_per_call": MAX_NEW_TOKENS,
+                                          "max_calls_per_review": config.get("max_generation_calls", 1)}
+                                  for name, config in configs.items()},
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "finished_utc": datetime.now(timezone.utc).isoformat()}
     if reference:
@@ -259,6 +279,19 @@ def compare(output, split, selection=None, *, candidates=DEFAULT_CANDIDATES, ref
                   "Case latency excludes warmup; local GPU billing is unknown.",
                   "API cost: " + json.dumps(cache["api_cost"])])
     lines.append("Whole JSON requires one complete JSON object without duplicate keys; it is not semantic validation.")
+    if "F" in configs:
+        count = summaries["F"]
+        lines.extend(["F is a workflow experiment: up to two 400-token calls, not the same inference budget as C.",
+                      f"F issue calls: {count['issue_calls']}; measure calls: {count['measure_calls']}; "
+                      f"workflow failures: {count['workflow_failures']}.",
+                      "F raw is assembled from issue IDs; actual model text and timings are in stages[].",
+                      "Duplicate JSON keys are rejected by the current parser; historical sheets are not reinterpreted."])
+    if "G" in configs:
+        lines.extend(["G requests separate reported, hypothetical and resolution evidence, with UNCERTAIN retained.",
+                      "F and G each have at most two 400-token calls. Actual call counts and latency can differ.",
+                      "Exact quote checks verify presence, not semantic support. No constrained decoding is used.",
+                      "Fill coverage_review.csv for missed problems, false exclusions, inventions and action quality.",
+                      "No candidate was promoted or deployed by this comparison."])
     if reference:
         lines.extend(["Reused upstream: no new Jev calls. The upstream API cost above belongs to the reference run.",
                       "Current API attempts: 0. Local GPU billing remains unknown."])

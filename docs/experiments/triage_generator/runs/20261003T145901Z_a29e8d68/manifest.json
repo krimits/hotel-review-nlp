@@ -1,0 +1,15 @@
+{
+  "source_zip": "generator_staged_dev_20261003T145901Z_a29e8d68.zip",
+  "zip_sha256": "cd72112990aaaa205aa39cad25cca8db6b85a899c19221ecb6fa690e372b022d",
+  "files": {
+    "annotation_key.json": "86e7a79b5b01d3acba4d2d57a78f6b299d8e7e385e3c9afad56f47f3c2e7fbda",
+    "execution.txt": "1e6a6b9d7cf66b6761ef13b63bf4f78d0bdb0c9a055bd7651471a85a77246c16",
+    "human_review.csv": "2d0a2556574cbe9429698b8d6a3ce2f3544f83e81918346b7b0f92edab00150b",
+    "notebook_checks.json": "468dd5afa2a3765b8a9f0a14670aa5802cb5b7f5d3624ab304b0dee5e56d23dc",
+    "reference_run.json": "f22c0dcd6da69e27aa112497ae8305d4fac5d5e2bc79c7e8d0c42fbca358640e",
+    "results.jsonl": "01201ee61964d9de6ead8798bd2d7f922873f5042c431daad407d7bb58079f5a",
+    "run.json": "78904f6b466fa5e6ea03a1d0de5db330059194e82f5b2e5a4aa2fea8aac66534",
+    "summary.md": "28c76004d444134beee35a0e5822c5d600a641df6bae6359585dd15e3390edad",
+    "upstream.json": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235"
+  }
+}

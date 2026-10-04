@@ -1,0 +1,128 @@
+{
+  "split": "dev",
+  "dataset_sha256": "69718a4170ca151fe880455f17b243b79bc7eaa04ce4a9eea8048ef8f83ec6f8",
+  "reviews": 24,
+  "candidates": {
+    "C": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "prompt": "actions-v2",
+      "sentiment_metadata": true,
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "prompt_sha256": "00479231af814c9ded4f8d934d908952e9e04c2ada04eea1b4375096fce3f3d5"
+    },
+    "F": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "prompt": "actions-v4-staged",
+      "sentiment_metadata": true,
+      "max_generation_calls": 2,
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "prompt_sha256": "585e2423450139bf8df0089868a6a824bb73ae729b336bcda91ce733ac7091dd"
+    }
+  },
+  "upstream_config": {
+    "distilbert_repo": "krimits/distilbert-hotel-reviews",
+    "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+    "route": "openrouter",
+    "jev_model_requested": "jev-latest",
+    "questions_version": "full-review-v1",
+    "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42",
+    "thresholds": {
+      "sentiment_confidence_min": 0.8,
+      "doubtful_band": [
+        0.2,
+        0.5
+      ]
+    }
+  },
+  "api_cost": {
+    "attempts": 0,
+    "attempts_with_reported_cost": 0,
+    "reported_cost_sum": null,
+    "complete_cost_available": false,
+    "cost_unit": "provider usage.cost; no currency inferred",
+    "local_gpu_charge": null
+  },
+  "upstream_reused": true,
+  "jev_model_resolved": "typesafe/jev-1.13-20260917",
+  "warmups": {
+    "C": {
+      "load_and_warmup_seconds": 49.911
+    },
+    "F": {
+      "load_and_warmup_seconds": 0.453
+    }
+  },
+  "summary": {
+    "C": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 21,
+      "full_json_valid": 17,
+      "outputs_with_duplicate_keys": 0,
+      "reviews_with_accepted_actions": 16,
+      "accepted_actions": 22,
+      "empty_valid_answers": 5,
+      "workflow_failures": 3,
+      "issue_calls": 0,
+      "measure_calls": 0,
+      "human_quality": null
+    },
+    "F": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 15,
+      "full_json_valid": 15,
+      "outputs_with_duplicate_keys": 0,
+      "reviews_with_accepted_actions": 0,
+      "accepted_actions": 0,
+      "empty_valid_answers": 15,
+      "workflow_failures": 9,
+      "issue_calls": 24,
+      "measure_calls": 5,
+      "human_quality": null
+    }
+  },
+  "execution_complete": true,
+  "quality_evaluated": false,
+  "annotation_shuffle_seed": 20261016,
+  "files": {
+    "upstream.json": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235",
+    "results.jsonl": "01201ee61964d9de6ead8798bd2d7f922873f5042c431daad407d7bb58079f5a",
+    "human_review.csv": "2d0a2556574cbe9429698b8d6a3ce2f3544f83e81918346b7b0f92edab00150b",
+    "annotation_key.json": "86e7a79b5b01d3acba4d2d57a78f6b299d8e7e385e3c9afad56f47f3c2e7fbda",
+    "reference_run.json": "f22c0dcd6da69e27aa112497ae8305d4fac5d5e2bc79c7e8d0c42fbca358640e"
+  },
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "gpu": "Tesla T4",
+  "max_new_tokens": 400,
+  "do_sample": false,
+  "generation_budget": {
+    "C": {
+      "max_new_tokens_per_call": 400,
+      "max_calls_per_review": 1
+    },
+    "F": {
+      "max_new_tokens_per_call": 400,
+      "max_calls_per_review": 2
+    }
+  },
+  "source_commit": "7aa6bf14afb419add1953afa256ccc2a18a9c3f1",
+  "finished_utc": "2026-10-03T15:02:18.610929+00:00",
+  "reference_run": {
+    "run_sha256": "f22c0dcd6da69e27aa112497ae8305d4fac5d5e2bc79c7e8d0c42fbca358640e",
+    "upstream_sha256": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235",
+    "source_commit": "0057baaa0d6d2d4941cb1e97a8f8e43e9e6cf747",
+    "historical_api_cost": {
+      "attempts": 24,
+      "attempts_with_reported_cost": 24,
+      "reported_cost_sum": 0.002526804,
+      "complete_cost_available": true,
+      "cost_unit": "provider usage.cost; no currency inferred",
+      "local_gpu_charge": null
+    }
+  }
+}

@@ -1,0 +1,242 @@
+[
+  {
+    "blind_id": "output-0001",
+    "candidate": "C",
+    "review_id": "dev-03"
+  },
+  {
+    "blind_id": "output-0002",
+    "candidate": "F",
+    "review_id": "dev-21"
+  },
+  {
+    "blind_id": "output-0003",
+    "candidate": "F",
+    "review_id": "dev-24"
+  },
+  {
+    "blind_id": "output-0004",
+    "candidate": "C",
+    "review_id": "dev-13"
+  },
+  {
+    "blind_id": "output-0005",
+    "candidate": "F",
+    "review_id": "dev-17"
+  },
+  {
+    "blind_id": "output-0006",
+    "candidate": "F",
+    "review_id": "dev-18"
+  },
+  {
+    "blind_id": "output-0007",
+    "candidate": "C",
+    "review_id": "dev-05"
+  },
+  {
+    "blind_id": "output-0008",
+    "candidate": "C",
+    "review_id": "dev-23"
+  },
+  {
+    "blind_id": "output-0009",
+    "candidate": "C",
+    "review_id": "dev-06"
+  },
+  {
+    "blind_id": "output-0010",
+    "candidate": "F",
+    "review_id": "dev-08"
+  },
+  {
+    "blind_id": "output-0011",
+    "candidate": "C",
+    "review_id": "dev-17"
+  },
+  {
+    "blind_id": "output-0012",
+    "candidate": "C",
+    "review_id": "dev-22"
+  },
+  {
+    "blind_id": "output-0013",
+    "candidate": "C",
+    "review_id": "dev-08"
+  },
+  {
+    "blind_id": "output-0014",
+    "candidate": "F",
+    "review_id": "dev-14"
+  },
+  {
+    "blind_id": "output-0015",
+    "candidate": "C",
+    "review_id": "dev-10"
+  },
+  {
+    "blind_id": "output-0016",
+    "candidate": "F",
+    "review_id": "dev-11"
+  },
+  {
+    "blind_id": "output-0017",
+    "candidate": "C",
+    "review_id": "dev-14"
+  },
+  {
+    "blind_id": "output-0018",
+    "candidate": "F",
+    "review_id": "dev-15"
+  },
+  {
+    "blind_id": "output-0019",
+    "candidate": "C",
+    "review_id": "dev-16"
+  },
+  {
+    "blind_id": "output-0020",
+    "candidate": "C",
+    "review_id": "dev-20"
+  },
+  {
+    "blind_id": "output-0021",
+    "candidate": "C",
+    "review_id": "dev-01"
+  },
+  {
+    "blind_id": "output-0022",
+    "candidate": "C",
+    "review_id": "dev-02"
+  },
+  {
+    "blind_id": "output-0023",
+    "candidate": "F",
+    "review_id": "dev-20"
+  },
+  {
+    "blind_id": "output-0024",
+    "candidate": "F",
+    "review_id": "dev-16"
+  },
+  {
+    "blind_id": "output-0025",
+    "candidate": "F",
+    "review_id": "dev-04"
+  },
+  {
+    "blind_id": "output-0026",
+    "candidate": "F",
+    "review_id": "dev-06"
+  },
+  {
+    "blind_id": "output-0027",
+    "candidate": "F",
+    "review_id": "dev-07"
+  },
+  {
+    "blind_id": "output-0028",
+    "candidate": "C",
+    "review_id": "dev-21"
+  },
+  {
+    "blind_id": "output-0029",
+    "candidate": "F",
+    "review_id": "dev-02"
+  },
+  {
+    "blind_id": "output-0030",
+    "candidate": "F",
+    "review_id": "dev-01"
+  },
+  {
+    "blind_id": "output-0031",
+    "candidate": "C",
+    "review_id": "dev-24"
+  },
+  {
+    "blind_id": "output-0032",
+    "candidate": "C",
+    "review_id": "dev-11"
+  },
+  {
+    "blind_id": "output-0033",
+    "candidate": "C",
+    "review_id": "dev-04"
+  },
+  {
+    "blind_id": "output-0034",
+    "candidate": "C",
+    "review_id": "dev-18"
+  },
+  {
+    "blind_id": "output-0035",
+    "candidate": "F",
+    "review_id": "dev-13"
+  },
+  {
+    "blind_id": "output-0036",
+    "candidate": "C",
+    "review_id": "dev-15"
+  },
+  {
+    "blind_id": "output-0037",
+    "candidate": "F",
+    "review_id": "dev-10"
+  },
+  {
+    "blind_id": "output-0038",
+    "candidate": "C",
+    "review_id": "dev-07"
+  },
+  {
+    "blind_id": "output-0039",
+    "candidate": "C",
+    "review_id": "dev-12"
+  },
+  {
+    "blind_id": "output-0040",
+    "candidate": "F",
+    "review_id": "dev-05"
+  },
+  {
+    "blind_id": "output-0041",
+    "candidate": "C",
+    "review_id": "dev-19"
+  },
+  {
+    "blind_id": "output-0042",
+    "candidate": "F",
+    "review_id": "dev-22"
+  },
+  {
+    "blind_id": "output-0043",
+    "candidate": "F",
+    "review_id": "dev-03"
+  },
+  {
+    "blind_id": "output-0044",
+    "candidate": "F",
+    "review_id": "dev-19"
+  },
+  {
+    "blind_id": "output-0045",
+    "candidate": "F",
+    "review_id": "dev-09"
+  },
+  {
+    "blind_id": "output-0046",
+    "candidate": "F",
+    "review_id": "dev-12"
+  },
+  {
+    "blind_id": "output-0047",
+    "candidate": "F",
+    "review_id": "dev-23"
+  },
+  {
+    "blind_id": "output-0048",
+    "candidate": "C",
+    "review_id": "dev-09"
+  }
+]

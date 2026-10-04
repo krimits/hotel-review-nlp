@@ -1,0 +1,6 @@
+Reusing reference upstream and pinned weights; no new Jev requests.
+2026-10-03 12:14:43.654358: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+C {"reviews_attempted": 24, "generation_errors": 0, "token_budget_hits": 0, "parser_json_valid": 24, "full_json_valid": 17, "outputs_with_duplicate_keys": 3, "reviews_with_accepted_actions": 18, "accepted_actions": 24, "empty_valid_answers": 6, "human_quality": null}
+E {"reviews_attempted": 24, "generation_errors": 0, "token_budget_hits": 0, "parser_json_valid": 24, "full_json_valid": 12, "outputs_with_duplicate_keys": 12, "reviews_with_accepted_actions": 5, "accepted_actions": 5, "empty_valid_answers": 17, "human_quality": null}

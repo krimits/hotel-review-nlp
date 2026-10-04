@@ -2,8 +2,10 @@
 
 The [recorded smoke run](../triage_smoke/20261003T071410Z_18020ced/README.md)
 completed, but accepted zero actions. This experiment tests the generator
-without changing production prompts, parser, routing, sentiment model, or
+without changing production prompts, routing, sentiment model, or
 complaint questions. There is no training and no automatic deployment.
+The parser now rejects duplicate JSON keys instead of silently choosing the last value;
+see the [recorded v3 diagnosis](prompt_v3_review.md).
 
 ## Controlled variants
 
@@ -14,6 +16,14 @@ complaint questions. There is no training and no automatic deployment.
 | C | Qwen2.5-1.5B | same actions-v2 | model size vs B |
 | D | Qwen2.5-0.5B | actions-v2, sentiment metadata omitted | sentiment metadata vs B |
 | E | Qwen2.5-1.5B | actions-v3, explicit issue eligibility and manager actions | system instruction package vs C |
+| F | Qwen2.5-1.5B | actions-v4-staged, issue extraction then measures linked to issue IDs | workflow package vs C |
+| G | Qwen2.5-1.5B | actions-v5-evidence, separate evidence and UNCERTAIN, category mapping | workflow package vs corrected F |
+
+Notebook 17 compares F/G with the same weights, cached upstream and equal maximum two-call budgets.
+It requires no uploaded ZIP or API key: the notebook verifies the archived notebook 16 reference in the
+repository. See [evidence_protocol.md](evidence_protocol.md) for the separate human coverage sheet,
+conservative evidence policy and [experimental Space package](../../../spaces/hotel-triage-demo/README.md).
+Real-weight execution and quality assessment are pending. This does not select or deploy G automatically.
 
 B changes the instruction package and adds examples together; it does not
 isolate the contribution of few-shot examples. C is a capacity experiment in
@@ -28,8 +38,8 @@ supports the specific problem, and directs operational measures to the hotel
 manager. It returns the existing `actions` schema without a reasoning block.
 These instructions are a hypothesis, not verified semantic enforcement.
 
-All variants use greedy decoding, a 400 new-token budget, and the existing
-parser and department names. The new prompt asks for at most two concise
+Single-pass variants A–E use greedy decoding, a 400 new-token budget, and the
+action parser and department names. The new prompt asks for at most two concise
 actions to fit that budget. Budget exhaustion remains a failed completion,
 even if a fragment passes the parser. Raw output and accepted actions are
 stored separately. A still uses the production prompt exactly as written.
@@ -38,7 +48,8 @@ The experiment also records `full_json_valid`, meaning the entire output is
 one JSON object without repeated keys or non-JSON constants. This is separate
 from `parser_json_valid`, which may accept recovered fragments. Neither is a
 measure of usefulness, evidence entailment, or strict schema conformance.
-Production parsing and its case/whitespace-normalized quote check stay unchanged.
+The case/whitespace-normalized action quote check stays unchanged. Duplicate keys in a
+decoded object now make an output invalid, including when the second value is empty.
 
 ## New cases and the reserved set
 
@@ -138,6 +149,13 @@ read the review and accepted actions and fill:
 | no_invented_facts | 0 / 1 / na | Does it avoid invented dates, room numbers, diagnoses, promises or completed work? |
 
 Use na for the last three fields when there are no accepted actions.
+Do not edit review, accepted_actions or execution_issue: they are machine columns.
+execution_issue records a model/runtime, token-budget or output-structure failure;
+an unhelpful measure is graded in the human columns, not as a runtime exception.
+`partial` is not a final rating under this binary rubric. Re-examine whether all
+retained actions satisfy the field's criterion; a mixed acceptable/unacceptable
+set does not satisfy an all-actions criterion. Resolved issues do not qualify
+as pending problems, even if a preventive measure might be sensible elsewhere.
 An empty answer to a concrete unresolved complaint gets useful=0; a sound
 abstention on praise can get useful=1. An execution failure or exhausted
 budget gets useful=0 regardless of any retained fragment. Record why in
@@ -149,6 +167,68 @@ After all rows are reviewed, compare usefulness, failures, unsupported content
 and latency. Human selection is explicit; the script never declares a winner.
 If no candidate provides useful measures, revise on development cases or try
 another model before proceeding.
+
+### Audit an externally edited rating sheet
+
+~~~bash
+python scripts/audit_generator_review.py --run /path/to/intact_extracted_dev \
+  --ratings /path/to/completed_human_review.csv --output runs/rating_audit_NEW_ID
+~~~
+
+The intact archive is matched by its manifest, exact blind IDs, original review
+text and accepted actions. Unambiguous yes/no/n/a tokens become 1/0/na in a
+separate output. The execution_issue column comes from the original export;
+overwrites are recorded. Partial, missing and invalid judgments are listed
+for human adjudication; they are never silently rounded to a success or failure.
+With unresolved judgments the command returns 2 and writes adjudication.csv,
+not a freeze-ready CSV. It does not select a model, open the reserved set,
+regrade semantics, or replay a historical sheet through today's parser.
+
+## Follow-up: issue extraction and measures as separate generations
+
+Use [notebook 16](../../../notebooks/16_triage_staged_comparison_colab.ipynb) on
+Colab GPU. Upload the **notebook 15 ZIP** (`20261003T121429Z_876f0781`), which
+has been verified and [archived](runs/20261003T121429Z_876f0781/manifest.json).
+It compares C and F on the same 24 development reviews and frozen upstream
+predictions, with the same Qwen 1.5B revision and no new Jev calls or API key.
+
+F first extracts short issue records with a verbatim excerpt, department and
+one of REAL_PENDING, REAL_RESOLVED, HYPOTHETICAL or POSITIVE_COMMENT. Only
+structurally valid, literally quoted REAL_PENDING records reach the second
+generation. The second output has issue_id, measure and to_confirm only;
+code copies problem, excerpt and department from the referenced issue. It
+cannot silently introduce another issue or change its evidence or department.
+The extraction can still misclassify praise, miss an issue or choose the wrong
+department, and a measure can still be inappropriate. Human review is essential.
+
+Each stage requires one JSON object with unique keys and its own exact schema.
+One complete JSON/unlabelled Markdown fence is also accepted as an envelope;
+prose outside it, incomplete fences and multiple objects remain failures. The
+original model text remains in stages[].raw. Literal whole-JSON diagnostics
+describe that text, including rejected workflows.
+Invalid output and either exhausted token budget remain explicit workflow
+failures, not valid abstentions. Actual model text, stage timings, extracted
+issues and failure stage are saved in results.jsonl. F's top-level raw is
+assembled application output; stages[].raw contains the actual generations.
+When there are no pending issues, the measure call is skipped and this is visible.
+
+This changes the workflow, examples and schema together. It is **not a pure
+prompt ablation or an equal-budget comparison**: C permits one 400-token call,
+F up to two 400-token calls. The manifest records that budget and case times
+include both calls. Weights are shared; model load and warmup are excluded.
+Both candidates use the updated duplicate-key guard; fill the new shuffled
+48-row sheet rather than transferring historical ratings. The new shuffle
+seed differs from C/E, but one reviewer's repeated development ratings remain
+an initial screen, not independent agreement or held-out performance.
+
+The notebook checks that the second stage was actually exercised at least once,
+then downloads diagnostic artifacts even on failure. It performs no training,
+freeze, reserved evaluation or Space deployment. The
+[3 October staged run and offline parser replay](staged_run_review.md) found
+five JSON-wrapper rejections and serious first-stage classification errors.
+The original GPU run produced zero accepted F actions; replaying the exact
+saved text with wrapper support recovers five structurally valid measures.
+Human quality remains unvalidated, and F is not selected for the demo.
 
 ## Freeze, then one reserved evaluation
 

@@ -26,6 +26,7 @@ from reviewnlp.triage.generator_experiment import (
 ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK = ROOT / "notebooks/14_triage_generator_comparison_colab.ipynb"
 V3_NOTEBOOK = ROOT / "notebooks/15_triage_prompt_v3_comparison_colab.ipynb"
+STAGED_NOTEBOOK = ROOT / "notebooks/16_triage_staged_comparison_colab.ipynb"
 
 
 def cells(path=NOTEBOOK):
@@ -70,12 +71,14 @@ class NotebookTests(unittest.TestCase):
             with self.subTest(exit_code=exit_code):
                 self.exercise_notebook(exit_code)
 
-    def exercise_notebook(self, exit_code, path=NOTEBOOK, reference=False):
+    def exercise_notebook(self, exit_code, path=NOTEBOOK, reference=False, second_stage=True):
         _, code = cells(path)
         with tempfile.TemporaryDirectory() as directory:
             checkout = Path(directory) / "checkout"
             checkout.mkdir()
-            for name in ("scripts/compare_triage_generators.py", "docs/experiments/triage_generator/dev.json"):
+            for name in ("scripts/compare_triage_generators.py", "docs/experiments/triage_generator/dev.json",
+                         "src/reviewnlp/triage/qwen_generator.py", "src/reviewnlp/triage/generator_experiment.py",
+                         "src/reviewnlp/triage/staged_generator.py"):
                 target = checkout / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, target)
@@ -104,6 +107,11 @@ class NotebookTests(unittest.TestCase):
                                 "upstream_sha256": digest_json(stages[index]), "error": None,
                                 "hit_token_budget": False, "actions": []}
                                for name in namespace["EXPECTED_CANDIDATES"] for index, row in enumerate(rows)]
+                    for record in records:
+                        if record["candidate"] == "F":
+                            record["stages"] = [{"stage": "issues", "raw": '{"issues":[]}'}]
+                            if second_stage:
+                                record["stages"].append({"stage": "measures", "raw": '{"actions":[]}'})
                     (output / "results.jsonl").write_text("".join(json.dumps(row) + "\n" for row in records))
                     (output / "upstream.json").write_text(json.dumps({"records": stages}))
                     if reference:
@@ -118,7 +126,9 @@ class NotebookTests(unittest.TestCase):
                               ("results.jsonl", "upstream.json", "human_review.csv", "annotation_key.json")}
                     info = {"execution_complete": exit_code == 0, "quality_evaluated": False,
                             "source_commit": namespace["SOURCE_COMMIT"], "dataset_sha256": namespace["REVIEWS_SHA256"],
-                            "split": "dev", "candidates": {
+                            "split": "dev", "generation_budget": {
+                                name: {"max_new_tokens_per_call": 400, "max_calls_per_review": 2 if name == "F" else 1}
+                                for name in namespace["EXPECTED_CANDIDATES"]}, "candidates": {
                                 name: {**CANDIDATES[name], "revision": namespace.get("MODEL_REVISION", "a" * 40)}
                                 for name in namespace["EXPECTED_CANDIDATES"]}, "files": hashes}
                     if reference:
@@ -167,7 +177,7 @@ class NotebookTests(unittest.TestCase):
                     exec(code["secret"], namespace)
                 for name in ("setup", "environment", "run", "audit"):
                     exec(code[name], namespace)
-                if exit_code:
+                if exit_code or (path == STAGED_NOTEBOOK and not second_stage):
                     with self.assertRaises(RuntimeError):
                         exec(code["download"], namespace)
                 else:
@@ -199,6 +209,31 @@ class NotebookTests(unittest.TestCase):
         for exit_code in (0, 1):
             with self.subTest(exit_code=exit_code):
                 self.exercise_notebook(exit_code, V3_NOTEBOOK, reference=True)
+
+    def test_staged_notebook_pins_the_latest_reference_and_all_changed_modules(self):
+        notebook, code = cells(STAGED_NOTEBOOK)
+        namespace = {}
+        with redirect_stdout(io.StringIO()):
+            exec(code["parameters"], namespace)
+        self.assertEqual(namespace["EXPECTED_CANDIDATES"], ("C", "F"))
+        self.assertEqual(namespace["SCRIPT_SHA256"], digest_bytes((ROOT / "scripts/compare_triage_generators.py").read_bytes()))
+        recorded = ROOT / "docs/experiments/triage_generator/runs/20261003T121429Z_876f0781/run.json"
+        self.assertEqual(namespace["REFERENCE_RUN_SHA256"], digest_bytes(recorded.read_bytes()))
+        for relative, expected in namespace["MODULE_HASHES"].items():
+            self.assertEqual(digest_bytes((ROOT / relative).read_bytes()), expected)
+        self.assertNotIn("holdout.json", "\n".join(code.values()))
+        self.assertNotIn("userdata.get", "\n".join(code.values()))
+        self.assertIn('"--candidates", "C", "F"', code["run"])
+        for cell in notebook["cells"]:
+            if cell["cell_type"] == "code":
+                self.assertEqual(cell["outputs"], [])
+                self.assertIsNone(cell["execution_count"])
+                ast.parse("".join(cell["source"]))
+
+    def test_staged_notebook_runs_top_to_bottom_and_downloads_every_diagnostic_outcome(self):
+        for exit_code, second_stage in ((0, True), (1, True), (0, False)):
+            with self.subTest(exit_code=exit_code, second_stage=second_stage):
+                self.exercise_notebook(exit_code, STAGED_NOTEBOOK, reference=True, second_stage=second_stage)
 
     def test_wrong_reference_stops_before_setup_or_gpu_calls(self):
         _, code = cells(V3_NOTEBOOK)

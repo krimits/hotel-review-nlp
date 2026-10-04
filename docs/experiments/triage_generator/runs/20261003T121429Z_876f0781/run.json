@@ -1,0 +1,110 @@
+{
+  "split": "dev",
+  "dataset_sha256": "69718a4170ca151fe880455f17b243b79bc7eaa04ce4a9eea8048ef8f83ec6f8",
+  "reviews": 24,
+  "candidates": {
+    "C": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "prompt": "actions-v2",
+      "sentiment_metadata": true,
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "prompt_sha256": "00479231af814c9ded4f8d934d908952e9e04c2ada04eea1b4375096fce3f3d5"
+    },
+    "E": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "prompt": "actions-v3",
+      "sentiment_metadata": true,
+      "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+      "prompt_sha256": "5b269b669cbeacfbb8898064115d93b6607456b4e0f46bcba05e2552fc540b90"
+    }
+  },
+  "upstream_config": {
+    "distilbert_repo": "krimits/distilbert-hotel-reviews",
+    "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+    "route": "openrouter",
+    "jev_model_requested": "jev-latest",
+    "questions_version": "full-review-v1",
+    "questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42",
+    "thresholds": {
+      "sentiment_confidence_min": 0.8,
+      "doubtful_band": [
+        0.2,
+        0.5
+      ]
+    }
+  },
+  "api_cost": {
+    "attempts": 0,
+    "attempts_with_reported_cost": 0,
+    "reported_cost_sum": null,
+    "complete_cost_available": false,
+    "cost_unit": "provider usage.cost; no currency inferred",
+    "local_gpu_charge": null
+  },
+  "upstream_reused": true,
+  "jev_model_resolved": "typesafe/jev-1.13-20260917",
+  "warmups": {
+    "C": {
+      "load_and_warmup_seconds": 56.133
+    },
+    "E": {
+      "load_and_warmup_seconds": 1.129
+    }
+  },
+  "summary": {
+    "C": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 24,
+      "full_json_valid": 17,
+      "outputs_with_duplicate_keys": 3,
+      "reviews_with_accepted_actions": 18,
+      "accepted_actions": 24,
+      "empty_valid_answers": 6,
+      "human_quality": null
+    },
+    "E": {
+      "reviews_attempted": 24,
+      "generation_errors": 0,
+      "token_budget_hits": 0,
+      "parser_json_valid": 24,
+      "full_json_valid": 12,
+      "outputs_with_duplicate_keys": 12,
+      "reviews_with_accepted_actions": 5,
+      "accepted_actions": 5,
+      "empty_valid_answers": 17,
+      "human_quality": null
+    }
+  },
+  "execution_complete": true,
+  "quality_evaluated": false,
+  "files": {
+    "upstream.json": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235",
+    "results.jsonl": "bb7f3db3363c70a2e3e3af00aa339224ef060099c338d2493086d3fb32fa9230",
+    "human_review.csv": "5a2c3de13941a7858f478bc7cffcf0c4466257ffb263178ce701d62360410243",
+    "annotation_key.json": "5c98116450b3083bb6949e603e4d221d73c2fbe5d034a474d2031bf0a2ec78b4",
+    "reference_run.json": "edd3d837e3a3299452b60ed2a7af1ea71be647afba036730ba28a852b2068312"
+  },
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "gpu": "Tesla T4",
+  "max_new_tokens": 400,
+  "do_sample": false,
+  "source_commit": "0057baaa0d6d2d4941cb1e97a8f8e43e9e6cf747",
+  "finished_utc": "2026-10-03T12:18:08.262470+00:00",
+  "reference_run": {
+    "run_sha256": "edd3d837e3a3299452b60ed2a7af1ea71be647afba036730ba28a852b2068312",
+    "upstream_sha256": "3d57b39b8350383beedb4f708eaf8b78b91196a16a2757fb52b923eefa728235",
+    "source_commit": "13514c4f234cb44bfac09f40ecdac37b6277397e",
+    "historical_api_cost": {
+      "attempts": 24,
+      "attempts_with_reported_cost": 24,
+      "reported_cost_sum": 0.002526804,
+      "complete_cost_available": true,
+      "cost_unit": "provider usage.cost; no currency inferred",
+      "local_gpu_charge": null
+    }
+  }
+}

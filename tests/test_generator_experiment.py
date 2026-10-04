@@ -250,6 +250,12 @@ class ExperimentTests(unittest.TestCase):
             def __init__(self, model, **kwargs):
                 super().__init__(json.dumps({"actions": [ACTION]}))
                 self.model_name, self._bundle = model, ("tokenizer", "weights")
+                if kwargs["prompt_version"].startswith("actions-v4"):
+                    payload = {"actions": [{"issue_id": 1, "measure": ACTION["measure"], "to_confirm": []}]} \
+                        if kwargs["prompt_version"].endswith(":measures") else {"issues": [{
+                            "problem": ACTION["problem"], "excerpt": ACTION["excerpt"],
+                            "department": ACTION["department"], "status": "REAL_PENDING"}]}
+                    self.raw = json.dumps(payload)
 
             def generate(self, review, signals):
                 if self.model_name == self.failed_model:
