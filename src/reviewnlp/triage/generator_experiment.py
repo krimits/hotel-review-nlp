@@ -11,6 +11,11 @@ import time
 from pathlib import Path
 
 from reviewnlp.absa.extract import review_key
+from reviewnlp.triage.evidence_generator import (
+    CATEGORY_DEPARTMENTS,
+    messages_evidence,
+    messages_evidence_measures,
+)
 from reviewnlp.triage.qwen_generator import (
     BASE_MODEL,
     MAX_NEW_TOKENS,
@@ -28,6 +33,8 @@ CANDIDATES = {
     "D": {"model": BASE_MODEL, "prompt": "actions-v2", "sentiment_metadata": False},
     "E": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v3", "sentiment_metadata": True},
     "F": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v4-staged", "sentiment_metadata": True,
+          "max_generation_calls": 2},
+    "G": {"model": "Qwen/Qwen2.5-1.5B-Instruct", "prompt": "actions-v5-evidence", "sentiment_metadata": True,
           "max_generation_calls": 2},
 }
 DEFAULT_CANDIDATES = ("A", "B", "C", "D")
@@ -135,6 +142,8 @@ def builder(candidate: str):
         return messages_v3
     if candidate == "F":
         return messages_issues
+    if candidate == "G":
+        return messages_evidence
     return lambda review, signals: messages_v2(
         review, signals, sentiment_metadata=CANDIDATES[candidate]["sentiment_metadata"])
 
@@ -171,6 +180,12 @@ def json_diagnostics(raw: str) -> dict:
 
 def prompt_fingerprint(candidate: str) -> str:
     review, signals = "Fingerprint placeholder.", ActionSignals("positive", 0.9, ["bathroom"])
+    if candidate == "G":
+        return digest_json({"issues": messages_evidence(review, signals),
+                            "measures": messages_evidence_measures(review, [{
+                                "issue_id": 1, "problem": "Placeholder", "excerpt": review,
+                                "status": "REAL_PENDING", "department": "maintenance"}]),
+                            "department_mapping": CATEGORY_DEPARTMENTS})
     if candidate == "F":
         return digest_json({"issues": messages_issues(review, signals), "measures": messages_measures(review, [
             {"issue_id": 1, "problem": "Placeholder", "excerpt": review, "status": "REAL_PENDING",
@@ -256,7 +271,8 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
             generated = generator.generate(row["text"], signals)
             record.update(raw=generated.raw, hit_token_budget=generated.hit_token_budget)
             record.update(json_diagnostics(generated.raw))
-            parsed = parse_actions(generated.raw, row["text"])
+            parsed = (parse_actions(generated.raw, row["text"], exact_quotes=True)
+                      if getattr(generator, "requires_exact_quotes", False) else parse_actions(generated.raw, row["text"]))
             record.update(json_valid=parsed.json_valid, dropped=parsed.dropped,
                           actions=[action.model_dump(mode="json") for action in parsed.actions])
             if not parsed.json_valid:
@@ -274,6 +290,7 @@ def run_candidate(candidate: str, rows: list[dict], upstream: dict, generator, c
                 key for stage in record["stages"] for key in stage["duplicate_json_keys"]})
             if record["workflow_error"]:
                 record.update(json_valid=False, actions=[])
+            record["review_reasons"] = list(getattr(generator, "review_reasons", []))
         record["seconds"] = round(clock() - start, 6)
         results.append(record)
         if record["error"]:
@@ -297,6 +314,10 @@ def structural_summary(records: list[dict]) -> dict:
             "workflow_failures": sum(bool(item.get("workflow_error")) for item in records),
             "issue_calls": sum(stage["stage"] == "issues" for item in records for stage in item.get("stages", [])),
             "measure_calls": sum(stage["stage"] == "measures" for item in records for stage in item.get("stages", [])),
+            "reviews_with_uncertain_issues": sum(any(issue.get("status") == "UNCERTAIN"
+                for issue in item.get("extracted_issues", [])) for item in records),
+            "evidence_status_adjustments": sum(issue.get("model_status", issue.get("status")) != issue.get("status")
+                for item in records for issue in item.get("extracted_issues", [])),
             "human_quality": None}
 
 

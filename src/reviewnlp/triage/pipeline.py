@@ -66,9 +66,11 @@ def _ms(start: float, end: float) -> float:
 
 class TriagePipeline:
     def __init__(self, wrapper: SentimentModel, jev: JevClient | None = None, generator: ActionGenerator | None = None,
-                 thresholds: RoutingThresholds | None = None, clock: Callable[[], float] = time.perf_counter):
+                 thresholds: RoutingThresholds | None = None, clock: Callable[[], float] = time.perf_counter,
+                 *, evaluate_all_reviews: bool = False):
         self.wrapper, self.jev, self.generator = wrapper, jev, generator
         self.thresholds, self._clock = thresholds or RoutingThresholds(), clock
+        self.evaluate_all_reviews = evaluate_all_reviews
 
     def _sentiment(self, text: str) -> SentimentResult:
         (distribution,) = self.wrapper.distribution_batch([text])
@@ -111,7 +113,8 @@ class TriagePipeline:
             log.error("action generation failed")
             return ActionsResult(status="error", error="generation_failed", model=self.generator.model_name)
         base = {"model": generated.model, "prompt_version": generated.prompt_version}
-        parsed = parse_actions(generated.raw, text)
+        parsed = (parse_actions(generated.raw, text, exact_quotes=True)
+                  if getattr(self.generator, "requires_exact_quotes", False) else parse_actions(generated.raw, text))
         if generated.hit_token_budget:
             # The generation did not finish, so what the parser found is not the model's whole answer, even when it
             # is valid JSON: it can be a complete object followed by more text, or a fragment of a cut-off one. It
@@ -133,6 +136,9 @@ class TriagePipeline:
         after_complaints = self._clock()
 
         routing = decide(sentiment, complaints, self.thresholds)
+        if self.evaluate_all_reviews and not routing.qwen_triggered:
+            routing = routing.model_copy(update={"qwen_triggered": True,
+                                                 "reasons": [*routing.reasons, "all_reviews_diagnostic"]})
         after_routing = self._clock()
 
         actions = self._actions(text, sentiment, complaints, routing, hotel_context)
@@ -146,6 +152,11 @@ class TriagePipeline:
             extra = "no_actions_suggested"
         if extra:
             routing = routing.model_copy(update={"needs_review": True, "review_reasons": [*routing.review_reasons, extra]})
+        if routing.qwen_triggered and self.generator is not None:
+            reasons = list(getattr(self.generator, "review_reasons", []))
+            if reasons:
+                routing = routing.model_copy(update={"needs_review": True,
+                    "review_reasons": list(dict.fromkeys([*routing.review_reasons, *reasons]))})
         partial = complaints.status == "error" or actions.status in {"error", "no_grounded_actions"}
         timings = StageTimings(
             sentiment_ms=_ms(start, after_sentiment),

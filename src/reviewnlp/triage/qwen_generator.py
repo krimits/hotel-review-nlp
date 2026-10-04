@@ -124,8 +124,12 @@ def _text(value: object, maximum: int = MAX_FIELD_CHARS) -> str | None:
     return value if 3 <= len(value) <= maximum else None
 
 
-def parse_actions(raw: str, review: str) -> ParsedActions:
-    """The valid, grounded actions in the generation, and how many entries were rejected."""
+def parse_actions(raw: str, review: str, *, exact_quotes: bool = False) -> ParsedActions:
+    """Quote-supported actions and rejected entries. Exact quotes are opt-in for the evidence workflow.
+
+    The default keeps the API's historical case/whitespace-normalized check. Exact mode preserves the
+    literal excerpt in the returned action; neither mode verifies semantic support or usefulness.
+    """
     try:
         value = _json_object(str(raw))
     except DuplicateJSONKey:
@@ -139,11 +143,14 @@ def parse_actions(raw: str, review: str) -> ParsedActions:
             dropped += 1
             continue
         problem, excerpt, measure = (_text(entry.get(name)) for name in ("problem", "excerpt", "measure"))
+        if exact_quotes:
+            literal = entry.get("excerpt")
+            excerpt = literal if isinstance(literal, str) and 3 <= len(literal.strip()) <= MAX_FIELD_CHARS else None
         department, to_confirm = entry.get("department"), entry.get("to_confirm", [])
         if (None in (problem, excerpt, measure) or department not in DEPARTMENTS
                 or not isinstance(to_confirm, list) or len(to_confirm) > 5
                 or any(_text(item) is None for item in to_confirm)
-                or review_key(excerpt) not in haystack):
+                or (excerpt not in review if exact_quotes else review_key(excerpt) not in haystack)):
             dropped += 1
             continue
         key = (review_key(excerpt), review_key(problem))

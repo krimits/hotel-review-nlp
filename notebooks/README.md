@@ -50,6 +50,14 @@ generations per case; this is a workflow comparison with a different inference b
 duplicate JSON keys. Raw text and timings of each stage support diagnosis; new
 human ratings are required, and usefulness remains unverified.
 
+Notebook 17 compares corrected F with G (separate evidence, UNCERTAIN and category-based departments),
+on the same Qwen 1.5B revision and 24 development cases. Both have up to two 400-token calls. It reads the
+verified archived notebook 16 upstream directly from the repo: **no uploaded ZIP or API key**.
+[17_triage_evidence_comparison_colab.ipynb](17_triage_evidence_comparison_colab.ipynb)
+exports the existing quality sheet and an additional human coverage sheet
+([protocol](../docs/experiments/triage_generator/evidence_protocol.md)). Colab GPU; no automatic selection
+or Space publication. Real-weight execution and quality assessment are pending.
+
 None of them can run in CI: the Kaggle CSV is not redistributable, the
 checkpoints are not committed, and the runner has no GPU.
 

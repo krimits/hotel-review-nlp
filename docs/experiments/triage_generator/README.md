@@ -17,6 +17,13 @@ see the [recorded v3 diagnosis](prompt_v3_review.md).
 | D | Qwen2.5-0.5B | actions-v2, sentiment metadata omitted | sentiment metadata vs B |
 | E | Qwen2.5-1.5B | actions-v3, explicit issue eligibility and manager actions | system instruction package vs C |
 | F | Qwen2.5-1.5B | actions-v4-staged, issue extraction then measures linked to issue IDs | workflow package vs C |
+| G | Qwen2.5-1.5B | actions-v5-evidence, separate evidence and UNCERTAIN, category mapping | workflow package vs corrected F |
+
+Notebook 17 compares F/G with the same weights, cached upstream and equal maximum two-call budgets.
+It requires no uploaded ZIP or API key: the notebook verifies the archived notebook 16 reference in the
+repository. See [evidence_protocol.md](evidence_protocol.md) for the separate human coverage sheet,
+conservative evidence policy and [experimental Space package](../../../spaces/hotel-triage-demo/README.md).
+Real-weight execution and quality assessment are pending. This does not select or deploy G automatically.
 
 B changes the instruction package and adds examples together; it does not
 isolate the contribution of few-shot examples. C is a capacity experiment in

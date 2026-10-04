@@ -128,8 +128,10 @@ def assemble_actions(raw: str, pending: list[dict]) -> list[dict]:
 class TwoStageGenerator:
     """Sequential experiment adapter; shares the extractor's loaded weights with the second call."""
 
-    def __init__(self, extractor, action_factory, clock=time.perf_counter):
+    def __init__(self, extractor, action_factory, clock=time.perf_counter, *,
+                 issue_parser=parse_issues, action_assembler=assemble_actions, prompt_version=VERSION):
         self.extractor, self.action_factory, self.clock = extractor, action_factory, clock
+        self.issue_parser, self.action_assembler, self.prompt_version = issue_parser, action_assembler, prompt_version
         self.model_name = extractor.model_name
         self.last_stages, self.workflow_error = [], None
         self.issues = []
@@ -166,7 +168,7 @@ class TwoStageGenerator:
             self.workflow_error = "issues:hit_token_budget"
         else:
             try:
-                self.issues = parse_issues(extracted.raw, review)
+                self.issues = self.issue_parser(extracted.raw, review)
             except (ValueError, TypeError) as error:
                 self.workflow_error = "issues:" + str(error)
         pending = [issue for issue in self.issues if issue["status"] == "REAL_PENDING"]
@@ -179,10 +181,10 @@ class TwoStageGenerator:
                 self.workflow_error = "measures:hit_token_budget"
             else:
                 try:
-                    actions = assemble_actions(generated.raw, pending)
+                    actions = self.action_assembler(generated.raw, pending)
                 except (ValueError, TypeError) as error:
                     self.workflow_error = "measures:" + str(error)
         # A failed workflow must not look like a valid abstention to another ActionGenerator consumer.
         raw = "" if self.workflow_error else json.dumps({"actions": actions}, ensure_ascii=False)
         return GenerationResult(raw, budget,
-                                self.model_name, VERSION)
+                                self.model_name, self.prompt_version)

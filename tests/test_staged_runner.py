@@ -9,6 +9,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
+
+from reviewnlp.triage.evidence_generator import ISSUE_SYSTEM as EVIDENCE_SYSTEM
+from reviewnlp.triage.evidence_generator import MEASURES_SYSTEM
 from reviewnlp.triage.generator_experiment import CANDIDATES, digest_bytes, prompt_fingerprint
 from reviewnlp.triage.qwen_generator import GenerationResult
 from reviewnlp.triage.staged_generator import ISSUE_SYSTEM, MEASURE_SYSTEM
@@ -17,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TEXT = "The shelf was dusty."
 
 
-def test_cached_c_f_comparison_uses_one_model_load_and_exports_both_real_stages(tmp_path):
+@pytest.mark.parametrize("candidates", [("C", "F"), ("F", "G")])
+def test_cached_comparison_uses_one_model_load_and_exports_both_real_stages(tmp_path, candidates):
     spec = importlib.util.spec_from_file_location("staged_comparison", ROOT / "scripts/compare_triage_generators.py")
     script = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(script)
@@ -61,7 +66,12 @@ def test_cached_c_f_comparison_uses_one_model_load_and_exports_both_real_stages(
                 value = {"issues": [{"problem": action["problem"], "excerpt": TEXT,
                                      "status": "REAL_PENDING", "department": "housekeeping"}]} \
                     if review == TEXT else {"issues": []}
-            elif system == MEASURE_SYSTEM:
+            elif system == EVIDENCE_SYSTEM:
+                value = {"issues": [{"problem": action["problem"], "excerpt": TEXT,
+                                     "status": "REAL_PENDING", "category": "cleanliness",
+                                     "evidence": {"reported": TEXT, "hypothetical": None, "resolved": None}}]} \
+                    if review == TEXT else {"issues": []}
+            elif system in {MEASURE_SYSTEM, MEASURES_SYSTEM}:
                 value = {"actions": [{"issue_id": 1, "measure": action["measure"], "to_confirm": []}]}
             else:
                 value = {"actions": [action]}
@@ -73,12 +83,18 @@ def test_cached_c_f_comparison_uses_one_model_load_and_exports_both_real_stages(
             patch.object(script, "DATA", tmp_path), patch.object(script, "QwenActionGenerator", FakeQwen), \
             patch.object(script, "prepare_upstream", side_effect=AssertionError("no new upstream calls")), \
             patch.object(script.subprocess, "check_output", return_value="b" * 40):
-        assert script.compare(output, "dev", candidates=("C", "F"), reference_run=reference) == 0
+        assert script.compare(output, "dev", candidates=candidates, reference_run=reference) == 0
     result = json.loads((output / "run.json").read_text())
     records = [json.loads(line) for line in (output / "results.jsonl").read_text().splitlines()]
-    assert FakeQwen.loads == 1 and FakeQwen.revisions == ["a" * 40] * 3
+    assert FakeQwen.loads == 1 and FakeQwen.revisions == ["a" * 40] * (3 if candidates[0] == "C" else 4)
     assert result["summary"]["F"]["issue_calls"] == result["summary"]["F"]["measure_calls"] == 1
-    assert result["generation_budget"]["C"]["max_calls_per_review"] == 1
+    if candidates[0] == "C":
+        assert result["generation_budget"]["C"]["max_calls_per_review"] == 1
+    else:
+        assert result["generation_budget"]["F"] == result["generation_budget"]["G"]
+        assert (output / "coverage_review.csv").is_file()
+        assert result["files"]["coverage_review.csv"] == digest_bytes((output / "coverage_review.csv").read_bytes())
+        assert records[1]["extracted_issues"][0]["evidence"]["reported"] == TEXT
     assert result["generation_budget"]["F"]["max_calls_per_review"] == 2
     assert result["api_cost"]["attempts"] == 0
     assert result["annotation_shuffle_seed"] != 20261003
