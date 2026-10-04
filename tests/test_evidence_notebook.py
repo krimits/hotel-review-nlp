@@ -51,6 +51,27 @@ def test_notebook_pins_current_modules_and_archived_reference_without_secrets_or
             ast.parse("".join(cell["source"]))
 
 
+def test_environment_probe_runs_in_its_own_namespace_without_parent_imports():
+    _, code = cells()
+    modules = {"torch": SimpleNamespace(__version__="fake", cuda=SimpleNamespace(
+                   is_available=lambda: True, get_device_name=lambda index: "fake GPU")),
+               "transformers": SimpleNamespace(__version__="4.56.2"),
+               "huggingface_hub": SimpleNamespace(__version__="0.36.2")}
+
+    def probe(arguments, **kwargs):
+        child = {}
+        with patch.dict(sys.modules, modules), patch("importlib.metadata.version", return_value="1.10.1"):
+            from contextlib import redirect_stdout
+
+            with redirect_stdout(io.StringIO()) as stdout:
+                exec(arguments[-1], child)
+        return stdout.getvalue().strip()
+
+    namespace = {"SETUP_READY": True, "REPO_DIR": ROOT, "sys": sys, "json": json, "setup_command": probe}
+    exec(code["environment"], namespace)
+    assert namespace["GPU_READY"] and namespace["environment_info"]["accelerate"] == "1.10.1"
+
+
 @pytest.mark.parametrize("exit_code,second_stage", [(0, True), (1, True), (0, False)])
 def test_top_to_bottom_wiring_checks_budgets_and_downloads_failed_runs(tmp_path, exit_code, second_stage):
     _, code = cells()
