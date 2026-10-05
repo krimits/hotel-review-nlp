@@ -1,0 +1,521 @@
+{
+  "kind": "real_weight_functional_smoke",
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "real_weights_loaded": true,
+  "source_commit": "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac",
+  "package_files": {
+    "app.py": "8d5f67ee2689d63e516ac1e8ead2b4266ca879efc1927936bdf0aa8fe81b77ef",
+    "README.md": "7dc4f6e5670014f3c90ce9150bd9c452fe7265e4ca2c88d8b43f822ebcf1fe18",
+    "requirements.txt": "13bd077a66c97ad0303388b9aafc36f39fa5156dbde56cc35a44361865e5cf64",
+    "reviewnlp/__init__.py": "4158879c4ff4a682da05e0287803466930d6716171670ef71d028e3777a95371",
+    "reviewnlp/absa/__init__.py": "213c2905b3cadfac06bc93ee7e509dae5dfafb8ca59c3abcca4383d1430e6911",
+    "reviewnlp/absa/aspects.py": "2e48653dc4433772a30f55d74d92e373a1d3dff79dfc2c4f80d6bbd3431ee3bd",
+    "reviewnlp/absa/extract.py": "5c6b10b8f4573b0fd3b34a3fd17062c4622c44160f6194c803f47a3cda6edcc6",
+    "reviewnlp/triage/__init__.py": "e2f3cc51007be20106dceedbb4939778fc13ee00964ab19d87f3f496991326cb",
+    "reviewnlp/triage/schemas.py": "2959d092a695cb1f2910a858428c375df38f20ea0221da1f5d61ec5bc9d6ab33",
+    "reviewnlp/triage/questions.py": "5e5e88ba8f12b7e93f11b68cdd24d23ae8b3ee2e1ba77e8e6836af849424bdb8",
+    "reviewnlp/triage/jev_client.py": "e4cec68e57edd43338e4b7969e79078668dbc4bcec4c7e2f4f169c5c5388894d",
+    "reviewnlp/triage/routing.py": "47ee87e042c188d47e3e694c1b7bdcfad4c29cfddf3dece204615c0987db492f",
+    "reviewnlp/triage/qwen_generator.py": "e6743eaa68bd9b4cb8596b72681c8fb8c43945abe5ba3a9f97812f1c940d839d",
+    "reviewnlp/triage/staged_generator.py": "5393fb6891e72545300be4926287c131468163b9fc3ade3e951fc60e77a51517",
+    "reviewnlp/triage/evidence_generator.py": "959f78e85963385e30ec275451ee2e5f92eef2cbe39dc67b355678a939b61bc3",
+    "reviewnlp/triage/generator_experiment.py": "877b1e323e6a80d1103694044e5fe80da4b7d80cace349935cd1df00b00f78de",
+    "reviewnlp/triage/pipeline.py": "de8883a7d806489246bac0b4222775520c45902670527f7aded43669cc62fcef",
+    "reviewnlp/triage/demo_service.py": "be3dc55bbf8ce273f59e2db2975c295771cef9d3f312520282aa98049cea4c52",
+    "reviewnlp/triage/space_runtime.py": "0533fe94ec9ba8572ff50b322a789202c699d30d1574712aa40bc9c2f3b433e0",
+    "reviewnlp/triage/span_evidence_generator.py": "42ab41e44d599bcf817e5b561a06a3eefbe207221deb61cbfd09cc401eb4057a"
+  },
+  "source_manifest_sha256": "9332221e819eaae17909faab19ad738aa1b839e1d9fb47dd57f37dfd7cb89bcd",
+  "runtime": {
+    "ready": true,
+    "startup_failure": null,
+    "qwen_device": "cuda:0",
+    "qwen_precision": "torch.float32",
+    "python": "3.13.15",
+    "versions": {
+      "torch": "2.11.0",
+      "transformers": "4.56.2",
+      "huggingface-hub": "0.36.2",
+      "accelerate": "1.10.1",
+      "gradio": "5.49.1",
+      "pydantic": "2.11.7",
+      "spaces": "0.51.3"
+    },
+    "gpu_duration_seconds": 60,
+    "gpu_billing": "unknown",
+    "zero_gpu": false
+  },
+  "records": [
+    {
+      "id": "smoke-positive",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 0,
+      "actions": 0,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 2858.55,
+      "needs_review": true
+    },
+    {
+      "id": "smoke-negative",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 1,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 5691.41,
+      "needs_review": false
+    },
+    {
+      "id": "smoke-lamp-mixed",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 1,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 5946.65,
+      "needs_review": false
+    },
+    {
+      "id": "smoke-lamp-short",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 1,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 5691.87,
+      "needs_review": false
+    },
+    {
+      "id": "smoke-hypothetical",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 2899.29,
+      "needs_review": true
+    },
+    {
+      "id": "smoke-resolved",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 3359.96,
+      "needs_review": true
+    },
+    {
+      "id": "smoke-praise-inversion",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 0,
+      "actions": 0,
+      "required_regression": true,
+      "regression_passed": true,
+      "total_ms": 1030.93,
+      "needs_review": true
+    },
+    {
+      "id": "smoke-suggestion",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 3114.69,
+      "needs_review": true
+    },
+    {
+      "id": "dev-07",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 1,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 5613.54,
+      "needs_review": false
+    },
+    {
+      "id": "dev-09",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 3557.42,
+      "needs_review": true
+    },
+    {
+      "id": "dev-12",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 2993.69,
+      "needs_review": true
+    },
+    {
+      "id": "dev-13",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 3011.85,
+      "needs_review": true
+    },
+    {
+      "id": "dev-14",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 2948.04,
+      "needs_review": true
+    },
+    {
+      "id": "dev-21",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 1,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 5737.91,
+      "needs_review": false
+    },
+    {
+      "id": "dev-22",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 2976.11,
+      "needs_review": true
+    },
+    {
+      "id": "dev-23",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "issues": 1,
+      "actions": 0,
+      "required_regression": false,
+      "regression_passed": true,
+      "total_ms": 3227.14,
+      "needs_review": true
+    }
+  ],
+  "problems": [],
+  "required_regression_ids": [
+    "smoke-hypothetical",
+    "smoke-lamp-mixed",
+    "smoke-lamp-short",
+    "smoke-negative",
+    "smoke-positive",
+    "smoke-praise-inversion",
+    "smoke-resolved"
+  ],
+  "regression_checks_passed": true,
+  "passed": true,
+  "seconds": 60.785
+}
