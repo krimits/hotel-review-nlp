@@ -102,3 +102,15 @@ def test_archived_qwen_probe_is_bound_to_the_fix_and_does_not_claim_deployment_o
     assert not any(by_id[name]["actions"] for name in ("resolved", "hypothetical", "praise"))
     baseline = json.loads((folder / "historical_failures.json").read_text())
     assert [row["failure"] for row in baseline["records"]] == ["issue_quote_missing", "evidence_quote_missing_or_invalid"]
+
+
+def test_setup_overrides_colab_inline_backend_for_child_processes(monkeypatch):
+    monkeypatch.setenv("MPLBACKEND", "module://matplotlib_inline.backend_inline")
+    _, code = cells()
+    namespace = {"SECRET_NAME": "HF_TOKEN"}
+    # Execute the actual environment setup without installing packages or cloning.
+    exec(code["setup"].split("if not REPO_DIR.exists():", 1)[0], namespace)
+    assert namespace["base_env"]["MPLBACKEND"] == "Agg"
+    with patch("subprocess.run", return_value=SimpleNamespace(stdout="ok")) as run:
+        namespace["run_command"](["python", "-c", "pass"], capture=True)
+    assert run.call_args.kwargs["env"]["MPLBACKEND"] == "Agg"
