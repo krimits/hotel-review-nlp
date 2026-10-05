@@ -17,6 +17,11 @@ The remaining checks below still apply.
 
 ## Evidence extraction update
 
+Use [notebook 19](../notebooks/19_update_triage_evidence_space_colab.ipynb) in a fresh Colab GPU session,
+with the existing `HF_TOKEN` write Secret. It has `RESUME=True` for the existing Space. The
+[regression record](experiments/triage_space_publication/source-spans-v6/README.md) documents the local
+Qwen reproduction and the remaining hosted verification.
+
 `actions-v6-source-spans` fixes the free-text quote-copying failure by asking Qwen to select integer
 source ids. Software resolves them to literal slices of the supplied review. The historical G generator,
 notebook 17, original notebook 18 and archived publication remain reproducible at their original pins.

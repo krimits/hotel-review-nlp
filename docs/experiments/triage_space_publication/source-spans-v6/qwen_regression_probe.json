@@ -1,0 +1,367 @@
+{
+  "kind": "synthetic_regression_probe",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "real_weights_loaded": true,
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "torch": "2.11.0+cpu",
+  "precision": "float32",
+  "device": "cpu",
+  "records": [
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "lamp-mixed",
+      "review": "The reading lamp flickered all evening, although the bed was comfortable.",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.957,
+        "flagged_topics": [
+          "other"
+        ],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening, although the bed was comfortable.",
+          "evidence": {
+            "reported": "The reading lamp flickered all evening, although the bed was comfortable.",
+            "hypothetical": null,
+            "resolved": null
+          },
+          "status": "REAL_PENDING",
+          "category": "equipment_fault",
+          "model_status": "REAL_PENDING",
+          "department": "maintenance",
+          "review_reasons": []
+        }
+      ],
+      "actions": [
+        {
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening, although the bed was comfortable.",
+          "department": "maintenance",
+          "measure": "Check the electrical circuit in the room.",
+          "to_confirm": [
+            "Verify that there is no loose wiring or damaged components near the reading lamp.",
+            "Verify whether the reported problem is still present."
+          ]
+        }
+      ],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Flickering reading lamp\", \"excerpt_span\": 1, \"evidence\": {\"reported\": 1, \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 37.407629
+        },
+        {
+          "stage": "measures",
+          "raw": "```json\n{\n    \"actions\": [\n        {\n            \"issue_id\": 1,\n            \"measure\": \"Check the electrical circuit in the room.\",\n            \"to_confirm\": [\n                \"Verify that there is no loose wiring or damaged components near the reading lamp.\"\n            ]\n        }\n    ]\n}\n```",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 30.704089
+        }
+      ],
+      "seconds": 68.113
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "lamp-short",
+      "review": "The reading lamp flickered all evening",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.983,
+        "flagged_topics": [
+          "other"
+        ],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening",
+          "evidence": {
+            "reported": "The reading lamp flickered all evening",
+            "hypothetical": null,
+            "resolved": null
+          },
+          "status": "REAL_PENDING",
+          "category": "equipment_fault",
+          "model_status": "REAL_PENDING",
+          "department": "maintenance",
+          "review_reasons": []
+        }
+      ],
+      "actions": [
+        {
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening",
+          "department": "maintenance",
+          "measure": "Check the power supply and circuit breaker",
+          "to_confirm": [
+            "Verify that the power outlet is functioning properly.",
+            "Inspect the circuit breaker for any signs of tripping.",
+            "Verify whether the reported problem is still present."
+          ]
+        }
+      ],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Flickering reading lamp\", \"excerpt_span\": 1, \"evidence\": {\"reported\": 1, \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 37.970093
+        },
+        {
+          "stage": "measures",
+          "raw": "```json\n{\n    \"actions\": [\n        {\n            \"issue_id\": 1,\n            \"measure\": \"Check the power supply and circuit breaker\",\n            \"to_confirm\": [\n                \"Verify that the power outlet is functioning properly.\",\n                \"Inspect the circuit breaker for any signs of tripping.\"\n            ]\n        }\n    ]\n}\n```",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 33.131856
+        }
+      ],
+      "seconds": 71.102
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "lamp-negative",
+      "review": "The reading lamp flickered all evening and nobody fixed it.",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.96,
+        "flagged_topics": [],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening and nobody fixed it.",
+          "evidence": {
+            "reported": "The reading lamp flickered all evening and nobody fixed it.",
+            "hypothetical": null,
+            "resolved": null
+          },
+          "status": "REAL_PENDING",
+          "category": "equipment_fault",
+          "model_status": "REAL_PENDING",
+          "department": "maintenance",
+          "review_reasons": []
+        }
+      ],
+      "actions": [
+        {
+          "problem": "Flickering reading lamp",
+          "excerpt": "The reading lamp flickered all evening and nobody fixed it.",
+          "department": "maintenance",
+          "measure": "Contact maintenance staff to inspect and repair the reading lamp.",
+          "to_confirm": [
+            "The reading lamp is still flickering",
+            "Maintenance staff have inspected and repaired the reading lamp",
+            "Verify whether the reported problem is still present."
+          ]
+        }
+      ],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Flickering reading lamp\", \"excerpt_span\": 1, \"evidence\": {\"reported\": 1, \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 39.212991
+        },
+        {
+          "stage": "measures",
+          "raw": "```json\n{\n    \"actions\": [\n        {\n            \"issue_id\": 1,\n            \"measure\": \"Contact maintenance staff to inspect and repair the reading lamp.\",\n            \"to_confirm\": [\n                \"The reading lamp is still flickering\",\n                \"Maintenance staff have inspected and repaired the reading lamp\"\n            ]\n        }\n    ]\n}\n```",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 34.526193
+        }
+      ],
+      "seconds": 73.74
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "resolved",
+      "review": "The reading lamp failed. Staff replaced it immediately and it worked perfectly.",
+      "signals": {
+        "sentiment_label": "positive",
+        "sentiment_confidence": 0.94,
+        "flagged_topics": [],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Failed reading lamp",
+          "excerpt": "The reading lamp failed.",
+          "evidence": {
+            "reported": "The reading lamp failed.",
+            "hypothetical": null,
+            "resolved": "Staff replaced it immediately and it worked perfectly."
+          },
+          "status": "REAL_RESOLVED",
+          "category": "equipment_fault",
+          "model_status": "REAL_RESOLVED",
+          "department": "maintenance",
+          "review_reasons": []
+        }
+      ],
+      "actions": [],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Failed reading lamp\", \"excerpt_span\": 1, \"evidence\": {\"reported\": 1, \"hypothetical\": null, \"resolved\": 2}, \"status\": \"REAL_RESOLVED\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 39.217184
+        }
+      ],
+      "seconds": 39.217
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "hypothetical",
+      "review": "The lift worked every time. It would be awkward if it broke.",
+      "signals": {
+        "sentiment_label": "positive",
+        "sentiment_confidence": 0.94,
+        "flagged_topics": [],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Lift failure",
+          "excerpt": "The lift worked every time.",
+          "evidence": {
+            "reported": null,
+            "hypothetical": null,
+            "resolved": null
+          },
+          "status": "UNCERTAIN",
+          "category": "access",
+          "model_status": "HYPOTHETICAL",
+          "department": "management",
+          "review_reasons": [
+            "hypothetical_evidence_missing_or_conflicting",
+            "uncertain_issue",
+            "department_needs_confirmation"
+          ]
+        }
+      ],
+      "actions": [],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Lift failure\", \"excerpt_span\": 1, \"evidence\": {\"reported\": null, \"hypothetical\": null, \"resolved\": null}, \"status\": \"HYPOTHETICAL\", \"category\": \"access\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 36.708021
+        }
+      ],
+      "seconds": 36.708
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "praise",
+      "review": "We loved the breakfast and the welcome drink. The clean room was comfortable.",
+      "signals": {
+        "sentiment_label": "positive",
+        "sentiment_confidence": 0.98,
+        "flagged_topics": [],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [],
+      "actions": [],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\":[]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 15.630971
+        }
+      ],
+      "seconds": 15.631
+    },
+    {
+      "workflow": "actions-v6-source-spans",
+      "id": "not-resolved",
+      "review": "The heating failed. Staff tried to repair it but it still did not work.",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.97,
+        "flagged_topics": [],
+        "hotel_context": null
+      },
+      "failure": null,
+      "issues": [
+        {
+          "issue_id": 1,
+          "problem": "Heating failure",
+          "excerpt": "The heating failed.",
+          "evidence": {
+            "reported": "The heating failed.",
+            "hypothetical": null,
+            "resolved": null
+          },
+          "status": "REAL_PENDING",
+          "category": "equipment_fault",
+          "model_status": "REAL_PENDING",
+          "department": "maintenance",
+          "review_reasons": []
+        }
+      ],
+      "actions": [
+        {
+          "problem": "Heating failure",
+          "excerpt": "The heating failed.",
+          "department": "maintenance",
+          "measure": "Contact maintenance staff to inspect the heating system.",
+          "to_confirm": [
+            "The heating system is accessible and in reach of maintenance staff.",
+            "Maintenance staff have confirmed the heating system needs inspection.",
+            "Verify whether the reported problem is still present."
+          ]
+        }
+      ],
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Heating failure\", \"excerpt_span\": 1, \"evidence\": {\"reported\": 1, \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 36.46607
+        },
+        {
+          "stage": "measures",
+          "raw": "```json\n{\n    \"actions\": [\n        {\n            \"issue_id\": 1,\n            \"measure\": \"Contact maintenance staff to inspect the heating system.\",\n            \"to_confirm\": [\n                \"The heating system is accessible and in reach of maintenance staff.\",\n                \"Maintenance staff have confirmed the heating system needs inspection.\"\n            ]\n        }\n    ]\n}\n```",
+          "hit_token_budget": false,
+          "error": null,
+          "seconds": 35.449843
+        }
+      ],
+      "seconds": 71.916
+    }
+  ],
+  "source_sha256": {
+    "src/reviewnlp/triage/span_evidence_generator.py": "42ab41e44d599bcf817e5b561a06a3eefbe207221deb61cbfd09cc401eb4057a",
+    "src/reviewnlp/triage/demo_service.py": "be3dc55bbf8ce273f59e2db2975c295771cef9d3f312520282aa98049cea4c52"
+  },
+  "source_commit": "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac",
+  "upstream": "explicit synthetic signals; no DistilBERT or Jev invocation in this Qwen probe",
+  "deployed": false
+}

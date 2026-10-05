@@ -1,0 +1,62 @@
+{
+  "kind": "historical_qwen_failure_reproduction",
+  "historical_source_commit": "8c75e5f2656d8faf86aed71d67b941a4697884c5",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "device": "cpu",
+  "precision": "float32",
+  "torch": "2.11.0+cpu",
+  "real_weights_loaded": true,
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "records": [
+    {
+      "workflow": "historical-v5",
+      "id": "lamp-mixed",
+      "review": "The reading lamp flickered all evening, although the bed was comfortable.",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.957,
+        "flagged_topics": [
+          "other"
+        ],
+        "hotel_context": null
+      },
+      "failure": "issue_quote_missing",
+      "issues": [],
+      "actions": null,
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Flickering reading lamp\", \"excerpt\": \"The reading lamp flickered all evening.\", \"evidence\": {\"reported\": \"The reading lamp flickered all evening.\", \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}, {\"problem\": \"Comfortable bed\", \"excerpt\": \"although the bed was comfortable\", \"evidence\": {\"reported\": null, \"hypothetical\": null, \"resolved\": null}, \"status\": \"POSITIVE_COMMENT\", \"category\": \"cleanliness\"}]}",
+          "hit_token_budget": false
+        }
+      ],
+      "seconds": 58.633
+    },
+    {
+      "workflow": "historical-v5",
+      "id": "lamp-short",
+      "review": "The reading lamp flickered all evening",
+      "signals": {
+        "sentiment_label": "negative",
+        "sentiment_confidence": 0.983,
+        "flagged_topics": [
+          "other"
+        ],
+        "hotel_context": null
+      },
+      "failure": "evidence_quote_missing_or_invalid",
+      "issues": [],
+      "actions": null,
+      "stages": [
+        {
+          "stage": "issues",
+          "raw": "{\"issues\": [{\"problem\": \"Flickering reading lamp\", \"excerpt\": \"The reading lamp flickered all evening\", \"evidence\": {\"reported\": \"The reading lamp flickered all evening.\", \"hypothetical\": null, \"resolved\": null}, \"status\": \"REAL_PENDING\", \"category\": \"equipment_fault\"}]}",
+          "hit_token_budget": false
+        }
+      ],
+      "seconds": 38.179
+    }
+  ]
+}

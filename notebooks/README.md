@@ -69,6 +69,14 @@ commit and SHA-256 allowlist. Colab GPU and an `HF_TOKEN` write Secret are neede
 and a functional check does not select G or establish hotel-use reliability. Upload and live verification
 are recorded separately; startup failure is not described as a working demo.
 
+Notebook 19 updates that existing Space with `actions-v6-source-spans`: Qwen selects source ids and
+software returns literal review excerpts. It pins the correction, uses `RESUME=True`, preserves the
+Space's Jev Variables/Secrets, and blocks upload if the required lamp/abstention regressions fail:
+[19_update_triage_evidence_space_colab.ipynb](19_update_triage_evidence_space_colab.ipynb).
+Use a fresh Colab GPU session and the `HF_TOKEN` write Secret. The seven hosted regression checks must
+also pass; [local Qwen evidence and limitations](../docs/experiments/triage_space_publication/source-spans-v6/README.md)
+do not establish that the update has already been deployed.
+
 `data/raw/booking_reviews_515k.csv` is not in the repository — see
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
