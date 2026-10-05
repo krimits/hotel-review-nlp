@@ -254,6 +254,11 @@ This is an **experimental snapshot, not a selected or promoted production workfl
 quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
 remain unvalidated. See the [verified publication record](docs/experiments/triage_space_publication/a79717c/README.md).
 
+The source-span extraction fix is prepared in
+[notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb), with required lamp regression
+checks before upload. Its [local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md)
+is recorded separately; a new deployment receipt is still pending.
+
 ### Option 2 — Run locally
 
 ```bash

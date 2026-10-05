@@ -11,6 +11,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from scripts.check_triage_space import (  # noqa: E402
+    LAMP_REGRESSIONS,
+    REQUIRED_REGRESSIONS,
+    regression_problems,
+)
 from scripts.prepare_triage_space import build_package, verify_package  # noqa: E402
 from scripts.publish_triage_space import (  # noqa: E402
     HARDWARE,
@@ -28,6 +33,8 @@ def checked(tmp_path):
     report = {"kind": "real_weight_functional_smoke", "passed": True, "real_weights_loaded": True,
               "problems": [], "quality_evaluated": False, "reserved_evaluation_used": False,
               "source_commit": manifest["source_commit"], "package_files": manifest["files"],
+              "required_regression_ids": sorted(REQUIRED_REGRESSIONS), "regression_checks_passed": True,
+              "records": [{"id": name, "regression_passed": True, "status": "complete"} for name in REQUIRED_REGRESSIONS],
               "source_manifest_sha256": hashlib.sha256((package / "source_manifest.json").read_bytes()).hexdigest()}
     return package, manifest, report
 
@@ -108,6 +115,7 @@ def test_real_weight_receipt_must_match_the_entire_package_and_manifest(checked)
     package, _, report = checked
     for key, value in (("passed", False), ("real_weights_loaded", False), ("source_commit", "b" * 40),
                        ("source_manifest_sha256", "bad"), ("package_files", {}),
+                       ("regression_checks_passed", False), ("required_regression_ids", []), ("records", []),
                        ("reserved_evaluation_used", True), ("quality_evaluated", True)):
         with pytest.raises(ValueError, match="real_weight_smoke"):
             validate_smoke(package, {**report, key: value})
@@ -131,11 +139,49 @@ def test_live_check_requires_loaded_snapshot_and_exercises_both_inputs_without_j
             predictions.append((args, api_name))
             if api_name == "/model_info":
                 return {"source_snapshot": manifest, "runtime": {"ready": True, "zero_gpu": True}}
+            lamp = args[0].startswith("The reading lamp flickered")
             return "completed", [], [], {"stored": False, "api_cost": {"attempts": 0},
                 "stage_reports": [{"stage": "issues", "status": "ok", "error": None}],
+                "issue_assessments": [{"status": "REAL_PENDING", "department": "maintenance", "excerpt": args[0]}] if lamp else [],
+                "actions": {"actions": [{"department": "maintenance", "excerpt": args[0]}] if lamp else []},
                 "stage_failure": None, "status": "complete", "timings": {"total_ms": 100}}
 
     receipt = check_live(FakeApi(package), {}, manifest, client_factory=lambda *args, **kwargs: Client())
     assert receipt["runtime_verified"] and not receipt["quality_evaluated"]
-    assert len(predictions) == 3 and all(args[-1] is False for args, name in predictions if name == "/analyze")
+    assert len(predictions) == len(REQUIRED_REGRESSIONS) + 1
+    assert all(args[-1] is False for args, name in predictions if name == "/analyze")
     assert verify_package(package) == manifest
+
+
+@pytest.mark.parametrize("case", sorted(REQUIRED_REGRESSIONS))
+def test_fix_regressions_cannot_pass_with_an_extraction_failure_or_missing_lamp_actions(case):
+    result = {"stage_failure": {"stage": "issues", "error": "invalid_evidence_span_id"}, "status": "partial"}
+    assert regression_problems(case, "The lamp flickered.", result)
+    result = {"stage_failure": None, "status": "complete", "issue_assessments": [], "actions": {"actions": []}}
+    assert bool(regression_problems(case, "The lamp flickered.", result)) == (case in LAMP_REGRESSIONS)
+
+
+def test_existing_space_update_waits_for_new_snapshot_and_preserves_configuration(checked, monkeypatch):
+    package, manifest, report = checked
+    api = FakeApi(package)
+    receipt = deploy(api, package, report, resume=True, download=api.download)
+    assert [name for name, _ in api.calls] == ["upload"]
+    assert api.calls[0][1]["parent_commit"] == "b" * 40
+    reads = []
+
+    class Client:
+        def predict(self, *args, api_name):
+            if api_name == "/model_info":
+                reads.append(1)
+                return {"source_snapshot": {} if len(reads) == 1 else manifest,
+                        "runtime": {"ready": True, "zero_gpu": True}}
+            lamp = args[0].startswith("The reading lamp flickered")
+            return "completed", [], [], {"stored": False, "api_cost": {"attempts": 0},
+                "stage_reports": [{"stage": "issues", "status": "ok", "error": None}],
+                "issue_assessments": [{"status": "REAL_PENDING", "department": "maintenance", "excerpt": args[0]}] if lamp else [],
+                "actions": {"actions": [{"department": "maintenance", "excerpt": args[0]}] if lamp else []},
+                "stage_failure": None, "status": "complete", "timings": {"total_ms": 100}}
+
+    monkeypatch.setattr("scripts.publish_triage_space.time.sleep", lambda seconds: None)
+    assert check_live(api, receipt, manifest, client_factory=lambda *args, **kwargs: Client())["runtime_verified"]
+    assert len(reads) == 2

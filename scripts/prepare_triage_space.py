@@ -17,6 +17,7 @@ MODULES = (
     "triage/evidence_generator.py", "triage/generator_experiment.py", "triage/pipeline.py",
     "triage/demo_service.py",
     "triage/space_runtime.py",
+    "triage/span_evidence_generator.py",
 )
 
 
@@ -63,15 +64,21 @@ def build_package(root: Path, output: Path, *, source_commit: str | None = None)
         target.write_bytes(content)
         hashes[name] = hashlib.sha256(content).hexdigest()
     from reviewnlp.triage.demo_service import DISTILBERT_REVISION, QWEN_REVISION
-    from reviewnlp.triage.evidence_generator import CATEGORY_DEPARTMENTS, VERSION
-    from reviewnlp.triage.generator_experiment import prompt_fingerprint
+    from reviewnlp.triage.evidence_generator import CATEGORY_DEPARTMENTS
     from reviewnlp.triage.questions import QUESTIONS_SHA256, QUESTIONS_VERSION
+    from reviewnlp.triage.span_evidence_generator import (
+        CANDIDATE,
+        SPAN_POLICY,
+        VERSION,
+        prompt_fingerprint,
+    )
 
     manifest = {"source_commit": source_commit, "files": hashes,
                 "validation_status": "unvalidated", "hub_writes": False,
                 "selection_status": "experimental_not_selected_not_promoted",
-                "runtime_snapshot": {"candidate": "G", "prompt_version": VERSION,
-                    "prompt_sha256": prompt_fingerprint("G"), "distilbert_revision": DISTILBERT_REVISION,
+                "runtime_snapshot": {"candidate": CANDIDATE, "prompt_version": VERSION,
+                    "prompt_sha256": prompt_fingerprint(), "source_span_policy": SPAN_POLICY,
+                    "distilbert_revision": DISTILBERT_REVISION,
                     "qwen_revision": QWEN_REVISION, "category_departments": CATEGORY_DEPARTMENTS,
                     "jev_questions_version": QUESTIONS_VERSION, "jev_questions_sha256": QUESTIONS_SHA256,
                     "jev_default": False, "jev_model_policy": "mutable route; resolved model reported per request",

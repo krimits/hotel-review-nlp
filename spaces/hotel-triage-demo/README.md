@@ -17,13 +17,14 @@ models:
 
 Greek UI, English input. One review (3–4,000 characters) per request. DistilBERT gives overall sentiment;
 optional Jev supplies complaint hints; Qwen extracts evidence and then proposes measures for reported
-problems. **Experimental snapshot of candidate G — not selected, not promoted for production.**
+problems. **Experimental G-source-spans workflow — not selected, not promoted for production.**
 Independent quality evaluation is pending. This workflow has no validated hotel-action accuracy.
 
 Notebook 17 provides development evidence from 24 authored synthetic cases. It found missed problems,
 invented issues, wrong departments and extraction failures. Development ratings are not production
 accuracy, and this Space does not use them as a headline score. No reserved evaluation was opened for
-this deployment. The comparison's historical decision record remains unchanged.
+this deployment. The comparison's historical decision record remains unchanged. The current workflow
+uses numbered source spans to avoid model-generated quotes; it is a new version, not the evaluated G.
 
 Every review reaches issue extraction, even with confidently positive sentiment. This is a diagnostic
 demo policy, separate from the existing API's default routing. Uncertain classifications, unsuccessful
@@ -34,7 +35,11 @@ Suggested measures require a person's confirmation; they do not create work orde
 
 - DistilBERT: `7306aebcaaebc00d579f5d0a91001ae376f18158`, CPU, input truncated to 256 tokens.
 - Qwen2.5-1.5B-Instruct: `989aa7980e4cf806f80c7fef2b1adb7bc71aa306`.
-- Prompt: `actions-v5-evidence`, up to two calls of 400 new tokens each, deterministic decoding.
+- Prompt: `actions-v6-source-spans`, up to two calls of 400 new tokens each, deterministic decoding.
+- The software numbers literal source slices (sentence boundaries, then at most 400 characters).
+  Qwen selects integer span ids; software resolves every excerpt and evidence value from the original
+  review. Quotes are never generated, punctuation-repaired, normalized or supplied by Jev.
+  Invalid ids or JSON remain visible stage failures. Distinct issues can share a source span.
 - The whole supplied review is available to Qwen (within the 4,000-character input limit).
 - At most five extracted items and two proposed measures. Missing measures are flagged for review.
 - `REAL_PENDING` means an actual guest-reported problem without a stated successful fix; its current
@@ -50,9 +55,11 @@ Suggested measures require a person's confirmation; they do not create work orde
   `spaces` is managed by the HF SDK image; its actual version is reported at runtime.
 - No automatic paid-hardware request or GPU billing estimate. Per-request time includes waiting inside
   the analysis handler, including GPU acquisition; Gradio queue waiting before the handler is excluded.
-- Literal quote or JSON failure names the failed extraction/measures stage. A GPU failure is visible;
+- Invalid source selection or JSON names the failed extraction/measures stage. A GPU failure is visible;
   an empty suggestion is not interpreted as absence of a complaint.
-- Known limitations: UNCERTAIN issues receive no measures, at most two measures may leave more issues
+- Known limitations: selecting a source span can still attach irrelevant evidence or misclassify it.
+  Long sentences are split into bounded slices; all slices are shown to Qwen together, but it can miss
+  context across them. UNCERTAIN issues receive no measures, at most two measures may leave more issues
   uncovered, and literal evidence can still be misinterpreted. Every displayed issue needs review.
 
 ## Run locally
