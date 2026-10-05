@@ -21,8 +21,8 @@ from reviewnlp.triage.demo_service import (
     make_generator,
     public_stage_reports,
 )
-from reviewnlp.triage.evidence_generator import VERSION
 from reviewnlp.triage.qwen_generator import ActionSignals, GenerationResult, _load_qwen
+from reviewnlp.triage.span_evidence_generator import VERSION
 
 
 def load_space_qwen():

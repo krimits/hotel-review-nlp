@@ -20,12 +20,37 @@ from scripts.prepare_triage_space import verify_package  # noqa: E402
 EDGE_CASES = [
     {"id": "smoke-positive", "text": "The lobby tea was delicious and our suite was comfortable."},
     {"id": "smoke-negative", "text": "The reading lamp flickered all evening and nobody fixed it."},
+    {"id": "smoke-lamp-mixed", "text": "The reading lamp flickered all evening, although the bed was comfortable."},
+    {"id": "smoke-lamp-short", "text": "The reading lamp flickered all evening"},
     {"id": "smoke-hypothetical", "text": "The lift worked every time. It would be awkward if it broke."},
     {"id": "smoke-resolved", "text": "The reading lamp failed. Staff replaced it immediately and it worked perfectly."},
     {"id": "smoke-praise-inversion", "text": "We loved the breakfast and the welcome drink. The clean room was comfortable."},
     {"id": "smoke-suggestion", "text": "The desserts were lovely. A vegan dessert would be a welcome addition."},
 ]
 DEV_FAILURE_IDS = {"dev-07", "dev-09", "dev-12", "dev-13", "dev-14", "dev-21", "dev-22", "dev-23"}
+REQUIRED_REGRESSIONS = {"smoke-positive", "smoke-negative", "smoke-lamp-mixed", "smoke-lamp-short",
+                        "smoke-hypothetical", "smoke-resolved", "smoke-praise-inversion"}
+LAMP_REGRESSIONS = {"smoke-negative", "smoke-lamp-mixed", "smoke-lamp-short"}
+
+
+def regression_problems(case: str, text: str, result: dict) -> list[str]:
+    """Named development regressions gate this fix; these are not held-out accuracy estimates."""
+    if case not in REQUIRED_REGRESSIONS:
+        return []
+    if result["stage_failure"] or result["status"] != "complete":
+        return [case + ": required_regression_stage_failed"]
+    issues, actions = result["issue_assessments"], result["actions"]["actions"]
+    if any(item["excerpt"] not in text or any(value is not None and value not in text
+            for value in item.get("evidence", {}).values()) for item in issues):
+        return [case + ": required_regression_nonliteral_evidence"]
+    if case in LAMP_REGRESSIONS:
+        if not any(item["status"] == "REAL_PENDING" and item["department"] == "maintenance" for item in issues):
+            return [case + ": required_lamp_issue_missing"]
+        if not any(item["department"] == "maintenance" and item["excerpt"] in text for item in actions):
+            return [case + ": required_lamp_measure_missing"]
+    elif actions:
+        return [case + ": unexpected_measure_for_praise_hypothetical_or_resolved"]
+    return []
 
 
 def check(package: Path, *, include_dev_failures=True) -> dict:
@@ -64,8 +89,12 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
                 problems.append(row["id"] + ": invisible_stage_failure")
             if any(item["excerpt"] not in row["text"] for item in result["issue_assessments"]):
                 problems.append(row["id"] + ": literal_quote_contract")
+            regression_errors = regression_problems(row["id"], row["text"], result)
+            problems.extend(regression_errors)
             records.append({"id": row["id"], "status": result["status"], "stage_reports": stage_reports,
                             "issues": len(result["issue_assessments"]), "actions": len(result["actions"]["actions"]),
+                            "required_regression": row["id"] in REQUIRED_REGRESSIONS,
+                            "regression_passed": not regression_errors,
                             "total_ms": result["timings"]["total_ms"], "needs_review": result["routing"]["needs_review"]})
             print(row["id"], result["status"], result["stage_failure"] or "stages completed", flush=True)
     finally:
@@ -76,6 +105,8 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
             "source_commit": manifest["source_commit"], "package_files": manifest["files"],
             "source_manifest_sha256": hashlib.sha256((package / "source_manifest.json").read_bytes()).hexdigest(),
             "runtime": information["runtime"], "records": records, "problems": problems,
+            "required_regression_ids": sorted(REQUIRED_REGRESSIONS),
+            "regression_checks_passed": all(item["regression_passed"] for item in records if item["required_regression"]),
             "passed": not problems, "seconds": round(time.perf_counter() - started, 3)}
 
 

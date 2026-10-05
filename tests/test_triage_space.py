@@ -188,7 +188,7 @@ def test_space_package_contains_only_allowed_sources_and_imports_without_the_ori
     package = tmp_path / "package"
     manifest = script.build_package(ROOT, package, source_commit="a" * 40)
     assert manifest["hub_writes"] is False
-    assert manifest["runtime_snapshot"]["candidate"] == "G"
+    assert manifest["runtime_snapshot"]["candidate"] == "G-source-spans"
     assert manifest["selection_status"] == "experimental_not_selected_not_promoted"
     for name, expected in manifest["files"].items():
         assert hashlib.sha256((package / name).read_bytes()).hexdigest() == expected

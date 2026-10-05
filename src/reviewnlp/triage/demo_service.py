@@ -6,16 +6,17 @@ import os
 import threading
 from dataclasses import replace
 
-from reviewnlp.triage.evidence_generator import (
-    VERSION,
-    EvidenceFirstGenerator,
-    messages_evidence,
-    messages_evidence_measures,
-)
+from reviewnlp.triage.evidence_generator import messages_evidence_measures
 from reviewnlp.triage.generator_experiment import RecordingTransport, cost_summary
 from reviewnlp.triage.jev_client import JevClient, JevConfig, urllib_transport
 from reviewnlp.triage.pipeline import TriagePipeline
 from reviewnlp.triage.qwen_generator import MAX_NEW_TOKENS, QwenActionGenerator
+from reviewnlp.triage.span_evidence_generator import (
+    CANDIDATE,
+    VERSION,
+    SourceSpanGenerator,
+    messages_span_evidence,
+)
 
 DISTILBERT_REPO = "krimits/distilbert-hotel-reviews"
 DISTILBERT_REVISION = "7306aebcaaebc00d579f5d0a91001ae376f18158"
@@ -29,6 +30,7 @@ PUBLIC_ERRORS = {
     "invalid_evidence_issue_schema", "issue_quote_missing", "duplicate_issue_excerpt",
     "evidence_quote_missing_or_invalid", "too_many_measures", "invalid_measure_schema_or_issue_id",
     "too_many_confirmation_facts",
+    "invalid_evidence_span_id", "invalid_span_issue_schema", "duplicate_span_issue", "invalid_span_review",
 }
 
 
@@ -101,8 +103,8 @@ class PinnedSentiment:
         return label, values[label]
 
 
-def make_generator(*, loader=None) -> EvidenceFirstGenerator:
-    extractor = QwenActionGenerator(QWEN_REPO, revision=QWEN_REVISION, message_builder=messages_evidence,
+def make_generator(*, loader=None) -> SourceSpanGenerator:
+    extractor = QwenActionGenerator(QWEN_REPO, revision=QWEN_REVISION, message_builder=messages_span_evidence,
                                     prompt_version=VERSION + ":issues", loader=loader)
 
     def action_factory(pending):
@@ -110,7 +112,7 @@ def make_generator(*, loader=None) -> EvidenceFirstGenerator:
             message_builder=lambda review, signals: messages_evidence_measures(review, pending),
             prompt_version=VERSION + ":measures")
 
-    return EvidenceFirstGenerator(extractor, action_factory)
+    return SourceSpanGenerator(extractor, action_factory)
 
 
 class DemoService:
@@ -166,5 +168,5 @@ def space_environment() -> dict:
     """Only public configuration; environment and keys must never be sent to the UI."""
     return {"prompt_version": VERSION, "distilbert_revision": DISTILBERT_REVISION,
             "qwen_revision": QWEN_REVISION, "validation_status": "unvalidated",
-            "candidate": "G", "selection_status": "experimental_not_selected_not_promoted",
+            "candidate": CANDIDATE, "selection_status": "experimental_not_selected_not_promoted",
             "jev_enabled": os.environ.get("REVIEWNLP_JEV_ENABLED", "").strip().lower() in {"1", "true", "yes"}}

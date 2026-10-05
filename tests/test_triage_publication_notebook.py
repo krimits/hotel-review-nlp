@@ -6,6 +6,7 @@ import ast
 import hashlib
 import io
 import json
+import subprocess
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -22,14 +23,15 @@ def cells():
     return notebook, {cell["id"]: "".join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "code"}
 
 
-def test_notebook_pins_all_published_sources_and_scripts_with_no_saved_outputs_or_reserved_access():
+def test_original_publication_notebook_pins_its_historical_sources_without_outputs_or_reserved_access():
     nb, code = cells()
     namespace = {}
     exec(code["parameters"], namespace)
     assert namespace["SPACE_ID"] == "krimits/hotel-triage-demo"
     assert namespace["DRY_RUN"] is False and namespace["RESUME"] is False
     for name, expected in namespace["SOURCE_HASHES"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected
+        content = subprocess.check_output(["git", "show", namespace["SOURCE_COMMIT"] + ":" + name], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == expected
     combined = "\n".join(code.values())
     assert "holdout.json" not in combined and "files.upload" not in combined
     assert "userdata.get" not in "\n".join(value for key, value in code.items() if key != "publish")

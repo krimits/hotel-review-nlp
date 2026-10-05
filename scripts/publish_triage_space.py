@@ -17,6 +17,11 @@ from huggingface_hub import HfApi, hf_hub_download
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from scripts.check_triage_space import (  # noqa: E402
+    EDGE_CASES,
+    REQUIRED_REGRESSIONS,
+    regression_problems,
+)
 from scripts.prepare_triage_space import verify_package  # noqa: E402
 
 REPO_ID = "krimits/hotel-triage-demo"
@@ -25,11 +30,17 @@ HARDWARE = "zero-a10g"  # HF API name for ZeroGPU; never a dedicated paid A10G.
 
 def validate_smoke(package: Path, report: dict) -> dict:
     manifest = verify_package(package)
+    required = [row for row in report.get("records", []) if row.get("id") in REQUIRED_REGRESSIONS]
     if (report.get("kind") != "real_weight_functional_smoke" or not report.get("passed")
             or not report.get("real_weights_loaded") or report.get("problems")
             or report.get("quality_evaluated") is not False or report.get("reserved_evaluation_used") is not False
             or report.get("source_commit") != manifest["source_commit"]
             or report.get("package_files") != manifest["files"]
+            or report.get("regression_checks_passed") is not True
+            or set(report.get("required_regression_ids", [])) != REQUIRED_REGRESSIONS
+            or len(required) != len(REQUIRED_REGRESSIONS)
+            or {row["id"] for row in required} != REQUIRED_REGRESSIONS
+            or any(row.get("regression_passed") is not True or row.get("status") != "complete" for row in required)
             or report.get("source_manifest_sha256") != hashlib.sha256((package / "source_manifest.json").read_bytes()).hexdigest()):
         raise ValueError("matching_successful_real_weight_smoke_required")
     return manifest
@@ -57,7 +68,7 @@ def deploy(api, package: Path, report: dict, *, resume=False, download=hf_hub_do
     expected = {*manifest["files"], "source_manifest.json"}
     uploaded = api.upload_folder(repo_id=REPO_ID, repo_type="space", folder_path=str(package),
                                  allow_patterns=sorted(expected), delete_patterns=["*"], parent_commit=parent,
-                                 commit_message="Publish experimental G snapshot; no production promotion")
+                                 commit_message="Fix evidence extraction using source spans; experimental workflow")
     commit = uploaded.oid
     actual = set(api.list_repo_files(repo_id=REPO_ID, repo_type="space", revision=commit))
     if actual - {".gitattributes"} != expected:
@@ -76,6 +87,10 @@ def deploy(api, package: Path, report: dict, *, resume=False, download=hf_hub_do
 
 
 def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_factory=None) -> dict:
+    if client_factory is None:
+        from gradio_client import Client
+        client_factory = Client
+    client = None
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         runtime = api.get_space_runtime(REPO_ID)
@@ -83,29 +98,37 @@ def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_facto
         if stage in {"BUILD_ERROR", "RUNTIME_ERROR", "CONFIG_ERROR", "PAUSED"}:
             raise RuntimeError("space_not_running: " + stage)
         if stage == "RUNNING":
-            break
+            if runtime.hardware != HARDWARE:
+                raise ValueError("live_runtime_hardware_mismatch")
+            # An updating Space may still serve its previous RUNNING process during a rebuild.
+            try:
+                client = client or client_factory(REPO_ID, hf_token=api.token)
+                info = client.predict(api_name="/model_info")
+            except Exception:
+                client = None
+            else:
+                if (info.get("source_snapshot") == manifest and info.get("runtime", {}).get("ready")
+                        and info["runtime"].get("zero_gpu")):
+                    break
         time.sleep(5)
     else:
         raise TimeoutError("space_startup_timeout")
-    if client_factory is None:
-        from gradio_client import Client
-        client_factory = Client
-    client = client_factory(REPO_ID, hf_token=api.token)
-    info = client.predict(api_name="/model_info")
-    if (info["source_snapshot"] != manifest or not info["runtime"]["ready"]
-            or not info["runtime"]["zero_gpu"] or runtime.hardware != HARDWARE):
-        raise ValueError("live_runtime_snapshot_or_hardware_mismatch")
     checked = []
-    for label, text in (("praise", "The lobby tea was delicious and our suite was comfortable."),
-                        ("complaint", "The reading lamp flickered all evening and nobody fixed it.")):
+    for case in EDGE_CASES:
+        if case["id"] not in REQUIRED_REGRESSIONS:
+            continue
+        label, text = case["id"], case["text"]
         summary, _, _, result = client.predict(text, False, api_name="/analyze")
         if (result["stored"] or result["api_cost"]["attempts"]
                 or not any(item["stage"] == "issues" for item in result["stage_reports"])
                 or any(item["error"] in {"generation_failed", "gpu_unavailable_or_timeout"} for item in result["stage_reports"])
-                or (result["stage_failure"] and "Αποτυχία σταδίου" not in summary)):
+                or (result["stage_failure"] and "Αποτυχία σταδίου" not in summary)
+                or regression_problems(label, text, result)):
             raise ValueError("live_functional_check_failed: " + label)
         checked.append({"case": label, "status": result["status"], "stage_failure": result["stage_failure"],
                         "total_ms": result["timings"]["total_ms"], "stored": False})
+    if receipt.get("space_commit") and api.repo_info(repo_id=REPO_ID, repo_type="space").sha != receipt["space_commit"]:
+        raise ValueError("space_head_changed_during_live_check")
     return {**receipt, "runtime_verified": True, "live_model_info": info, "functional_checks": checked,
             "quality_evaluated": False, "manual_mobile_and_pilot_checks": "pending"}
 
