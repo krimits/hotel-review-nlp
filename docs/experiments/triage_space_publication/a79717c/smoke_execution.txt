@@ -1,0 +1,16 @@
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+smoke-positive complete stages completed
+smoke-negative complete stages completed
+smoke-hypothetical complete stages completed
+smoke-resolved complete stages completed
+smoke-praise-inversion complete stages completed
+smoke-suggestion complete stages completed
+dev-07 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+dev-09 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+dev-12 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+dev-13 complete stages completed
+dev-14 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+dev-21 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+dev-22 partial {'stage': 'issues', 'status': 'error', 'error': 'invalid_json'}
+dev-23 partial {'stage': 'issues', 'status': 'error', 'error': 'evidence_quote_missing_or_invalid'}
+Functional check: passed — no quality claim.

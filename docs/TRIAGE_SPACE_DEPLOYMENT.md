@@ -5,6 +5,16 @@ not a selected generator, production promotion or validated hotel system. Existi
 Reserved evaluation stays closed. A live publication is established only by a successful deployment
 receipt and a matching loaded snapshot; preparing a package or passing CI does not establish it.
 
+## Recorded experimental publication
+
+The separate public Space was published on **5 October 2026** at
+[`a79717ceab2755658e01ce56aaf7a442ab5db82c`](https://huggingface.co/spaces/krimits/hotel-triage-demo/tree/a79717ceab2755658e01ce56aaf7a442ab5db82c),
+from source `f2da186bd63be84a2debe9e6fb3047e14d846ea1` using notebook 18.
+The [publication record](experiments/triage_space_publication/a79717c/README.md) preserves the Colab
+receipt and real-weight functional check, plus independent Hub-file and live-API verification.
+The Space remains experimental G: no candidate selection, promotion or quality evaluation.
+The remaining checks below still apply.
+
 ## Review and check
 
 Use a clean checkout of the pinned source commit in notebook 18. Install the Space requirements in an

@@ -1,7 +1,9 @@
 # Evidence-first development comparison (notebook 17)
 
-Status: implementation and offline wiring checked; real-weight GPU execution and human ratings pending.
-No selected production generator, independent final evaluation or Space deployment is recorded here.
+This protocol defines the development comparison; it does not select a production generator or
+establish an independent final evaluation. The separate [experimental Space publication](../triage_space_publication/a79717c/README.md)
+records its real-weight functional checks and live deployment. Publication does not promote G
+or complete the reserved evaluation and human reliability pilot described below.
 
 ## Paired scope
 
@@ -101,5 +103,6 @@ shows excluded and uncertain issues, evidence, proposals, department, checks, st
 time and provider-reported cost. Keys are server-side, Jev is opt-in and no review database is used.
 
 `scripts/prepare_triage_space.py` builds a small source-only package with an explicit allowlist and SHA-256
-manifest. It performs no Hub write or model download. Live rebuild, real-weight inference and pilot checks
-are pending; a stubbed Gradio build cannot establish those results.
+manifest. It performs no Hub write or model download. Live rebuild and real-weight functional checks
+are recorded in the [Space publication](../triage_space_publication/a79717c/README.md); pilot checks
+remain pending. A stubbed Gradio build alone cannot establish live runtime or model quality.

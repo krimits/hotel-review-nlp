@@ -1,0 +1,181 @@
+{
+  "kind": "independent_publication_verification",
+  "checked_at_utc": "2026-10-05T06:19:46.946135+00:00",
+  "space_id": "krimits/hotel-triage-demo",
+  "space_commit": "a79717ceab2755658e01ce56aaf7a442ab5db82c",
+  "source_commit": "f2da186bd63be84a2debe9e6fb3047e14d846ea1",
+  "source_manifest_sha256": "9c8c91eff7dde84e20005f1302f2a732684176acc1b7c26d2c385924a13a200a",
+  "public": true,
+  "hardware": "zero-a10g",
+  "runtime_stage": "RUNNING",
+  "runtime_commit": "a79717ceab2755658e01ce56aaf7a442ab5db82c",
+  "hub_files": [
+    ".gitattributes",
+    "README.md",
+    "app.py",
+    "requirements.txt",
+    "reviewnlp/__init__.py",
+    "reviewnlp/absa/__init__.py",
+    "reviewnlp/absa/aspects.py",
+    "reviewnlp/absa/extract.py",
+    "reviewnlp/triage/__init__.py",
+    "reviewnlp/triage/demo_service.py",
+    "reviewnlp/triage/evidence_generator.py",
+    "reviewnlp/triage/generator_experiment.py",
+    "reviewnlp/triage/jev_client.py",
+    "reviewnlp/triage/pipeline.py",
+    "reviewnlp/triage/questions.py",
+    "reviewnlp/triage/qwen_generator.py",
+    "reviewnlp/triage/routing.py",
+    "reviewnlp/triage/schemas.py",
+    "reviewnlp/triage/space_runtime.py",
+    "reviewnlp/triage/staged_generator.py",
+    "source_manifest.json"
+  ],
+  "verified_files_sha256": {
+    "app.py": "5b93cd8428cdbd0290bc794270da9a25fc5d59a739da7f07f6863b0017bf3618",
+    "README.md": "d78f5e7317437ca8c2ad7eaff4918ea1650c7ff9b1eefbac66a007466508d6eb",
+    "requirements.txt": "13bd077a66c97ad0303388b9aafc36f39fa5156dbde56cc35a44361865e5cf64",
+    "reviewnlp/__init__.py": "4158879c4ff4a682da05e0287803466930d6716171670ef71d028e3777a95371",
+    "reviewnlp/absa/__init__.py": "213c2905b3cadfac06bc93ee7e509dae5dfafb8ca59c3abcca4383d1430e6911",
+    "reviewnlp/absa/aspects.py": "2e48653dc4433772a30f55d74d92e373a1d3dff79dfc2c4f80d6bbd3431ee3bd",
+    "reviewnlp/absa/extract.py": "5c6b10b8f4573b0fd3b34a3fd17062c4622c44160f6194c803f47a3cda6edcc6",
+    "reviewnlp/triage/__init__.py": "e2f3cc51007be20106dceedbb4939778fc13ee00964ab19d87f3f496991326cb",
+    "reviewnlp/triage/schemas.py": "2959d092a695cb1f2910a858428c375df38f20ea0221da1f5d61ec5bc9d6ab33",
+    "reviewnlp/triage/questions.py": "5e5e88ba8f12b7e93f11b68cdd24d23ae8b3ee2e1ba77e8e6836af849424bdb8",
+    "reviewnlp/triage/jev_client.py": "e4cec68e57edd43338e4b7969e79078668dbc4bcec4c7e2f4f169c5c5388894d",
+    "reviewnlp/triage/routing.py": "47ee87e042c188d47e3e694c1b7bdcfad4c29cfddf3dece204615c0987db492f",
+    "reviewnlp/triage/qwen_generator.py": "e6743eaa68bd9b4cb8596b72681c8fb8c43945abe5ba3a9f97812f1c940d839d",
+    "reviewnlp/triage/staged_generator.py": "5393fb6891e72545300be4926287c131468163b9fc3ade3e951fc60e77a51517",
+    "reviewnlp/triage/evidence_generator.py": "959f78e85963385e30ec275451ee2e5f92eef2cbe39dc67b355678a939b61bc3",
+    "reviewnlp/triage/generator_experiment.py": "877b1e323e6a80d1103694044e5fe80da4b7d80cace349935cd1df00b00f78de",
+    "reviewnlp/triage/pipeline.py": "de8883a7d806489246bac0b4222775520c45902670527f7aded43669cc62fcef",
+    "reviewnlp/triage/demo_service.py": "adfe3803faf92a060007c4aee6cc5598df1c4d067d1c92394751f7ec079c4416",
+    "reviewnlp/triage/space_runtime.py": "2d2d9dc6024708c7db471234de54cf5fe65921b694734ff7e25d5793ad055de5",
+    "source_manifest.json": "9c8c91eff7dde84e20005f1302f2a732684176acc1b7c26d2c385924a13a200a"
+  },
+  "loaded_snapshot_matches": true,
+  "selection_status": "experimental_not_selected_not_promoted",
+  "live_runtime": {
+    "ready": true,
+    "startup_failure": null,
+    "qwen_device": "cpu",
+    "qwen_precision": "torch.bfloat16",
+    "python": "3.12.12",
+    "versions": {
+      "torch": "2.11.0",
+      "transformers": "4.56.2",
+      "huggingface-hub": "0.36.2",
+      "accelerate": "1.10.1",
+      "gradio": "5.49.1",
+      "pydantic": "2.11.7",
+      "spaces": "0.51.3"
+    },
+    "gpu_duration_seconds": 60,
+    "gpu_billing": "unknown",
+    "zero_gpu": true
+  },
+  "functional_checks": [
+    {
+      "case": "praise",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "stage_failure": null,
+      "stage_failure_visible": false,
+      "issues": 0,
+      "actions": 0,
+      "total_ms": 2037.82,
+      "stored": false,
+      "jev_attempts": 0
+    },
+    {
+      "case": "complaint",
+      "status": "complete",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "measures",
+          "status": "ok",
+          "error": null
+        }
+      ],
+      "stage_failure": null,
+      "stage_failure_visible": false,
+      "issues": 1,
+      "actions": 1,
+      "total_ms": 2659.11,
+      "stored": false,
+      "jev_attempts": 0
+    },
+    {
+      "case": "known-dev-07",
+      "status": "partial",
+      "stage_reports": [
+        {
+          "stage": "sentiment",
+          "status": "ok",
+          "error": null
+        },
+        {
+          "stage": "jev",
+          "status": "disabled",
+          "error": null
+        },
+        {
+          "stage": "issues",
+          "status": "error",
+          "error": "evidence_quote_missing_or_invalid"
+        }
+      ],
+      "stage_failure": {
+        "stage": "issues",
+        "status": "error",
+        "error": "evidence_quote_missing_or_invalid"
+      },
+      "stage_failure_visible": true,
+      "issues": 0,
+      "actions": 0,
+      "total_ms": 1128.11,
+      "stored": false,
+      "jev_attempts": 0
+    }
+  ],
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "mobile_layout_checked": false,
+  "cold_start_after_sleep_checked": false,
+  "jev_opt_in_checked": false,
+  "gpu_quota_timeout_checked": false,
+  "independent_human_pilot_completed": false,
+  "passed": true
+}

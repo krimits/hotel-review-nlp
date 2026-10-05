@@ -17,4 +17,6 @@ interpretation or useful measures. No reserved cases were opened, and G was not 
 - [Notebook 18](../../../../notebooks/18_publish_triage_space_colab.ipynb): isolated Colab execution
   and publication using a server-side `HF_TOKEN` Secret.
 
-HF upload and live runtime verification still require the authenticated publication step.
+The later authenticated publication and live verification are recorded separately in the
+[5 October Space publication](../a79717c/README.md). This CPU report remains a pre-publication
+functional check and makes no quality claim.
