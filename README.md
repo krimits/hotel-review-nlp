@@ -248,16 +248,20 @@ Paste any hotel review and get a live prediction. No setup required.
 
 **[hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-triage-demo)** accepts one English
 review and shows sentiment, reported/excluded/uncertain issues, evidence and suggested measures.
-It runs the pinned Qwen2.5-1.5B evidence workflow G on ZeroGPU; all reviews reach issue extraction,
+It runs the pinned Qwen2.5-1.5B source-span workflow G-source-spans on ZeroGPU; all reviews reach issue extraction,
 including positive ones. Jev is optional and off by default, and the app keeps no review database.
 This is an **experimental snapshot, not a selected or promoted production workflow**. Known
 quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
-remain unvalidated. See the [verified publication record](docs/experiments/triage_space_publication/a79717c/README.md).
+remain unvalidated. See the [verified update record](docs/experiments/triage_space_publication/ea8c7f8/README.md).
 
-The source-span extraction fix is prepared in
-[notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb), with required lamp regression
-checks before upload. Its [local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md)
-is recorded separately; a new deployment receipt is still pending.
+The source-span extraction fix was published at Space commit `ea8c7f8` through
+[notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb). All 16 Colab functional checks
+and seven required hosted regressions passed, including the two reported lamp inputs. A separate
+verification confirmed the source files and loaded snapshot. Three repeated regressions passed;
+the short-lamp repeat returned a visible `gpu_unavailable_or_timeout` failure. GPU availability
+remains a limitation. These are
+development checks; they do not establish general quality. The
+[local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md) is retained separately.
 
 ### Option 2 — Run locally
 

@@ -13,14 +13,21 @@ from source `f2da186bd63be84a2debe9e6fb3047e14d846ea1` using notebook 18.
 The [publication record](experiments/triage_space_publication/a79717c/README.md) preserves the Colab
 receipt and real-weight functional check, plus independent Hub-file and live-API verification.
 That receipt documents the original G runtime, not a deployment of the source-span fix.
-The remaining checks below still apply.
+The source-span update was published later the same day at
+[`ea8c7f86cf431585528226486b83f5872c87d7b8`](https://huggingface.co/spaces/krimits/hotel-triage-demo/tree/ea8c7f86cf431585528226486b83f5872c87d7b8),
+from source `5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac` using notebook 19. The
+[update record](experiments/triage_space_publication/ea8c7f8/README.md) preserves 16 completed Colab
+checks, seven required hosted regressions and independent verification of all 21 files and the
+loaded snapshot. Three independent repeated regressions passed; the short-lamp repeat returned
+`gpu_unavailable_or_timeout`, visibly reported by the UI. The independent repeat was stopped there;
+GPU availability is not established by the successful publication run. The remaining checks below still apply.
 
 ## Evidence extraction update
 
 Use [notebook 19](../notebooks/19_update_triage_evidence_space_colab.ipynb) in a fresh Colab GPU session,
 with the existing `HF_TOKEN` write Secret. It has `RESUME=True` for the existing Space. The
 [regression record](experiments/triage_space_publication/source-spans-v6/README.md) documents the local
-Qwen reproduction and the remaining hosted verification.
+Qwen reproduction; the hosted verification is in the update record above.
 
 `actions-v6-source-spans` fixes the free-text quote-copying failure by asking Qwen to select integer
 source ids. Software resolves them to literal slices of the supplied review. The historical G generator,
@@ -31,7 +38,7 @@ The two reported lamp inputs must now yield a pending issue, a literal source ex
 measure. These are named development regression checks, not independent quality estimates. The current
 publisher requires successful regression records before upload and repeats the core checks on the Space.
 An existing Space update preserves its Variables, Secrets and hardware; the upload replaces source files
-under a parent-commit guard. Publication of the fix is pending until a new live receipt is recorded.
+under a parent-commit guard. The successful live receipt is now archived in the update record.
 
 ## Review and check
 
@@ -82,7 +89,8 @@ and GPU execution failure fail the functional check. No accuracy is computed.
 ## Remaining checks
 
 - On-Space first request after sleep, repeat request, quota/timeout message and mobile layout.
-- Opt-in Jev can be enabled later using server-side Variables and a fresh Secret. Provider-reported
+- The server reports Jev enabled; opt-in requests remain untested in this update verification.
+  It uses server-side Variables and a fresh Secret. Provider-reported
   `usage.cost` is shown without inferring currency; missing/incomplete cost stays unknown/partial.
 - A 15–20-case usability pilot with recorded findings. This is separate from reliability evaluation.
 - Further development review before final configuration selection, then a reserved evaluation once.

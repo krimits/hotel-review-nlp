@@ -1,0 +1,153 @@
+{
+  "space_id": "krimits/hotel-triage-demo",
+  "url": "https://huggingface.co/spaces/krimits/hotel-triage-demo",
+  "space_commit": "ea8c7f86cf431585528226486b83f5872c87d7b8",
+  "source_commit": "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac",
+  "source_manifest_sha256": "9332221e819eaae17909faab19ad738aa1b839e1d9fb47dd57f37dfd7cb89bcd",
+  "selection_status": "experimental_not_selected_not_promoted",
+  "hardware_requested": "zero-a10g",
+  "upload_verified": true,
+  "runtime_verified": true,
+  "live_model_info": {
+    "prompt_version": "actions-v6-source-spans",
+    "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+    "qwen_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "validation_status": "unvalidated",
+    "candidate": "G-source-spans",
+    "selection_status": "experimental_not_selected_not_promoted",
+    "jev_enabled": true,
+    "source_snapshot": {
+      "source_commit": "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac",
+      "files": {
+        "app.py": "8d5f67ee2689d63e516ac1e8ead2b4266ca879efc1927936bdf0aa8fe81b77ef",
+        "README.md": "7dc4f6e5670014f3c90ce9150bd9c452fe7265e4ca2c88d8b43f822ebcf1fe18",
+        "requirements.txt": "13bd077a66c97ad0303388b9aafc36f39fa5156dbde56cc35a44361865e5cf64",
+        "reviewnlp/__init__.py": "4158879c4ff4a682da05e0287803466930d6716171670ef71d028e3777a95371",
+        "reviewnlp/absa/__init__.py": "213c2905b3cadfac06bc93ee7e509dae5dfafb8ca59c3abcca4383d1430e6911",
+        "reviewnlp/absa/aspects.py": "2e48653dc4433772a30f55d74d92e373a1d3dff79dfc2c4f80d6bbd3431ee3bd",
+        "reviewnlp/absa/extract.py": "5c6b10b8f4573b0fd3b34a3fd17062c4622c44160f6194c803f47a3cda6edcc6",
+        "reviewnlp/triage/__init__.py": "e2f3cc51007be20106dceedbb4939778fc13ee00964ab19d87f3f496991326cb",
+        "reviewnlp/triage/schemas.py": "2959d092a695cb1f2910a858428c375df38f20ea0221da1f5d61ec5bc9d6ab33",
+        "reviewnlp/triage/questions.py": "5e5e88ba8f12b7e93f11b68cdd24d23ae8b3ee2e1ba77e8e6836af849424bdb8",
+        "reviewnlp/triage/jev_client.py": "e4cec68e57edd43338e4b7969e79078668dbc4bcec4c7e2f4f169c5c5388894d",
+        "reviewnlp/triage/routing.py": "47ee87e042c188d47e3e694c1b7bdcfad4c29cfddf3dece204615c0987db492f",
+        "reviewnlp/triage/qwen_generator.py": "e6743eaa68bd9b4cb8596b72681c8fb8c43945abe5ba3a9f97812f1c940d839d",
+        "reviewnlp/triage/staged_generator.py": "5393fb6891e72545300be4926287c131468163b9fc3ade3e951fc60e77a51517",
+        "reviewnlp/triage/evidence_generator.py": "959f78e85963385e30ec275451ee2e5f92eef2cbe39dc67b355678a939b61bc3",
+        "reviewnlp/triage/generator_experiment.py": "877b1e323e6a80d1103694044e5fe80da4b7d80cace349935cd1df00b00f78de",
+        "reviewnlp/triage/pipeline.py": "de8883a7d806489246bac0b4222775520c45902670527f7aded43669cc62fcef",
+        "reviewnlp/triage/demo_service.py": "be3dc55bbf8ce273f59e2db2975c295771cef9d3f312520282aa98049cea4c52",
+        "reviewnlp/triage/space_runtime.py": "0533fe94ec9ba8572ff50b322a789202c699d30d1574712aa40bc9c2f3b433e0",
+        "reviewnlp/triage/span_evidence_generator.py": "42ab41e44d599bcf817e5b561a06a3eefbe207221deb61cbfd09cc401eb4057a"
+      },
+      "validation_status": "unvalidated",
+      "hub_writes": false,
+      "selection_status": "experimental_not_selected_not_promoted",
+      "runtime_snapshot": {
+        "candidate": "G-source-spans",
+        "prompt_version": "actions-v6-source-spans",
+        "prompt_sha256": "b8cb0f5e3ecca206b14def182a7e8282dcb4ebe0d73a6d509cd2ffebbf1b8e9f",
+        "source_span_policy": "sentence_boundaries_then_400_character_source_slices_v1",
+        "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+        "qwen_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+        "category_departments": {
+          "equipment_fault": "maintenance",
+          "cleanliness": "housekeeping",
+          "pests": "housekeeping",
+          "linen": "housekeeping",
+          "food_beverage": "food_and_beverage",
+          "service_response": "reception",
+          "policy": "management",
+          "access": "management",
+          "other": "other"
+        },
+        "jev_questions_version": "full-review-v1",
+        "jev_questions_sha256": "06c5cc0da9f36bbbf3adba0dd1239560578288b7e963b536eea2268fff3b9f42",
+        "jev_default": false,
+        "jev_model_policy": "mutable route; resolved model reported per request",
+        "routing": "all_reviews_diagnostic",
+        "max_review_characters": 4000,
+        "distilbert_max_tokens": 256,
+        "max_calls_per_review": 2,
+        "max_new_tokens_per_call": 400,
+        "do_sample": false,
+        "zero_gpu_precision": "bfloat16",
+        "gpu_duration_seconds": 60,
+        "gpu_billing": "unknown",
+        "requirements_sha256": "13bd077a66c97ad0303388b9aafc36f39fa5156dbde56cc35a44361865e5cf64"
+      }
+    },
+    "runtime": {
+      "ready": true,
+      "startup_failure": null,
+      "qwen_device": "cpu",
+      "qwen_precision": "torch.bfloat16",
+      "python": "3.12.12",
+      "versions": {
+        "torch": "2.11.0",
+        "transformers": "4.56.2",
+        "huggingface-hub": "0.36.2",
+        "accelerate": "1.10.1",
+        "gradio": "5.49.1",
+        "pydantic": "2.11.7",
+        "spaces": "0.51.3"
+      },
+      "gpu_duration_seconds": 60,
+      "gpu_billing": "unknown",
+      "zero_gpu": true
+    }
+  },
+  "functional_checks": [
+    {
+      "case": "smoke-positive",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 2645.61,
+      "stored": false
+    },
+    {
+      "case": "smoke-negative",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 2335.82,
+      "stored": false
+    },
+    {
+      "case": "smoke-lamp-mixed",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 2083.31,
+      "stored": false
+    },
+    {
+      "case": "smoke-lamp-short",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 2336.58,
+      "stored": false
+    },
+    {
+      "case": "smoke-hypothetical",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 1091.05,
+      "stored": false
+    },
+    {
+      "case": "smoke-resolved",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 1109.22,
+      "stored": false
+    },
+    {
+      "case": "smoke-praise-inversion",
+      "status": "complete",
+      "stage_failure": null,
+      "total_ms": 318.13,
+      "stored": false
+    }
+  ],
+  "quality_evaluated": false,
+  "manual_mobile_and_pilot_checks": "pending"
+}

@@ -1,9 +1,12 @@
-# Source-span extraction fix — experimental, deployment pending
+# Source-span extraction fix — experimental, deployment recorded
 
 Code: `5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac`. Workflow: `actions-v6-source-spans`.
 The [update notebook](../../../../notebooks/19_update_triage_evidence_space_colab.ipynb) pins that code
-and updates the existing ZeroGPU Space after real-weight regression checks. No live update receipt has
-been recorded here. The [original publication](../a79717c/README.md) remains an archival record of G.
+and updates the existing ZeroGPU Space after real-weight regression checks. The
+[live update record](../ea8c7f8/README.md) now confirms publication at `ea8c7f8`, the matching loaded
+snapshot and seven hosted regressions in the publication run. A later independent repeat passed
+three cases before a visible GPU-unavailable/timeout failure on the short lamp input. The [original publication](../a79717c/README.md) remains an
+archival record of G.
 
 ## Reproduced fault
 

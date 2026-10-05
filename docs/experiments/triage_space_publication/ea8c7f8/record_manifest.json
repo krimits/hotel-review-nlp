@@ -1,0 +1,13 @@
+{
+  "source_commit": "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac",
+  "space_commit": "ea8c7f86cf431585528226486b83f5872c87d7b8",
+  "input_zip_sha256": "80b317ad45c893687e7c6047e9c1bed4a765e4470922c7c3169dedc6cf2a2bd9",
+  "files": {
+    "colab_smoke.json": "0326b25f21b6484c5f4c6a196cdc089c5bf48bac7409621162ddd16db4eaa278",
+    "publish_execution.txt": "4541fc20d8ec96948a58c815f69c2b9e82196d8b2bdafc76d5c2db591f5034de",
+    "published.json": "7db4a5c963c599a30d7ac43d59efc0ab65b6f1038351d49909698574269a18c6",
+    "smoke_execution.txt": "4f4d43746827bcbd3bcf4a9cb2be4aed22fbbac4b0887fe5ce2872a64029fa6b",
+    "source_manifest.json": "9332221e819eaae17909faab19ad738aa1b839e1d9fb47dd57f37dfd7cb89bcd",
+    "verification.json": "e4c0f8c749c90c23aaae678f3c02f9a0f4249e8c373a5362f5d8e9f739395ac4"
+  }
+}
