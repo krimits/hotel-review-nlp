@@ -1,0 +1,22 @@
+{
+  "source_commit": "f2da186bd63be84a2debe9e6fb3047e14d846ea1",
+  "space_commit": "a79717ceab2755658e01ce56aaf7a442ab5db82c",
+  "publication_notebook_commit": "b2110fc2d4bd3267bf635aab3665d607dbadb9bf",
+  "input_archive_sha256": "f01798828048c95048c28acfb51c0bd323014a7844e8c2f34d5c352f437bbd7b",
+  "files": {
+    "source_manifest.json": "9c8c91eff7dde84e20005f1302f2a732684176acc1b7c26d2c385924a13a200a",
+    "colab_smoke.json": "9557030414228d62c7b9a7a347e493027fe4a061960d6773184f4933304c0ce2",
+    "published.json": "d51b7815c1121408ea86787db26cae25cfd83f342eaa19cfe6391d81990d05a6",
+    "verification.json": "9e920a188059edb947347bc88bcc51d3f85d0a58a4d07eaa2059157294a02f39",
+    "smoke_execution.txt": "210771980d9f04f054071305be0636f79b3629a84ff4b7e2a450420e6c8b928d",
+    "publish_execution.txt": "7e7446d63fbd90428cc59707b32ba8381da0da507b76b1b157a40b325c5a5815"
+  },
+  "original_zip_member_names": {
+    "source_manifest.json": "source_manifest.json",
+    "smoke.json": "colab_smoke.json",
+    "published.json": "published.json",
+    "smoke_execution.txt": "smoke_execution.txt",
+    "publish_execution.txt": "publish_execution.txt"
+  },
+  "independently_added_file": "verification.json"
+}

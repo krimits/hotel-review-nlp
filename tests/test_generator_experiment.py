@@ -27,6 +27,7 @@ from reviewnlp.triage.generator_experiment import (
     json_diagnostics,
     prompt_fingerprint,
     read_dataset,
+    read_ratings,
     run_candidate,
     structural_summary,
     validate_upstream,
@@ -65,6 +66,14 @@ class Generator:
 
 
 class ExperimentTests(unittest.TestCase):
+    def test_ratings_reader_accepts_spreadsheet_utf8_bom_without_changing_labels(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ratings.csv"
+            path.write_text("blind_id,useful,grounded,department_correct,no_invented_facts\noutput-0001,0,na,na,na\n",
+                            encoding="utf-8-sig")
+            self.assertEqual(read_ratings(path, [{"blind_id": "output-0001"}])[0]["useful"], "0")
+            with self.assertRaises(ValueError):
+                read_ratings(path, [{"blind_id": "different"}])
     def test_new_cases_are_disjoint_from_old_cases_and_prompt_examples(self):
         dev, held = read_dataset(DATA / "dev.json", "dev"), read_dataset(DATA / "holdout.json", "holdout")
         smoke = json.loads((RUN.parent / "reviews.json").read_text())

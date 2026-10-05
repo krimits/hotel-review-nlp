@@ -244,6 +244,16 @@ Paste any hotel review and get a live prediction. No setup required.
 
 ![The hotel-review-demo Space comparing DistilBERT and Qwen QLoRA on one review](docs/images/space_demo.png)
 
+#### Experimental hotel actions demo
+
+**[hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-triage-demo)** accepts one English
+review and shows sentiment, reported/excluded/uncertain issues, evidence and suggested measures.
+It runs the pinned Qwen2.5-1.5B evidence workflow G on ZeroGPU; all reviews reach issue extraction,
+including positive ones. Jev is optional and off by default, and the app keeps no review database.
+This is an **experimental snapshot, not a selected or promoted production workflow**. Known
+quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
+remain unvalidated. See the [verified publication record](docs/experiments/triage_space_publication/a79717c/README.md).
+
 ### Option 2 — Run locally
 
 ```bash

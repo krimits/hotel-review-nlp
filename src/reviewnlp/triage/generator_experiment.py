@@ -342,7 +342,7 @@ def export_annotation(output: Path, rows: list[dict], records: list[dict], *, sh
 
 
 def read_ratings(path: Path, key: list[dict]) -> list[dict]:
-    with path.open(newline="", encoding="utf-8") as handle:
+    with path.open(newline="", encoding="utf-8-sig") as handle:
         rows = list(csv.DictReader(handle))
     expected = {item["blind_id"] for item in key}
     if len(rows) != len(expected) or {row.get("blind_id") for row in rows} != expected:

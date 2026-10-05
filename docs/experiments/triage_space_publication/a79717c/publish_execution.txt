@@ -1,0 +1,3 @@
+Upload verified: https://huggingface.co/spaces/krimits/hotel-triage-demo a79717ceab2755658e01ce56aaf7a442ab5db82c
+Loaded as API: https://krimits-hotel-triage-demo.hf.space ✔
+Live functional check passed: https://huggingface.co/spaces/krimits/hotel-triage-demo — experimental, quality unvalidated.

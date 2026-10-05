@@ -22,6 +22,47 @@ DISTILBERT_REVISION = "7306aebcaaebc00d579f5d0a91001ae376f18158"
 QWEN_REPO = "Qwen/Qwen2.5-1.5B-Instruct"
 QWEN_REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
 
+# Public diagnostics are closed codes, never model text or exception messages.
+PUBLIC_ERRORS = {
+    "hit_token_budget", "invalid_json_text", "duplicate_json_key", "non_json_constant",
+    "invalid_issues_schema", "invalid_actions_schema", "too_many_issues", "invalid_issue_schema",
+    "invalid_evidence_issue_schema", "issue_quote_missing", "duplicate_issue_excerpt",
+    "evidence_quote_missing_or_invalid", "too_many_measures", "invalid_measure_schema_or_issue_id",
+    "too_many_confirmation_facts",
+}
+
+
+def public_stage_reports(generator) -> list[dict]:
+    """Retain the failing stage before discarding raw notebook diagnostics."""
+    detached = getattr(generator, "stage_reports", None)
+    if detached is not None:
+        return [dict(item) for item in detached]
+    failure = getattr(generator, "workflow_error", None) or ""
+    name, _, detail = failure.partition(":")
+    if detail in PUBLIC_ERRORS:
+        error = detail
+    elif detail.startswith(("Expecting ", "Extra data", "Unterminated ", "Invalid ")):
+        error = "invalid_json"
+    else:
+        error = "invalid_output"
+    reports = []
+    for item in getattr(generator, "last_stages", []):
+        if item["stage"] not in {"issues", "measures"}:
+            continue
+        code = ("generation_failed" if item.get("error") else
+                "hit_token_budget" if item.get("hit_token_budget") else
+                error if name == item["stage"] else None)
+        reports.append({"stage": item["stage"], "status": "error" if code else "ok", "error": code})
+    return reports
+
+
+def clear_generation_diagnostics(generator) -> None:
+    for name in ("issues", "last_stages", "review_reasons", "stage_reports"):
+        if hasattr(generator, name):
+            setattr(generator, name, [])
+    if hasattr(generator, "workflow_error"):
+        generator.workflow_error = None
+
 
 class PinnedSentiment:
     """CPU DistilBERT adapter; checks the label contract instead of guessing LABEL_0/1."""
@@ -60,9 +101,9 @@ class PinnedSentiment:
         return label, values[label]
 
 
-def make_generator() -> EvidenceFirstGenerator:
+def make_generator(*, loader=None) -> EvidenceFirstGenerator:
     extractor = QwenActionGenerator(QWEN_REPO, revision=QWEN_REVISION, message_builder=messages_evidence,
-                                    prompt_version=VERSION + ":issues")
+                                    prompt_version=VERSION + ":issues", loader=loader)
 
     def action_factory(pending):
         return QwenActionGenerator(QWEN_REPO, revision=QWEN_REVISION,
@@ -99,7 +140,12 @@ class DemoService:
             client = JevClient(replace(self.jev_config, enabled=bool(use_jev)), transport=recorder)
             try:
                 result = TriagePipeline(self.wrapper, client, self.generator, evaluate_all_reviews=True).run(text)
+                stages = [{"stage": "sentiment", "status": "ok", "error": None},
+                          {"stage": "jev", "status": result.complaints.status,
+                           "error": result.complaints.error}, *public_stage_reports(self.generator)]
                 payload = {"status": result.status, "validation_status": "unvalidated",
+                    "selection_status": "experimental_not_selected_not_promoted", "stage_reports": stages,
+                    "stage_failure": next((item for item in stages if item["status"] == "error"), None),
                     "sentiment": result.sentiment.model_dump(mode="json"),
                     "complaints": result.complaints.model_dump(mode="json"),
                     "routing": result.routing.model_dump(mode="json"),
@@ -113,13 +159,12 @@ class DemoService:
                 return payload
             finally:
                 # The experiment adapter records raw text for notebooks. The Space does not retain it.
-                for name in ("issues", "last_stages", "review_reasons"):
-                    if hasattr(self.generator, name):
-                        setattr(self.generator, name, [])
+                clear_generation_diagnostics(self.generator)
 
 
 def space_environment() -> dict:
     """Only public configuration; environment and keys must never be sent to the UI."""
     return {"prompt_version": VERSION, "distilbert_revision": DISTILBERT_REVISION,
             "qwen_revision": QWEN_REVISION, "validation_status": "unvalidated",
+            "candidate": "G", "selection_status": "experimental_not_selected_not_promoted",
             "jev_enabled": os.environ.get("REVIEWNLP_JEV_ENABLED", "").strip().lower() in {"1", "true", "yes"}}
