@@ -9,8 +9,9 @@ import pytest
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 
-# Make src/ importable without installation (CI installs -e anyway).
+# Make package sources and repository scripts importable for both pytest entry points.
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 
