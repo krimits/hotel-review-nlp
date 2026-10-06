@@ -1,0 +1,30 @@
+{
+  "base_git_commit": "a96daa0b232c90cd9f33350bbe28ac4884e668fe",
+  "kind": "paired synthetic issue-stage CPU probe; not hosted verification or human evaluation",
+  "source_files_sha256": {
+    "src/reviewnlp/triage/qwen_generator.py": "e6743eaa68bd9b4cb8596b72681c8fb8c43945abe5ba3a9f97812f1c940d839d",
+    "src/reviewnlp/triage/span_evidence_generator.py": "42ab41e44d599bcf817e5b561a06a3eefbe207221deb61cbfd09cc401eb4057a",
+    "src/reviewnlp/triage/evidence_generator.py": "959f78e85963385e30ec275451ee2e5f92eef2cbe39dc67b355678a939b61bc3",
+    "src/reviewnlp/triage/structured_span_generator.py": "40cf9ab270d4cdb8a390389db2555f55344637dfc94c218dc351215f6a2c7604"
+  },
+  "files": {
+    "cpu_structured_extraction.json": "736fdec2a3ccefede7baf4eafaa0204db8503ac67f725b44f7e136dd6d296560",
+    "cpu_baseline_driver.py": "280215674d7a2f5bfc3cd8f47713037e89da71ac1f5aae7e796475cad3e2a6b1",
+    "cpu_baseline_extraction.json": "b6bae7e9c3f0463439a0f0eca0c4aad7976a3284f22c98e7bf0bc144aec52145",
+    "structured_span_source.py.txt": "40cf9ab270d4cdb8a390389db2555f55344637dfc94c218dc351215f6a2c7604",
+    "cpu_structured_driver.py": "97f521072a27e7cc1f11e670dc343d33e9cf23309d3e064e76e768dbcd199e2c",
+    "cpu_workflow_driver.py.txt": "610c300d2ab5b72b52f980f8e9a2855d21bb69aabdef0a3fee6a71463b93c711",
+    "cpu_workflow/annotation_key.json": "9dfa6370890199d2d599598fae72805239de7f5a3bf241d29fc6c45e5535e3af",
+    "cpu_workflow/coverage_A.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6",
+    "cpu_workflow/coverage_B.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6",
+    "cpu_workflow/coverage_review.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6",
+    "cpu_workflow/results.jsonl": "88dfdc85bdc1de6718eb4748653d04b11d0d1ac55f0eb8ba25f31872d13ec0df",
+    "cpu_workflow/run.json": "4b596a6e64448ed4f9e1c4c5cf34226b947f00d7c9fcba62f936868adccc2111",
+    "cpu_workflow/upstream.json": "52b3fb2ee523be282e8b4202f5162f535c42f6603a2ea32d67bf0cfe9d940b1c"
+  },
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "promoted": false,
+  "archived_experimental_source": "structured_span_source.py.txt",
+  "cpu_workflow_driver": "cpu_workflow_driver.py.txt"
+}

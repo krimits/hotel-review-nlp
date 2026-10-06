@@ -85,6 +85,13 @@ copies, retaining the originals. Machine failures remain in the development evid
 
 ## Next corrections and release gates
 
+The first structural correction is isolated in a
+[development-only format experiment](experiments/triage_generator/format_v1/README.md).
+Real pinned Qwen weights reproduced failures on all four problematic inputs in CPU/float32; schema
+constraints made all four pass the unchanged extraction parser. One CPU failure code differs from the
+hosted run. Latch/leak interpretation and departments remain wrong or uncertain, so these observations
+are not an improvement claim for whole-review action quality. The deployed Space has not changed.
+
 Use the scored findings to choose the next change: extraction misses, false exclusions, unsupported
 claims, department categorization or weak measures. Rerun fresh development outputs after each meaningful
 prompt/model/policy change and do not reuse ratings of different outputs. Current F/G summaries and the

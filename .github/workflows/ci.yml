@@ -28,7 +28,7 @@ jobs:
       # CPU-only torch keeps CI fast; all tests run offline on tiny fixtures.
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -e ".[dev,serving]"
-      - run: pip install transformers==4.56.2 peft==0.17.1 accelerate==1.10.1
+      - run: pip install transformers==4.56.2 peft==0.17.1 accelerate==1.10.1 lm-format-enforcer==0.11.3
       # The Space demo's app is imported and run end to end with a stub model.
       - run: pip install gradio==5.49.1 spaces==0.51.3
       - run: pytest tests -v

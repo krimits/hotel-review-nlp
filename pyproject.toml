@@ -32,6 +32,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+triage-experiments = [
+    "lm-format-enforcer==0.11.3",
+]
 llm = [
     "transformers>=4.45",
     "datasets>=3.0",
