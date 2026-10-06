@@ -56,6 +56,12 @@ preserved unchanged and is not the new 48-row evaluation handoff.
 
 ## Portable paired workflow comparison
 
+[Notebook 21](../../../../notebooks/21_triage_format_comparison_colab.ipynb) pins the tested source at
+`1215e4008225c7c1b766af37d609dbd63535ef2c`, verifies source hashes and installs its dependencies in an
+isolated Colab environment. It defaults to all 24 reviews, requires GPU, and downloads the diagnostic
+ZIP even when the model capture fails. No token, provider key, Drive or previous ZIP is needed. Its
+GPU execution and new human ratings are pending; the Space remains unchanged.
+
 ```bash
 pip install -e '.[triage-experiments]'
 pip install transformers==4.56.2

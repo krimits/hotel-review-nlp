@@ -85,6 +85,16 @@ explicit. Interrupted captures retain their failures and cannot be scored. The t
 independent human judgments; this is development evidence, not a production reliability score.
 See [the release gates and scoring instructions](../docs/TRIAGE_RELIABILITY.md).
 
+Notebook 21 compares the original source-span extractor with **issue-stage JSON-schema-constrained
+decoding**, keeping the prompt, parser, category mapping and measures unchanged. It runs all 24 authored
+development cases with the same pinned Qwen weights and captured DistilBERT hints, and exports 48 fresh
+blinded rows for each of two reviewers:
+[21_triage_format_comparison_colab.ipynb](21_triage_format_comparison_colab.ipynb).
+Use a fresh Colab GPU session; no API key, token, Drive or uploaded ZIP is needed. Jev is not called and
+the Space is not updated. The [real-weight CPU probe](../docs/experiments/triage_generator/format_v1/README.md)
+passed formatting for the four failed inputs but retained semantic defects. The notebook's GPU run and
+new human evaluation are pending; no automatic selection, reserved evaluation or promotion occurs.
+
 `data/raw/booking_reviews_515k.csv` is not in the repository — see
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
