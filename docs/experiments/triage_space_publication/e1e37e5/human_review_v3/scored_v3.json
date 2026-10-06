@@ -1,0 +1,114 @@
+{
+  "scope": "two completed coverage sheets for an authored development capture; no production accuracy",
+  "source_run_sha256": "e138179675e06fa411ce706a867156e969f2e0664dc112bbb4a7cc67f7abe5d8",
+  "ratings_A_sha256": "9797673cbe6bbe897fa06301d5b98672ad0836193eccaa7e8927ae753d9767b3",
+  "ratings_B_sha256": "377595c8ab0cf4a59247d60c9fc7a0a0d6257a9160713a2871d59dee27089613",
+  "reviewer_summaries": {
+    "A": {
+      "G-source-spans": {
+        "reviews": 24,
+        "reviews_with_actual_problems": 16,
+        "accepted_actions": 5,
+        "actual_problem_count": 17,
+        "missed_problem_count": 5,
+        "false_exclusion_count": 0,
+        "unaddressed_problem_count": 13,
+        "invented_problem_count": 3,
+        "unnecessary_action_count": 1,
+        "useful_action_count": 4,
+        "wrong_department_count": 0,
+        "human_issue_coverage": 0.7058823529411765,
+        "human_action_coverage": 0.23529411764705882,
+        "fully_useful_action_fraction": 0.8
+      }
+    },
+    "B": {
+      "G-source-spans": {
+        "reviews": 24,
+        "reviews_with_actual_problems": 16,
+        "accepted_actions": 5,
+        "actual_problem_count": 17,
+        "missed_problem_count": 5,
+        "false_exclusion_count": 0,
+        "unaddressed_problem_count": 13,
+        "invented_problem_count": 3,
+        "unnecessary_action_count": 1,
+        "useful_action_count": 4,
+        "wrong_department_count": 0,
+        "human_issue_coverage": 0.7058823529411765,
+        "human_action_coverage": 0.23529411764705882,
+        "fully_useful_action_fraction": 0.8
+      }
+    }
+  },
+  "quality_dimensions": {
+    "A": {
+      "useful": {
+        "0": 16,
+        "1": 8,
+        "na": 0
+      },
+      "grounded": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      },
+      "department_correct": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      },
+      "no_invented_facts": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      }
+    },
+    "B": {
+      "useful": {
+        "0": 16,
+        "1": 8,
+        "na": 0
+      },
+      "grounded": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      },
+      "department_correct": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      },
+      "no_invented_facts": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      }
+    }
+  },
+  "machine_failures": 4,
+  "disagreements": [],
+  "judgments_reconciled": true,
+  "agreed_summary": {
+    "G-source-spans": {
+      "reviews": 24,
+      "reviews_with_actual_problems": 16,
+      "accepted_actions": 5,
+      "actual_problem_count": 17,
+      "missed_problem_count": 5,
+      "false_exclusion_count": 0,
+      "unaddressed_problem_count": 13,
+      "invented_problem_count": 3,
+      "unnecessary_action_count": 1,
+      "useful_action_count": 4,
+      "wrong_department_count": 0,
+      "human_issue_coverage": 0.7058823529411765,
+      "human_action_coverage": 0.23529411764705882,
+      "fully_useful_action_fraction": 0.8
+    }
+  },
+  "reviewer_independence_verified": false,
+  "selection_frozen": false,
+  "promoted": false
+}

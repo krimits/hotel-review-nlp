@@ -266,8 +266,12 @@ development checks; they do not establish general quality. The
 The [reliability update](docs/TRIAGE_RELIABILITY.md) was published on 6 October at Space commit
 `e1e37e5`, adding specific ZeroGPU error diagnostics and preserving failed live checks. Its 24-case
 authored-development capture returned 20 complete and four partial workflows, five accepted measures
-and eleven UNCERTAIN issues. Both human-review sheets remain blank; these execution counts are not
-quality scores. See the [exact evidence and next review](docs/experiments/triage_space_publication/e1e37e5/README.md).
+and eleven UNCERTAIN issues. The separately archived
+[adjudicated development review](docs/experiments/triage_space_publication/e1e37e5/human_review_v3/README.md)
+now passes the scorer: thirteen of seventeen actual problems lack an appropriate measure, while four
+of five emitted measures are useful. Reviewer independence remains unverified; these synthetic
+development judgments do not establish reliability on real hotel reviews. See the
+[exact evidence and next review](docs/experiments/triage_space_publication/e1e37e5/README.md).
 
 ### Option 2 — Run locally
 

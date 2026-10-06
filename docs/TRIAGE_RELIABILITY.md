@@ -23,7 +23,11 @@ These changes were published through [notebook 20](../notebooks/20_triage_reliab
 The owner-run receipt, all 21 deployed files and loaded snapshot are verified in the current record.
 The fresh capture completed 24 requests, including four issue-stage failures and eleven UNCERTAIN
 assessments without measures. A measure for a successfully replaced bulb is also a review priority.
-The two sheets remain blank; semantic quality has not been rated and the reserved set remains closed.
+The original capture sheets remain blank. Separately submitted
+[completed v3 sheets and adjudication](experiments/triage_space_publication/e1e37e5/human_review_v3/README.md)
+now pass the scorer with no remaining disagreements: seventeen actual problems, thirteen without an
+appropriate measure, and four useful measures among five emitted. These are adjudicated synthetic
+development judgments; reviewer independence is unverified and the reserved set remains closed.
 
 ## Fresh development review of the deployed workflow
 

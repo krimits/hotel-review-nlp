@@ -1,0 +1,188 @@
+{
+  "scope": "two completed coverage sheets for an authored development capture; no production accuracy",
+  "source_run_sha256": "e138179675e06fa411ce706a867156e969f2e0664dc112bbb4a7cc67f7abe5d8",
+  "ratings_A_sha256": "4aea9639e8c69de0059b953326851933f30f65e7ff47f4bac3ee2ed571ec1b04",
+  "ratings_B_sha256": "026d2fcfaab1890d3b0bc12530826ae05f637814dead7933a9b4a313e6e13baf",
+  "reviewer_summaries": {
+    "A": {
+      "G-source-spans": {
+        "reviews": 24,
+        "reviews_with_actual_problems": 16,
+        "accepted_actions": 5,
+        "actual_problem_count": 16,
+        "missed_problem_count": 4,
+        "false_exclusion_count": 0,
+        "unaddressed_problem_count": 12,
+        "invented_problem_count": 2,
+        "unnecessary_action_count": 1,
+        "useful_action_count": 4,
+        "wrong_department_count": 0,
+        "human_issue_coverage": 0.75,
+        "human_action_coverage": 0.25,
+        "fully_useful_action_fraction": 0.8
+      }
+    },
+    "B": {
+      "G-source-spans": {
+        "reviews": 24,
+        "reviews_with_actual_problems": 16,
+        "accepted_actions": 5,
+        "actual_problem_count": 17,
+        "missed_problem_count": 13,
+        "false_exclusion_count": 0,
+        "unaddressed_problem_count": 13,
+        "invented_problem_count": 3,
+        "unnecessary_action_count": 1,
+        "useful_action_count": 4,
+        "wrong_department_count": 0,
+        "human_issue_coverage": 0.23529411764705882,
+        "human_action_coverage": 0.23529411764705882,
+        "fully_useful_action_fraction": 0.8
+      }
+    }
+  },
+  "quality_dimensions": {
+    "A": {
+      "useful": {
+        "0": 15,
+        "1": 9,
+        "na": 0
+      },
+      "grounded": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      },
+      "department_correct": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      },
+      "no_invented_facts": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      }
+    },
+    "B": {
+      "useful": {
+        "0": 16,
+        "1": 8,
+        "na": 0
+      },
+      "grounded": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      },
+      "department_correct": {
+        "0": 0,
+        "1": 5,
+        "na": 19
+      },
+      "no_invented_facts": {
+        "0": 1,
+        "1": 4,
+        "na": 19
+      }
+    }
+  },
+  "machine_failures": 4,
+  "disagreements": [
+    {
+      "blind_id": "0001",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0003",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0005",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0010",
+      "field": "actual_problem_count",
+      "A": 1,
+      "B": 2
+    },
+    {
+      "blind_id": "0010",
+      "field": "missed_problem_count",
+      "A": 1,
+      "B": 2
+    },
+    {
+      "blind_id": "0010",
+      "field": "unaddressed_problem_count",
+      "A": 1,
+      "B": 2
+    },
+    {
+      "blind_id": "0011",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0012",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0013",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0021",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0022",
+      "field": "invented_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0024",
+      "field": "missed_problem_count",
+      "A": 0,
+      "B": 1
+    },
+    {
+      "blind_id": "0020",
+      "field": "grounded",
+      "A": "1",
+      "B": "0"
+    },
+    {
+      "blind_id": "0020",
+      "field": "no_invented_facts",
+      "A": "1",
+      "B": "0"
+    },
+    {
+      "blind_id": "0022",
+      "field": "useful",
+      "A": "1",
+      "B": "0"
+    }
+  ],
+  "judgments_reconciled": false,
+  "agreed_summary": null,
+  "reviewer_independence_verified": false,
+  "selection_frozen": false,
+  "promoted": false
+}

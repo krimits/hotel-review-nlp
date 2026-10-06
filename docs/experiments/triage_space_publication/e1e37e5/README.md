@@ -4,7 +4,7 @@ Space: [krimits/hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-t
 commit [`e1e37e58bc963cc8843ecdf4a0096266c16f6f7e`](https://huggingface.co/spaces/krimits/hotel-triage-demo/tree/e1e37e58bc963cc8843ecdf4a0096266c16f6f7e).
 Source: [`321c20689418c45267122f537ea6451f3ef30417`](https://github.com/krimits/hotel-review-nlp/commit/321c20689418c45267122f537ea6451f3ef30417),
 workflow `actions-v6-source-spans`, through [notebook 20](../../../../notebooks/20_triage_reliability_colab.ipynb).
-**Experimental, not selected or promoted; human quality evaluation pending.**
+**Experimental, not selected or promoted; development judgments reconciled, independent quality evaluation pending.**
 The [previous release](../ea8c7f8/README.md), including its GPU failure, remains unchanged.
 
 ## Publication and integrity
@@ -70,8 +70,12 @@ python scripts/score_triage_review.py \
   --output runs/triage_e1e37e5_scored.json
 ```
 
-The scorer currently rejects these blank sheets. After two completed sheets, it checks immutable
-outputs, logical counts and every disagreement without averaging them away. Agreement does not itself
-prove reviewer independence. Correct development failures, select/freeze a supported workflow, and
+The scorer rejects the original blank sheets. The separately archived
+[completed v3 sheets and supplied adjudication](human_review_v3/README.md) now pass: all fifteen decisions
+match both sheets and their model outputs are unchanged. Of seventeen actual problems, thirteen lack
+an appropriate measure; four of five emitted measures are useful. Four issue-stage failures remain.
+These are adjudicated synthetic development findings; reviewer independence is unverified.
+The scorer checks immutable outputs, logical counts and every disagreement without averaging them away.
+Correct development failures, select/freeze a supported workflow, and
 then perform reserved evaluation and the independent real whole/mixed-review pilot before promotion.
 Jev opt-in, mobile layout, long inputs and first-request-after-sleep checks remain pending.

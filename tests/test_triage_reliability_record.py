@@ -89,3 +89,45 @@ def test_full_capture_keeps_four_failures_and_blank_human_judgments_instead_of_c
         reconcile(folder, folder / "coverage_A.csv", folder / "coverage_B.csv")
     assert report["selection_frozen"] is report["quality_evaluated"] is report["reserved_evaluation_used"] is False
     assert findings["promoted"] is findings["human_sheets_completed"] is False
+
+
+def test_submitted_adjudication_matches_both_v3_sheets_and_the_unchanged_capture():
+    folder = RECORD / "human_review_v3"
+    manifest = read("human_review_v3/manifest.json")
+    for name, expected in manifest["files"].items():
+        assert sha(folder / name) == expected
+    assert manifest["source_run_sha256"] == sha(RECORD / "review/run.json")
+    assert manifest["space_commit"] == read("published.json")["space_commit"]
+    assert manifest["source_commit"] == read("source_manifest.json")["source_commit"]
+    assert manifest["judgments_reconciled"] and manifest["all_submitted_adjudications_match_v3"]
+    assert manifest["reviewer_independence_verified"] is manifest["reserved_evaluation_used"] is False
+    assert manifest["selection_frozen"] is manifest["promoted"] is False
+    previous = reconcile(RECORD / "review", folder / "completed_A_v2.csv", folder / "completed_B_v2.csv")
+    report = reconcile(RECORD / "review", folder / "completed_A_v3.csv", folder / "completed_B_v3.csv")
+    assert previous == read("human_review_v3/scored_v2.json")
+    assert report == read("human_review_v3/scored_v3.json")
+    assert len(previous["disagreements"]) == manifest["prior_disagreement_fields"] == 15
+    assert len({row["blind_id"] for row in previous["disagreements"]}) == manifest["prior_disagreement_reviews"] == 11
+    assert report["judgments_reconciled"] and report["disagreements"] == []
+    expected = {(row["blind_id"], row["field"]): (str(row["A"]), str(row["B"]))
+                for row in previous["disagreements"]}
+    sheets = []
+    for reviewer in ("A", "B"):
+        with (folder / f"completed_{reviewer}_v3.csv").open(encoding="utf-8-sig", newline="") as handle:
+            sheets.append({row["blind_id"]: row for row in csv.DictReader(handle)})
+        with (folder / f"completed_{reviewer}_v2.csv").open(encoding="utf-8-sig", newline="") as handle:
+            for row in csv.DictReader(handle):
+                for field, value in row.items():
+                    if value != sheets[-1][row["blind_id"]][field]:
+                        assert field == "notes" or (row["blind_id"], field) in expected
+    with (folder / "triage_review_disagreements.csv").open(encoding="utf-8-sig", newline="") as handle:
+        decisions = list(csv.DictReader(handle))
+    assert len(decisions) == len(expected)
+    assert {(row["blind_id"], row["field"]) for row in decisions} == set(expected)
+    for decision in decisions:
+        identity = decision["blind_id"], decision["field"]
+        assert expected[identity] == (decision["A"], decision["B"])
+        assert decision["agreed_value"] == sheets[0][identity[0]][identity[1]] == sheets[1][identity[0]][identity[1]]
+        assert decision["adjudication_notes"].strip()
+        for field in ("review", "issue_assessments", "accepted_actions"):
+            assert decision[field] == sheets[0][identity[0]][field] == sheets[1][identity[0]][field]

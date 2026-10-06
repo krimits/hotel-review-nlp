@@ -1,0 +1,25 @@
+{
+  "scope": "adjudicated ratings of 24 synthetic-authored development cases; not an independent real-review pilot or production accuracy",
+  "date": "2026-10-06",
+  "space_commit": "e1e37e58bc963cc8843ecdf4a0096266c16f6f7e",
+  "source_commit": "321c20689418c45267122f537ea6451f3ef30417",
+  "source_run_sha256": "e138179675e06fa411ce706a867156e969f2e0664dc112bbb4a7cc67f7abe5d8",
+  "prior_disagreement_fields": 15,
+  "prior_disagreement_reviews": 11,
+  "all_submitted_adjudications_match_v3": true,
+  "original_capture_unchanged": true,
+  "judgments_reconciled": true,
+  "reviewer_independence_verified": false,
+  "reserved_evaluation_used": false,
+  "selection_frozen": false,
+  "promoted": false,
+  "files": {
+    "completed_A_v2.csv": "4aea9639e8c69de0059b953326851933f30f65e7ff47f4bac3ee2ed571ec1b04",
+    "completed_B_v2.csv": "026d2fcfaab1890d3b0bc12530826ae05f637814dead7933a9b4a313e6e13baf",
+    "scored_v2.json": "b76c3baf32056186b77c2282036b936183c89b40831fd8d5b3d540b53c0f2d46",
+    "completed_A_v3.csv": "9797673cbe6bbe897fa06301d5b98672ad0836193eccaa7e8927ae753d9767b3",
+    "completed_B_v3.csv": "377595c8ab0cf4a59247d60c9fc7a0a0d6257a9160713a2871d59dee27089613",
+    "triage_review_disagreements.csv": "99d2cfdfe41a18b0025429dfb10443b2087a8cfd1499fe521e1a1266f5999f71",
+    "scored_v3.json": "a68bf39aa0b7baab597bda1fab1e5ee7adc31a5e13fa2f98e711c7c0ee34df7d"
+  }
+}
