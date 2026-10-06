@@ -13,7 +13,8 @@ Jev or the combined route.
 ## Provenance
 
 [manifest.json](manifest.json) binds every archived CSV/report by SHA-256 and the original `run.json`.
-CSV bytes, including their line endings, are preserved exactly as supplied. The earlier
+CSV bytes, including their line endings, are preserved exactly as supplied. The scoped Git attribute
+disables text normalization for these CSVs so later Git operations preserve their recorded hashes. The earlier
 [A v2](completed_A_v2.csv), [B v2](completed_B_v2.csv) and [unreconciled report](scored_v2.json)
 remain available: fifteen differing fields across eleven reviews preceded the supplied adjudication.
 Only documented judgment fields and notes changed in v3; reviews, model outputs and execution flags
