@@ -7,6 +7,7 @@ changes to a worker's issue list are not assumed to appear in the parent process
 from __future__ import annotations
 
 import copy
+import logging
 import os
 import platform
 from dataclasses import asdict
@@ -23,6 +24,31 @@ from reviewnlp.triage.demo_service import (
 )
 from reviewnlp.triage.qwen_generator import ActionSignals, GenerationResult, _load_qwen
 from reviewnlp.triage.span_evidence_generator import VERSION
+
+log = logging.getLogger("reviewnlp.triage.runtime")
+
+# Titles emitted by spaces 0.51.3's zero/client.py and zero/wrappers.py.
+# Never classify a quota failure by searching arbitrary exception/review text.
+ZERO_GPU_ERRORS = {
+    "ZeroGPU quota exceeded": "gpu_quota_exceeded",
+    "ZeroGPU pending credits exceeded": "gpu_pending_credits_exceeded",
+    "ZeroGPU illegal duration": "gpu_duration_not_allowed",
+    "ZeroGPU queue timeout": "gpu_queue_timeout",
+    "ZeroGPU client error": "gpu_schedule_failed",
+    "ZeroGPU worker error": "gpu_worker_failed",
+}
+
+
+def runtime_failure_code(error: Exception) -> str:
+    """Expose only known SDK error titles; keep an unknown failure explicitly unknown."""
+    from gradio import Error
+
+    if isinstance(error, Error):
+        title = getattr(error, "title", None)
+        return ZERO_GPU_ERRORS.get(title, "gpu_unavailable_or_timeout") if isinstance(title, str) else "gpu_unavailable_or_timeout"
+    if isinstance(error, TimeoutError):
+        return "gpu_timeout"
+    return "gpu_unavailable_or_timeout"
 
 
 def load_space_qwen():
@@ -69,9 +95,12 @@ class WorkerGenerator:
         clear_generation_diagnostics(self)
         try:
             response = self.worker(review, asdict(signals))
-        except Exception:
+        except Exception as error:
+            code = runtime_failure_code(error)
+            # No review, model output, provider error body or credential goes into this log.
+            log.warning("Qwen worker failed: %s", code)
             self.stage_reports = [{"stage": "qwen_runtime", "status": "error",
-                                   "error": "gpu_unavailable_or_timeout"}]
+                                   "error": code}]
             raise RuntimeError("qwen_worker_unavailable") from None
         self.issues = response["issues"]
         self.review_reasons = response["review_reasons"]

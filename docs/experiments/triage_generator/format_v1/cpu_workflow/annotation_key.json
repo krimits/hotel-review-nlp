@@ -1,0 +1,42 @@
+[
+  {
+    "blind_id": "0001",
+    "candidate": "G-source-spans+json-schema",
+    "review_id": "dev-01"
+  },
+  {
+    "blind_id": "0002",
+    "candidate": "G-source-spans",
+    "review_id": "dev-11"
+  },
+  {
+    "blind_id": "0003",
+    "candidate": "G-source-spans+json-schema",
+    "review_id": "dev-05"
+  },
+  {
+    "blind_id": "0004",
+    "candidate": "G-source-spans",
+    "review_id": "dev-08"
+  },
+  {
+    "blind_id": "0005",
+    "candidate": "G-source-spans",
+    "review_id": "dev-05"
+  },
+  {
+    "blind_id": "0006",
+    "candidate": "G-source-spans+json-schema",
+    "review_id": "dev-08"
+  },
+  {
+    "blind_id": "0007",
+    "candidate": "G-source-spans",
+    "review_id": "dev-01"
+  },
+  {
+    "blind_id": "0008",
+    "candidate": "G-source-spans+json-schema",
+    "review_id": "dev-11"
+  }
+]

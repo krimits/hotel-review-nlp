@@ -252,7 +252,7 @@ It runs the pinned Qwen2.5-1.5B source-span workflow G-source-spans on ZeroGPU; 
 including positive ones. Jev is optional and off by default, and the app keeps no review database.
 This is an **experimental snapshot, not a selected or promoted production workflow**. Known
 quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
-remain unvalidated. See the [verified update record](docs/experiments/triage_space_publication/ea8c7f8/README.md).
+remain unvalidated. See the [current update and development capture](docs/experiments/triage_space_publication/e1e37e5/README.md).
 
 The source-span extraction fix was published at Space commit `ea8c7f8` through
 [notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb). All 16 Colab functional checks
@@ -262,6 +262,16 @@ the short-lamp repeat returned a visible `gpu_unavailable_or_timeout` failure. G
 remains a limitation. These are
 development checks; they do not establish general quality. The
 [local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md) is retained separately.
+
+The [reliability update](docs/TRIAGE_RELIABILITY.md) was published on 6 October at Space commit
+`e1e37e5`, adding specific ZeroGPU error diagnostics and preserving failed live checks. Its 24-case
+authored-development capture returned 20 complete and four partial workflows, five accepted measures
+and eleven UNCERTAIN issues. The separately archived
+[adjudicated development review](docs/experiments/triage_space_publication/e1e37e5/human_review_v3/README.md)
+now passes the scorer: thirteen of seventeen actual problems lack an appropriate measure, while four
+of five emitted measures are useful. Reviewer independence remains unverified; these synthetic
+development judgments do not establish reliability on real hotel reviews. See the
+[exact evidence and next review](docs/experiments/triage_space_publication/e1e37e5/README.md).
 
 ### Option 2 — Run locally
 

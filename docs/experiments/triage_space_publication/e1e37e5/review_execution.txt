@@ -1,0 +1,25 @@
+dev-01 partial issues:invalid_evidence_issue_schema
+dev-02 complete completed
+dev-03 complete completed
+dev-04 complete completed
+dev-05 partial issues:invalid_evidence_span_id
+dev-06 complete completed
+dev-07 complete completed
+dev-08 partial issues:invalid_json
+dev-09 complete completed
+dev-10 complete completed
+dev-11 partial issues:invalid_evidence_issue_schema
+dev-12 complete completed
+dev-13 complete completed
+dev-14 complete completed
+dev-15 complete completed
+dev-16 complete completed
+dev-17 complete completed
+dev-18 complete completed
+dev-19 complete completed
+dev-20 complete completed
+dev-21 complete completed
+dev-22 complete completed
+dev-23 complete completed
+dev-24 complete completed
+Capture complete: True · human ratings still required · no promotion.

@@ -1,11 +1,17 @@
+import os
 import sys
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-# Make src/ importable without installation (CI installs -e anyway).
+# Test UI builds must not launch Gradio version checks or telemetry threads.
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+
+# Make package sources and repository scripts importable for both pytest entry points.
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 

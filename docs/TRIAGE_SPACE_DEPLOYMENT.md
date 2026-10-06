@@ -24,7 +24,7 @@ GPU availability is not established by the successful publication run. The remai
 
 ## Evidence extraction update
 
-Use [notebook 19](../notebooks/19_update_triage_evidence_space_colab.ipynb) in a fresh Colab GPU session,
+Use [notebook 20](../notebooks/20_triage_reliability_colab.ipynb) in a fresh Colab GPU session,
 with the existing `HF_TOKEN` write Secret. It has `RESUME=True` for the existing Space. The
 [regression record](experiments/triage_space_publication/source-spans-v6/README.md) documents the local
 Qwen reproduction; the hosted verification is in the update record above.
@@ -85,6 +85,16 @@ upload or a working demo. The live check waits up to 25 minutes, verifies the lo
 and exercises the seven required regression inputs with Jev off. It waits for the new loaded snapshot
 even if the old process remains RUNNING during the rebuild. Quote/schema failures must be visible. Runtime
 and GPU execution failure fail the functional check. No accuracy is computed.
+
+## Reliability development
+
+[Notebook 20](../notebooks/20_triage_reliability_colab.ipynb) published the diagnostic update at
+[`e1e37e5`](experiments/triage_space_publication/e1e37e5/README.md) on 6 October and captured
+24 authored-development outputs. Twenty workflows were complete and four partial; two blank
+human-review sheets are preserved with the outputs. No quality score or promotion was produced. See
+[TRIAGE_RELIABILITY.md](TRIAGE_RELIABILITY.md) for two-reviewer scoring, interruption handling and
+the remaining release gates. A failed hosted check now preserves its attempt and prior successes
+in the upload receipt; it never reports a successful runtime.
 
 ## Remaining checks
 

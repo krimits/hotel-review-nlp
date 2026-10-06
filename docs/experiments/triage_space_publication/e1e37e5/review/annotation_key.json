@@ -1,0 +1,122 @@
+[
+  {
+    "blind_id": "0001",
+    "candidate": "G-source-spans",
+    "review_id": "dev-09"
+  },
+  {
+    "blind_id": "0002",
+    "candidate": "G-source-spans",
+    "review_id": "dev-06"
+  },
+  {
+    "blind_id": "0003",
+    "candidate": "G-source-spans",
+    "review_id": "dev-13"
+  },
+  {
+    "blind_id": "0004",
+    "candidate": "G-source-spans",
+    "review_id": "dev-20"
+  },
+  {
+    "blind_id": "0005",
+    "candidate": "G-source-spans",
+    "review_id": "dev-14"
+  },
+  {
+    "blind_id": "0006",
+    "candidate": "G-source-spans",
+    "review_id": "dev-11"
+  },
+  {
+    "blind_id": "0007",
+    "candidate": "G-source-spans",
+    "review_id": "dev-23"
+  },
+  {
+    "blind_id": "0008",
+    "candidate": "G-source-spans",
+    "review_id": "dev-18"
+  },
+  {
+    "blind_id": "0009",
+    "candidate": "G-source-spans",
+    "review_id": "dev-19"
+  },
+  {
+    "blind_id": "0010",
+    "candidate": "G-source-spans",
+    "review_id": "dev-05"
+  },
+  {
+    "blind_id": "0011",
+    "candidate": "G-source-spans",
+    "review_id": "dev-12"
+  },
+  {
+    "blind_id": "0012",
+    "candidate": "G-source-spans",
+    "review_id": "dev-15"
+  },
+  {
+    "blind_id": "0013",
+    "candidate": "G-source-spans",
+    "review_id": "dev-04"
+  },
+  {
+    "blind_id": "0014",
+    "candidate": "G-source-spans",
+    "review_id": "dev-01"
+  },
+  {
+    "blind_id": "0015",
+    "candidate": "G-source-spans",
+    "review_id": "dev-24"
+  },
+  {
+    "blind_id": "0016",
+    "candidate": "G-source-spans",
+    "review_id": "dev-02"
+  },
+  {
+    "blind_id": "0017",
+    "candidate": "G-source-spans",
+    "review_id": "dev-08"
+  },
+  {
+    "blind_id": "0018",
+    "candidate": "G-source-spans",
+    "review_id": "dev-07"
+  },
+  {
+    "blind_id": "0019",
+    "candidate": "G-source-spans",
+    "review_id": "dev-17"
+  },
+  {
+    "blind_id": "0020",
+    "candidate": "G-source-spans",
+    "review_id": "dev-21"
+  },
+  {
+    "blind_id": "0021",
+    "candidate": "G-source-spans",
+    "review_id": "dev-10"
+  },
+  {
+    "blind_id": "0022",
+    "candidate": "G-source-spans",
+    "review_id": "dev-22"
+  },
+  {
+    "blind_id": "0023",
+    "candidate": "G-source-spans",
+    "review_id": "dev-03"
+  },
+  {
+    "blind_id": "0024",
+    "candidate": "G-source-spans",
+    "review_id": "dev-16"
+  }
+]

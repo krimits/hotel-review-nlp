@@ -1,0 +1,80 @@
+{
+  "split": "dev",
+  "population": "paired synthetic-authored development; not production accuracy",
+  "source_run_sha256": "e138179675e06fa411ce706a867156e969f2e0664dc112bbb4a7cc67f7abe5d8",
+  "source_manifest_sha256": "dbb3ff233e62f7c394a02eef732a6aee79e6389fd675e1b7ba794dbee6015f6b",
+  "deployed_source_commit": "321c20689418c45267122f537ea6451f3ef30417",
+  "development_cases_sha256": "7a0b69edb8e75a5e7da44ce194c48da0ba015351940c8d274eb084a6656ff1b2",
+  "case_scope": "failures",
+  "experiment_source_commit": "a96daa0b232c90cd9f33350bbe28ac4884e668fe",
+  "runtime": {
+    "real_weights_loaded": true,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "torch": "2.14.1+cpu",
+    "transformers": "4.56.2",
+    "lm_format_enforcer": "0.11.3",
+    "python": "3.12.14",
+    "device": "cpu",
+    "dtype": "torch.float32",
+    "precision_policy": "native",
+    "gpu_name": null,
+    "torch_threads": 4,
+    "attention_implementation": "sdpa",
+    "precision_matches_hosted": false,
+    "hosted_runtime_reproduced": false,
+    "gpu_billing": "unknown"
+  },
+  "prompt_sha256": "b8cb0f5e3ecca206b14def182a7e8282dcb4ebe0d73a6d509cd2ffebbf1b8e9f",
+  "schema_sha256_by_review": {
+    "dev-01": "acfa430f2c29f3fa806d7b97b027b487583210194825d8800ea8e7b05b2fdb5f",
+    "dev-05": "acfa430f2c29f3fa806d7b97b027b487583210194825d8800ea8e7b05b2fdb5f",
+    "dev-08": "acfa430f2c29f3fa806d7b97b027b487583210194825d8800ea8e7b05b2fdb5f",
+    "dev-11": "acfa430f2c29f3fa806d7b97b027b487583210194825d8800ea8e7b05b2fdb5f"
+  },
+  "candidates": [
+    "G-source-spans",
+    "G-source-spans+json-schema"
+  ],
+  "summary": {
+    "G-source-spans": {
+      "planned_cases": 4,
+      "executed_cases": 4,
+      "workflow_errors": 4,
+      "execution_errors": 0,
+      "accepted_actions": 0,
+      "uncertain_issues": 0
+    },
+    "G-source-spans+json-schema": {
+      "planned_cases": 4,
+      "executed_cases": 4,
+      "workflow_errors": 0,
+      "execution_errors": 0,
+      "accepted_actions": 2,
+      "uncertain_issues": 2
+    }
+  },
+  "signals_policy": "replayed captured DistilBERT hints; sentiment not rerun; Jev not called",
+  "changed_variable": "issue-stage schema-constrained decoding only; prompt, parser and measures unchanged",
+  "max_calls_per_review_per_arm": 2,
+  "max_new_tokens_per_call": 400,
+  "do_sample": false,
+  "execution_complete": true,
+  "stop_reason": null,
+  "jev_requested": false,
+  "hub_writes": false,
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "selection_frozen": false,
+  "promoted": false,
+  "script_sha256": "610c300d2ab5b72b52f980f8e9a2855d21bb69aabdef0a3fee6a71463b93c711",
+  "format_source_sha256": "40cf9ab270d4cdb8a390389db2555f55344637dfc94c218dc351215f6a2c7604",
+  "files": {
+    "results.jsonl": "88dfdc85bdc1de6718eb4748653d04b11d0d1ac55f0eb8ba25f31872d13ec0df",
+    "coverage_A.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6",
+    "upstream.json": "52b3fb2ee523be282e8b4202f5162f535c42f6603a2ea32d67bf0cfe9d940b1c",
+    "annotation_key.json": "9dfa6370890199d2d599598fae72805239de7f5a3bf241d29fc6c45e5535e3af",
+    "coverage_B.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6",
+    "coverage_review.csv": "ac2a61333d163f22d314fd73c006edb7129e561f31a03e71f017169e8b68d5b6"
+  }
+}

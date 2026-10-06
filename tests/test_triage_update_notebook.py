@@ -31,7 +31,8 @@ def test_update_pins_all_sources_and_existing_space_without_saved_outputs_or_res
     assert namespace["SPACE_ID"] == "krimits/hotel-triage-demo"
     assert namespace["SOURCE_COMMIT"] == "5fa1f5635f8df4d537a6d7adbdcb4b22e8ad3bac"
     for name, expected in namespace["SOURCE_HASHES"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected
+        content = subprocess.check_output(["git", "show", namespace["SOURCE_COMMIT"] + ":" + name], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == expected
     assert "src/reviewnlp/triage/span_evidence_generator.py" in namespace["SOURCE_HASHES"]
     all_code = "\n".join(code.values())
     assert "holdout.json" not in all_code and "files.upload" not in all_code

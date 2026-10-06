@@ -1,0 +1,42 @@
+[
+  {
+    "id": "dev-01",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9730697870254517,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_issue_schema"
+  },
+  {
+    "id": "dev-05",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9578434228897095,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_span_id"
+  },
+  {
+    "id": "dev-08",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9843232035636902,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_json"
+  },
+  {
+    "id": "dev-11",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.8397448062896729,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_issue_schema"
+  }
+]

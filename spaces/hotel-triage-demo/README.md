@@ -96,3 +96,13 @@ No human annotations, evaluation key, review datasets, run outputs or credential
 Review the package and run `scripts/check_triage_space.py` with real weights before deployment.
 An experimental deployment does not select a final generator or establish hotel-use reliability.
 The existing ABSA demo and published sentiment Space are separate applications and are not replaced.
+
+
+## Availability diagnostics
+
+Known ZeroGPU SDK errors distinguish exhausted quota, pending allocations, disallowed duration,
+queue timeout, scheduling and worker failure. Unknown errors remain unknown. Every runtime failure
+keeps a partial response with a visible stage error; empty measures do not mean no problem exists.
+The app performs no automatic retry or paid fallback. Quota-based ZeroGPU availability remains a
+limitation. A separate two-reviewer development review and independent real-review pilot are still
+required before reliability claims.
