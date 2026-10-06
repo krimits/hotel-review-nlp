@@ -1,0 +1,30 @@
+{
+  "split": "dev",
+  "population": "synthetic-authored development; not an independent real-review pilot",
+  "source_commit": "321c20689418c45267122f537ea6451f3ef30417",
+  "shuffle_seed": 20261006,
+  "capture_script_sha256": "bc8157d5f40cceacfc82a2a079db2e27b55ffe20ce76a60efd40046745888d9f",
+  "development_cases_sha256": "7a0b69edb8e75a5e7da44ce194c48da0ba015351940c8d274eb084a6656ff1b2",
+  "source_manifest_sha256": "dbb3ff233e62f7c394a02eef732a6aee79e6389fd675e1b7ba794dbee6015f6b",
+  "candidates": [
+    "G-source-spans"
+  ],
+  "jev_requested": false,
+  "selection_frozen": false,
+  "quality_evaluated": false,
+  "reserved_evaluation_used": false,
+  "execution_complete": true,
+  "stop_reason": null,
+  "planned_cases": 24,
+  "executed_cases": 24,
+  "failures": 4,
+  "files": {
+    "annotation_key.json": "41ea1ae7319bc9898af0ff2dee74a4b9bdcc034dc30bd72524ff80f02c27ac2b",
+    "coverage_A.csv": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e",
+    "coverage_B.csv": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e",
+    "coverage_review.csv": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e",
+    "model_info.json": "733360e9998012dfeedb28f7cf314292af639662438bc885461f4d3b8be9a024",
+    "results.jsonl": "24680180f214ffcf1d700befa73b69bb4a280a249ca3e0ff3d388664d28a9af7",
+    "source_manifest.json": "dbb3ff233e62f7c394a02eef732a6aee79e6389fd675e1b7ba794dbee6015f6b"
+  }
+}

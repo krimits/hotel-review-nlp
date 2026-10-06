@@ -252,7 +252,7 @@ It runs the pinned Qwen2.5-1.5B source-span workflow G-source-spans on ZeroGPU; 
 including positive ones. Jev is optional and off by default, and the app keeps no review database.
 This is an **experimental snapshot, not a selected or promoted production workflow**. Known
 quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
-remain unvalidated. See the [verified update record](docs/experiments/triage_space_publication/ea8c7f8/README.md).
+remain unvalidated. See the [current update and development capture](docs/experiments/triage_space_publication/e1e37e5/README.md).
 
 The source-span extraction fix was published at Space commit `ea8c7f8` through
 [notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb). All 16 Colab functional checks
@@ -263,9 +263,11 @@ remains a limitation. These are
 development checks; they do not establish general quality. The
 [local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md) is retained separately.
 
-The next [reliability update](docs/TRIAGE_RELIABILITY.md) adds specific ZeroGPU error diagnostics,
-preserves failed live checks, and captures new source-span outputs for two human reviewers. It is
-prepared separately from the live release; no reliability claim or promotion follows from CI.
+The [reliability update](docs/TRIAGE_RELIABILITY.md) was published on 6 October at Space commit
+`e1e37e5`, adding specific ZeroGPU error diagnostics and preserving failed live checks. Its 24-case
+authored-development capture returned 20 complete and four partial workflows, five accepted measures
+and eleven UNCERTAIN issues. Both human-review sheets remain blank; these execution counts are not
+quality scores. See the [exact evidence and next review](docs/experiments/triage_space_publication/e1e37e5/README.md).
 
 ### Option 2 — Run locally
 

@@ -1,13 +1,15 @@
 # From experimental triage to a validated, human-assisted hotel workflow
 
-The live source-span release is recorded at [ea8c7f8](experiments/triage_space_publication/ea8c7f8/README.md).
-It passed its publication run, but a later independent API request had a visible GPU worker failure.
+The current diagnostic update and development capture are recorded at
+[e1e37e5](experiments/triage_space_publication/e1e37e5/README.md). The
+[earlier release](experiments/triage_space_publication/ea8c7f8/README.md) passed its publication run,
+but a later independent API request had a visible GPU worker failure.
 Source-span extraction removes the quote-copying failure; it does not prove coverage, sound exclusions,
 correct departments or useful measures. No candidate has been selected or promoted.
 
 ## Current engineering changes
 
-The next update recognizes the exact error titles emitted by the pinned `spaces 0.51.3` SDK:
+The diagnostic update recognizes the exact error titles emitted by the pinned `spaces 0.51.3` SDK:
 quota exceeded, pending-credit allocation, illegal duration, queue timeout, client scheduling and worker
 failure. Unknown exceptions remain unknown; searching a review or arbitrary exception message for the
 word “quota” would be an unreliable diagnosis. Logs retain only a closed error code, without review text,
@@ -17,8 +19,11 @@ GPU result as an absence of problems. There is no automatic retry or paid fallba
 The publication check preserves earlier successes and the failing live case in `published.json`, with
 `runtime_verified: false`. A successful upload alone never changes that flag. Hardware and model revision
 pins remain recorded; shortening the 60-second allocation without testing long inputs is not a remedy.
-These changes are prepared in [notebook 20](../notebooks/20_triage_reliability_colab.ipynb); they are not
-established on the live Space until the returned receipt is verified.
+These changes were published through [notebook 20](../notebooks/20_triage_reliability_colab.ipynb).
+The owner-run receipt, all 21 deployed files and loaded snapshot are verified in the current record.
+The fresh capture completed 24 requests, including four issue-stage failures and eleven UNCERTAIN
+assessments without measures. A measure for a successfully replaced bulb is also a review priority.
+The two sheets remain blank; semantic quality has not been rated and the reserved set remains closed.
 
 ## Fresh development review of the deployed workflow
 

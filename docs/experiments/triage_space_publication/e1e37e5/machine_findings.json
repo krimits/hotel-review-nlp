@@ -1,0 +1,62 @@
+{
+  "scope": "Machine observations from 24 authored development cases; no human quality scores",
+  "planned_cases": 24,
+  "executed_cases": 24,
+  "statuses": {
+    "partial": 4,
+    "complete": 20
+  },
+  "workflow_errors": {
+    "issues:invalid_evidence_issue_schema": 2,
+    "issues:invalid_evidence_span_id": 1,
+    "issues:invalid_json": 1
+  },
+  "failed_cases": [
+    {
+      "review_id": "dev-01",
+      "blind_id": "0014",
+      "error": "issues:invalid_evidence_issue_schema"
+    },
+    {
+      "review_id": "dev-05",
+      "blind_id": "0010",
+      "error": "issues:invalid_evidence_span_id"
+    },
+    {
+      "review_id": "dev-08",
+      "blind_id": "0017",
+      "error": "issues:invalid_json"
+    },
+    {
+      "review_id": "dev-11",
+      "blind_id": "0006",
+      "error": "issues:invalid_evidence_issue_schema"
+    }
+  ],
+  "issue_statuses": {
+    "REAL_PENDING": 5,
+    "UNCERTAIN": 11
+  },
+  "reviews_with_actions": 5,
+  "accepted_actions": 5,
+  "jev_attempts": 0,
+  "gpu_runtime_errors": 0,
+  "quality_evaluated": false,
+  "human_sheets_completed": false,
+  "reserved_evaluation_used": false,
+  "promoted": false,
+  "developer_observations": [
+    {
+      "review_id": "dev-21",
+      "blind_id": "0020",
+      "observation": "The review explicitly reports successful bulb replacement, but the output contains a REAL_PENDING issue and an accepted measure. Requires human review; no rating was filled."
+    },
+    {
+      "review_id": "dev-18",
+      "blind_id": "0008",
+      "observation": "A praise-only breakfast review produced an UNCERTAIN hot-breakfast issue, without a measure. Requires human review; no rating was filled."
+    }
+  ],
+  "raw_generation_available": false,
+  "parse_failure_root_causes": "Not established: raw Qwen text is not retained by the Space."
+}

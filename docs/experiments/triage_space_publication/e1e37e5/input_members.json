@@ -1,0 +1,61 @@
+{
+  "input_archive_sha256": "355a943ae3f354585a052d06d42941e9f947a4c20c9531646fba2daf7988dc93",
+  "members": {
+    "source_manifest.json": {
+      "archived_path": "source_manifest.json",
+      "sha256": "dbb3ff233e62f7c394a02eef732a6aee79e6389fd675e1b7ba794dbee6015f6b"
+    },
+    "smoke.json": {
+      "archived_path": "colab_smoke.json",
+      "sha256": "6cea90fd7bfa6c46676e410f29efe193a7677e0c297787883d89d8a262eec4b2"
+    },
+    "published.json": {
+      "archived_path": "published.json",
+      "sha256": "f8ee52854601b199cd07d4cb691da5993fc87d7c9eab070bdb5237e0dd0665c7"
+    },
+    "smoke_execution.txt": {
+      "archived_path": "smoke_execution.txt",
+      "sha256": "4f4d43746827bcbd3bcf4a9cb2be4aed22fbbac4b0887fe5ce2872a64029fa6b"
+    },
+    "publish_execution.txt": {
+      "archived_path": "publish_execution.txt",
+      "sha256": "1df76912de55241b32ae1eec56d91b407a3ce6bb8d77052aa29ac7b677349f7b"
+    },
+    "review_execution.txt": {
+      "archived_path": "review_execution.txt",
+      "sha256": "ca951f2b6260d986718626ffa1f7d81d1eee46ab500862e3577e6c96e71e97a7"
+    },
+    "review/annotation_key.json": {
+      "archived_path": "review/annotation_key.json",
+      "sha256": "41ea1ae7319bc9898af0ff2dee74a4b9bdcc034dc30bd72524ff80f02c27ac2b"
+    },
+    "review/coverage_A.csv": {
+      "archived_path": "review/coverage_A.csv",
+      "sha256": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e"
+    },
+    "review/coverage_B.csv": {
+      "archived_path": "review/coverage_B.csv",
+      "sha256": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e"
+    },
+    "review/coverage_review.csv": {
+      "archived_path": "review/coverage_review.csv",
+      "sha256": "a31a57a16c4a6061d81aa5c6428a038f84d5c724c8d426539b95017744bc652e"
+    },
+    "review/model_info.json": {
+      "archived_path": "review/model_info.json",
+      "sha256": "733360e9998012dfeedb28f7cf314292af639662438bc885461f4d3b8be9a024"
+    },
+    "review/results.jsonl": {
+      "archived_path": "review/results.jsonl",
+      "sha256": "24680180f214ffcf1d700befa73b69bb4a280a249ca3e0ff3d388664d28a9af7"
+    },
+    "review/run.json": {
+      "archived_path": "review/run.json",
+      "sha256": "e138179675e06fa411ce706a867156e969f2e0664dc112bbb4a7cc67f7abe5d8"
+    },
+    "review/source_manifest.json": {
+      "archived_path": "review/source_manifest.json",
+      "sha256": "dbb3ff233e62f7c394a02eef732a6aee79e6389fd675e1b7ba794dbee6015f6b"
+    }
+  }
+}
