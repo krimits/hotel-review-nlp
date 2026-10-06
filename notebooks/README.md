@@ -77,6 +77,14 @@ Use a fresh Colab GPU session and the `HF_TOKEN` write Secret. The seven hosted 
 also pass; [local Qwen evidence and limitations](../docs/experiments/triage_space_publication/source-spans-v6/README.md)
 do not establish that the update has already been deployed.
 
+Notebook 20 updates the existing Space's runtime diagnostics, preserves failed live checks, and
+captures fresh outputs from 24 authored development cases for two human reviewers:
+[20_triage_reliability_colab.ipynb](20_triage_reliability_colab.ipynb).
+It requires a fresh Colab GPU session and the `HF_TOKEN` write Secret. Jev defaults off; opt-in is
+explicit. Interrupted captures retain their failures and cannot be scored. The two blank CSVs require
+independent human judgments; this is development evidence, not a production reliability score.
+See [the release gates and scoring instructions](../docs/TRIAGE_RELIABILITY.md).
+
 `data/raw/booking_reviews_515k.csv` is not in the repository — see
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
