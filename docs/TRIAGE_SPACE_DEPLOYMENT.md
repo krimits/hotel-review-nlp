@@ -86,6 +86,14 @@ and exercises the seven required regression inputs with Jev off. It waits for th
 even if the old process remains RUNNING during the rebuild. Quote/schema failures must be visible. Runtime
 and GPU execution failure fail the functional check. No accuracy is computed.
 
+## Reliability development
+
+[Notebook 20](../notebooks/20_triage_reliability_colab.ipynb) prepares the next diagnostic update and
+a fresh authored-development review of the loaded source-span workflow. See
+[TRIAGE_RELIABILITY.md](TRIAGE_RELIABILITY.md) for two-reviewer scoring, interruption handling and
+the remaining release gates. A failed hosted check now preserves its attempt and prior successes
+in the upload receipt; it never reports a successful runtime.
+
 ## Remaining checks
 
 - On-Space first request after sleep, repeat request, quota/timeout message and mobile layout.

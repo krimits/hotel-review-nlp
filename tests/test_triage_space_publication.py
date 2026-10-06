@@ -185,3 +185,37 @@ def test_existing_space_update_waits_for_new_snapshot_and_preserves_configuratio
     monkeypatch.setattr("scripts.publish_triage_space.time.sleep", lambda seconds: None)
     assert check_live(api, receipt, manifest, client_factory=lambda *args, **kwargs: Client())["runtime_verified"]
     assert len(reads) == 2
+
+
+@pytest.mark.parametrize("transport_failed", [False, True])
+def test_failed_live_attempt_keeps_prior_checks_and_closed_failure_in_receipt(checked, transport_failed):
+    from scripts.publish_triage_space import LiveCheckError
+    package, manifest, _ = checked
+    calls = []
+
+    class Client:
+        def predict(self, *args, api_name):
+            if api_name == "/model_info":
+                return {"source_snapshot": manifest, "runtime": {"ready": True, "zero_gpu": True}}
+            calls.append(args)
+            if len(calls) == 2 and transport_failed:
+                raise RuntimeError("SECRET remote token")
+            failure = {"stage": "qwen_runtime", "status": "error", "error": "gpu_quota_exceeded"} if len(calls) == 2 else None
+            return "Αποτυχία σταδίου" if failure else "completed", [], [], {
+                "stored": False, "api_cost": {"attempts": 0}, "issue_assessments": [], "actions": {"actions": []},
+                "stage_reports": [failure or {"stage": "issues", "status": "ok", "error": None}],
+                "stage_failure": failure, "status": "partial" if failure else "complete", "timings": {"total_ms": 100}}
+
+    with pytest.raises(LiveCheckError) as raised:
+        check_live(FakeApi(package), {"upload_verified": True}, manifest,
+                   client_factory=lambda *args, **kwargs: Client())
+    report = raised.value.receipt
+    assert report["upload_verified"] and report["runtime_verified"] is False
+    assert report["functional_checks"][0]["status"] == "complete"
+    assert len(report["functional_checks"]) == 2 and len(calls) == 2
+    failure = report["functional_checks"][-1]
+    if transport_failed:
+        assert failure["error"] == "live_client_transport_failed"
+    else:
+        assert failure["stage_failure"]["error"] == "gpu_quota_exceeded"
+    assert "SECRET" not in str(report)

@@ -231,3 +231,34 @@ def test_real_tiny_distilbert_prediction_uses_pinned_loader_contract(tmp_path, m
     assert set(probabilities) == {"negative", "positive"}
     assert sum(probabilities.values()) == pytest.approx(1)
     assert next(wrapper._bundle[1].parameters()).dtype == torch.float32
+
+
+@pytest.mark.parametrize("title,code", [
+    ("ZeroGPU quota exceeded", "gpu_quota_exceeded"),
+    ("ZeroGPU pending credits exceeded", "gpu_pending_credits_exceeded"),
+    ("ZeroGPU illegal duration", "gpu_duration_not_allowed"),
+    ("ZeroGPU queue timeout", "gpu_queue_timeout"),
+    ("ZeroGPU client error", "gpu_schedule_failed"),
+    ("ZeroGPU worker error", "gpu_worker_failed"),
+])
+def test_real_sdk_error_titles_are_distinguished_without_exposing_message(title, code, caplog):
+    from spaces.zero.gradio import error as sdk_error
+
+    def worker(*args):
+        raise sdk_error(title, "SECRET review and provider token")
+
+    result = DemoService(FakeWrapper(POSITIVE), WorkerGenerator(worker)).analyze(TEXT)
+    assert result["stage_failure"]["error"] == code
+    assert result["status"] == "partial" and not result["actions"]["actions"]
+    assert "SECRET" not in json.dumps(result) and "SECRET" not in caplog.text
+    assert code in caplog.text
+    app = load_script("runtime_diagnostics_app", ROOT / "spaces/hotel-triage-demo/app.py")
+    summary, _, _, _ = app.present(result)
+    assert code in summary and "Qwen δεν επέστρεψε έγκυρη ανάλυση" in summary
+    app.demo.close()
+
+
+def test_unknown_message_containing_quota_is_not_reclassified_as_exceeded_quota():
+    from reviewnlp.triage.space_runtime import runtime_failure_code
+    assert runtime_failure_code(RuntimeError("SECRET quota exceeded")) == "gpu_unavailable_or_timeout"
+    assert runtime_failure_code(TimeoutError("SECRET")) == "gpu_timeout"

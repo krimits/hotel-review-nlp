@@ -263,6 +263,10 @@ remains a limitation. These are
 development checks; they do not establish general quality. The
 [local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md) is retained separately.
 
+The next [reliability update](docs/TRIAGE_RELIABILITY.md) adds specific ZeroGPU error diagnostics,
+preserves failed live checks, and captures new source-span outputs for two human reviewers. It is
+prepared separately from the live release; no reliability claim or promotion follows from CI.
+
 ### Option 2 — Run locally
 
 ```bash

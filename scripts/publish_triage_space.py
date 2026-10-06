@@ -28,6 +28,14 @@ REPO_ID = "krimits/hotel-triage-demo"
 HARDWARE = "zero-a10g"  # HF API name for ZeroGPU; never a dedicated paid A10G.
 
 
+class LiveCheckError(ValueError):
+    """Keep the failed functional attempt as evidence, without exception text or review data."""
+
+    def __init__(self, receipt: dict, case: str):
+        super().__init__("live_functional_check_failed: " + case)
+        self.receipt = receipt
+
+
 def validate_smoke(package: Path, report: dict) -> dict:
     manifest = verify_package(package)
     required = [row for row in report.get("records", []) if row.get("id") in REQUIRED_REGRESSIONS]
@@ -118,15 +126,28 @@ def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_facto
         if case["id"] not in REQUIRED_REGRESSIONS:
             continue
         label, text = case["id"], case["text"]
-        summary, _, _, result = client.predict(text, False, api_name="/analyze")
+        try:
+            summary, _, _, result = client.predict(text, False, api_name="/analyze")
+        except Exception:
+            checked.append({"case": label, "status": "transport_error", "stage_failure": None,
+                            "error": "live_client_transport_failed"})
+            raise LiveCheckError({**receipt, "runtime_verified": False, "live_model_info": info,
+                "functional_checks": checked, "live_check_failure": {"case": label, "error": "live_client_transport_failed"},
+                "quality_evaluated": False}, label) from None
+        record = {"case": label, "status": result["status"], "stage_failure": result["stage_failure"],
+                  "stage_reports": result["stage_reports"], "issues": len(result["issue_assessments"]),
+                  "actions": len(result["actions"]["actions"]),
+                  "total_ms": result["timings"]["total_ms"], "stored": result["stored"]}
+        checked.append(record)
         if (result["stored"] or result["api_cost"]["attempts"]
                 or not any(item["stage"] == "issues" for item in result["stage_reports"])
                 or any(item["error"] in {"generation_failed", "gpu_unavailable_or_timeout"} for item in result["stage_reports"])
                 or (result["stage_failure"] and "Αποτυχία σταδίου" not in summary)
                 or regression_problems(label, text, result)):
-            raise ValueError("live_functional_check_failed: " + label)
-        checked.append({"case": label, "status": result["status"], "stage_failure": result["stage_failure"],
-                        "total_ms": result["timings"]["total_ms"], "stored": False})
+            raise LiveCheckError({**receipt, "runtime_verified": False, "live_model_info": info,
+                "functional_checks": checked,
+                "live_check_failure": {"case": label, "error": "live_regression_failed"},
+                "quality_evaluated": False}, label)
     if receipt.get("space_commit") and api.repo_info(repo_id=REPO_ID, repo_type="space").sha != receipt["space_commit"]:
         raise ValueError("space_head_changed_during_live_check")
     return {**receipt, "runtime_verified": True, "live_model_info": info, "functional_checks": checked,
@@ -151,7 +172,13 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     print("Upload verified:", receipt["url"], receipt["space_commit"], flush=True)
-    receipt = check_live(HfApi(), receipt, manifest)
+    try:
+        receipt = check_live(HfApi(), receipt, manifest)
+    except LiveCheckError as error:
+        args.output.write_text(json.dumps(error.receipt, indent=2) + "\n", encoding="utf-8")
+        failure = error.receipt["functional_checks"][-1]
+        print("Live check failed:", failure["case"], failure.get("stage_failure") or failure.get("error") or "regression_failed", flush=True)
+        raise
     args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     print("Live functional check passed:", receipt["url"], "— experimental, quality unvalidated.")
 

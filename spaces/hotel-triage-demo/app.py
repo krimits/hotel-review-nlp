@@ -66,6 +66,18 @@ def present(result):
             label = {"issues": "εξαγωγή ζητημάτων", "measures": "παραγωγή μέτρων",
                      "jev": "έλεγχος Jev", "qwen_runtime": "διαθεσιμότητα GPU / Qwen"}.get(stage["stage"], "ανάλυση")
             title += f"\n\n**Αποτυχία σταδίου: {label}** (`{stage['error']}`). Ελέγξτε την αρχική κριτική."
+            guidance = {
+                "gpu_quota_exceeded": "Το ZeroGPU ανέφερε εξάντληση ορίου. Ελέγξτε το διαθέσιμο όριο στον λογαριασμό Hugging Face πριν επαναλάβετε.",
+                "gpu_pending_credits_exceeded": "Το διαθέσιμο όριο έχει δεσμευτεί από άλλες εργασίες. Περιμένετε να ολοκληρωθούν πριν επαναλάβετε.",
+                "gpu_duration_not_allowed": "Το ZeroGPU δεν ενέκρινε τον ζητούμενο χρόνο. Χρειάζεται έλεγχος ορίου και ρύθμισης από τον διαχειριστή.",
+                "gpu_queue_timeout": "Η αναμονή για GPU έληξε. Δοκιμάστε αργότερα.",
+                "gpu_schedule_failed": "Η κατανομή GPU απέτυχε. Ανανεώστε τη σελίδα· αν επιμένει, χρειάζεται έλεγχος από τον διαχειριστή.",
+                "gpu_worker_failed": "Η εργασία GPU διακόπηκε. Χρειάζεται έλεγχος των logs από τον διαχειριστή.",
+                "gpu_timeout": "Η εργασία δεν απάντησε εγκαίρως. Δοκιμάστε αργότερα.",
+                "gpu_unavailable_or_timeout": "Η ακριβής αιτία δεν είναι διαθέσιμη. Ο διαχειριστής χρειάζεται να ελέγξει τα logs του Space.",
+            }.get(stage["error"])
+            if guidance:
+                title += "\n\n" + guidance + " Το Qwen δεν επέστρεψε έγκυρη ανάλυση· το κενό αποτέλεσμα δεν σημαίνει απουσία προβλήματος."
     cost = result["api_cost"]
     amount = cost["reported_cost_sum"]
     title += ("\n\n**Κόστος Jev:** δεν έγινε αίτημα." if not cost["attempts"] else
