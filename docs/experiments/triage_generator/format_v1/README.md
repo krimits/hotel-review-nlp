@@ -56,6 +56,12 @@ preserved unchanged and is not the new 48-row evaluation handoff.
 
 ## Portable paired workflow comparison
 
+The [received Colab run](colab_incomplete_20261009/README.md) stopped on an ImportError with
+transformers 5.18.0 instead of the specified 4.56.2. Its hashes pass, but 46 outputs were unexecuted;
+the supplied sheets cannot be scored. The new runtime preflight verifies pinned distributions,
+actual imports and library integration before downloading weights. When an isolated prefix is
+specified it also verifies the interpreter and package origins. The corrected GPU run remains pending.
+
 [Notebook 21](../../../../notebooks/21_triage_format_comparison_colab.ipynb) pins the tested source at
 `1215e4008225c7c1b766af37d609dbd63535ef2c`, verifies source hashes and installs its dependencies in an
 isolated Colab environment. It defaults to all 24 reviews, requires GPU, and downloads the diagnostic
@@ -63,8 +69,7 @@ ZIP even when the model capture fails. No token, provider key, Drive or previous
 GPU execution and new human ratings are pending; the Space remains unchanged.
 
 ```bash
-pip install -e '.[triage-experiments]'
-pip install transformers==4.56.2
+pip install -r configs/triage_format_requirements.txt
 python scripts/compare_triage_formats.py --cases all --device cuda \
   --output runs/triage_format_dev_NEW
 ```
@@ -75,7 +80,7 @@ Native precision uses bfloat16 only on a GPU with native support, otherwise floa
 requests float32. The actual hardware, precision, versions and attention implementation are recorded.
 Matching precision alone does not reproduce the hosted runtime. GPU billing remains unknown.
 
-The runner verifies captured-file hashes, the original authored dev corpus and the unchanged deployed
+The runner verifies runtime compatibility, captured-file hashes, the original authored dev corpus and the unchanged deployed
 backend before downloading weights. Both arms share the same loaded weights and replayed hints, and
 each review reaches extraction. Only issue-stage constrained decoding differs. Both arms use the
 unchanged strict measures assembler, with at most two calls per review/arm. A generation exception stops

@@ -1,0 +1,12 @@
+{
+  "source_commit": "1215e4008225c7c1b766af37d609dbd63535ef2c",
+  "case_scope": "all",
+  "precision_policy": "native",
+  "setup_ready": true,
+  "execution_complete": false,
+  "exit_code": 1,
+  "error": null,
+  "hub_writes": false,
+  "jev_requested": false,
+  "promoted": false
+}

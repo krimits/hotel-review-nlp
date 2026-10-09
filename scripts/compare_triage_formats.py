@@ -10,7 +10,6 @@ import argparse
 import copy
 import csv
 import hashlib
-import importlib.metadata
 import json
 import platform
 import random
@@ -28,6 +27,7 @@ from reviewnlp.triage.demo_service import (  # noqa: E402
     public_stage_reports,
 )
 from reviewnlp.triage.evidence_generator import messages_evidence_measures  # noqa: E402
+from reviewnlp.triage.format_runtime import RuntimePreflightError, check_runtime  # noqa: E402
 from reviewnlp.triage.generator_experiment import RATINGS  # noqa: E402
 from reviewnlp.triage.qwen_generator import (  # noqa: E402
     MAX_NEW_TOKENS,
@@ -175,8 +175,9 @@ def compare(rows: list[dict], candidates: dict, output: Path, *, provenance: dic
         arm = [row for row in records if row["candidate"] == name]
         summaries[name] = {"planned_cases": len(rows),
             "executed_cases": sum(row["status"] != "not_executed" for row in arm),
+            "not_executed_cases": sum(row["status"] == "not_executed" for row in arm),
             "workflow_errors": sum(bool(row["workflow_error"]) for row in arm),
-            "execution_errors": sum(bool(row["error"]) for row in arm),
+            "execution_errors": sum(row["status"] == "execution_failed" for row in arm),
             "accepted_actions": sum(len(row["actions"]) for row in arm),
             "uncertain_issues": sum(issue["status"] == "UNCERTAIN" for row in arm for issue in row["extracted_issues"])}
     report = {"split": "dev", "population": "paired synthetic-authored development; not production accuracy",
@@ -187,7 +188,9 @@ def compare(rows: list[dict], candidates: dict, output: Path, *, provenance: dic
         "changed_variable": "issue-stage schema-constrained decoding only; prompt, parser and measures unchanged",
         "max_calls_per_review_per_arm": 2, "max_new_tokens_per_call": MAX_NEW_TOKENS, "do_sample": False,
         "execution_complete": stopped is None, "stop_reason": stopped,
-        "failures": sum(bool(row["error"] or row["workflow_error"]) for row in records),
+        "failures": sum(row["status"] != "not_executed" and bool(row["error"] or row["workflow_error"])
+                        for row in records),
+        "not_executed_count": sum(row["status"] == "not_executed" for row in records),
         "jev_requested": False, "hub_writes": False, "quality_evaluated": False,
         "reserved_evaluation_used": False, "selection_frozen": False, "promoted": False,
         "script_sha256": digest(Path(__file__)),
@@ -204,19 +207,18 @@ def main():
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
     parser.add_argument("--precision", choices=("native", "fp32"), default="native")
     parser.add_argument("--cache-dir", type=Path)
+    parser.add_argument("--expected-prefix", type=Path,
+                        help="Require this isolated interpreter and package locations (Colab).")
     args = parser.parse_args()
     rows, provenance = frozen_inputs(scope=args.cases)
     if args.output.exists():
         raise ValueError("new_output_directory_required")
+    environment = check_runtime(expected_prefix=args.expected_prefix, require_cuda=args.device == "cuda")
     import torch
     import transformers
     from huggingface_hub import snapshot_download
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    if importlib.metadata.version("lm-format-enforcer") != FORMAT_ENFORCER_VERSION:
-        raise ValueError("pinned_format_enforcer_required")
-    if args.device == "cuda" and not torch.cuda.is_available():
-        raise ValueError("cuda_required_or_explicit_cpu")
     torch.manual_seed(42)
     if args.device == "cpu":
         torch.set_num_threads(4)
@@ -229,6 +231,7 @@ def main():
     provenance["experiment_source_commit"] = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     runtime = {"real_weights_loaded": True, "model": QWEN_REPO, "model_revision": QWEN_REVISION,
+        "preflight": environment,
         "torch": torch.__version__, "transformers": transformers.__version__,
         "lm_format_enforcer": FORMAT_ENFORCER_VERSION, "python": platform.python_version(),
         "device": str(model.device), "dtype": str(model.dtype), "precision_policy": args.precision,
@@ -245,5 +248,8 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as error:
-        print("Comparison stopped:", type(error).__name__, "· existing evidence is never overwritten.")
+        if isinstance(error, RuntimePreflightError):
+            print("Comparison stopped:", error.code, json.dumps(error.details, sort_keys=True))
+        else:
+            print("Comparison stopped:", type(error).__name__, "· existing evidence is never overwritten.")
         raise SystemExit(1) from None

@@ -1,0 +1,242 @@
+[
+  {
+    "id": "dev-01",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9730697870254517,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_issue_schema"
+  },
+  {
+    "id": "dev-02",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9785756468772888,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-03",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9767781496047974,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-04",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9734512567520142,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-05",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9578434228897095,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_span_id"
+  },
+  {
+    "id": "dev-06",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9766973257064819,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-07",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9705425500869751,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-08",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9843232035636902,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_json"
+  },
+  {
+    "id": "dev-09",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.9708021283149719,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-10",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.7681581377983093,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-11",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.8397448062896729,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": "issues:invalid_evidence_issue_schema"
+  },
+  {
+    "id": "dev-12",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.6837247610092163,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-13",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.849938154220581,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-14",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.8026372194290161,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-15",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.975726306438446,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-16",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.8171662092208862,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-17",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.9980850219726562,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-18",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9366058111190796,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-19",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.9066540598869324,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-20",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.9971325397491455,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-21",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.8020342588424683,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-22",
+    "signals": {
+      "sentiment_label": "negative",
+      "sentiment_confidence": 0.9087280631065369,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-23",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.5728479623794556,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  },
+  {
+    "id": "dev-24",
+    "signals": {
+      "sentiment_label": "positive",
+      "sentiment_confidence": 0.9885151982307434,
+      "flagged_topics": [],
+      "hotel_context": null
+    },
+    "hosted_error": null
+  }
+]
