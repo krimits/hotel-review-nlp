@@ -94,6 +94,10 @@ Use a fresh Colab GPU session; no API key, token, Drive or uploaded ZIP is neede
 the Space is not updated. The [real-weight CPU probe](../docs/experiments/triage_generator/format_v1/README.md)
 passed formatting for the four failed inputs but retained semantic defects. The notebook's GPU run and
 new human evaluation are pending; no automatic selection, reserved evaluation or promotion occurs.
+The [first Colab capture](../docs/experiments/triage_generator/format_v1/colab_incomplete_20261009/README.md)
+stopped on a dependency import with transformers 5.18.0; its sheets cannot be scored. The corrected
+notebook checks actual pins, isolated interpreter/module origins and the format-integration import
+before weights are downloaded, and exports preflight diagnostics when that check fails.
 
 `data/raw/booking_reviews_515k.csv` is not in the repository — see
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note

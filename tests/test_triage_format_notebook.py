@@ -17,7 +17,7 @@ from unittest.mock import patch
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = "1215e4008225c7c1b766af37d609dbd63535ef2c"
+SOURCE = "139cdc52c09d80e87dcbfa73d67ef0fc7663df4d"
 
 
 def cells():
@@ -42,6 +42,8 @@ def test_notebook_pins_actual_source_and_all_cases_without_any_secret_or_reserve
         content = subprocess.check_output(["git", "show", SOURCE + ":" + name], cwd=ROOT)
         assert hashlib.sha256(content).hexdigest() == expected
     assert {"scripts/compare_triage_formats.py", "scripts/score_triage_review.py",
+            "scripts/check_triage_format_runtime.py", "src/reviewnlp/triage/format_runtime.py",
+            "configs/triage_format_requirements.txt",
             "src/reviewnlp/triage/structured_span_generator.py",
             "docs/experiments/triage_generator/dev.json"} <= namespace["SOURCE_HASHES"].keys()
     source = "\n".join(code.values())
@@ -53,25 +55,36 @@ def test_notebook_pins_actual_source_and_all_cases_without_any_secret_or_reserve
             ast.parse("".join(cell["source"]))
 
 
-@pytest.mark.parametrize("cuda,head", [(True, SOURCE), (False, SOURCE), (True, "unrelated-checkout")])
-def test_setup_installs_only_in_the_child_venv_and_requires_gpu_and_the_pinned_checkout(tmp_path, cuda, head):
+@pytest.mark.parametrize("cuda,head,error", [(True, SOURCE, None), (False, SOURCE, "cuda_required"),
+    (True, "unrelated-checkout", None), (True, SOURCE, "pinned_dependency_mismatch"),
+    (True, SOURCE, "dependency_outside_isolated_environment")])
+def test_setup_installs_only_in_the_child_venv_and_requires_gpu_and_the_pinned_checkout(tmp_path, cuda, head, error):
     namespace = parameters()
-    namespace.update(REPO_DIR=ROOT, ENV_DIR=tmp_path / "venv", RUN_DIR=tmp_path / "run")
+    checkout = tmp_path / "pinned-checkout"
+    for name in namespace["SOURCE_HASHES"]:
+        target = checkout / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(subprocess.check_output(["git", "show", SOURCE + ":" + name], cwd=ROOT))
+    namespace.update(REPO_DIR=checkout, ENV_DIR=tmp_path / "venv", RUN_DIR=tmp_path / "run", SETUP_READY=True)
     calls = []
 
     def run(arguments, **kwargs):
         calls.append((arguments, kwargs))
         if "rev-parse" in arguments:
             output = head
-        elif "-c" in arguments:
-            output = json.dumps({"cuda": cuda, "torch": "test", "gpu": "fake"})
+        elif "scripts/check_triage_format_runtime.py" in arguments:
+            receipt = {"runtime_ready": error is None, "error": error, "gpu": "fake", "python": "test", "packages": {}}
+            (tmp_path / "run/runtime_preflight.json").write_text(json.dumps(receipt))
+            kwargs["stdout"].write("preflight diagnostics\n")
+            return SimpleNamespace(stdout="", returncode=int(error is not None))
         else:
             output = ""
         return SimpleNamespace(stdout=output, returncode=0)
 
-    with patch.dict("os.environ", {"HF_TOKEN": "FAKE-HF-SECRET", "OPENROUTER_API_KEY": "FAKE-JEV-SECRET"}), \
+    with patch.dict("os.environ", {"HF_TOKEN": "FAKE-HF-SECRET", "OPENROUTER_API_KEY": "FAKE-JEV-SECRET",
+                                  "PIP_TARGET": "TEST-OVERRIDE", "PYTHONPATH": "TEST-OVERRIDE"}), \
             patch("subprocess.run", side_effect=run):
-        if cuda and head == SOURCE:
+        if error is None and head == SOURCE:
             exec(cells()[1]["setup"], namespace)
             assert namespace["SETUP_READY"] and (tmp_path / "run/versions.txt").is_file()
         else:
@@ -82,12 +95,18 @@ def test_setup_installs_only_in_the_child_venv_and_requires_gpu_and_the_pinned_c
         assert "HF_TOKEN" not in kwargs["env"] and "OPENROUTER_API_KEY" not in kwargs["env"]
         assert kwargs["env"]["HF_HUB_DISABLE_IMPLICIT_TOKEN"] == "1"
         assert kwargs["env"]["GRADIO_ANALYTICS_ENABLED"] == "False"
+        assert "PIP_TARGET" not in kwargs["env"] and "PYTHONPATH" not in kwargs["env"]
         if "pip" in arguments:
             assert arguments[0] == str(tmp_path / "venv/bin/python")
+            assert "-I" in arguments and "--isolated" in arguments
     installs = [args for args, _ in calls if "install" in args]
     assert len(installs) == (0 if head != SOURCE else 1)
     if installs:
         assert installs[0][-len(namespace["DEPENDENCIES"]):] == namespace["DEPENDENCIES"]
+        assert "--no-user" in installs[0]
+    assert not any("scripts/compare_triage_formats.py" in args for args, _ in calls)
+    if head == SOURCE:
+        assert (tmp_path / "run/preflight_execution.txt").read_text() == "preflight diagnostics\n"
 
 
 @pytest.mark.parametrize("exit_code,complete", [(0, True), (0, False), (1, False)])
@@ -104,14 +123,15 @@ def test_compare_preserves_exit_status_and_incomplete_reports_without_claiming_s
 
     namespace = {"SETUP_READY": True, "SOURCE_COMMIT": SOURCE, "CASE_SCOPE": "all", "PRECISION": "native",
         "PYTHON": "isolated-python", "REPO_DIR": ROOT, "RUN_DIR": tmp_path,
-        "OUTPUT_DIR": output, "CACHE_DIR": tmp_path / "cache", "base_env": {}, "json": json,
+        "OUTPUT_DIR": output, "CACHE_DIR": tmp_path / "cache", "ENV_DIR": tmp_path / "venv", "base_env": {}, "json": json,
         "subprocess": SimpleNamespace(run=run, STDOUT=-2)}
     exec(cells()[1]["compare"], namespace)
     receipt = json.loads((tmp_path / "launcher.json").read_bytes())
     assert receipt["execution_complete"] is (complete and exit_code == 0)
     assert receipt["exit_code"] == exit_code
     arguments, kwargs = calls[0]
-    assert arguments[:2] == ["isolated-python", "scripts/compare_triage_formats.py"]
+    assert arguments[:3] == ["isolated-python", "-I", "scripts/compare_triage_formats.py"]
+    assert arguments[arguments.index("--expected-prefix") + 1] == str(tmp_path / "venv")
     assert arguments[arguments.index("--cases") + 1] == "all"
     assert arguments[arguments.index("--device") + 1] == "cuda"
     assert arguments[arguments.index("--precision") + 1] == "native"
@@ -129,7 +149,7 @@ def test_launch_failure_and_incomplete_setup_produce_sanitized_receipts_and_no_f
 
     namespace = {"SETUP_READY": setup_ready, "SOURCE_COMMIT": SOURCE, "CASE_SCOPE": "all", "PRECISION": "native",
         "PYTHON": "isolated-python", "REPO_DIR": ROOT, "RUN_DIR": tmp_path,
-        "OUTPUT_DIR": tmp_path / "comparison", "CACHE_DIR": tmp_path / "cache", "base_env": {}, "json": json,
+        "OUTPUT_DIR": tmp_path / "comparison", "CACHE_DIR": tmp_path / "cache", "ENV_DIR": tmp_path / "venv", "base_env": {}, "json": json,
         "subprocess": SimpleNamespace(run=run, STDOUT=-2)}
     captured = io.StringIO()
     with redirect_stdout(captured):
@@ -148,7 +168,7 @@ def test_zip_exports_only_the_declared_reports_even_when_model_run_failed(tmp_pa
         (output / name).write_text("failed-run evidence")
     for name in ("model.safetensors", "HF_TOKEN", "completed_A.csv", "unexpected.txt"):
         (output / name).write_text("must not be exported")
-    for name in ("execution.txt", "launcher.json", "versions.txt"):
+    for name in ("execution.txt", "launcher.json", "versions.txt", "preflight_execution.txt", "runtime_preflight.json"):
         (tmp_path / name).write_text("diagnostics")
     (tmp_path / "model.safetensors").write_text("weights")
     downloads = []
@@ -157,6 +177,6 @@ def test_zip_exports_only_the_declared_reports_even_when_model_run_failed(tmp_pa
     with patch.dict(sys.modules, {"google": SimpleNamespace(), "google.colab": colab}):
         exec(cells()[1]["export"], namespace)
     with zipfile.ZipFile(downloads[0]) as bundle:
-        assert set(bundle.namelist()) == {"execution.txt", "launcher.json", "versions.txt",
+        assert set(bundle.namelist()) == {"execution.txt", "launcher.json", "versions.txt", "preflight_execution.txt", "runtime_preflight.json",
             "comparison/run.json", "comparison/results.jsonl", "comparison/coverage_A.csv",
             "comparison/coverage_B.csv", "comparison/upstream.json"}

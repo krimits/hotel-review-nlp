@@ -63,10 +63,12 @@ actual imports and library integration before downloading weights. When an isola
 specified it also verifies the interpreter and package origins. The corrected GPU run remains pending.
 
 [Notebook 21](../../../../notebooks/21_triage_format_comparison_colab.ipynb) pins the tested source at
-`1215e4008225c7c1b766af37d609dbd63535ef2c`, verifies source hashes and installs its dependencies in an
+`139cdc52c09d80e87dcbfa73d67ef0fc7663df4d`, verifies source hashes and installs its dependencies in an
 isolated Colab environment. It defaults to all 24 reviews, requires GPU, and downloads the diagnostic
 ZIP even when the model capture fails. No token, provider key, Drive or previous ZIP is needed. Its
-GPU execution and new human ratings are pending; the Space remains unchanged.
+corrected GPU execution and new human ratings are pending; the Space remains unchanged. The notebook
+uses isolated Python/pip, checks a model-free runtime receipt before generation and exports that receipt
+even on failure. It cannot start with the observed incompatible/global environment.
 
 ```bash
 pip install -r configs/triage_format_requirements.txt
