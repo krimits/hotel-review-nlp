@@ -84,3 +84,11 @@ API request/response contracts, failure accounting, and a tiny random Qwen2
 through real Transformers APIs. They establish wiring, **not** the quality
 of the published Qwen or Microsoft model. The 500-review labels, real Qwen
 weights and real Microsoft responses have not been run here.
+
+The [preparation record](preparation_record.json) documents a sequential local
+execution of notebook 22's code cells with a real fresh clone, isolated
+package installation, runtime preflight, 500-review sample and verified ZIP
+hashes. Only paths and the Colab download callback were substituted. A local
+Jupyter kernel could not start because of socket restrictions; execution in
+Colab and visual inspection of the exported notebook remain pending. This
+is a preparation check, not a model-quality result.

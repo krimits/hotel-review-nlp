@@ -103,6 +103,17 @@ before weights are downloaded, and exports preflight diagnostics when that check
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
 
+Notebook 22 prepares a **new primary-topic labeling experiment**, separate from the triage sheets:
+[22_decision_topics_sample_colab.ipynb](22_decision_topics_sample_colab.ipynb).
+It samples 500 whole reviews from the already tracked 658-review NYC corpus, assigns
+300 train / 100 dev / 100 test before labels, and exports blank A (500), B (100 independent
+overlap) and final (500) sheets with Greek instructions and hashes. Use Colab **CPU**;
+no key, GPU, Drive, model download, provider inference or Space update. Human labels come
+first; the [fixed protocol](../docs/experiments/decision_topic_benchmark/PROTOCOL.md) and runner then compare
+logistic regression, prompted Qwen and a dated Microsoft decision build using held-out
+macro-F1/ECE, selective coverage, p95 request latency and known provider cost.
+This prepares 500 labels, **not 500 held-out test reviews**, and establishes no model-quality result.
+
 ## Saving a run as evidence
 
 Colab keeps outputs in the file it hands back, so the flow is just:
