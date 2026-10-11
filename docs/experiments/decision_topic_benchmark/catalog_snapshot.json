@@ -1,0 +1,84 @@
+{
+  "source_url": "https://openrouter.ai/api/v1/models?output_modalities=decisions",
+  "retrieved_at_utc": "2026-10-11T08:31:28.330214+00:00",
+  "inference_requests": 0,
+  "models": [
+    {
+      "id": "microsoft/microsoft-decision-1",
+      "canonical_slug": "microsoft/microsoft-decision-1-20261009",
+      "hugging_face_id": null,
+      "name": "Microsoft: Microsoft-Decision-1",
+      "created": 1791584978,
+      "description": "Microsoft-Decision-1 is a small model built for fast decision-making. Instead of generating text, it reads the provided content and returns a calibrated probability for each fixed answer option, so the...",
+      "context_length": 32768,
+      "architecture": {
+        "modality": "text->decisions",
+        "input_modalities": [
+          "text"
+        ],
+        "output_modalities": [
+          "decisions"
+        ],
+        "tokenizer": "Other",
+        "instruct_type": null
+      },
+      "pricing": {
+        "prompt": "0.000000042",
+        "completion": "0"
+      },
+      "top_provider": {
+        "context_length": 32768,
+        "max_completion_tokens": 29491,
+        "is_moderated": false
+      },
+      "per_request_limits": null,
+      "supported_parameters": [],
+      "default_parameters": {},
+      "supported_voices": null,
+      "knowledge_cutoff": null,
+      "expiration_date": null,
+      "links": {
+        "details": "/api/v1/models/microsoft/microsoft-decision-1-20261009/endpoints"
+      }
+    },
+    {
+      "id": "cloudflare/clef-omni",
+      "canonical_slug": "cloudflare/clef-omni-20261009",
+      "hugging_face_id": "Cloudflare/clef-omni",
+      "name": "Cloudflare: Clef Omni",
+      "created": 1791577078,
+      "description": "Clef Omni is the mixture-of-experts member of Cloudflare's open-source Clef decision model family, a fine-tune of Qwen3-Omni-30B-A3B (30B total, 3B active parameters) served on Workers AI. It turns a state...",
+      "context_length": 65536,
+      "architecture": {
+        "modality": "text+image->decisions",
+        "input_modalities": [
+          "text",
+          "image"
+        ],
+        "output_modalities": [
+          "decisions"
+        ],
+        "tokenizer": "Qwen",
+        "instruct_type": null
+      },
+      "pricing": {
+        "prompt": "0.00000015",
+        "completion": "0"
+      },
+      "top_provider": {
+        "context_length": 65536,
+        "max_completion_tokens": 58982,
+        "is_moderated": false
+      },
+      "per_request_limits": null,
+      "supported_parameters": [],
+      "default_parameters": {},
+      "supported_voices": null,
+      "knowledge_cutoff": null,
+      "expiration_date": null,
+      "links": {
+        "details": "/api/v1/models/cloudflare/clef-omni-20261009/endpoints"
+      }
+    }
+  ]
+}
