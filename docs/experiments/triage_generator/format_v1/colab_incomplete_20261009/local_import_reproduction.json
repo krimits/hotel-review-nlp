@@ -1,0 +1,11 @@
+{
+  "transformers": "5.18.0",
+  "lm_format_enforcer": "0.11.3",
+  "torch": "2.11.0+cpu",
+  "python": "3.12.14",
+  "model_loaded": false,
+  "integration_import_ok": false,
+  "error_type": "ImportError",
+  "error": "transformers is not installed. Please install it with \"pip install transformers[torch]\"",
+  "note": "Independent local dependency probe; original ZIP retained only the exception type."
+}

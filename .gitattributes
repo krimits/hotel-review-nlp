@@ -2,3 +2,5 @@
 # Human-review evidence is hashed as supplied; preserve CSV line endings on every Git operation.
 docs/experiments/triage_space_publication/e1e37e5/human_review_v3/*.csv -text
 docs/experiments/triage_generator/format_v1/cpu_workflow/*.csv -text
+docs/experiments/triage_generator/format_v1/colab_incomplete_20261009/comparison/*.csv -text
+docs/experiments/triage_generator/format_v1/colab_incomplete_20261009/execution.txt -text

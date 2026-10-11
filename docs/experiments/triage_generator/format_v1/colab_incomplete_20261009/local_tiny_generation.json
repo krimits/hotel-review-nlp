@@ -1,0 +1,14 @@
+{
+  "model": "tiny local Qwen2; random weights",
+  "pinned_hotel_weights_loaded": false,
+  "torch": "2.11.0+cpu",
+  "transformers": "4.56.2",
+  "lm_format_enforcer": "0.11.3",
+  "device": "cpu",
+  "do_sample": false,
+  "prefix_filter_calls": 78,
+  "output": "\r\n{            \"result\"\t\r\n\r\n\r\n\r\n\r\n\r:\r\n\r\n\r\n\r\n\r\n\r\n\"ok\"\t\r\n\r\n\r\n\r\n\r\n\r}            ",
+  "eos_seen": true,
+  "integration_generation_ok": true,
+  "quality_evaluated": false
+}

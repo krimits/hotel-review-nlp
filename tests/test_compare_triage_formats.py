@@ -111,6 +111,10 @@ def test_generation_crash_is_not_a_successful_empty_output_and_stops_remaining_c
     records = [json.loads(line) for line in (output / "results.jsonl").read_text().splitlines()]
     assert records[1]["status"] == "execution_failed"
     assert all(row["status"] == "not_executed" for row in records[2:])
+    assert report["failures"] == 1 and report["not_executed_count"] == 6
+    assert report["summary"]["plain"]["execution_errors"] == 0
+    assert report["summary"]["structured"]["execution_errors"] == 1
+    assert report["summary"]["structured"]["not_executed_cases"] == 3
     assert "untrusted exception" not in (output / "results.jsonl").read_text()
 
 
