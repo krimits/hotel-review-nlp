@@ -10,6 +10,12 @@ independence is unverified. The final test, model promotion and Space update
 remain pending. Resolve precision policy and freeze any changed configuration
 on dev before the one final test.
 
+An additional Jev development arm is prepared under the
+[Jev extension protocol](JEV_EXTENSION.md): dated `typesafe/jev-1.13-20260917`,
+the same five-way question and 100 dev reviews, with the archived Microsoft
+capture reused as the reference. No new Jev provider result exists yet.
+The extension is CPU/API-only and does not resolve the Qwen precision caveat.
+
 For the next dev comparison, run [notebook 23](../../../notebooks/23_decision_topics_dev_comparison_colab.ipynb)
 on a fresh Colab GPU and upload the validated `decision_topics_inputs_20261012.zip`
 returned with the annotation check. Default is logistic + Qwen with no provider
