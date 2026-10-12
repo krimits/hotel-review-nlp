@@ -16,10 +16,10 @@ from scripts.compare_triage_formats import BASELINE, DEVELOPMENT, ROOT, compare,
 from scripts.score_triage_review import reconcile
 
 
-def test_original_failed_inputs_and_all_cases_are_loaded_without_any_human_labels():
-    failures, provenance = frozen_inputs()
+def test_original_failed_inputs_and_all_cases_are_loaded_without_any_human_labels(frozen_triage_root):
+    failures, provenance = frozen_inputs(root=frozen_triage_root)
     assert [row["id"] for row in failures] == ["dev-01", "dev-05", "dev-08", "dev-11"]
-    rows, _ = frozen_inputs(scope="all")
+    rows, _ = frozen_inputs(scope="all", root=frozen_triage_root)
     assert len(rows) == 24
     assert all(set(row) == {"id", "text", "signals", "hosted_error"} for row in rows)
     assert all(row["signals"].flagged_topics == [] for row in rows)
@@ -28,11 +28,11 @@ def test_original_failed_inputs_and_all_cases_are_loaded_without_any_human_label
 
 
 @pytest.mark.parametrize("change", ["capture", "corpus", "backend"])
-def test_changed_reviews_outputs_or_frozen_backend_stop_before_model_loading(tmp_path, change):
+def test_changed_reviews_outputs_or_frozen_backend_stop_before_model_loading(tmp_path, change, frozen_triage_root):
     baseline, development = tmp_path / "review", tmp_path / "dev.json"
     shutil.copytree(BASELINE, baseline)
     shutil.copyfile(DEVELOPMENT, development)
-    root = ROOT
+    root = frozen_triage_root
     if change == "capture":
         (baseline / "results.jsonl").write_text("changed")
     elif change == "corpus":
@@ -41,7 +41,7 @@ def test_changed_reviews_outputs_or_frozen_backend_stop_before_model_loading(tmp
         development.write_text(json.dumps(corpus))
     else:
         root = tmp_path / "repo"
-        shutil.copytree(ROOT / "src/reviewnlp", root / "src/reviewnlp")
+        shutil.copytree(frozen_triage_root / "src/reviewnlp", root / "src/reviewnlp")
         (root / "src/reviewnlp/triage/span_evidence_generator.py").write_text("changed")
     with pytest.raises(ValueError):
         frozen_inputs(baseline=baseline, development=development, root=root)
@@ -61,8 +61,8 @@ class FakeWorkflow:
         return GenerationResult('{"actions":[]}', False, "fake", "fake")
 
 
-def test_paired_outputs_have_fresh_blind_judgments_and_preserve_expected_workflow_errors(tmp_path):
-    rows, provenance = frozen_inputs()
+def test_paired_outputs_have_fresh_blind_judgments_and_preserve_expected_workflow_errors(tmp_path, frozen_triage_root):
+    rows, provenance = frozen_inputs(root=frozen_triage_root)
     plain, constrained = FakeWorkflow("issues:invalid_evidence_span_id"), FakeWorkflow()
     output = tmp_path / "comparison"
     report = compare(rows, {"plain": plain, "structured": constrained}, output,
@@ -99,8 +99,8 @@ def test_paired_outputs_have_fresh_blind_judgments_and_preserve_expected_workflo
         compare(rows, {}, output, provenance=provenance, runtime={})
 
 
-def test_generation_crash_is_not_a_successful_empty_output_and_stops_remaining_calls(tmp_path):
-    rows, provenance = frozen_inputs()
+def test_generation_crash_is_not_a_successful_empty_output_and_stops_remaining_calls(tmp_path, frozen_triage_root):
+    rows, provenance = frozen_inputs(root=frozen_triage_root)
     plain, constrained = FakeWorkflow(), FakeWorkflow(crash=True)
     output = tmp_path / "failed"
     report = compare(rows, {"plain": plain, "structured": constrained}, output,
@@ -118,11 +118,16 @@ def test_generation_crash_is_not_a_successful_empty_output_and_stops_remaining_c
     assert "untrusted exception" not in (output / "results.jsonl").read_text()
 
 
-def test_measures_remain_subject_to_the_same_parser_and_are_not_retried(tmp_path):
-    rows, provenance = frozen_inputs()
+def test_measures_remain_subject_to_the_same_parser_and_are_not_retried(tmp_path, frozen_triage_root):
+    rows, provenance = frozen_inputs(root=frozen_triage_root)
     workflow = FakeWorkflow("measures:hit_token_budget")
     report = compare(rows[:1], {"structured": workflow}, tmp_path / "cutoff",
                      provenance=copy.deepcopy(provenance), runtime={"real_weights_loaded": False})
     assert report["summary"]["structured"]["workflow_errors"] == 1
     assert report["summary"]["structured"]["accepted_actions"] == 0
     assert len(workflow.calls) == 1
+
+
+def test_new_lexical_workflow_cannot_silently_enter_the_historical_format_replay():
+    with pytest.raises(ValueError, match="frozen_v6_backend_required"):
+        frozen_inputs(root=ROOT)

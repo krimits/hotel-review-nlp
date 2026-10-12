@@ -10,12 +10,14 @@ measured on whole or mixed reviews, and the thresholds were chosen by hand.
 `POST /triage` takes one review and chains three stages:
 
 1. **Sentiment.** The app's own model (`MODEL_TYPE`), with its full probability distribution. Required.
-2. **Complaint topics.** Jev (TypeSafe System One), asked six questions about the whole review: the five topics
-   of the [labelling guideline](annotation/complaint_topics_guideline.md) and `other_complaint`. Off by default.
+2. **Complaint topics.** A local lexicon supplies hints for the five topics of the
+   [labelling guideline](annotation/complaint_topics_guideline.md). On by default. Jev (TypeSafe System One)
+   optionally adds six whole-review answers, including `other_complaint`, and is off by default.
 3. **Suggested actions.** The base Qwen2.5-0.5B-Instruct, no adapter. Off by default, and asked only when the
    routing rules below say so.
 
-Only the sentiment stage is required. If Jev or Qwen is off, the response says `disabled` for that stage. If one
+If Jev or Qwen is off, the response says `disabled` for that stage. With the lexicon on, Jev's state is in
+`complaints.enhancement`; `complaints.status` describes the local primary. If an optional stage
 fails, the response is partial and names the kind of failure (for example `timeout` or `http_429`), never the
 provider's message.
 
@@ -24,10 +26,12 @@ Code: [`src/reviewnlp/triage/`](../src/reviewnlp/triage/) and
 
 ## Switching the stages on
 
-Nothing is called, and nothing leaves the server, unless these are set.
+The lexicon needs neither a model download nor a key. External Jev calls and Qwen generation require their
+respective switches below; sentiment uses the app's configured model.
 
 | Variable | Meaning |
 |---|---|
+| `REVIEWNLP_TRIAGE_LEXICON_FALLBACK` | Default `1`: local lexicon is the primary topic source. `0` restores the historical Jev-only topic path. The name is retained as requested; it runs first, not just after failure. |
 | `REVIEWNLP_JEV_ENABLED` | `1`, `true` or `yes` turns the Jev stage on. |
 | `REVIEWNLP_JEV_ROUTE` | `typesafe` (default) or `openrouter`. |
 | `TYPESAFE_API_KEY` / `OPENROUTER_API_KEY` | The key of the chosen route. Read from the environment only. |
@@ -37,6 +41,33 @@ Nothing is called, and nothing leaves the server, unless these are set.
 | `REVIEWNLP_TRIAGE_QWEN_MODEL`, `_DEVICE` | Optional. Default `Qwen/Qwen2.5-0.5B-Instruct`. |
 
 The Qwen weights load on the first review that needs them, not at start-up.
+
+## Local primary, optional external enhancement
+
+[`lexicon.py`](../src/reviewnlp/triage/lexicon.py) is a new, deliberately narrow `complaint-lexicon-v1`
+rule set for whole reviews, not the old 30-topic ABSA lexicon or its evaluated model. It recognizes explicit
+phrases such as a cold shower, dirty surface, broken HVAC, observed pests or ignored staff requests.
+Conditional, negated, historical or repair wording anywhere in a review blocks lexical assertions because
+the rules cannot reliably link those clauses to the same issue. This sacrifices recall and requires review.
+
+Each match carries a rule name and exact source offsets/excerpt. `probability` is `null`: rule matching does
+not establish calibrated confidence. Nonmatches are `unsure`, never `no`. `other_complaint` remains `unsure`
+even with a match, since a mixed review can also contain unknown topics. Consequently this limited baseline
+always asks for human review (`uncertain_complaint`). A match names a possible complaint topic, not its
+department, whether it remains unresolved, or a verified hotel condition. Qwen still supplies diagnostic
+extraction and proposed measures; no work order or automatic department assignment is authorized.
+
+Jev's answers, question fingerprint, model and failure state stay separately in `complaints.enhancement`.
+Its positive hints can supplement Qwen context but never erase the lexical evidence. A Jev failure leaves
+the local result available while marking the request partial. In the Space, both administrator configuration
+and the per-request checkbox are required. A key alone does not enable a call. In the API, the administrator's
+Jev enable flag governs calls; it remains off by default.
+
+Local topic detection makes no external API call and adds no provider charge. This does not mean free
+hosting/GPU inference, nor a privacy guarantee about hosting infrastructure. The full chain can run offline
+only with its Python dependencies and pinned DistilBERT/Qwen weights already cached. Neither high precision
+nor zero misrouting is established. The next step is the [whole-review operational-topic pilot](experiments/triage_lexicon_pilot/PROTOCOL.md),
+with human ground truth before new provider comparisons.
 
 ## Data handling
 
@@ -49,7 +80,9 @@ The Qwen weights load on the first review that needs them, not at start-up.
 - Redirects are not followed, so a key is not sent to another host.
 - With a database configured and a `review_id` in the request, a result is stored **without the review text.**
   The stored row holds a SHA-256 of the text, the stage results, and the short excerpts the suggested actions
-  quote (at most 400 characters each), which are checked to be words of the review. Deleting a review through
+  quote (at most 400 characters each). Action excerpts can contain personal data; omitting the whole review
+  does not make them anonymous. Stored topic counts describe the primary stage only, not a separate Jev enhancement.
+  Lexical match excerpts are returned in the response but are not stored by this summary database. Deleting a review through
   the existing delete endpoint also deletes its triage rows.
 
 ## Routing
@@ -61,8 +94,8 @@ Qwen is asked for actions when any of these holds. The rules are in
 |---|---|
 | `negative_sentiment` | The sentiment label is negative. |
 | `uncertain_sentiment` | Its probability is below 0.80. Also flags the review for a person. |
-| `complaint_detected` | Jev answered `1` for any topic. A positive review with a complaint is asked for. |
-| `uncertain_complaint` | Jev answered `unsure`; or answered `0` with a probability of `1` in 0.20 to 0.50; or answered `1` with a probability of `1` below 0.50, that is, it won without being sure. Also flags the review for a person. |
+| `complaint_detected` | A lexical hint or Jev answered `yes` for any topic. A positive review with a complaint is asked for. |
+| `uncertain_complaint` | Limited lexical coverage or a nonmatch; Jev answered `unsure`; or answered `0` with a probability of `1` in 0.20 to 0.50; or answered `1` with a probability of `1` below 0.50. Also flags the review for a person. |
 
 Jev's answer is the label with the most probability, which is not the same as being sure of it: a `1` can win with
 0.36 against 0.34 for `0`. Only the probability of `1` is kept, so a `1` that won narrowly with 0.50 or more
@@ -85,8 +118,8 @@ under «Χρειάζεται έλεγχος».
 | `actions_ungrounded` | Every action it gave was rejected: not words of the review, or a department off the list. The result is partial. |
 | `no_actions_suggested` | It was asked for actions and gave a valid empty list. That is an answer and not a failure, so the result is complete. But a small model's empty list does not show that nothing needs doing. |
 
-A stage that is **switched off** is not a reason. Nothing was looked for, so nothing is flagged, and the result
-says `disabled`. That is not the same as «no complaints»: with Jev off, a positive review with a complaint in it
+A stage that is **switched off** is not a reason. If both the lexicon and Jev are off, nothing was looked for,
+and the result says `disabled`. That is not the same as «no complaints»: with both off, a positive review with a complaint in it
 passes without a flag. The dashboard says that the check did not run, and that this does not mean there were no
 complaints.
 

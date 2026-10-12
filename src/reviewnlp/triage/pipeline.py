@@ -14,11 +14,13 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from reviewnlp.triage.jev_client import JevClient, JevError
+from reviewnlp.triage.lexicon import LexiconClassifier
 from reviewnlp.triage.questions import QUESTIONS_SHA256, QUESTIONS_VERSION
 from reviewnlp.triage.qwen_generator import ActionGenerator, ActionSignals, parse_actions
 from reviewnlp.triage.routing import RoutingThresholds, decide
 from reviewnlp.triage.schemas import (
     ActionsResult,
+    ComplaintEnhancement,
     ComplaintsResult,
     RoutingDecision,
     SentimentResult,
@@ -67,10 +69,11 @@ def _ms(start: float, end: float) -> float:
 class TriagePipeline:
     def __init__(self, wrapper: SentimentModel, jev: JevClient | None = None, generator: ActionGenerator | None = None,
                  thresholds: RoutingThresholds | None = None, clock: Callable[[], float] = time.perf_counter,
-                 *, evaluate_all_reviews: bool = False):
+                 *, evaluate_all_reviews: bool = False, lexicon: LexiconClassifier | None = None):
         self.wrapper, self.jev, self.generator = wrapper, jev, generator
         self.thresholds, self._clock = thresholds or RoutingThresholds(), clock
         self.evaluate_all_reviews = evaluate_all_reviews
+        self.lexicon = lexicon
 
     def _sentiment(self, text: str) -> SentimentResult:
         (distribution,) = self.wrapper.distribution_batch([text])
@@ -83,6 +86,16 @@ class TriagePipeline:
                                model_type=self.wrapper.model_type, model_path=self.wrapper.model_path)
 
     def _complaints(self, text: str) -> ComplaintsResult:
+        if self.lexicon is None:
+            return self._jev_complaints(text)
+        primary = self.lexicon.classify(text)
+        enhancement = self._jev_complaints(text)
+        # Keep local evidence and separate provenance even when Jev contradicts
+        # it or fails. An enhancement never overwrites the primary rule result.
+        return primary.model_copy(update={"enhancement": ComplaintEnhancement(
+            **enhancement.model_dump(exclude={"source", "coverage_status", "evidence", "enhancement"}))})
+
+    def _jev_complaints(self, text: str) -> ComplaintsResult:
         base = {"questions_version": QUESTIONS_VERSION, "questions_sha256": QUESTIONS_SHA256}
         if self.jev is None or not self.jev.enabled:
             return ComplaintsResult(status="disabled", **base)
@@ -103,9 +116,11 @@ class TriagePipeline:
             return ActionsResult(status="disabled")
         if not routing.qwen_triggered:
             return ActionsResult(status="not_triggered")
-        flagged = [item.topic for item in [*complaints.topics, *([complaints.other_complaint]
-                                                                 if complaints.other_complaint else [])]
-                   if item.answer == "yes"]
+        answers = [*complaints.topics, *([complaints.other_complaint] if complaints.other_complaint else [])]
+        extra = complaints.enhancement
+        if extra and extra.status == "ok":
+            answers += [*extra.topics, *([extra.other_complaint] if extra.other_complaint else [])]
+        flagged = list(dict.fromkeys(item.topic for item in answers if item.answer == "yes"))
         signals = ActionSignals(sentiment.label, sentiment.confidence, flagged, hotel_context)
         try:
             generated = self.generator.generate(text, signals)
@@ -157,7 +172,8 @@ class TriagePipeline:
             if reasons:
                 routing = routing.model_copy(update={"needs_review": True,
                     "review_reasons": list(dict.fromkeys([*routing.review_reasons, *reasons]))})
-        partial = complaints.status == "error" or actions.status in {"error", "no_grounded_actions"}
+        enhancement_failed = complaints.enhancement is not None and complaints.enhancement.status == "error"
+        partial = complaints.status == "error" or enhancement_failed or actions.status in {"error", "no_grounded_actions"}
         timings = StageTimings(
             sentiment_ms=_ms(start, after_sentiment),
             complaints_ms=None if complaints.status == "disabled" else _ms(after_sentiment, after_complaints),

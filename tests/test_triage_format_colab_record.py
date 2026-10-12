@@ -38,9 +38,9 @@ def test_real_colab_archive_integrity_and_actual_versions_retain_the_failed_cond
     assert manifest["human_scoring_allowed"] is report["promoted"] is report["reserved_evaluation_used"] is False
 
 
-def test_captured_pairs_hints_schemas_and_csvs_are_complete_in_shape_but_not_execution():
+def test_captured_pairs_hints_schemas_and_csvs_are_complete_in_shape_but_not_execution(frozen_triage_root):
     report = json.loads((RECORD / "comparison/run.json").read_bytes())
-    rows, provenance = frozen_inputs(scope="all")
+    rows, provenance = frozen_inputs(scope="all", root=frozen_triage_root)
     assert all(report[name] == value for name, value in provenance.items())
     assert report["schema_sha256_by_review"] == {row["id"]: schema_fingerprint(row["text"]) for row in rows}
     upstream = json.loads((RECORD / "comparison/upstream.json").read_bytes())

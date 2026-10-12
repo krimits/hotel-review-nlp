@@ -1,5 +1,13 @@
 # Experimental triage Space publication
 
+Current source adds local lexical topic hints as the default primary (`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1`),
+with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). This source change is not a live-update
+receipt. Build a fresh package from its commit, run a new real-weight check and update using the existing
+`--resume` procedure. Old pinned publication notebooks do not include this source change.
+The package manifest binds the lexicon version/SHA; diagnostics report actual configuration.
+See [local-primary behavior](TRIAGE.md#local-primary-optional-external-enhancement) and
+the [whole-review pilot](experiments/triage_lexicon_pilot/PROTOCOL.md). No provider benchmark is required now.
+
 Target: `krimits/hotel-triage-demo`, public Gradio on **ZeroGPU**. The update package uses G-source-spans,
 not a selected generator, production promotion or validated hotel system. Existing Spaces are unchanged.
 Reserved evaluation stays closed. A live publication is established only by a successful deployment

@@ -63,9 +63,10 @@ def capture(client, rows: list[dict], output: Path, *, source_commit: str, use_j
                     raise ValueError("snapshot_changed")
                 if result.get("stored") is not False:
                     raise ValueError("unexpected_review_storage")
-                if not use_jev and (result["api_cost"]["attempts"] or result["complaints"]["status"] != "disabled"):
+                jev = result["complaints"].get("enhancement") or result["complaints"]
+                if not use_jev and (result["api_cost"]["attempts"] or jev["status"] != "disabled"):
                     raise ValueError("jev_opt_out_contract_failed")
-                if use_jev and (result["complaints"]["status"] == "disabled" or not result["api_cost"]["attempts"]):
+                if use_jev and (jev["status"] == "disabled" or not result["api_cost"]["attempts"]):
                     raise ValueError("jev_opt_in_not_exercised")
                 if any(issue["excerpt"] not in row["text"] for issue in result["issue_assessments"]):
                     raise ValueError("literal_evidence_contract_failed")

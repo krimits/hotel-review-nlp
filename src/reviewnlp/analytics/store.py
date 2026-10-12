@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS triage_complaints (
     triage_pk INTEGER NOT NULL REFERENCES triage_runs(id) ON DELETE CASCADE,
     topic TEXT NOT NULL,
     answer TEXT NOT NULL,
-    probability REAL NOT NULL,
+    probability REAL,
     PRIMARY KEY(triage_pk, topic)
 );
 CREATE TABLE IF NOT EXISTS triage_actions (
@@ -127,6 +127,18 @@ class SqliteAspectStore:
         with self._connection() as connection:
             connection.execute("PRAGMA journal_mode=WAL")
             connection.executescript(SCHEMA)
+            # Lexical hints have no calibrated probability. Preserve old Jev
+            # rows while allowing SQL NULL rather than inventing a numeric score.
+            columns = connection.execute("PRAGMA table_info(triage_complaints)").fetchall()
+            if any(column["name"] == "probability" and column["notnull"] for column in columns):
+                connection.execute("BEGIN")
+                connection.execute("ALTER TABLE triage_complaints RENAME TO triage_complaints_legacy")
+                connection.execute("""CREATE TABLE triage_complaints (
+                    triage_pk INTEGER NOT NULL REFERENCES triage_runs(id) ON DELETE CASCADE,
+                    topic TEXT NOT NULL, answer TEXT NOT NULL, probability REAL,
+                    PRIMARY KEY(triage_pk, topic))""")
+                connection.execute("INSERT INTO triage_complaints SELECT * FROM triage_complaints_legacy")
+                connection.execute("DROP TABLE triage_complaints_legacy")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=10)

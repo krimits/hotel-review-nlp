@@ -79,7 +79,9 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
         for row in rows:
             summary, _, _, result = app.analyze(row["text"], False)
             stage_reports = result["stage_reports"]
-            if result["stored"] or result["api_cost"]["attempts"] or result["complaints"]["status"] != "disabled":
+            complaints = result["complaints"]
+            jev = complaints.get("enhancement") or complaints
+            if result["stored"] or result["api_cost"]["attempts"] or jev["status"] != "disabled":
                 problems.append(row["id"] + ": opt_out_or_storage_contract")
             if not any(item["stage"] == "issues" for item in stage_reports):
                 problems.append(row["id"] + ": issue_generation_not_exercised")

@@ -18,6 +18,7 @@ from reviewnlp.serving.analytics_router import NO_STORE_DETAIL
 from reviewnlp.serving.model_wrapper import ModelWrapper
 from reviewnlp.serving.security import authorize_hotel
 from reviewnlp.triage.jev_client import JevClient, JevConfig
+from reviewnlp.triage.lexicon import LexiconClassifier, enabled_from_env
 from reviewnlp.triage.pipeline import TriagePipeline, hotel_context
 from reviewnlp.triage.qwen_generator import QwenActionGenerator
 from reviewnlp.triage.schemas import TriageRequest, TriageResponse, TriageSummaryResponse
@@ -40,7 +41,8 @@ def get_triage_pipeline(wrapper: Annotated[ModelWrapper, Depends(get_sentiment_w
     global _pipeline
     with _pipeline_lock:
         if _pipeline is None or _pipeline.wrapper is not wrapper:
-            _pipeline = TriagePipeline(wrapper, JevClient(JevConfig.from_env()), QwenActionGenerator.from_env())
+            _pipeline = TriagePipeline(wrapper, JevClient(JevConfig.from_env()), QwenActionGenerator.from_env(),
+                lexicon=LexiconClassifier() if enabled_from_env() else None)
         return _pipeline
 
 

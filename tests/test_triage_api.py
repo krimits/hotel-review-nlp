@@ -154,7 +154,8 @@ def test_a_failing_sentiment_model_is_an_error_that_does_not_echo_the_review(sta
 @pytest.fixture
 def default_app(monkeypatch):
     app_module = importlib.import_module("reviewnlp.serving.app")
-    for name in ("REVIEWNLP_JEV_ENABLED", "REVIEWNLP_TRIAGE_QWEN_ENABLED", "REVIEWNLP_API_KEYS_JSON", "REVIEWNLP_DB_PATH"):
+    for name in ("REVIEWNLP_JEV_ENABLED", "REVIEWNLP_TRIAGE_LEXICON_FALLBACK", "REVIEWNLP_TRIAGE_QWEN_ENABLED",
+                 "REVIEWNLP_API_KEYS_JSON", "REVIEWNLP_DB_PATH"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(app_module, "wrapper", ModelWrapper("stub", ""))
     monkeypatch.setattr(triage_router, "_pipeline", None)
@@ -162,7 +163,7 @@ def default_app(monkeypatch):
     triage_router._pipeline = None
 
 
-def test_by_default_only_the_sentiment_runs_and_nothing_leaves_the_server(default_app, monkeypatch):
+def test_by_default_sentiment_and_local_lexicon_run_and_nothing_leaves_the_server(default_app, monkeypatch):
     def forbidden(*args, **kwargs):
         raise AssertionError("a request was sent")
 
@@ -171,7 +172,10 @@ def test_by_default_only_the_sentiment_runs_and_nothing_leaves_the_server(defaul
     assert response.status_code == 200
     body = response.json()
     assert body["sentiment"]["model_type"] == "stub" and set(body["sentiment"]["probabilities"]) == {"negative", "positive"}
-    assert (body["complaints"]["status"], body["actions"]["status"], body["status"]) == ("disabled", "disabled", "complete")
+    assert (body["complaints"]["status"], body["actions"]["status"], body["status"]) == ("ok", "disabled", "complete")
+    assert body["complaints"]["source"] == "lexicon"
+    assert body["complaints"]["enhancement"]["status"] == "disabled"
+    assert body["routing"]["needs_review"]
 
 
 def test_switching_jev_on_in_the_environment_sends_one_request_to_its_route_with_its_key(default_app, monkeypatch):
@@ -190,7 +194,7 @@ def test_switching_jev_on_in_the_environment_sends_one_request_to_its_route_with
     monkeypatch.setenv("TYPESAFE_API_KEY", "sk-typesafe-test")
     response = default_app.post("/triage", json=payload())
     assert response.status_code == 200 and response.json()["complaints"]["status"] == "ok"
-    assert response.json()["complaints"]["route"] == "openrouter"
+    assert response.json()["complaints"]["enhancement"]["route"] == "openrouter"
     assert sent == [("https://openrouter.ai/api/v1/systemone", "sk-or-test", REVIEW)]
 
 
@@ -199,7 +203,9 @@ def test_jev_switched_on_without_its_key_is_reported_on_every_response_and_sends
     monkeypatch.setenv("REVIEWNLP_JEV_ENABLED", "1")
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
     body = default_app.post("/triage", json=payload()).json()
-    assert (body["complaints"]["status"], body["complaints"]["error"], body["status"]) == ("error", "not_configured", "partial")
+    extra = body["complaints"]["enhancement"]
+    assert (body["complaints"]["status"], extra["status"], extra["error"], body["status"]) == (
+        "ok", "error", "not_configured", "partial")
     assert "complaint_check_failed" in body["routing"]["review_reasons"]  # the stub's confidence varies by process
 
 

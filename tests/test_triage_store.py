@@ -27,6 +27,8 @@ from reviewnlp.analytics.store import SqliteAspectStore, get_aspect_store
 from reviewnlp.serving import triage_router
 from reviewnlp.serving.app import app
 from reviewnlp.triage.jev_client import JevError
+from reviewnlp.triage.lexicon import VERSION as LEXICON_VERSION
+from reviewnlp.triage.lexicon import LexiconClassifier
 from reviewnlp.triage.pipeline import TriagePipeline
 from reviewnlp.triage.routing import REVIEW_REASONS
 from reviewnlp.triage.schemas import TOPICS, TriageResponse
@@ -70,6 +72,36 @@ def test_the_triage_tables_are_added_to_a_database_that_already_has_aspects(tmp_
         assert connection.execute("SELECT COUNT(*) FROM hotel_reviews").fetchone()[0] == 1
     assert store.triage_summary("h", 30)["reviews"] == 0
     SqliteAspectStore(path)  # opening it again changes nothing and does not fail
+
+
+def test_existing_jev_rows_survive_nullable_probability_migration_and_lexical_replacement(tmp_path):
+    from reviewnlp.analytics.store import SCHEMA
+
+    path = tmp_path / "legacy.db"
+    with sqlite3.connect(path) as connection:
+        connection.executescript(SCHEMA.replace("probability REAL,", "probability REAL NOT NULL,"))
+    old = SqliteAspectStore.__new__(SqliteAspectStore)
+    old.path = path
+    save(old)
+    before = old.triage_summary("hotel-a", 30)
+    migrated = SqliteAspectStore(path)
+    assert migrated.triage_summary("hotel-a", 30) == before
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("SELECT probability FROM triage_complaints WHERE topic='bathroom'").fetchone()[0] == .97
+    text = "The shower was cold."
+    run = TriagePipeline(FakeWrapper(POSITIVE), lexicon=LexiconClassifier()).run(text)
+    result = TriageResponse(hotel_id="hotel-a", review_id="r-1", status=run.status, sentiment=run.sentiment,
+        complaints=run.complaints, routing=run.routing, actions=run.actions, timings=run.timings).model_dump(mode="json")
+    migrated.save_triage(hotel_id="hotel-a", review_id="r-1", source="api", text=text,
+                         language="en", review_date=None, result=result)
+    summary = migrated.triage_summary("hotel-a", 30)
+    assert summary["reviews"] == 1 and summary["complaints"]["bathroom"]["yes"] == 1
+    assert summary["complaints"]["other"]["unsure"] == 1 and summary["to_check"]
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("SELECT probability FROM triage_complaints WHERE topic='bathroom'").fetchone()[0] is None
+        assert connection.execute("SELECT questions_version FROM triage_runs").fetchone()[0] == LEXICON_VERSION
+        assert not connection.execute("PRAGMA foreign_key_check").fetchall()
+    SqliteAspectStore(path)  # Migration is idempotent.
 
 
 def test_a_result_is_stored_without_the_review_and_read_back(store):
