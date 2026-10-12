@@ -10,10 +10,15 @@ independence is unverified. The final test, model promotion and Space update
 remain pending. Resolve precision policy and freeze any changed configuration
 on dev before the one final test.
 
-An additional Jev development arm is prepared under the
+An additional Jev development arm completed under the
 [Jev extension protocol](JEV_EXTENSION.md): dated `typesafe/jev-1.13-20260917`,
 the same five-way question and 100 dev reviews, with the archived Microsoft
-capture reused as the reference. No new Jev provider result exists yet.
+capture reused as the reference. The
+[verified Jev result](results/jev_dev_20261012/README.md) has macro-F1 0.6783
+versus Microsoft 0.6524, but paired delta +0.02593 has a 95% dev interval
+[-0.14287, +0.15858]; no superiority or model promotion is established.
+After in-sample dev calibration at 0.7, Jev retains 27 cases with 1 error,
+Microsoft 52 with 12 errors: a risk/coverage tradeoff, not independent reliability.
 The extension is CPU/API-only and does not resolve the Qwen precision caveat.
 Run [notebook 24](../../../notebooks/24_jev_primary_topics_dev_comparison_colab.ipynb)
 in a fresh Colab CPU session with the same `decision_topics_inputs_20261012.zip`.

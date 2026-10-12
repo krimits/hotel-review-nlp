@@ -134,7 +134,10 @@ Default is check-only; set `ALLOW_JEV=True`, choose `MAX_COST_USD` and enable th
 `OPENROUTER_API_KEY` Colab Secret. It uses the dated Jev 1.13 build and exports
 `jev_primary_topics_dev_comparison.zip`, including errors and partial captures.
 Raw/dev-fitted metrics, referral risk and a paired bootstrap are development evidence;
-no winner, test prediction or Space update is automatic. Real Jev execution is pending.
+no winner, test prediction or Space update is automatic. The
+[returned real Jev capture](../docs/experiments/decision_topic_benchmark/results/jev_dev_20261012/README.md)
+completed 100/100 requests and is independently checked; the paired macro-F1
+interval crosses zero, and no model was promoted.
 
 ## Saving a run as evidence
 
