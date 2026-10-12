@@ -1,0 +1,2602 @@
+[
+  {
+    "review_id": "topic-0301",
+    "review_sha256": "3d6915acabfc11a058f1ebcc9d240b47c86ca90c62ac69cc84550173176e3932",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00167213313629131,
+      "service": 0.004011238868872942,
+      "location": 0.010903677726865934,
+      "value": 0.7644067547940396,
+      "other": 0.21900619547393016
+    },
+    "milliseconds": 667.704133000143,
+    "cost_usd": 1.47e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803737-VplirwYkWQWmnIf50V9E",
+    "provider_confidence": 0.7055084434925496,
+    "usage": {
+      "input_tokens": 350,
+      "output_tokens": 1,
+      "cost": 1.47e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0302",
+    "review_sha256": "497e7f012551903f0f1d191d875685a7e800c7958dc30d034be777d2071f30c4",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.004681894241404758,
+      "service": 0.02694244113036364,
+      "location": 0.32822612635726395,
+      "value": 0.02694244113036364,
+      "other": 0.613207097140604
+    },
+    "milliseconds": 769.9726129999362,
+    "cost_usd": 2.1084e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803738-xQabZAOxEIRVWGQPCyFC",
+    "provider_confidence": 0.516508871425755,
+    "usage": {
+      "input_tokens": 502,
+      "output_tokens": 1,
+      "cost": 2.1084e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0303",
+    "review_sha256": "7596abe0f87858a750b7aa811160745db0a506f65cb758352b25ad6bb0ddcfc6",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.005878560290941106,
+      "service": 0.015979583616366123,
+      "location": 0.8724555737475103,
+      "value": 0.0014863328078753822,
+      "other": 0.10419994953730717
+    },
+    "milliseconds": 684.9545830000352,
+    "cost_usd": 1.6086e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803740-ESJLrw6FK20C682rhDRN",
+    "provider_confidence": 0.8405694671843877,
+    "usage": {
+      "input_tokens": 383,
+      "output_tokens": 1,
+      "cost": 1.6086e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0304",
+    "review_sha256": "53089f325429b814bd401771c09e994b39dead17d901f362fafa03ba6665683e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0803863404851715,
+      "service": 0.043027707441506836,
+      "location": 0.0027506693093634674,
+      "value": 0.009600779252243206,
+      "other": 0.864234503511715
+    },
+    "milliseconds": 620.062826999856,
+    "cost_usd": 2.1588e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803740-A5itqAiQhUBqKiFUapxu",
+    "provider_confidence": 0.8302931293896438,
+    "usage": {
+      "input_tokens": 514,
+      "output_tokens": 1,
+      "cost": 2.1588e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0305",
+    "review_sha256": "86cfe1e9d74f7f38e21e941678b159b39f86172617585712d42807d411c79b6d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.007551654238438106,
+      "service": 0.5294119289515379,
+      "location": 0.049242983088569794,
+      "value": 0.0014870088866536996,
+      "other": 0.4123064248348007
+    },
+    "milliseconds": 426.16648600005647,
+    "cost_usd": 1.8102e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803742-w0KNVntCHh5qYjvYMfbW",
+    "provider_confidence": 0.41176491118942216,
+    "usage": {
+      "input_tokens": 431,
+      "output_tokens": 1,
+      "cost": 1.8102e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0306",
+    "review_sha256": "f4f23a244cfdfe34dc9c74205c982285eac152d6eb116e2bb375dd00a9723221",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0017458234505571726,
+      "service": 0.42718888804658045,
+      "location": 0.08411848458772131,
+      "value": 0.002878376257820704,
+      "other": 0.48406842765732033
+    },
+    "milliseconds": 437.8358930000559,
+    "cost_usd": 1.5414e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803743-bELSHrDMVxrLuhzjb27i",
+    "provider_confidence": 0.3550855345716504,
+    "usage": {
+      "input_tokens": 367,
+      "output_tokens": 1,
+      "cost": 1.5414e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0307",
+    "review_sha256": "f25202867c91a25990948ab56810206c37ce06da3bba895531be7681c8efc6b2",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0018854035862389278,
+      "service": 0.9766630699831755,
+      "location": 0.005125058307784794,
+      "value": 0.0005401771714748579,
+      "other": 0.015786290951326054
+    },
+    "milliseconds": 393.7681310001153,
+    "cost_usd": 2.1798e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803744-IeO7XZtTTnXvXEjMcEsU",
+    "provider_confidence": 0.9708288374789693,
+    "usage": {
+      "input_tokens": 519,
+      "output_tokens": 1,
+      "cost": 2.1798e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0308",
+    "review_sha256": "3948adfe7b5dacebdc4754be2c1302844a420296a7c6d44d19078685ce6c25ca",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.002386412116339598,
+      "service": 0.02907245812647008,
+      "location": 0.749788577310025,
+      "value": 0.003934528416865604,
+      "other": 0.21481802403029968
+    },
+    "milliseconds": 459.39243799989526,
+    "cost_usd": 3.3306e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803746-poOblX4iGBxjuXTblqS0",
+    "provider_confidence": 0.6872357216375313,
+    "usage": {
+      "input_tokens": 793,
+      "output_tokens": 1,
+      "cost": 3.3306e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0309",
+    "review_sha256": "abe01f3ad6191c897a77d63f474104696b0a0ea9527955d0c6d123deef469e6e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.013722532408294049,
+      "service": 0.017620080393570804,
+      "location": 0.003931571360045662,
+      "value": 0.002702126844561025,
+      "other": 0.9620236889935284
+    },
+    "milliseconds": 620.9616460000689,
+    "cost_usd": 1.3188e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803746-Pvx49Ercw2riag4NzrBR",
+    "provider_confidence": 0.9525296112419106,
+    "usage": {
+      "input_tokens": 314,
+      "output_tokens": 1,
+      "cost": 1.3188e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0310",
+    "review_sha256": "d03554c9c72192dc833ce3faaedbcfa2bca39606f338389a5dbb466f0a0b1581",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.032916187264804005,
+      "service": 0.009430643297273805,
+      "location": 0.848919582437948,
+      "value": 0.007344592384783934,
+      "other": 0.10138899461519041
+    },
+    "milliseconds": 444.32929999993576,
+    "cost_usd": 1.7892e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803748-OGHJ9LoroG1OiOECbs6i",
+    "provider_confidence": 0.8111494780474349,
+    "usage": {
+      "input_tokens": 426,
+      "output_tokens": 1,
+      "cost": 1.7892e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0311",
+    "review_sha256": "5f02193394676f3c3ccd0be8d148653eb834b80d5ff28c3dd2a82dae30d1082c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001766713882541772,
+      "service": 0.016762114615983675,
+      "location": 0.8076441038200959,
+      "value": 0.014792514229373568,
+      "other": 0.1590345534520051
+    },
+    "milliseconds": 752.2398349999548,
+    "cost_usd": 2.289e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803749-Tcb2wv5899CI202Dpphf",
+    "provider_confidence": 0.7595551297751197,
+    "usage": {
+      "input_tokens": 545,
+      "output_tokens": 1,
+      "cost": 2.289e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0312",
+    "review_sha256": "85856bce869aa1e03f2bd91012f0e6e99994634706444061052d37748d742fba",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.004556672234216769,
+      "service": 0.0027637614163137357,
+      "location": 0.005163386093335291,
+      "value": 0.003548739904207747,
+      "other": 0.9839674403519265
+    },
+    "milliseconds": 607.4192989999574,
+    "cost_usd": 1.7346e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803750-ZuudicYaHusVavySxk9d",
+    "provider_confidence": 0.9799593004399081,
+    "usage": {
+      "input_tokens": 413,
+      "output_tokens": 1,
+      "cost": 1.7346e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0313",
+    "review_sha256": "d4c5b72a40794d64a9ef9caa4a3d62c2d093e468229150449e554b68e27ae391",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0011243196066228216,
+      "service": 0.9602350011847139,
+      "location": 0.0011243196066228216,
+      "value": 0.019929041875464425,
+      "other": 0.01758731772657605
+    },
+    "milliseconds": 486.34491000007074,
+    "cost_usd": 1.7976e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803751-6P0KktsnK8e6j6Y28R4x",
+    "provider_confidence": 0.9502937514808925,
+    "usage": {
+      "input_tokens": 428,
+      "output_tokens": 1,
+      "cost": 1.7976e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0314",
+    "review_sha256": "e122c31898255953bfea5e326489c4a148d971f1e4d8b93785faf61ed54e6fa1",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001973459173472056,
+      "service": 0.06535199245155451,
+      "location": 0.001973459173472056,
+      "value": 0.2281008938011266,
+      "other": 0.7026001954003748
+    },
+    "milliseconds": 622.7447460000803,
+    "cost_usd": 1.449e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803752-PiwyErMDAF93rf8fG2gj",
+    "provider_confidence": 0.6282502442504685,
+    "usage": {
+      "input_tokens": 345,
+      "output_tokens": 1,
+      "cost": 1.449e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0315",
+    "review_sha256": "168719eb46b160493a3dc2bf6068beedca4f9a02da32d20a371142e4f2e2ed9b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.014541537802502797,
+      "service": 0.1563362273870697,
+      "location": 0.700650403340534,
+      "value": 0.0447910790694209,
+      "other": 0.08368075240047262
+    },
+    "milliseconds": 496.5245949999826,
+    "cost_usd": 2.6166e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803754-GDy2DzcTlkW66pJiwp5a",
+    "provider_confidence": 0.6258130041756674,
+    "usage": {
+      "input_tokens": 623,
+      "output_tokens": 1,
+      "cost": 2.6166e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0316",
+    "review_sha256": "46bbbe53de9227373ca53fc98af0662732c93ac3f177b5b9ea3d706f0ac573d4",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0013611931157877122,
+      "service": 0.016582726912434946,
+      "location": 0.01879068686840589,
+      "value": 0.9053860028085648,
+      "other": 0.05787939029480662
+    },
+    "milliseconds": 434.27464000001237,
+    "cost_usd": 2.4612e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803755-PBHalEISfimP6L8sOgFz",
+    "provider_confidence": 0.881732503510706,
+    "usage": {
+      "input_tokens": 586,
+      "output_tokens": 1,
+      "cost": 2.4612e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0317",
+    "review_sha256": "9f2cc7320de1743e0c461b0525ac934681e410dd4e67910f11bcd6fc58f82a11",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.016193241799010247,
+      "service": 0.17409377686007618,
+      "location": 0.01834935126951127,
+      "value": 0.011129441477329577,
+      "other": 0.7802341885940727
+    },
+    "milliseconds": 541.2660859999505,
+    "cost_usd": 4.8678e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803756-o199lxJrpch5O1lOLMBK",
+    "provider_confidence": 0.7252927357425909,
+    "usage": {
+      "input_tokens": 1159,
+      "output_tokens": 1,
+      "cost": 4.8678e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0318",
+    "review_sha256": "29181ec81fcb27b39293d22a6b2ef6a7ba2d4f161b5a83f731353e71da6f443c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0027034337328122717,
+      "service": 0.16725548262582038,
+      "location": 0.16725548262582038,
+      "value": 0.1476024453575781,
+      "other": 0.515183155657969
+    },
+    "milliseconds": 655.9760980001101,
+    "cost_usd": 1.7136e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803758-pXU9Jm2vMP6oN6WQdzcc",
+    "provider_confidence": 0.3939789445724611,
+    "usage": {
+      "input_tokens": 408,
+      "output_tokens": 1,
+      "cost": 1.7136e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0319",
+    "review_sha256": "a0428cbcf6bae30d0a69fd702b7764d82fc3e3ff9e56c2042f28a798f14dabcc",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0012908638942508803,
+      "service": 0.14920356185251554,
+      "location": 0.090496524013854,
+      "value": 0.0012908638942508803,
+      "other": 0.7577181863451288
+    },
+    "milliseconds": 648.21069300001,
+    "cost_usd": 1.5246e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803759-lPTnpQ3Fc15GraiC0gIB",
+    "provider_confidence": 0.6971477329314109,
+    "usage": {
+      "input_tokens": 363,
+      "output_tokens": 1,
+      "cost": 1.5246e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0320",
+    "review_sha256": "f0a8e9c7f23f46711c3a0b135c60cb60f3cf25d5923ccd2ebd736b3278d1dac1",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.004875065939397845,
+      "service": 0.8198599809869157,
+      "location": 0.07625886190114449,
+      "value": 0.0010877742437919965,
+      "other": 0.09791831692874997
+    },
+    "milliseconds": 752.8444970000692,
+    "cost_usd": 2.5158e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803761-YNIwfxq279dhCOoH8Zwh",
+    "provider_confidence": 0.7748249762336445,
+    "usage": {
+      "input_tokens": 599,
+      "output_tokens": 1,
+      "cost": 2.5158e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0321",
+    "review_sha256": "d4a2ea7ec28b6102e2f03857b1c913c480e8961709e6e5f376924fc6e25f0cce",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0024667968449052437,
+      "service": 0.9951766640778487,
+      "location": 0.00048574109911871203,
+      "value": 0.0005504167750573486,
+      "other": 0.001320381203070119
+    },
+    "milliseconds": 389.3535189999966,
+    "cost_usd": 1.1886e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803762-bnjx4mgfjRWiVXdKgMA6",
+    "provider_confidence": 0.9939708300973109,
+    "usage": {
+      "input_tokens": 283,
+      "output_tokens": 1,
+      "cost": 1.1886e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0322",
+    "review_sha256": "b44efa7c9ed66a633769e24f456868f9984858ad9f5af1c22c51ab53fac58907",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0018967313831467784,
+      "service": 0.7651962131150646,
+      "location": 0.0027597278783154685,
+      "value": 0.010914935493120502,
+      "other": 0.21923239213035264
+    },
+    "milliseconds": 424.5986759999596,
+    "cost_usd": 2.016e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803763-Ydgm7ovQoOT2tfSEQkuq",
+    "provider_confidence": 0.7064952663938308,
+    "usage": {
+      "input_tokens": 480,
+      "output_tokens": 1,
+      "cost": 2.016e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0323",
+    "review_sha256": "bb7aa90e887f81388aa0a13ded81b5ecd444f5014864e9ff358203e693080b05",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.002914266016767508,
+      "service": 0.006169501205910567,
+      "location": 0.002571830733104872,
+      "value": 0.1802992540302016,
+      "other": 0.8080451480140154
+    },
+    "milliseconds": 393.7595259999398,
+    "cost_usd": 1.8438e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803764-LpRFpvz4hPsuFpWT9rYG",
+    "provider_confidence": 0.7600564350175192,
+    "usage": {
+      "input_tokens": 439,
+      "output_tokens": 1,
+      "cost": 1.8438e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0324",
+    "review_sha256": "4a8b2398b08f3acff4c7eb52b0ec3f77b9dfd6e82da28142fd7f510440bf591c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001589302720784316,
+      "service": 0.01936166618150304,
+      "location": 0.7265411850221248,
+      "value": 0.12625392303779392,
+      "other": 0.12625392303779392
+    },
+    "milliseconds": 407.92630100008864,
+    "cost_usd": 1.4028e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803764-GYWUMgoDMmiy7ivm7MAt",
+    "provider_confidence": 0.658176481277656,
+    "usage": {
+      "input_tokens": 334,
+      "output_tokens": 1,
+      "cost": 1.4028e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0325",
+    "review_sha256": "fbb64b66f3130672846a7281a7654bbb7ed895474e0604dd957bb745e02279da",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.004875732950576749,
+      "service": 0.08642443445195844,
+      "location": 0.08642443445195844,
+      "value": 0.002303133165949715,
+      "other": 0.8199722649795567
+    },
+    "milliseconds": 388.0098409999846,
+    "cost_usd": 2.0622e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803765-rJWM2M4emGZYWg3QtUT8",
+    "provider_confidence": 0.7749653312244458,
+    "usage": {
+      "input_tokens": 491,
+      "output_tokens": 1,
+      "cost": 2.0622e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0326",
+    "review_sha256": "0acb5f3a020ce70194786451e988675e5b6046c16f3a83544f9c778ff4922e67",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001800060691997925,
+      "service": 0.05260549702851986,
+      "location": 0.001401888676504039,
+      "value": 0.011737870178134721,
+      "other": 0.9324546834248435
+    },
+    "milliseconds": 449.5633970000199,
+    "cost_usd": 1.4154e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803766-CzdV5JQGIEg07XupqB6Y",
+    "provider_confidence": 0.9155683542810542,
+    "usage": {
+      "input_tokens": 337,
+      "output_tokens": 1,
+      "cost": 1.4154e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0327",
+    "review_sha256": "3b4deb614a6c9a4a0a047ad0be1a51dbdfe04dc691b1422c1bdd660c9324ed17",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0017765198568586798,
+      "service": 0.8121267573932323,
+      "location": 0.0015677732710578135,
+      "value": 0.0033189760408742987,
+      "other": 0.18120997343797693
+    },
+    "milliseconds": 408.64601199996287,
+    "cost_usd": 2.5662e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803767-NISiN74RLbN5NZ8VBa8U",
+    "provider_confidence": 0.7651584467415402,
+    "usage": {
+      "input_tokens": 611,
+      "output_tokens": 1,
+      "cost": 2.5662e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0328",
+    "review_sha256": "eba955709f7305cee0ad34c5bb9a64394c49ba7aa6af2e66e729eb2a90309b09",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.007598323068474378,
+      "service": 0.22205557608568496,
+      "location": 0.15261641673944426,
+      "value": 0.25162193253635684,
+      "other": 0.36610775157003955
+    },
+    "milliseconds": 721.7764490001173,
+    "cost_usd": 6.258e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803768-oIWpJGd9WXspQrVLujiS",
+    "provider_confidence": 0.20763468946254943,
+    "usage": {
+      "input_tokens": 1490,
+      "output_tokens": 1,
+      "cost": 6.258e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0329",
+    "review_sha256": "ed215678fdbc33391dd2e9b45366b9efe10ec6a97e6de0fd5c9708b7da735e2c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.002524778491653817,
+      "service": 0.1216506693189877,
+      "location": 0.6177930749552459,
+      "value": 0.030758106059989725,
+      "other": 0.22727337117412286
+    },
+    "milliseconds": 391.8562130002101,
+    "cost_usd": 1.6002e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803772-UQgKZdcNKa5UPvokt24n",
+    "provider_confidence": 0.5222413436940574,
+    "usage": {
+      "input_tokens": 381,
+      "output_tokens": 1,
+      "cost": 1.6002e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0330",
+    "review_sha256": "b477662fac806b916771420e85100830127e92a1eba4acf2f460d888127988f1",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0016094053623289632,
+      "service": 0.11282802655904255,
+      "location": 0.7357311967483137,
+      "value": 0.0049573175137847016,
+      "other": 0.14487405381653018
+    },
+    "milliseconds": 410.06896199996845,
+    "cost_usd": 1.8228e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803773-r2EzryBFiAc8Q7Xw0vKx",
+    "provider_confidence": 0.669663995935392,
+    "usage": {
+      "input_tokens": 434,
+      "output_tokens": 1,
+      "cost": 1.8228e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0331",
+    "review_sha256": "54389eb0da8e6e0f705689ffc54b40286f7da8ea72f8854d20ecc1f471c7e1a3",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.006726305644913845,
+      "service": 0.04386103291582246,
+      "location": 0.8809723173548353,
+      "value": 0.004622917755620481,
+      "other": 0.06381742632880802
+    },
+    "milliseconds": 416.4539120001791,
+    "cost_usd": 2.1462e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803774-g7YwYJH6CpwpzOEkXKZT",
+    "provider_confidence": 0.8512153966935441,
+    "usage": {
+      "input_tokens": 511,
+      "output_tokens": 1,
+      "cost": 2.1462e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0332",
+    "review_sha256": "3586c880daa8196316d2401b37c4c6c28234d33001df1131fe279549407b051f",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0035611556407130107,
+      "service": 0.22032092415480348,
+      "location": 0.0035611556407130107,
+      "value": 0.0035611556407130107,
+      "other": 0.7689956089230575
+    },
+    "milliseconds": 382.64050599991606,
+    "cost_usd": 1.6674e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803775-uYseMMXAc5CpSTdjxPou",
+    "provider_confidence": 0.7112445111538219,
+    "usage": {
+      "input_tokens": 397,
+      "output_tokens": 1,
+      "cost": 1.6674e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0333",
+    "review_sha256": "3c5e52121b8087457904c2cf79622cd2c1d724be8629dde1d70a0bf1bcb94d25",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.025461193871537655,
+      "service": 0.3101808035958723,
+      "location": 0.0064375979671858685,
+      "value": 0.0012676382000096837,
+      "other": 0.6566527663653945
+    },
+    "milliseconds": 380.7513299998391,
+    "cost_usd": 1.7724e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803776-S2k8pvvUMNIeOCDzfDm8",
+    "provider_confidence": 0.5708159579567431,
+    "usage": {
+      "input_tokens": 422,
+      "output_tokens": 1,
+      "cost": 1.7724e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0334",
+    "review_sha256": "ab29b64f46713e35f363b0e2f815a0d321aadd8ce24b34b26caedf8d6f69e883",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0008546454396178329,
+      "service": 0.0012435017771865453,
+      "location": 0.9372323741602124,
+      "value": 0.0007542219532707875,
+      "other": 0.05991525666971243
+    },
+    "milliseconds": 514.5441189999929,
+    "cost_usd": 1.0878e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803776-9Qz8Cdrt7yttaVJdiaWr",
+    "provider_confidence": 0.9215404677002654,
+    "usage": {
+      "input_tokens": 259,
+      "output_tokens": 1,
+      "cost": 1.0878e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0335",
+    "review_sha256": "88805a8b779d6f8c92c79ab65ec4aca8280ed8fe362b1baebd292fe3d608f53c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.003684976054397207,
+      "service": 0.008839798015753816,
+      "location": 0.10769081161624663,
+      "value": 0.17755213177066628,
+      "other": 0.702232282542936
+    },
+    "milliseconds": 416.3511459998972,
+    "cost_usd": 1.1928e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803777-5zg8loZsPBICZBRH1bLi",
+    "provider_confidence": 0.62779035317867,
+    "usage": {
+      "input_tokens": 284,
+      "output_tokens": 1,
+      "cost": 1.1928e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0336",
+    "review_sha256": "cc67b3e8126e90d64a99cae48d4bd6a7a453464b21c9eceae0cd2a19c1c6b780",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0016725458933486332,
+      "service": 0.15055774739194397,
+      "location": 0.3187307537299123,
+      "value": 0.003540779684004517,
+      "other": 0.5254981733007905
+    },
+    "milliseconds": 430.8433819999209,
+    "cost_usd": 2.079e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803778-diGMvJMIsjFBkzNi68Xu",
+    "provider_confidence": 0.4068727166259881,
+    "usage": {
+      "input_tokens": 495,
+      "output_tokens": 1,
+      "cost": 2.079e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0337",
+    "review_sha256": "301163950080f60798d8e3628d081fa177292fb4095946fd81412cfef19ee2c0",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.021632152301856788,
+      "service": 0.6321840823061377,
+      "location": 0.003759104410814278,
+      "value": 0.23256752691626298,
+      "other": 0.10985713406492842
+    },
+    "milliseconds": 409.104852000155,
+    "cost_usd": 1.6632e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803780-U04OF1GobB5glfQtH6am",
+    "provider_confidence": 0.5402301028826719,
+    "usage": {
+      "input_tokens": 396,
+      "output_tokens": 1,
+      "cost": 1.6632e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0338",
+    "review_sha256": "c8bba642e61897442c12dd3b26f2fb0becb065e0b7c53d88f200c20c20562d69",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0019904592740692503,
+      "service": 0.010108386270164926,
+      "location": 0.9099280086922366,
+      "value": 0.0032817125436203085,
+      "other": 0.07469143321990898
+    },
+    "milliseconds": 396.03749699995205,
+    "cost_usd": 2.163e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803780-638i326n8NigFJIQe1V4",
+    "provider_confidence": 0.8874100108652958,
+    "usage": {
+      "input_tokens": 515,
+      "output_tokens": 1,
+      "cost": 2.163e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0339",
+    "review_sha256": "2e454ccb087b1e729dcd315a662fa110b4afbf69a4c800dae897dc51ced3cbb3",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0028671543664289933,
+      "service": 0.006069765841361281,
+      "location": 0.01869619501354815,
+      "value": 0.1773845382877023,
+      "other": 0.7949823464909593
+    },
+    "milliseconds": 439.228723000042,
+    "cost_usd": 1.5456e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803781-7qmyd7hfk5Je0CNlWjiB",
+    "provider_confidence": 0.7437279331136992,
+    "usage": {
+      "input_tokens": 368,
+      "output_tokens": 1,
+      "cost": 1.5456e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0340",
+    "review_sha256": "cee3d050ce3fac13bc46c20cf67912998d2352331c7c4f67a1ba177b0851011e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.01171955632681551,
+      "service": 0.05252340749910039,
+      "location": 0.0013997013988805897,
+      "value": 0.003357709104705833,
+      "other": 0.9309996256704977
+    },
+    "milliseconds": 509.443057999988,
+    "cost_usd": 2.7468e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803782-9QaCC8qSlBSFPIiLkFwV",
+    "provider_confidence": 0.9137495320881222,
+    "usage": {
+      "input_tokens": 654,
+      "output_tokens": 1,
+      "cost": 2.7468e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0341",
+    "review_sha256": "898edb5a610d76957a29229c4eecc084f32c7fd90dfeeb136086f5505da6947e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0022872683596462766,
+      "service": 0.4939123786431775,
+      "location": 0.001080429070239707,
+      "value": 0.06684377962614252,
+      "other": 0.43587614430079397
+    },
+    "milliseconds": 387.8882589999648,
+    "cost_usd": 1.8564e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803783-pNKEKRAEJUB9w2lakwAh",
+    "provider_confidence": 0.3673904733039719,
+    "usage": {
+      "input_tokens": 442,
+      "output_tokens": 1,
+      "cost": 1.8564e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0342",
+    "review_sha256": "30a9826a58f7c1644dc69f6f91f8008613b9f83a198c7e6d6d1a56025d2c011e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00053873885798972,
+      "service": 0.9740626475023757,
+      "location": 0.0006104711035380398,
+      "value": 0.0018803833788954543,
+      "other": 0.022907759157201064
+    },
+    "milliseconds": 386.19036700015386,
+    "cost_usd": 1.701e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803785-Lmp7gxTfTrKy7Npykcuq",
+    "provider_confidence": 0.9675783093779695,
+    "usage": {
+      "input_tokens": 405,
+      "output_tokens": 1,
+      "cost": 1.701e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0343",
+    "review_sha256": "422ce23e8cb62c0ec97073ce8dc22edf38de29b6f9df2cc0fe5c11969d47407d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.005419337159491812,
+      "service": 0.5527874185382855,
+      "location": 0.13976654746916933,
+      "value": 0.006140913518925715,
+      "other": 0.2958857833141277
+    },
+    "milliseconds": 404.3841650000104,
+    "cost_usd": 1.5498e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803785-Vi5IQyhrUd4TbnG73Zz6",
+    "provider_confidence": 0.4409842731728568,
+    "usage": {
+      "input_tokens": 369,
+      "output_tokens": 1,
+      "cost": 1.5498e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0344",
+    "review_sha256": "f729b85879f3a56cbd78158b0fc41bcc83dea7b9ac990bef8e3360dd000cd7d9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.006277894829257335,
+      "service": 0.0015873003911341325,
+      "location": 0.9317221763563267,
+      "value": 0.0008496206748472077,
+      "other": 0.059563007748434704
+    },
+    "milliseconds": 447.57045699998343,
+    "cost_usd": 1.2978e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803787-byDt5olIvWv8Nsn9zfey",
+    "provider_confidence": 0.9146527204454082,
+    "usage": {
+      "input_tokens": 309,
+      "output_tokens": 1,
+      "cost": 1.2978e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0345",
+    "review_sha256": "d30cc0b90b76642c59c294cb0e7f717577822ee2b738c19872754ab7a8d7b839",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.005156210555872254,
+      "service": 0.003543808234239839,
+      "location": 0.005156210555872254,
+      "value": 0.003543808234239839,
+      "other": 0.9825999624197758
+    },
+    "milliseconds": 370.955001999846,
+    "cost_usd": 2.1378e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803787-C5jdymP2FFK8SBImeTyo",
+    "provider_confidence": 0.9782499530247197,
+    "usage": {
+      "input_tokens": 509,
+      "output_tokens": 1,
+      "cost": 2.1378e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0346",
+    "review_sha256": "8e18657dba3cf1951ef64d62454b7cfdf460c44b24f8228a0f792241f06ede03",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0010221743037550136,
+      "service": 0.007552903273331174,
+      "location": 0.0007025294400264474,
+      "value": 0.0014872548362068823,
+      "other": 0.9892351381466805
+    },
+    "milliseconds": 432.9159950000303,
+    "cost_usd": 1.6254e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803788-moaOtDbyn2K5efWxZ6Z0",
+    "provider_confidence": 0.9865439226833506,
+    "usage": {
+      "input_tokens": 387,
+      "output_tokens": 1,
+      "cost": 1.6254e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0347",
+    "review_sha256": "e6bb72d83f946f30281a7d3d450f36ac5d4d6dc9354f76d15f01f1b4b2227141",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0022704786983231717,
+      "service": 0.007924749334759411,
+      "location": 0.55556772051419,
+      "value": 0.001560475667080798,
+      "other": 0.4326765757856466
+    },
+    "milliseconds": 376.07104300013816,
+    "cost_usd": 1.9908e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803789-pwSyMB27mLjyzDmZyjrY",
+    "provider_confidence": 0.4444596506427375,
+    "usage": {
+      "input_tokens": 474,
+      "output_tokens": 1,
+      "cost": 1.9908e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0348",
+    "review_sha256": "a7d818d97473fc68b141771177c40ffef4fc29ce1770a9c4ba48392b1786027b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.003279537526067842,
+      "service": 0.007867201546922123,
+      "location": 0.48672652463917704,
+      "value": 0.3790629985306146,
+      "other": 0.1230637377572185
+    },
+    "milliseconds": 549.4252010000764,
+    "cost_usd": 1.3188e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803790-NRfbcE8n0mJIbHcpgduM",
+    "provider_confidence": 0.35840815579897123,
+    "usage": {
+      "input_tokens": 314,
+      "output_tokens": 1,
+      "cost": 1.3188e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0349",
+    "review_sha256": "583f03285d0cf0a85f4a2de714a35d02af7a12edb698c0dc1a8901355bea297a",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0007730114411171526,
+      "service": 0.0137019556445438,
+      "location": 0.9605814758587696,
+      "value": 0.009417207212964398,
+      "other": 0.015526349842605076
+    },
+    "milliseconds": 438.9610979999361,
+    "cost_usd": 1.7514e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803791-0FzWckOOPoksSgkrW9qh",
+    "provider_confidence": 0.950726844823462,
+    "usage": {
+      "input_tokens": 417,
+      "output_tokens": 1,
+      "cost": 1.7514e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0350",
+    "review_sha256": "d0ef54a07df7b03a5ae5674ca1de4d6438fced7e7c904b89834fc2ed8a2aa6c5",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.004199909555386812,
+      "service": 0.13908190311226476,
+      "location": 0.20236297495710573,
+      "value": 0.031033367315188038,
+      "other": 0.6233218450600546
+    },
+    "milliseconds": 375.1443040000595,
+    "cost_usd": 2.9652e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803793-1gFp3sDSYzn6hC9rZjKr",
+    "provider_confidence": 0.5291523063250683,
+    "usage": {
+      "input_tokens": 706,
+      "output_tokens": 1,
+      "cost": 2.9652e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0351",
+    "review_sha256": "c5239c8b2dbd7a9439e25772704b2c6cd732f5185da1d7727f3a81de637d182d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.007093863078760911,
+      "service": 0.06730468290389174,
+      "location": 0.723593554949196,
+      "value": 0.12574170175145336,
+      "other": 0.0762661973166982
+    },
+    "milliseconds": 378.62374499991347,
+    "cost_usd": 1.8522e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803794-EPUAZcWQrA8xJB7k8kC2",
+    "provider_confidence": 0.6544919436864949,
+    "usage": {
+      "input_tokens": 441,
+      "output_tokens": 1,
+      "cost": 1.8522e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0352",
+    "review_sha256": "8e0cee62bdb1c6eec9d38341a51ade07b340b8fa9fa0de593dee4718cf4dc875",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001280877437930895,
+      "service": 0.9654027423130418,
+      "location": 0.0034817858640107304,
+      "value": 0.012152626769840046,
+      "other": 0.017681967615176594
+    },
+    "milliseconds": 383.4205269999984,
+    "cost_usd": 2.9526e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803796-wkx8L36mJj9lsA5gJ1lN",
+    "provider_confidence": 0.9567534278913024,
+    "usage": {
+      "input_tokens": 703,
+      "output_tokens": 1,
+      "cost": 2.9526e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0353",
+    "review_sha256": "4f2837047055af433b0af0ec1cc59bd6ae5b317b878d56cf402be302751b0d7b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.005400126520673308,
+      "service": 0.801449717061408,
+      "location": 0.01143206793397594,
+      "value": 0.0028904794356388796,
+      "other": 0.17882760904830372
+    },
+    "milliseconds": 572.1052530000179,
+    "cost_usd": 3.2424e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803797-pzb9EUQBhBJGQb4YdsRy",
+    "provider_confidence": 0.7518121463267602,
+    "usage": {
+      "input_tokens": 772,
+      "output_tokens": 1,
+      "cost": 3.2424e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0354",
+    "review_sha256": "1b5d4fd6e6cc98bd2a9d9cd312102e3d15d789fc1a32a1e8d06576cc2093cbd9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0014159961794999922,
+      "service": 0.0026454291380903316,
+      "location": 0.8311689294694775,
+      "value": 0.0011027789334207114,
+      "other": 0.1636668662795114
+    },
+    "milliseconds": 384.452384000042,
+    "cost_usd": 1.2138e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803798-lms4K1Qc30VKmzZ7Bj5q",
+    "provider_confidence": 0.7889611618368468,
+    "usage": {
+      "input_tokens": 289,
+      "output_tokens": 1,
+      "cost": 1.2138e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0355",
+    "review_sha256": "4a8eac35cd8c75496b33e30399a17913d4c9e74354568a87956a264901b1bb12",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.002359393180373728,
+      "service": 0.0034328968211525075,
+      "location": 0.8400021313974922,
+      "value": 0.008235091371000938,
+      "other": 0.14597048722998063
+    },
+    "milliseconds": 435.13679800003047,
+    "cost_usd": 1.5246e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803799-Ats2hd6sKWUT9CKZQhgc",
+    "provider_confidence": 0.8000026642468654,
+    "usage": {
+      "input_tokens": 363,
+      "output_tokens": 1,
+      "cost": 1.5246e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0356",
+    "review_sha256": "853bb8717bece437de95d5a3797807e73e8a8c93dff65dc03447022d83c26b77",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0021343682054731955,
+      "service": 0.012282440986797599,
+      "location": 0.007449677034603836,
+      "value": 0.0024185560303069697,
+      "other": 0.9757149577428184
+    },
+    "milliseconds": 398.27538299982734,
+    "cost_usd": 2.1546e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803800-6hrvMciGqu4zXYc2nOVP",
+    "provider_confidence": 0.969643697178523,
+    "usage": {
+      "input_tokens": 513,
+      "output_tokens": 1,
+      "cost": 2.1546e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0357",
+    "review_sha256": "726f4b4dbccc6190321dab07bf882a3f0b2a7b2d99bbc49e9f6105f9cddaa7c6",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.020026241788531223,
+      "service": 0.008348179598537269,
+      "location": 0.005063426879300357,
+      "value": 0.0016438540296534498,
+      "other": 0.9649182977039777
+    },
+    "milliseconds": 456.34835100008786,
+    "cost_usd": 3.6078e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803801-CUVvErafygFHWKRkxgfG",
+    "provider_confidence": 0.9561478721299721,
+    "usage": {
+      "input_tokens": 859,
+      "output_tokens": 1,
+      "cost": 3.6078e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0358",
+    "review_sha256": "0270ab56f5f29413975c7de57a9e051359086810793caa8eff19e29375c4dd88",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0023585975481074093,
+      "service": 0.010570500852679136,
+      "location": 0.0014305617268501867,
+      "value": 0.14592129799503897,
+      "other": 0.8397190418773243
+    },
+    "milliseconds": 526.0381749999397,
+    "cost_usd": 3.8892e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803804-oY4x4IJUkfFxvn8nLjvy",
+    "provider_confidence": 0.7996488023466553,
+    "usage": {
+      "input_tokens": 926,
+      "output_tokens": 1,
+      "cost": 3.8892e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0359",
+    "review_sha256": "d182e4cb66d93e1cf18e0f82a2c1f80cae0c385418c0b21b56f348db874e79bf",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0026541518879488694,
+      "service": 0.5731371856150149,
+      "location": 0.14491178298898544,
+      "value": 0.06845147938206107,
+      "other": 0.2108454001259897
+    },
+    "milliseconds": 391.214237999975,
+    "cost_usd": 1.6548e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803804-1b8C6TV1WumcJiLa94ds",
+    "provider_confidence": 0.46642148201876865,
+    "usage": {
+      "input_tokens": 394,
+      "output_tokens": 1,
+      "cost": 1.6548e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0360",
+    "review_sha256": "4fff4e40ad75098e1be0289dabfde161ee2ee349f126f7829b5bb72d089664a5",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.003454160448571709,
+      "service": 0.010639563212556841,
+      "location": 0.9577428552166906,
+      "value": 0.008286100161476982,
+      "other": 0.01987732096070391
+    },
+    "milliseconds": 513.9758820000679,
+    "cost_usd": 4.0446e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803805-0ydXOTdJV1D1xNNZJ9wx",
+    "provider_confidence": 0.9471785690208632,
+    "usage": {
+      "input_tokens": 963,
+      "output_tokens": 1,
+      "cost": 4.0446e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0361",
+    "review_sha256": "d4ac64c124229ffcf0800cf514ab4ab3eed6958660d4c26e80833acd272f7dd9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.6578606112265808,
+      "service": 0.1467885435383309,
+      "location": 0.005022828947127345,
+      "value": 0.0018477955061689518,
+      "other": 0.18848022078179202
+    },
+    "milliseconds": 438.64556300013646,
+    "cost_usd": 1.6758e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803807-f0osZAQfjM32dlxRtslV",
+    "provider_confidence": 0.572325764033226,
+    "usage": {
+      "input_tokens": 399,
+      "output_tokens": 1,
+      "cost": 1.6758e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0362",
+    "review_sha256": "c3ea3fd13d40b30f378fe3b36bcc89bab7b6a91fec6b6a6e72233a7509196ce7",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.006623120248828523,
+      "service": 0.007504978464435613,
+      "location": 0.7655285924838435,
+      "value": 0.0010156883861690725,
+      "other": 0.2193276204167232
+    },
+    "milliseconds": 395.3048079999917,
+    "cost_usd": 4.3092e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803808-suOrey0UjdqfjMrqig1M",
+    "provider_confidence": 0.7069107406048044,
+    "usage": {
+      "input_tokens": 1026,
+      "output_tokens": 1,
+      "cost": 4.3092e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0363",
+    "review_sha256": "61d3ab6e823549311ae2b7bb714d51eca90b7ae3b459e0896dd6e257656a82e2",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0014328076827722766,
+      "service": 0.5101149298759199,
+      "location": 0.4501748455776573,
+      "value": 0.0056668643145544005,
+      "other": 0.03261055254909613
+    },
+    "milliseconds": 386.9030079999902,
+    "cost_usd": 2.0454e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803811-3RbyFJcuvXTTvVPbBE8b",
+    "provider_confidence": 0.3876436623448999,
+    "usage": {
+      "input_tokens": 487,
+      "output_tokens": 1,
+      "cost": 2.0454e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0364",
+    "review_sha256": "9d87ccfa96ae4fc6815a65bf495d995623908da70d59ab957948aa550373faa9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0030571556667057216,
+      "service": 0.10123911574832056,
+      "location": 0.5825908864017394,
+      "value": 0.001274412085694544,
+      "other": 0.31183843009753975
+    },
+    "milliseconds": 414.3384009998954,
+    "cost_usd": 1.8228e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803811-barapuLGQGi5sTd8D1RY",
+    "provider_confidence": 0.4782386080021742,
+    "usage": {
+      "input_tokens": 434,
+      "output_tokens": 1,
+      "cost": 1.8228e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0365",
+    "review_sha256": "817a2f88ff8c5c292dadbb366277cbdbe2b67c3982489fb8beaf9f16cd58a5c8",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0017419964992735845,
+      "service": 0.7027715250262866,
+      "location": 0.10777350713186674,
+      "value": 0.010024497716312383,
+      "other": 0.17768847362626067
+    },
+    "milliseconds": 408.52720799989584,
+    "cost_usd": 2.2974e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803813-fu9Y1EZm5DVEfINFqrCJ",
+    "provider_confidence": 0.6284644062828583,
+    "usage": {
+      "input_tokens": 547,
+      "output_tokens": 1,
+      "cost": 2.2974e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0366",
+    "review_sha256": "0d52f65c45b40f624c3180fc9b3767c35f61685f28017622c296b02203a35d4a",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00614235930495744,
+      "service": 0.4306126831885853,
+      "location": 0.10887592378677696,
+      "value": 0.1584135532527521,
+      "other": 0.2959554804669282
+    },
+    "milliseconds": 388.7322600000971,
+    "cost_usd": 1.701e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803813-zrJY61AAOmUzZwpr1nL0",
+    "provider_confidence": 0.2882658539857317,
+    "usage": {
+      "input_tokens": 405,
+      "output_tokens": 1,
+      "cost": 1.701e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0367",
+    "review_sha256": "3ab61b8da2a15771d99431c831fb5cadccbd0c9c69476493c96c32907833440d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0023368152951815527,
+      "service": 0.01726685930893568,
+      "location": 0.036553941443865555,
+      "value": 0.001103833385377387,
+      "other": 0.9427385505666399
+    },
+    "milliseconds": 398.0732039999566,
+    "cost_usd": 2.1504e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803814-9938YK6E9UVmKDnXL3Z8",
+    "provider_confidence": 0.9284231882082998,
+    "usage": {
+      "input_tokens": 512,
+      "output_tokens": 1,
+      "cost": 2.1504e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0368",
+    "review_sha256": "37d7117bc5332971ef32b43fe253a0a2663ecd60b74c9e2a0e89bfe2626d6250",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0048117788302718305,
+      "service": 0.5561660797001968,
+      "location": 0.23184451526050232,
+      "value": 0.0025755596104087364,
+      "other": 0.20460206659862024
+    },
+    "milliseconds": 444.4928109999182,
+    "cost_usd": 2.0454e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803816-c6TXrzi2BovJ9zixVvZC",
+    "provider_confidence": 0.44520759962524603,
+    "usage": {
+      "input_tokens": 487,
+      "output_tokens": 1,
+      "cost": 2.0454e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0369",
+    "review_sha256": "04d470ee1965e465f8c63708c16aea4112228006f537311d563e8fa6adcc35a7",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.011735861346659373,
+      "service": 0.20802307020363464,
+      "location": 0.20802307020363464,
+      "value": 0.1835797151208454,
+      "other": 0.3886382831252259
+    },
+    "milliseconds": 371.0933480001586,
+    "cost_usd": 2.646e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803817-myb7c3qBf2YrFcLfLAV6",
+    "provider_confidence": 0.2357978539065324,
+    "usage": {
+      "input_tokens": 630,
+      "output_tokens": 1,
+      "cost": 2.646e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0370",
+    "review_sha256": "9d28a9701118efa6dfd648234199d7a51e18acb40de1f4e31e299ede6e0edc03",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00366716065149358,
+      "service": 0.05736404413149374,
+      "location": 0.8973245856237457,
+      "value": 0.0068511580624073965,
+      "other": 0.03479305153085952
+    },
+    "milliseconds": 453.7327370001094,
+    "cost_usd": 2.0118e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803818-3RsChR0LH8wahR6kjE5y",
+    "provider_confidence": 0.8716557320296823,
+    "usage": {
+      "input_tokens": 479,
+      "output_tokens": 1,
+      "cost": 2.0118e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0371",
+    "review_sha256": "f148b1870f37fcc7112fda7cb32904fb6b9eb80fcd7f91dc5b7686658b10b2e0",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001895614781222997,
+      "service": 0.8665702756304925,
+      "location": 0.012360961110179302,
+      "value": 0.001895614781222997,
+      "other": 0.11727753369688222
+    },
+    "milliseconds": 406.2799669998185,
+    "cost_usd": 2.4948e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803819-sxQWL0K7wYkSJqXvildF",
+    "provider_confidence": 0.8332128445381155,
+    "usage": {
+      "input_tokens": 594,
+      "output_tokens": 1,
+      "cost": 2.4948e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0372",
+    "review_sha256": "efd9cef438c3198489d4200a3fe07cef78145d278420c7efcc3b687a31a3fa1d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0014361649588753194,
+      "service": 0.03703917363572789,
+      "location": 0.003903901110380413,
+      "value": 0.0023678357159319144,
+      "other": 0.9552529245790845
+    },
+    "milliseconds": 380.7401290000598,
+    "cost_usd": 2.1084e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803821-shOQYGQYv9GfLLrBQZU6",
+    "provider_confidence": 0.9440661557238557,
+    "usage": {
+      "input_tokens": 502,
+      "output_tokens": 1,
+      "cost": 2.1084e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0373",
+    "review_sha256": "2d7c940571e82a84ec96c624fa83597e275377043442b5ccf8ec145869ad75dc",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00951340277693429,
+      "service": 0.7557431901956975,
+      "location": 0.10227871869927596,
+      "value": 0.0011362139319661155,
+      "other": 0.13132847439612613
+    },
+    "milliseconds": 391.377779999857,
+    "cost_usd": 2.1924e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803821-S0x234YM9RodHF9Kr7rS",
+    "provider_confidence": 0.6946789877446218,
+    "usage": {
+      "input_tokens": 522,
+      "output_tokens": 1,
+      "cost": 2.1924e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0374",
+    "review_sha256": "cac9a879a23b9fcf9bf1780ff3bf9dadfbe97f7465ac2ce9de4f996c83f4df76",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001989506903043283,
+      "service": 0.0025545774301832897,
+      "location": 0.001367366764542279,
+      "value": 0.08459598616399441,
+      "other": 0.9094925627382368
+    },
+    "milliseconds": 452.7268700001059,
+    "cost_usd": 2.1126e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803823-zwGmEjtHI0QLWwmKrXy8",
+    "provider_confidence": 0.886865703422796,
+    "usage": {
+      "input_tokens": 503,
+      "output_tokens": 1,
+      "cost": 2.1126e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0375",
+    "review_sha256": "307e08a937e65da21543ad507021a44177709377a6dc918a4dc21b722bb51037",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001532290033157852,
+      "service": 0.004165196153061897,
+      "location": 0.6181700667410268,
+      "value": 0.001193348677715844,
+      "other": 0.3749390983950376
+    },
+    "milliseconds": 505.03917500009265,
+    "cost_usd": 1.239e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803824-djnpBGMXl4010UcQgLEp",
+    "provider_confidence": 0.5227125834262836,
+    "usage": {
+      "input_tokens": 295,
+      "output_tokens": 1,
+      "cost": 1.239e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0376",
+    "review_sha256": "f8297f516831fc16a88103eff137cf988707074c6f7d7be30b539e5dca1a20bf",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0015330352682507485,
+      "service": 0.023980700649278867,
+      "location": 0.7941317521204612,
+      "value": 0.023980700649278867,
+      "other": 0.1563738113127304
+    },
+    "milliseconds": 504.90861600019343,
+    "cost_usd": 1.6968e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803825-UYranTJBXddVRYrNSxKU",
+    "provider_confidence": 0.7426646901505765,
+    "usage": {
+      "input_tokens": 404,
+      "output_tokens": 1,
+      "cost": 1.6968e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0377",
+    "review_sha256": "4de190d000ced330f94aa06df45930b24977c6a68ca2a237e0c49261cde45ac1",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0015900636962168954,
+      "service": 0.0020416822000949492,
+      "location": 0.9333440709616133,
+      "value": 0.010368517752833902,
+      "other": 0.05265566538924091
+    },
+    "milliseconds": 368.07606499996837,
+    "cost_usd": 1.4112e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803826-zo32FVYAAOJYVsMZjtoE",
+    "provider_confidence": 0.9166800887020166,
+    "usage": {
+      "input_tokens": 336,
+      "output_tokens": 1,
+      "cost": 1.4112e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0378",
+    "review_sha256": "baa8ea2299e4698b36aacd3c3e53728f188ca89153e6d7f462cc9a9d59c638c7",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.008118868338770699,
+      "service": 0.8281472576129053,
+      "location": 0.017187644408053687,
+      "value": 0.002635810638339493,
+      "other": 0.14391041900193086
+    },
+    "milliseconds": 408.1357399998069,
+    "cost_usd": 2.5914e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803827-Li70CNtZYEHQIV7XqMFh",
+    "provider_confidence": 0.7851840720161316,
+    "usage": {
+      "input_tokens": 617,
+      "output_tokens": 1,
+      "cost": 2.5914e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0379",
+    "review_sha256": "cab5c8b2dd6dc33a16dfeec437b9f995ccd35cbb865c1ff0a0f126815da1e470",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0010269286069300397,
+      "service": 0.002791481371342688,
+      "location": 0.001318602432421906,
+      "value": 0.0010269286069300397,
+      "other": 0.9938360589823754
+    },
+    "milliseconds": 416.08085899997604,
+    "cost_usd": 1.6128e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803828-HEoOE2Xp0uxFUnPyBhQg",
+    "provider_confidence": 0.992295073727969,
+    "usage": {
+      "input_tokens": 384,
+      "output_tokens": 1,
+      "cost": 1.6128e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0380",
+    "review_sha256": "1dabe3716977ca5a2bd70a9823565c33b7ec194c13be2b7cf40be84eed138ab9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0040226601189867345,
+      "service": 0.8686528548262817,
+      "location": 0.003132850850696979,
+      "value": 0.006632245302970537,
+      "other": 0.11755938890106375
+    },
+    "milliseconds": 372.41811400008373,
+    "cost_usd": 1.7892e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803829-mAPnyZK0KCYsaDy935Kg",
+    "provider_confidence": 0.8358160685328524,
+    "usage": {
+      "input_tokens": 426,
+      "output_tokens": 1,
+      "cost": 1.7892e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0381",
+    "review_sha256": "941daec3578783cae2d6ba389d623d3480eac8b973d9c1c760dd57160f4a3c2c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.03167749220228874,
+      "service": 0.024670455732880788,
+      "location": 0.8169733281428122,
+      "value": 0.0013918118722479663,
+      "other": 0.12528691204977027
+    },
+    "milliseconds": 377.1978609997859,
+    "cost_usd": 1.3146e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803830-PzOHQNMGeCh5CFujOIMZ",
+    "provider_confidence": 0.7712166601785153,
+    "usage": {
+      "input_tokens": 313,
+      "output_tokens": 1,
+      "cost": 1.3146e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0382",
+    "review_sha256": "c358c769d9802c5bb191ade5117a3d914e7337ba6794a890c100d407a2604a58",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.043593394865229514,
+      "service": 0.006685262030324283,
+      "location": 0.004594708919350246,
+      "value": 0.17241522130455467,
+      "other": 0.7727114128805412
+    },
+    "milliseconds": 381.64277500004573,
+    "cost_usd": 1.533e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803831-M95QHobnoQL7f5Qhjq4G",
+    "provider_confidence": 0.7158892661006766,
+    "usage": {
+      "input_tokens": 365,
+      "output_tokens": 1,
+      "cost": 1.533e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0383",
+    "review_sha256": "a1caab844510e31972d7d10ed7ebf775523c553496620d2ec1343f0f37bc9cc0",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.01122102139426512,
+      "service": 0.2893940249730971,
+      "location": 0.0032148764551277755,
+      "value": 0.001949921137223262,
+      "other": 0.6942201560402868
+    },
+    "milliseconds": 407.06720200000746,
+    "cost_usd": 1.4616e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803832-7E4xOySVoaHCmJBsClN8",
+    "provider_confidence": 0.6177751950503585,
+    "usage": {
+      "input_tokens": 348,
+      "output_tokens": 1,
+      "cost": 1.4616e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0384",
+    "review_sha256": "6cfe14da2cd9e47069c41fbaa4e5cccd8cd6bc1f80d63521c0a01ea9e241297d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.05854425406470496,
+      "service": 0.021537227469122604,
+      "location": 0.002572254391599532,
+      "value": 0.0015601511530855825,
+      "other": 0.9157861129214874
+    },
+    "milliseconds": 498.82845799993447,
+    "cost_usd": 1.239e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803833-WNPQKn2eTCMRJ3Zr2qgq",
+    "provider_confidence": 0.894732641151859,
+    "usage": {
+      "input_tokens": 295,
+      "output_tokens": 1,
+      "cost": 1.239e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0385",
+    "review_sha256": "7bcd3f6a60cb1a2e466709fbf85b41f98e383d4e5b35eb64c70bfb5c91a5e86b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0029951429770199455,
+      "service": 0.18530291229001916,
+      "location": 0.0029951429770199455,
+      "value": 0.23793364916664386,
+      "other": 0.5707731525892971
+    },
+    "milliseconds": 384.1412730000684,
+    "cost_usd": 3.2046e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803835-c0lfSYPJmYAu9Vfqgtu1",
+    "provider_confidence": 0.46346644073662135,
+    "usage": {
+      "input_tokens": 763,
+      "output_tokens": 1,
+      "cost": 3.2046e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0386",
+    "review_sha256": "29b25007dac2d03ef22e57cb813641e8c4437598be6b73bead71197c40a491c3",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0008651117213284075,
+      "service": 0.8372338248559444,
+      "location": 0.09999331934582774,
+      "value": 0.0012587301272184068,
+      "other": 0.060649013949680926
+    },
+    "milliseconds": 462.4740970000403,
+    "cost_usd": 1.218e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803835-F63eoGxqNh7TlvszKptv",
+    "provider_confidence": 0.7965422810699305,
+    "usage": {
+      "input_tokens": 290,
+      "output_tokens": 1,
+      "cost": 1.218e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0387",
+    "review_sha256": "ca3048134df51e1c65ac8fc8ee0436953f56d60ff6dd2cdef59dd0976068e5fe",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.003602443241430524,
+      "service": 0.3242816835812979,
+      "location": 0.003179145002299247,
+      "value": 0.2525508291088283,
+      "other": 0.416385899066144
+    },
+    "milliseconds": 406.3543799998115,
+    "cost_usd": 2.1882e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803836-RkgogMZz4qhU75Fnvpjf",
+    "provider_confidence": 0.27048237383268003,
+    "usage": {
+      "input_tokens": 521,
+      "output_tokens": 1,
+      "cost": 2.1882e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0388",
+    "review_sha256": "d6f8400b0f130af9dfe819aef93e6c519b1a31531fa40dee6681bea08bbd1e73",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0021007375772325683,
+      "service": 0.0018538944050508087,
+      "location": 0.8474981146287238,
+      "value": 0.0012741617486019888,
+      "other": 0.1472730916403908
+    },
+    "milliseconds": 436.3488910000797,
+    "cost_usd": 2.3184e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803838-zEXX2xbzwUR7nN2XD9ea",
+    "provider_confidence": 0.8093726432859047,
+    "usage": {
+      "input_tokens": 552,
+      "output_tokens": 1,
+      "cost": 2.3184e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0389",
+    "review_sha256": "7fbe7576662bfe3ef3d478a64b37293d2c18053836c5774725b90ae4d55aa93e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0019360694117940098,
+      "service": 0.08232378584422413,
+      "location": 0.07265048601656536,
+      "value": 0.15380108010398774,
+      "other": 0.6892885786234288
+    },
+    "milliseconds": 425.8988789999876,
+    "cost_usd": 1.68e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803839-fATbMLb2KVFG5BUCM1sE",
+    "provider_confidence": 0.6116107232792859,
+    "usage": {
+      "input_tokens": 400,
+      "output_tokens": 1,
+      "cost": 1.68e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0390",
+    "review_sha256": "14d292b666c12bdb15c953032b5648d95e923391533de8d7291d82d6b6bc367d",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0005299991155346472,
+      "service": 0.9582607020208602,
+      "location": 0.022536130478576635,
+      "value": 0.0011220081363915511,
+      "other": 0.017551160248637027
+    },
+    "milliseconds": 454.09971599997334,
+    "cost_usd": 1.974e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803840-fik7TVkGiTXwqTMUUwOz",
+    "provider_confidence": 0.9478258775260753,
+    "usage": {
+      "input_tokens": 470,
+      "output_tokens": 1,
+      "cost": 1.974e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0391",
+    "review_sha256": "fac73be6fbd372a1f3213fb1447c121ea11c2e7c7a590493e7a5ac88bef10d5e",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.10441020818015859,
+      "service": 0.118312265883732,
+      "location": 0.13406536106498196,
+      "value": 0.3216060824355637,
+      "other": 0.3216060824355637
+    },
+    "milliseconds": 433.49161299988737,
+    "cost_usd": 1.3944e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803841-haM2bNI70SQCTY5WOL3o",
+    "provider_confidence": 0.15200760304445465,
+    "usage": {
+      "input_tokens": 332,
+      "output_tokens": 1,
+      "cost": 1.3944e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0392",
+    "review_sha256": "fc624deb5f5384dd34e82f0bd63d1f210f54e2863136e492d95ffb42127f659a",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.001150287578842224,
+      "service": 0.21920606381706678,
+      "location": 0.6752021910317366,
+      "value": 0.0008958448671596344,
+      "other": 0.1035456127051947
+    },
+    "milliseconds": 402.82215799993537,
+    "cost_usd": 1.2894e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803842-ISr0K4gcFc3vMKQ89kPp",
+    "provider_confidence": 0.5940027387896708,
+    "usage": {
+      "input_tokens": 307,
+      "output_tokens": 1,
+      "cost": 1.2894e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0393",
+    "review_sha256": "59d54dd6681bcfd5b08078516f6977511654ce37121cc13bbde5f28dbea54016",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.025565806961292823,
+      "service": 0.45316474438560733,
+      "location": 0.16671000285986692,
+      "value": 0.0016343669693955087,
+      "other": 0.3529250788238374
+    },
+    "milliseconds": 392.25902500015764,
+    "cost_usd": 2.1e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803842-Fg4AUO1x1vquSEffAUln",
+    "provider_confidence": 0.31645593048200915,
+    "usage": {
+      "input_tokens": 500,
+      "output_tokens": 1,
+      "cost": 2.1e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0394",
+    "review_sha256": "895223a30084a6f6f2e9808da20a39524c4cb07043c50e6c19a3446061e9ada4",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0017936227226601287,
+      "service": 0.046258139700606014,
+      "location": 0.8199452185718762,
+      "value": 0.0062603584383803135,
+      "other": 0.1257426605664773
+    },
+    "milliseconds": 425.22154999983286,
+    "cost_usd": 1.7262e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803844-DebuREWIEGqdUg7GACHf",
+    "provider_confidence": 0.7749315232148453,
+    "usage": {
+      "input_tokens": 411,
+      "output_tokens": 1,
+      "cost": 1.7262e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0395",
+    "review_sha256": "e2b9b0066b3d6087c2f4f0dae2e6a74be7a9aa38a0a16d2b5e83722725c8056b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.006010261387670004,
+      "service": 0.05032331447382217,
+      "location": 0.8920020390787209,
+      "value": 0.0013410705859647322,
+      "other": 0.05032331447382217
+    },
+    "milliseconds": 386.1757770000622,
+    "cost_usd": 2.1924e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803845-O5CVBRFqoDXnjrZBq7UL",
+    "provider_confidence": 0.865002548848401,
+    "usage": {
+      "input_tokens": 522,
+      "output_tokens": 1,
+      "cost": 2.1924e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0396",
+    "review_sha256": "f9e6678c66a04e0538f625c1b3407b918743cbc70def4740a1e76487fd7d004b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0015646104987582358,
+      "service": 0.045724621222810215,
+      "location": 0.810488255658631,
+      "value": 0.001380763918905482,
+      "other": 0.14084174870089503
+    },
+    "milliseconds": 478.68337399995653,
+    "cost_usd": 1.8564e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803846-6itMS1lENwbolrbd0kEo",
+    "provider_confidence": 0.7631103195732889,
+    "usage": {
+      "input_tokens": 442,
+      "output_tokens": 1,
+      "cost": 1.8564e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0397",
+    "review_sha256": "aa9eed0564b0c6b726704954dc63bf894a7514429fc93b396c4d57c2828886f9",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0019289529637667635,
+      "service": 0.01830139616097991,
+      "location": 0.00673270739235847,
+      "value": 0.6867549062425152,
+      "other": 0.2862820372403796
+    },
+    "milliseconds": 371.3096530000257,
+    "cost_usd": 2.0958e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803847-Np4dljwwK6oxMPY4wMRI",
+    "provider_confidence": 0.6084436328031441,
+    "usage": {
+      "input_tokens": 499,
+      "output_tokens": 1,
+      "cost": 2.0958e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0398",
+    "review_sha256": "e8ae9cabf82edc0db4ac77b17e399f19800ab4596f5a1662bb463466e1bd6648",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0030712601268524007,
+      "service": 0.24398041170041251,
+      "location": 0.40225567042833743,
+      "value": 0.037415607947128754,
+      "other": 0.3132770497972689
+    },
+    "milliseconds": 395.48946700006127,
+    "cost_usd": 2.3856e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803848-kMm4xmLRnHS0GjKQnwJW",
+    "provider_confidence": 0.2528195880354218,
+    "usage": {
+      "input_tokens": 568,
+      "output_tokens": 1,
+      "cost": 2.3856e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0399",
+    "review_sha256": "0460f227176eed70606a6e8d0cbab85e10ad66797cea5fb0acaa985be117724c",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.00840841395902824,
+      "service": 0.01570898538737118,
+      "location": 0.002125979986759688,
+      "value": 0.0018761707532722637,
+      "other": 0.9718804499135687
+    },
+    "milliseconds": 398.71268899992174,
+    "cost_usd": 4.305e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803849-gCjgGiCZF0dOMFrbYzAY",
+    "provider_confidence": 0.9648505623919608,
+    "usage": {
+      "input_tokens": 1025,
+      "output_tokens": 1,
+      "cost": 4.305e-05
+    },
+    "cost_status": "reported_usd"
+  },
+  {
+    "review_id": "topic-0400",
+    "review_sha256": "b784d23b282fe4e0deba44b14f3f3df92d766433d518215b5a4fe6c4f8ec4f9b",
+    "arm": "decision",
+    "status": "ok",
+    "error": null,
+    "probabilities": {
+      "cleanliness": 0.0016582668649970233,
+      "service": 0.13173245369019493,
+      "location": 0.004507636685857157,
+      "value": 0.0030980503668744932,
+      "other": 0.8590035923920765
+    },
+    "milliseconds": 407.6144050000039,
+    "cost_usd": 1.2768e-05,
+    "model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "request_id": "gen-dec-1791803852-ukvP2YuKMawNTBo6yZoS",
+    "provider_confidence": 0.8237544904900955,
+    "usage": {
+      "input_tokens": 304,
+      "output_tokens": 1,
+      "cost": 1.2768e-05
+    },
+    "cost_status": "reported_usd"
+  }
+]

@@ -8,7 +8,10 @@ from dataclasses import replace
 
 from reviewnlp.triage.evidence_generator import messages_evidence_measures
 from reviewnlp.triage.generator_experiment import RecordingTransport, cost_summary
-from reviewnlp.triage.jev_client import JevClient, JevConfig, urllib_transport
+from reviewnlp.triage.jev_client import ROUTES, JevClient, JevConfig, urllib_transport
+from reviewnlp.triage.lexicon import SHA256 as LEXICON_SHA256
+from reviewnlp.triage.lexicon import VERSION as LEXICON_VERSION
+from reviewnlp.triage.lexicon import LexiconClassifier, enabled_from_env
 from reviewnlp.triage.pipeline import TriagePipeline
 from reviewnlp.triage.qwen_generator import MAX_NEW_TOKENS, QwenActionGenerator
 from reviewnlp.triage.span_evidence_generator import (
@@ -122,15 +125,17 @@ class DemoService:
     immediately preceding generation. No review database or raw-generation history is kept.
     """
 
-    def __init__(self, wrapper=None, generator=None, *, jev_config=None, transport=urllib_transport):
+    def __init__(self, wrapper=None, generator=None, *, jev_config=None, transport=urllib_transport,
+                 lexicon_enabled=None):
         self.wrapper = wrapper if wrapper is not None else PinnedSentiment()
         self.generator = generator if generator is not None else make_generator()
         self.jev_config = jev_config if jev_config is not None else JevConfig.from_env()
         self.transport, self._lock = transport, threading.Lock()
+        self.lexicon = LexiconClassifier() if (enabled_from_env() if lexicon_enabled is None else lexicon_enabled) else None
 
     @property
     def jev_available(self) -> bool:
-        return bool(self.jev_config.enabled and self.jev_config.api_key)
+        return bool(self.jev_config.enabled and self.jev_config.api_key and self.jev_config.route in ROUTES)
 
     def analyze(self, text: str, use_jev: bool = False) -> dict:
         if not isinstance(text, str) or len(text.strip()) < 3 or len(text) > 4000:
@@ -141,10 +146,15 @@ class DemoService:
             recorder = RecordingTransport(self.transport)
             client = JevClient(replace(self.jev_config, enabled=bool(use_jev)), transport=recorder)
             try:
-                result = TriagePipeline(self.wrapper, client, self.generator, evaluate_all_reviews=True).run(text)
-                stages = [{"stage": "sentiment", "status": "ok", "error": None},
-                          {"stage": "jev", "status": result.complaints.status,
-                           "error": result.complaints.error}, *public_stage_reports(self.generator)]
+                result = TriagePipeline(self.wrapper, client, self.generator,
+                    evaluate_all_reviews=True, lexicon=self.lexicon).run(text)
+                complaint = result.complaints
+                jev = complaint.enhancement or complaint
+                stages = [{"stage": "sentiment", "status": "ok", "error": None}]
+                if self.lexicon:
+                    stages.append({"stage": "lexicon", "status": complaint.status, "error": complaint.error})
+                stages += [{"stage": "jev", "status": jev.status, "error": jev.error},
+                           *public_stage_reports(self.generator)]
                 payload = {"status": result.status, "validation_status": "unvalidated",
                     "selection_status": "experimental_not_selected_not_promoted", "stage_reports": stages,
                     "stage_failure": next((item for item in stages if item["status"] == "error"), None),
@@ -166,7 +176,12 @@ class DemoService:
 
 def space_environment() -> dict:
     """Only public configuration; environment and keys must never be sent to the UI."""
+    config = JevConfig.from_env()
     return {"prompt_version": VERSION, "distilbert_revision": DISTILBERT_REVISION,
             "qwen_revision": QWEN_REVISION, "validation_status": "unvalidated",
             "candidate": CANDIDATE, "selection_status": "experimental_not_selected_not_promoted",
-            "jev_enabled": os.environ.get("REVIEWNLP_JEV_ENABLED", "").strip().lower() in {"1", "true", "yes"}}
+            "jev_enabled": os.environ.get("REVIEWNLP_JEV_ENABLED", "").strip().lower() in {"1", "true", "yes"},
+            "jev_available": bool(config.enabled and config.api_key and config.route in ROUTES),
+            "complaint_primary": "lexicon" if enabled_from_env() else "jev",
+            "lexicon_version": LEXICON_VERSION, "lexicon_sha256": LEXICON_SHA256,
+            "lexicon_validation_status": "unvalidated"}

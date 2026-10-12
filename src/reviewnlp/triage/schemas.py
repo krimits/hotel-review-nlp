@@ -37,7 +37,27 @@ class SentimentResult(BaseModel):
 class ComplaintTopic(BaseModel):
     topic: str = Field(description="One of the five pilot topics, or 'other' for any other complaint")
     answer: Answer
-    probability: float = Field(ge=0.0, le=1.0, description="Jev's probability that the answer is 'yes'")
+    probability: float | None = Field(ge=0.0, le=1.0,
+        description="Jev's P(yes), or null for a lexical rule; a rule match is not a calibrated probability")
+
+
+class LexiconMatch(BaseModel):
+    topic: str
+    excerpt: str
+    start: int
+    end: int
+    rule: str
+
+
+class ComplaintEnhancement(BaseModel):
+    status: StageStatus
+    error: str | None = None
+    topics: list[ComplaintTopic] = Field(default_factory=list)
+    other_complaint: ComplaintTopic | None = None
+    route: str | None = None
+    model: str | None = None
+    questions_version: str
+    questions_sha256: str
 
 
 class ComplaintsResult(BaseModel):
@@ -49,6 +69,10 @@ class ComplaintsResult(BaseModel):
     model: str | None = Field(default=None, description="The model that answered, as the provider names it")
     questions_version: str
     questions_sha256: str
+    source: Literal["jev", "lexicon"] = "jev"
+    coverage_status: Literal["not_assessed", "limited"] = "not_assessed"
+    evidence: list[LexiconMatch] = Field(default_factory=list)
+    enhancement: ComplaintEnhancement | None = None
 
 
 class RoutingDecision(BaseModel):

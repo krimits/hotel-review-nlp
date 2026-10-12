@@ -66,8 +66,24 @@ def write(path, rows):
         writer.writerows(rows)
 
 
-def test_capture_records_every_case_but_leaves_all_human_judgments_blank_and_never_promotes(tmp_path):
+@pytest.mark.parametrize("local_primary", [False, True])
+def test_capture_records_every_case_but_leaves_all_human_judgments_blank_and_never_promotes(tmp_path, local_primary):
     client, folder = FakeClient(), tmp_path / "capture"
+    if local_primary:
+        original_submit = client.submit
+
+        def submit(*args, **kwargs):
+            job = original_submit(*args, **kwargs)
+            original_result = job.result
+
+            def result(**options):
+                values = original_result(**options)
+                values[-1]["complaints"] = {"status": "ok", "source": "lexicon",
+                                             "enhancement": {"status": "disabled"}}
+                return values
+            job.result = result
+            return job
+        client.submit = submit
     report = capture(client, ROWS, folder, source_commit=SOURCE)
     assert report["execution_complete"] and report["planned_cases"] == report["executed_cases"] == 2
     assert report["failures"] == 0 and client.calls == [(row["text"], False) for row in ROWS]

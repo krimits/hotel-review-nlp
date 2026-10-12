@@ -96,7 +96,7 @@ def test_actual_import_and_environment_failures_are_rejected_with_bounded_diagno
     assert "FAKE-SECRET" not in json.dumps(raised.value.details)
 
 
-def test_comparison_does_not_import_model_loader_or_create_output_when_preflight_fails(monkeypatch, tmp_path):
+def test_comparison_does_not_import_model_loader_or_create_output_when_preflight_fails(monkeypatch, tmp_path, frozen_triage_root):
     seen = []
 
     def blocked(**kwargs):
@@ -104,6 +104,8 @@ def test_comparison_does_not_import_model_loader_or_create_output_when_preflight
         raise runtime.RuntimePreflightError("pinned_dependency_mismatch", {"packages": {"transformers": "5.18.0"}})
 
     monkeypatch.setattr(experiment, "check_runtime", blocked)
+    original_inputs = experiment.frozen_inputs
+    monkeypatch.setattr(experiment, "frozen_inputs", lambda **kwargs: original_inputs(root=frozen_triage_root, **kwargs))
     monkeypatch.setattr(sys, "argv", ["compare_triage_formats.py", "--cases", "all", "--device", "cpu",
                                       "--output", str(tmp_path / "comparison")])
     with pytest.raises(runtime.RuntimePreflightError):

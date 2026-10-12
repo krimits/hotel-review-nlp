@@ -1,0 +1,31 @@
+{
+  "config_sha256": "5e078b5117b805a7474331cd93dfdc07f0c1fcde52ff3110d28d70916d92b86e",
+  "sample_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+  "labels_sha256": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+  "arms": [
+    "logistic",
+    "qwen",
+    "decision"
+  ],
+  "device": "cuda",
+  "temperatures": {
+    "logistic": 0.9666227891086207,
+    "qwen": 3.0317593795870854,
+    "decision": 1.3064967044555922
+  },
+  "runtime_signature": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "torch": "2.11.0",
+    "transformers": "4.56.2",
+    "huggingface-hub": "0.36.2",
+    "qwen_device": "cuda:0",
+    "qwen_dtype": "torch.bfloat16",
+    "gpu": "Tesla T4"
+  },
+  "development_files": {
+    "predictions.jsonl": "e95bdcaa750776136a854f03562f7372ad817338938a8a0a7d9d81a47df4fb04",
+    "run.json": "8b81eab96dcdfb8f9d37b9c7c5aa509290171724f64e4eb7d5f9aee29ead23ee"
+  }
+}

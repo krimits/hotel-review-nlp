@@ -86,7 +86,13 @@ def present(result):
     if amount is not None and not cost["complete_cost_available"]:
         title += " **Ελλιπές άθροισμα: λείπει κόστος για ορισμένα αιτήματα.**"
     title += "\n\nΤο κόστος GPU δεν καταγράφεται εδώ."
-    complaints = result["complaints"]
+    primary = result["complaints"]
+    if primary.get("source") == "lexicon":
+        flagged = [item["topic"] for item in primary["topics"] if item["answer"] == "yes"]
+        title += "\n\n**Τοπικό λεξικό — ενδείξεις θεμάτων:** " + (", ".join(flagged) or "καμία αντιστοίχιση") + "."
+        title += (" Η κάλυψη είναι περιορισμένη και δεν έχει αξιολογηθεί. Η απουσία αντιστοίχισης δεν σημαίνει "
+                  "απουσία προβλήματος· τα μη αναγνωρισμένα θέματα χρειάζονται ανθρώπινο έλεγχο.")
+    complaints = primary.get("enhancement") or primary
     if complaints["status"] == "disabled":
         title += "\n\nΟ Jev δεν χρησιμοποιήθηκε σε αυτή την ανάλυση."
     elif complaints["status"] == "error":
@@ -139,7 +145,10 @@ def build_demo():
                     "(G-source-spans) — δεν έχει επιλεγεί "
                     "ούτε εγκριθεί για παραγωγική χρήση.** Ανεξάρτητη αξιολόγηση εκκρεμεί.")
         text = gr.Textbox(label="Κριτική στα αγγλικά", lines=7, max_lines=14)
-        use_jev = gr.Checkbox(label="Χρήση Jev για πρόσθετο έλεγχο παραπόνων", value=False)
+        gr.Markdown("Τα topics εντοπίζονται πρώτα με τοπικό λεξικό. Άγνωστα θέματα ζητούν ανθρώπινο έλεγχο. "
+                    "Το Qwen ελέγχει την κριτική και προτείνει μέτρα προς επιβεβαίωση· η ακρίβεια του λεξικού εκκρεμεί.")
+        use_jev = gr.Checkbox(label="Χρήση Jev για πρόσθετο έλεγχο παραπόνων", value=False,
+                              interactive=space_environment()["jev_available"])
         gr.Markdown("Με ενεργό Jev, το κείμενο αποστέλλεται στον πάροχό του. Η εφαρμογή δεν κρατά ιστορικό κριτικών.")
         run = gr.Button("Ανάλυση κριτικής", variant="primary")
         gr.Examples(examples=[["The reading lamp flickered all evening, although the bed was comfortable."],

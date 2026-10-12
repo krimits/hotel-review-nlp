@@ -47,6 +47,8 @@ def _is_doubtful(item: ComplaintTopic, low: float, high: float) -> bool:
     """
     if item.answer == "unsure":
         return True
+    if item.probability is None:
+        return False  # A lexical match is not a probabilistic answer.
     if item.answer == "no":
         return low <= item.probability < high
     return item.answer == "yes" and item.probability < high
@@ -74,6 +76,11 @@ def decide(sentiment: SentimentResult, complaints: ComplaintsResult,
 
     if complaints.status == "ok":
         answers = [*complaints.topics, *([complaints.other_complaint] if complaints.other_complaint else [])]
+        enhancement = complaints.enhancement
+        if enhancement and enhancement.status == "ok":
+            answers += [*enhancement.topics, *([enhancement.other_complaint] if enhancement.other_complaint else [])]
+        elif enhancement and enhancement.status == "error":
+            review.append("complaint_check_failed")
         low, high = thresholds.doubtful_band
         if any(item.answer == "yes" for item in answers):
             reasons.append("complaint_detected")

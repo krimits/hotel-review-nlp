@@ -1,0 +1,4 @@
+# CPU-only sample and label preparation; isolated from Colab's global environment.
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1

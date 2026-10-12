@@ -73,12 +73,29 @@ python spaces/hotel-triage-demo/app.py
 
 ## Jev (optional)
 
-The checkbox is off by default. To enable it, configure Space Variables:
+The default primary is the local `complaint-lexicon-v1` topic hint stage. Set
+`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1` (also the default) and leave `REVIEWNLP_JEV_ENABLED=0`.
+Lexical matches include verbatim evidence and a rule fingerprint, with no probability score. Unknown
+topics are `unsure` and require human review, not a claim that no problem exists. Qwen still examines
+the whole review for evidence and measures; it does not automatically execute them.
+
+This is a new narrow lexicon, not the older ABSA model's measured rule set. Its precision/recall are
+unmeasured and the whole-review human pilot comes before further paid model comparisons.
+No review text goes to an external inference API with Jev off; HF still hosts/processes the input.
+There is no Jev charge in that mode, but hosting and local-model compute can cost money. Fully offline
+execution requires cached pinned model weights and dependencies. The lexical stage itself needs none.
+Setting `REVIEWNLP_TRIAGE_LEXICON_FALLBACK=0` restores the historical Jev-only topic path.
+
+The checkbox is off by default and disabled without administrator configuration. Enable it only with provider
+access; configure Space Variables:
 `REVIEWNLP_JEV_ENABLED=1`, `REVIEWNLP_JEV_ROUTE=openrouter`, and Secret `OPENROUTER_API_KEY`.
 There is no key input in the UI. Selecting Jev sends the review to that provider. Provider-reported usage
 and cost are returned for this request only; missing cost is unknown, incomplete sums are marked partial,
 and no currency is inferred from `usage.cost`. The Jev route can resolve a newer
 provider model and is recorded per request rather than claimed immutable. There is no review database.
+Configuration indicates a route/key is present; it does not prove provider account access. A provider failure
+is visible and leaves the local topics intact. Jev answers are separate enhancement diagnostics, never a
+replacement for lexical evidence. Possessing a key without checking the box sends nothing.
 
 ## Build a reviewable Space package
 

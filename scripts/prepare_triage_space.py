@@ -18,6 +18,7 @@ MODULES = (
     "triage/demo_service.py",
     "triage/space_runtime.py",
     "triage/span_evidence_generator.py",
+    "triage/lexicon.py",
 )
 
 
@@ -65,6 +66,8 @@ def build_package(root: Path, output: Path, *, source_commit: str | None = None)
         hashes[name] = hashlib.sha256(content).hexdigest()
     from reviewnlp.triage.demo_service import DISTILBERT_REVISION, QWEN_REVISION
     from reviewnlp.triage.evidence_generator import CATEGORY_DEPARTMENTS
+    from reviewnlp.triage.lexicon import SHA256 as LEXICON_SHA256
+    from reviewnlp.triage.lexicon import VERSION as LEXICON_VERSION
     from reviewnlp.triage.questions import QUESTIONS_SHA256, QUESTIONS_VERSION
     from reviewnlp.triage.span_evidence_generator import (
         CANDIDATE,
@@ -81,6 +84,8 @@ def build_package(root: Path, output: Path, *, source_commit: str | None = None)
                     "distilbert_revision": DISTILBERT_REVISION,
                     "qwen_revision": QWEN_REVISION, "category_departments": CATEGORY_DEPARTMENTS,
                     "jev_questions_version": QUESTIONS_VERSION, "jev_questions_sha256": QUESTIONS_SHA256,
+                    "complaint_primary_default": "lexicon", "lexicon_version": LEXICON_VERSION,
+                    "lexicon_sha256": LEXICON_SHA256, "lexicon_validation_status": "unvalidated",
                     "jev_default": False, "jev_model_policy": "mutable route; resolved model reported per request",
                     "routing": "all_reviews_diagnostic", "max_review_characters": 4000,
                     "distilbert_max_tokens": 256, "max_calls_per_review": 2, "max_new_tokens_per_call": 400,

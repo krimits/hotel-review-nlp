@@ -1,0 +1,23 @@
+{
+  "scope": "Jev dev extension only; not a final four-arm test freeze",
+  "configuration_sha256": "f0c6769944902595eb672aa4d57338b56ebf5e7169a2aff481f8c388774dd996",
+  "sample_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+  "labels_sha256": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+  "temperatures": {
+    "decision": 1.3064967044555922,
+    "jev": 4.324180394700585
+  },
+  "reference": {
+    "code_commit": "fe51104b73e0ad8c96ffe903a4ef5c63d1f16f39",
+    "run_sha256": "8b81eab96dcdfb8f9d37b9c7c5aa509290171724f64e4eb7d5f9aee29ead23ee",
+    "predictions_sha256": "e95bdcaa750776136a854f03562f7372ad817338938a8a0a7d9d81a47df4fb04",
+    "freeze_sha256": "13e02b7e9ab93ae6fd4e6767c131b8823c2e784f885d9c263567efd227e38277",
+    "request_time_policy": "historical API path; not simultaneous with this Jev run"
+  },
+  "development_files": {
+    "human_queue.csv": "2950b7fc91332c6cb2fac2d0db46fe62da41b2716b5867358268267311c52635",
+    "jev_predictions.jsonl": "650ac240449c6d7a357e86952c8bbfd0ae20b190c168f36f94033472cd14bd3e",
+    "microsoft_reference_predictions.json": "2e9cfd782b5aedff366dab60c118c8e5506df9c5e0ee153e69bc880efa86d4d0",
+    "run.json": "aa4b17a2b223de57f99d04591114a09388f45e2a5b7e9f55612e6cef14b6343b"
+  }
+}

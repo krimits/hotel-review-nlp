@@ -1,0 +1,8 @@
+# Isolated Colab GPU runtime; never resolve against its global Gradio/diffusers.
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+torch==2.11.0
+transformers==4.56.2
+huggingface-hub==0.36.2
+accelerate==1.10.1

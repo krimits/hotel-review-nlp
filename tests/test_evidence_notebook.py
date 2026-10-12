@@ -7,6 +7,7 @@ import io
 import json
 import os
 import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -33,14 +34,16 @@ def cells():
     return nb, {cell["id"]: "".join(cell["source"]) for cell in nb["cells"] if cell["cell_type"] == "code"}
 
 
-def test_notebook_pins_current_modules_and_archived_reference_without_secrets_or_final_data():
+def test_notebook_pins_historical_modules_and_archived_reference_without_secrets_or_final_data():
     nb, code = cells()
     namespace = {}
     exec(code["parameters"], namespace)
     assert namespace["EXPECTED_CANDIDATES"] == ("F", "G")
-    assert namespace["SCRIPT_SHA256"] == digest_bytes((ROOT / "scripts/compare_triage_generators.py").read_bytes())
+    def pinned(path):
+        return subprocess.check_output(["git", "show", namespace["SOURCE_COMMIT"] + ":" + path], cwd=ROOT)
+    assert namespace["SCRIPT_SHA256"] == digest_bytes(pinned("scripts/compare_triage_generators.py"))
     for name, expected in namespace["MODULE_HASHES"].items():
-        assert digest_bytes((ROOT / name).read_bytes()) == expected
+        assert digest_bytes(pinned(name)) == expected
     assert namespace["REFERENCE_RUN_SHA256"] == digest_bytes((ROOT / namespace["REFERENCE_RELATIVE"] / "run.json").read_bytes())
     source = "\n".join(code.values())
     assert "files.upload" not in source and "userdata.get" not in source and "holdout.json" not in source
@@ -83,7 +86,7 @@ def test_top_to_bottom_wiring_checks_budgets_and_downloads_failed_runs(tmp_path,
                                                for name in ("run.json", "upstream.json"))]:
         target = checkout / name
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(ROOT / name, target)
+        target.write_bytes(subprocess.check_output(["git", "show", namespace["SOURCE_COMMIT"] + ":" + name], cwd=ROOT))
     namespace["REPO_DIR"] = checkout
 
     def fake_run(arguments, **kwargs):

@@ -103,6 +103,42 @@ before weights are downloaded, and exports preflight diagnostics when that check
 [`data/raw/README.md`](../data/raw/README.md) for how to download it, and note
 the Windows filename warning there.
 
+Notebook 22 prepares a **new primary-topic labeling experiment**, separate from the triage sheets:
+[22_decision_topics_sample_colab.ipynb](22_decision_topics_sample_colab.ipynb).
+It samples 500 whole reviews from the already tracked 658-review NYC corpus, assigns
+300 train / 100 dev / 100 test before labels, and exports blank A (500), B (100 independent
+overlap) and final (500) sheets with Greek instructions and hashes. Use Colab **CPU**;
+no key, GPU, Drive, model download, provider inference or Space update. Human labels come
+first; the [fixed protocol](../docs/experiments/decision_topic_benchmark/PROTOCOL.md) and runner then compare
+logistic regression, prompted Qwen and a dated Microsoft decision build using held-out
+macro-F1/ECE, selective coverage, p95 request latency and known provider cost.
+This prepares 500 labels, **not 500 held-out test reviews**, and establishes no model-quality result.
+
+Notebook 23 uses the **validated 12 October annotation ZIP** to rerun logistic regression and
+score the pinned Qwen on the same 100 dev reviews:
+[23_decision_topics_dev_comparison_colab.ipynb](23_decision_topics_dev_comparison_colab.ipynb).
+Fresh Colab GPU and `decision_topics_inputs_20261012.zip` are needed. Default is local
+logistic + Qwen, with no API key or provider call. To include Microsoft, the owner explicitly
+sets `ALLOW_MICROSOFT=True`, chooses the observed-spend limit and enables the
+`OPENROUTER_API_KEY` Secret. The package is checked against already locked hashes before
+any model work; actual dependency versions, import origins and CUDA are checked too.
+It exports a dev capture with errors/cost, not a test result or a selected model.
+The real Colab three-arm development execution and its precision/support limitations
+are [recorded separately](../docs/experiments/decision_topic_benchmark/results/comparison_dev_20261012/README.md).
+
+Notebook 24 adds a **Jev primary-topic development arm**:
+[24_jev_primary_topics_dev_comparison_colab.ipynb](24_jev_primary_topics_dev_comparison_colab.ipynb).
+Fresh Colab **CPU**, the same locked input ZIP and no new rating sheets.
+It reuses the verified Microsoft capture, making only up to 100 new Jev requests.
+Default is check-only; set `ALLOW_JEV=True`, choose `MAX_COST_USD` and enable the
+`OPENROUTER_API_KEY` Colab Secret. It uses the dated Jev 1.13 build and exports
+`jev_primary_topics_dev_comparison.zip`, including errors and partial captures.
+Raw/dev-fitted metrics, referral risk and a paired bootstrap are development evidence;
+no winner, test prediction or Space update is automatic. The
+[returned real Jev capture](../docs/experiments/decision_topic_benchmark/results/jev_dev_20261012/README.md)
+completed 100/100 requests and is independently checked; the paired macro-F1
+interval crosses zero, and no model was promoted.
+
 ## Saving a run as evidence
 
 Colab keeps outputs in the file it hands back, so the flow is just:

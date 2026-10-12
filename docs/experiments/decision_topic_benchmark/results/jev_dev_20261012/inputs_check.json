@@ -1,0 +1,13 @@
+{
+  "ready_for_opt_in": true,
+  "dev_reviews": 100,
+  "jev_model": "typesafe/jev-1.13-20260917",
+  "reference": {
+    "code_commit": "fe51104b73e0ad8c96ffe903a4ef5c63d1f16f39",
+    "run_sha256": "8b81eab96dcdfb8f9d37b9c7c5aa509290171724f64e4eb7d5f9aee29ead23ee",
+    "predictions_sha256": "e95bdcaa750776136a854f03562f7372ad817338938a8a0a7d9d81a47df4fb04",
+    "freeze_sha256": "13e02b7e9ab93ae6fd4e6767c131b8823c2e784f885d9c263567efd227e38277",
+    "request_time_policy": "historical API path; not simultaneous with this Jev run"
+  },
+  "provider_requests_made": 0
+}

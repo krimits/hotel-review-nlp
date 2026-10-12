@@ -1,0 +1,27 @@
+{
+  "config_sha256": "5e078b5117b805a7474331cd93dfdc07f0c1fcde52ff3110d28d70916d92b86e",
+  "sample_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+  "labels_sha256": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+  "arms": [
+    "logistic"
+  ],
+  "device": "cpu",
+  "temperatures": {
+    "logistic": 0.9666227891084493
+  },
+  "runtime_signature": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0",
+    "torch": null,
+    "transformers": null,
+    "huggingface-hub": null,
+    "qwen_device": null,
+    "qwen_dtype": null,
+    "gpu": null
+  },
+  "development_files": {
+    "predictions.jsonl": "6549db18b9077f501de6824b8fea3d370d05d67cb07de0db29d0c9729bffdd53",
+    "run.json": "f5ea5a7bf14d1b600866c91b60015bf82fe022c570e39ff18afda6ac9543fb38"
+  }
+}

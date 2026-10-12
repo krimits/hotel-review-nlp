@@ -48,6 +48,7 @@ def test_service_retains_positive_review_complaint_and_clears_model_diagnostics_
     assert result["issue_assessments"][0]["status"] == "REAL_PENDING"
     assert result["actions"]["actions"][0]["department"] == "housekeeping"
     assert result["api_cost"]["attempts"] == 0 and not result["stored"]
+    assert result["complaints"]["source"] == "lexicon"
     assert demo.generator.issues == demo.generator.last_stages == demo.generator.review_reasons == []
 
 
@@ -66,7 +67,9 @@ def test_failed_jev_retains_measures_and_reports_partial_with_unknown_cost():
     demo.jev_config = JevConfig(enabled=True, route="openrouter", api_key=secret, max_attempts=1)
     demo.transport = lambda *args: (503, {}, b'{"error":"unavailable"}')
     result = demo.analyze(TEXT, True)
-    assert result["status"] == "partial" and result["complaints"]["status"] == "error"
+    assert result["status"] == "partial" and result["complaints"]["status"] == "ok"
+    assert result["complaints"]["enhancement"]["status"] == "error"
+    assert result["complaints"]["evidence"][0]["topic"] == "cleanliness"
     assert result["actions"]["actions"]
     assert result["api_cost"]["attempts"] == 1 and result["api_cost"]["reported_cost_sum"] is None
     assert secret not in json.dumps(result)
@@ -98,7 +101,7 @@ def test_worker_returns_issue_assessments_even_when_its_local_state_is_cleared()
     assert original.generator.issues == [] and adapter.issues == []
     assert result["issue_assessments"][0]["department"] == "housekeeping"
     assert result["actions"]["actions"][0]["measure"] == "Clean the cupboard."
-    assert {item["stage"] for item in result["stage_reports"]} == {"sentiment", "jev", "issues", "measures"}
+    assert {item["stage"] for item in result["stage_reports"]} == {"sentiment", "lexicon", "jev", "issues", "measures"}
     assert not result["stage_failure"]
 
 
@@ -153,6 +156,8 @@ def test_real_gradio_build_has_endpoints_and_displays_uncertainty_empty_and_fail
             summary, issues, actions, result = app.analyze(TEXT, False)
         assert phrase in summary or any(phrase in str(row) for row in issues)
         assert result["validation_status"] == "unvalidated"
+        assert "Τοπικό λεξικό" in summary and "Ο Jev δεν χρησιμοποιήθηκε" in summary
+        assert "Θέματα που επισήμανε ο Jev" not in summary
         if status == "UNCERTAIN":
             assert issues and not actions
             assert "ανθρώπινος έλεγχος" in summary
@@ -189,6 +194,9 @@ def test_space_package_contains_only_allowed_sources_and_imports_without_the_ori
     manifest = script.build_package(ROOT, package, source_commit="a" * 40)
     assert manifest["hub_writes"] is False
     assert manifest["runtime_snapshot"]["candidate"] == "G-source-spans"
+    assert manifest["runtime_snapshot"]["complaint_primary_default"] == "lexicon"
+    assert manifest["runtime_snapshot"]["lexicon_validation_status"] == "unvalidated"
+    assert "reviewnlp/triage/lexicon.py" in manifest["files"]
     assert manifest["selection_status"] == "experimental_not_selected_not_promoted"
     for name, expected in manifest["files"].items():
         assert hashlib.sha256((package / name).read_bytes()).hexdigest() == expected

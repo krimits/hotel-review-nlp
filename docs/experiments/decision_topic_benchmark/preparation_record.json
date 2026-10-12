@@ -1,0 +1,25 @@
+{
+  "source_commit": "4d9a1691836354fe4ab8ec0e13b78947fd28f6a0",
+  "verification_mode": "notebook code cells executed sequentially in process; real clone, isolated install, preflight, sampling and ZIP; only local paths and google.colab.files.download substituted",
+  "jupyter_kernel": "unavailable in this environment: kernel died before kernel_info due to local socket restrictions",
+  "colab_execution": "pending",
+  "presentation": "HTML export generated; visual inspection unavailable locally",
+  "sample": {
+    "population_size": 658,
+    "sample_size": 500,
+    "split_counts": {
+      "train": 300,
+      "dev": 100,
+      "test": 100
+    },
+    "hotel_counts": {
+      "Westin New York at Times Square": 239,
+      "Hudson Hotel": 261
+    },
+    "second_reviewer_size": 100,
+    "sample_manifest_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b"
+  },
+  "labels_completed": false,
+  "model_quality_evaluated": false,
+  "provider_inference_requests": 0
+}
