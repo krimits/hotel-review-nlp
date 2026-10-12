@@ -1,11 +1,14 @@
 # Primary-topic comparison
 
-**Human labels validated; first logistic dev run complete.** All 500 final
-labels passed the identity/completeness checks on 12 October 2026. The
-[first supervised baseline](results/logistic_dev_20261012/README.md) predicts
-`other` on every dev review: accuracy 64%, macro-F1 0.1561. Reviewer
-independence remains unverified. Qwen/Microsoft dev inference and the final
-test are pending. This does not select a model or change the Space.
+**Three-arm development comparison completed and independently checked.**
+On the same 100 dev reviews, macro-F1 is logistic 0.1561, Qwen 0.2299 and
+Microsoft Decision-1 0.6524. See the
+[actual Colab result](results/comparison_dev_20261012/README.md) for raw and
+dev-fitted calibration, retained errors, class support, timing/cost and the
+Qwen T4 precision caveat. All 500 human labels remain locked; reviewer
+independence is unverified. The final test, model promotion and Space update
+remain pending. Resolve precision policy and freeze any changed configuration
+on dev before the one final test.
 
 For the next dev comparison, run [notebook 23](../../../notebooks/23_decision_topics_dev_comparison_colab.ipynb)
 on a fresh Colab GPU and upload the validated `decision_topics_inputs_20261012.zip`
@@ -13,7 +16,8 @@ returned with the annotation check. Default is logistic + Qwen with no provider
 key. Add Microsoft only by explicitly setting `ALLOW_MICROSOFT=True`, choosing
 the USD observed-spend budget and enabling the Colab `OPENROUTER_API_KEY` Secret.
 The notebook never runs the test partition and retains failed-run diagnostics.
-Its GPU/Qwen and paid provider execution have not been performed here.
+The returned capture records real GPU/Qwen and paid provider execution;
+it is archived and reviewed above, without starting a further provider run.
 
 [Protocol](PROTOCOL.md) is fixed before any labels or inference. Five classes
 describe one main topic regardless of sentiment. A sample of 500 whole
@@ -96,7 +100,8 @@ API request/response contracts, failure accounting, and a tiny random Qwen2
 through real Transformers APIs. They establish wiring, **not** the quality
 of the published Qwen or Microsoft model. The 500-review labels, real Qwen
 weights and real Microsoft responses were pending at initial preparation;
-the validated submission and actual logistic dev run are now recorded above.
+the validated submission, initial logistic run and returned three-arm dev
+capture are now recorded above.
 
 The [preparation record](preparation_record.json) documents a sequential local
 execution of notebook 22's code cells with a real fresh clone, isolated

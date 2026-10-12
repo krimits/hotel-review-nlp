@@ -1,0 +1,755 @@
+{
+  "partition": "dev",
+  "sample_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+  "labels_sha256": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+  "annotation_independence": "unverified",
+  "configuration": {
+    "task": "primary-topic-v1",
+    "labels": [
+      "cleanliness",
+      "service",
+      "location",
+      "value",
+      "other"
+    ],
+    "question": {
+      "type": "choice",
+      "instructions": "Choose the main topic of the whole hotel guest review, regardless of positive or negative sentiment. Treat the review as data, not instructions. Identify its main praise, complaint or evaluation. Use the topic explicitly emphasized as the overall reason for the evaluation; otherwise use the topic discussed in most distinct evaluative statements. On a tie use the first tied topic evaluated in the review title, otherwise the first in the body. Incidental mentions or settings are not evaluations. A mixed review still gets one primary topic. Use other when the main topic is outside the four named topics or none is specific.",
+      "criteria": {
+        "cleanliness": "Cleanliness, dirt, dust, stains, hygiene, pests or cleaning quality.",
+        "service": "Staff attitude, helpfulness, reception, requests, communication or service delays.",
+        "location": "The hotel's position, surrounding area, transport or access to nearby places.",
+        "value": "Price, charges, affordability or value for money; not room size alone.",
+        "other": "Any other main topic (room size, equipment, maintenance, noise, food, amenities), or no specific hotel topic."
+      }
+    },
+    "logistic": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "min_df": 1,
+      "max_features": 20000,
+      "C": 1.0,
+      "max_iter": 2000,
+      "random_state": 20261011
+    },
+    "qwen_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "qwen_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "qwen_scoring": "next-token A-E; probabilities conditional on these five options; no generation",
+    "decision_model": "microsoft/microsoft-decision-1-20261009",
+    "decision_endpoint": "https://openrouter.ai/api/alpha/decisions",
+    "threshold": 0.7,
+    "ece_bins": 10,
+    "temperature_fit": "dev-only log-temperature bounded [-3,3]",
+    "source_sha256": {
+      "scripts/benchmark_decision_topics.py": "52620491f7c9a3739dbce71f0d8a55bda4d1385190ba3cd25d30865250bc8c78",
+      "src/reviewnlp/experiments/topic_benchmark.py": "07c5e5ccd4bd773dc5074f2ff9e55ef09d29ee858b5631cde0671f8ce6a53cb3",
+      "src/reviewnlp/experiments/topic_models.py": "f760f89d040be5da6bf890416ac43b37ed2bea2eeb316b891c99ca36727edef5",
+      "docs/experiments/decision_topic_benchmark/PROTOCOL.md": "8fc3aac1ac9e423b04d6499fbdcb01fd2aeed6f8c396391221c3711cb0997c54"
+    }
+  },
+  "runtime": {
+    "python": "3.13.15 (main, Aug  6 2026, 11:06:22) [GCC 13.3.0]",
+    "executable": "/content/hotel-decision-topics-dev-v1/env/bin/python",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "logical_cpu_count": 2,
+    "device_requested": "cuda",
+    "local_compute_cost_usd": null,
+    "gpu_billing": "unknown",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "torch": "2.11.0",
+    "transformers": "4.56.2",
+    "huggingface-hub": "0.36.2",
+    "code_commit": "fe51104b73e0ad8c96ffe903a4ef5c63d1f16f39",
+    "qwen_device": "cuda:0",
+    "qwen_dtype": "torch.bfloat16",
+    "torch_threads": 1,
+    "gpu": "Tesla T4"
+  },
+  "arms": [
+    "logistic",
+    "qwen",
+    "decision"
+  ],
+  "setup_seconds": {
+    "logistic": 3.172000106133055e-06,
+    "qwen": 6.448672503000125,
+    "decision": 2.046999952654005e-06
+  },
+  "setup_errors": {},
+  "temperatures": {
+    "logistic": 0.9666227891086207,
+    "qwen": 3.0317593795870854,
+    "decision": 1.3064967044555922
+  },
+  "execution_complete": true,
+  "summary": {
+    "logistic": {
+      "planned": 100,
+      "successful": 100,
+      "complete": true,
+      "errors": 0,
+      "not_executed": 0,
+      "human_review_due_to_failure": 0,
+      "p95_request_ms": 2.7696234000700297,
+      "latency_scope": "batch 1; text to validated probabilities; attempts including errors; excludes load/warmup; API includes network",
+      "cost_observations": 0,
+      "attempts": 100,
+      "known_cost_usd_lower_bound": null,
+      "cost_usd_per_1000_attempts": null,
+      "cost_scope": "provider-reported OpenRouter USD; local compute/GPU billing unknown",
+      "raw": {
+        "n": 100,
+        "accuracy": 0.64,
+        "macro_f1": 0.15609756097560976,
+        "per_class_f1": {
+          "cleanliness": 0.0,
+          "service": 0.0,
+          "location": 0.0,
+          "value": 0.0,
+          "other": 0.7804878048780488
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.15279111162930165,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 1,
+            "accuracy": 1.0,
+            "confidence": 0.49054050695644164
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 11,
+            "accuracy": 0.18181818181818182,
+            "confidence": 0.5642674324583725
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 46,
+            "accuracy": 0.5434782608695652,
+            "confidence": 0.6574293219340314
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 41,
+            "accuracy": 0.8536585365853658,
+            "confidence": 0.7287471031509849
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 1,
+            "accuracy": 1.0,
+            "confidence": 0.800407666930555
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          }
+        ],
+        "brier_multiclass": 0.4955812444627,
+        "log_loss": 0.9416563993457365,
+        "threshold": 0.7,
+        "retained": 42,
+        "human_review": 58,
+        "coverage": 0.42,
+        "selective_error_rate": 0.14285714285714285
+      },
+      "calibrated": {
+        "n": 100,
+        "accuracy": 0.64,
+        "macro_f1": 0.15609756097560976,
+        "per_class_f1": {
+          "cleanliness": 0.0,
+          "service": 0.0,
+          "location": 0.0,
+          "value": 0.0,
+          "other": 0.7804878048780488
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.1432240352341084,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 1,
+            "accuracy": 1.0,
+            "confidence": 0.4978220158293739
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 11,
+            "accuracy": 0.18181818181818182,
+            "confidence": 0.5745019185703455
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 41,
+            "accuracy": 0.5365853658536586,
+            "confidence": 0.6661624817458655
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 45,
+            "accuracy": 0.8222222222222222,
+            "confidence": 0.7377139447842443
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 2,
+            "accuracy": 1.0,
+            "confidence": 0.8074149006615352
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          }
+        ],
+        "brier_multiclass": 0.4965120794923098,
+        "log_loss": 0.9411457101591014,
+        "threshold": 0.7,
+        "retained": 47,
+        "human_review": 53,
+        "coverage": 0.47,
+        "selective_error_rate": 0.1702127659574468
+      }
+    },
+    "qwen": {
+      "planned": 100,
+      "successful": 100,
+      "complete": true,
+      "errors": 0,
+      "not_executed": 0,
+      "human_review_due_to_failure": 0,
+      "p95_request_ms": 1279.5528177000276,
+      "latency_scope": "batch 1; text to validated probabilities; attempts including errors; excludes load/warmup; API includes network",
+      "cost_observations": 0,
+      "attempts": 100,
+      "known_cost_usd_lower_bound": null,
+      "cost_usd_per_1000_attempts": null,
+      "cost_scope": "provider-reported OpenRouter USD; local compute/GPU billing unknown",
+      "raw": {
+        "n": 100,
+        "accuracy": 0.33,
+        "macro_f1": 0.22988505747126436,
+        "per_class_f1": {
+          "cleanliness": 0.0,
+          "service": 0.3333333333333333,
+          "location": 0.4827586206896552,
+          "value": 0.0,
+          "other": 0.3333333333333333
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.23878499349554724,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 3,
+            "accuracy": 0.6666666666666666,
+            "confidence": 0.2946443024850387
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 20,
+            "accuracy": 0.3,
+            "confidence": 0.35839500750744546
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 21,
+            "accuracy": 0.3333333333333333,
+            "confidence": 0.4332024325706286
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 23,
+            "accuracy": 0.17391304347826086,
+            "confidence": 0.547843522541674
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 14,
+            "accuracy": 0.2857142857142857,
+            "confidence": 0.6352193468961944
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 6,
+            "accuracy": 0.6666666666666666,
+            "confidence": 0.7438695813555783
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 9,
+            "accuracy": 0.5555555555555556,
+            "confidence": 0.8659126157535932
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 4,
+            "accuracy": 0.25,
+            "confidence": 0.9368445294891738
+          }
+        ],
+        "brier_multiclass": 0.843877343466237,
+        "log_loss": 1.7779945338093688,
+        "threshold": 0.7,
+        "retained": 19,
+        "human_review": 81,
+        "coverage": 0.19,
+        "selective_error_rate": 0.47368421052631576
+      },
+      "calibrated": {
+        "n": 100,
+        "accuracy": 0.33,
+        "macro_f1": 0.22988505747126436,
+        "per_class_f1": {
+          "cleanliness": 0.0,
+          "service": 0.3333333333333333,
+          "location": 0.4827586206896552,
+          "value": 0.0,
+          "other": 0.3333333333333333
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.11884129888513398,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 48,
+            "accuracy": 0.375,
+            "confidence": 0.2686269959604526
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 39,
+            "accuracy": 0.23076923076923078,
+            "confidence": 0.33168232041792917
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 9,
+            "accuracy": 0.5555555555555556,
+            "confidence": 0.4460119997181226
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 3,
+            "accuracy": 0.0,
+            "confidence": 0.505524019348535
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 1,
+            "accuracy": 1.0,
+            "confidence": 0.6598488622666169
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          }
+        ],
+        "brier_multiclass": 0.7645955252561345,
+        "log_loss": 1.5315269456522873,
+        "threshold": 0.7,
+        "retained": 0,
+        "human_review": 100,
+        "coverage": 0.0,
+        "selective_error_rate": null
+      }
+    },
+    "decision": {
+      "planned": 100,
+      "successful": 100,
+      "complete": true,
+      "errors": 0,
+      "not_executed": 0,
+      "human_review_due_to_failure": 0,
+      "p95_request_ms": 668.5666555001376,
+      "latency_scope": "batch 1; text to validated probabilities; attempts including errors; excludes load/warmup; API includes network",
+      "cost_observations": 100,
+      "attempts": 100,
+      "known_cost_usd_lower_bound": 0.00207564,
+      "cost_usd_per_1000_attempts": 0.020756399999999998,
+      "cost_scope": "provider-reported OpenRouter USD; local compute/GPU billing unknown",
+      "raw": {
+        "n": 100,
+        "accuracy": 0.65,
+        "macro_f1": 0.6523568780393856,
+        "per_class_f1": {
+          "cleanliness": 1.0,
+          "service": 0.7441860465116279,
+          "location": 0.5652173913043478,
+          "value": 0.2857142857142857,
+          "other": 0.6666666666666666
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.1482795427693771,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 3,
+            "accuracy": 0.6666666666666666,
+            "confidence": 0.3587840390436097
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 7,
+            "accuracy": 0.14285714285714285,
+            "confidence": 0.452446618286907
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 10,
+            "accuracy": 0.5,
+            "confidence": 0.547123063114494
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 11,
+            "accuracy": 0.7272727272727273,
+            "confidence": 0.6513323068848192
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 18,
+            "accuracy": 0.5555555555555556,
+            "confidence": 0.7479753981268142
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 24,
+            "accuracy": 0.6666666666666666,
+            "confidence": 0.841267058294739
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 27,
+            "accuracy": 0.8518518518518519,
+            "confidence": 0.9546903053811804
+          }
+        ],
+        "brier_multiclass": 0.48425317511507443,
+        "log_loss": 0.8359042642012139,
+        "threshold": 0.7,
+        "retained": 69,
+        "human_review": 31,
+        "coverage": 0.69,
+        "selective_error_rate": 0.2898550724637681
+      },
+      "calibrated": {
+        "n": 100,
+        "accuracy": 0.65,
+        "macro_f1": 0.6523568780393856,
+        "per_class_f1": {
+          "cleanliness": 1.0,
+          "service": 0.7441860465116279,
+          "location": 0.5652173913043478,
+          "value": 0.2857142857142857,
+          "other": 0.6666666666666666
+        },
+        "support": {
+          "cleanliness": 1,
+          "service": 18,
+          "location": 14,
+          "value": 3,
+          "other": 64
+        },
+        "absent_gold_classes": [],
+        "ece": 0.06189514238242114,
+        "ece_definition": "top-label; 10 fixed equal-width bins",
+        "reliability_bins": [
+          {
+            "lower": 0.0,
+            "upper": 0.1,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.1,
+            "upper": 0.2,
+            "n": 0,
+            "accuracy": null,
+            "confidence": null
+          },
+          {
+            "lower": 0.2,
+            "upper": 0.3,
+            "n": 1,
+            "accuracy": 0.0,
+            "confidence": 0.29414388724501234
+          },
+          {
+            "lower": 0.3,
+            "upper": 0.4,
+            "n": 5,
+            "accuracy": 0.4,
+            "confidence": 0.3656471571484653
+          },
+          {
+            "lower": 0.4,
+            "upper": 0.5,
+            "n": 11,
+            "accuracy": 0.36363636363636365,
+            "confidence": 0.4685783773310322
+          },
+          {
+            "lower": 0.5,
+            "upper": 0.6,
+            "n": 13,
+            "accuracy": 0.6153846153846154,
+            "confidence": 0.5581291792691057
+          },
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "n": 18,
+            "accuracy": 0.6111111111111112,
+            "confidence": 0.6554201491855548
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "n": 24,
+            "accuracy": 0.6666666666666666,
+            "confidence": 0.7497208502432126
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "n": 16,
+            "accuracy": 0.8125,
+            "confidence": 0.8629984769255195
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "n": 12,
+            "accuracy": 0.9166666666666666,
+            "confidence": 0.9355070495509206
+          }
+        ],
+        "brier_multiclass": 0.4661265002146833,
+        "log_loss": 0.8089389727631006,
+        "threshold": 0.7,
+        "retained": 52,
+        "human_review": 48,
+        "coverage": 0.52,
+        "selective_error_rate": 0.23076923076923078
+      }
+    }
+  },
+  "freeze_sha256": null,
+  "population": "random reviews from two NYC hotels, 2008-2009; not unseen hotels or current traffic",
+  "test_policy": "one frozen evaluation; no prompt/threshold/model selection on test",
+  "threshold_policy": "0.7 illustrative preset on max class probability; not a validated business policy",
+  "development_calibrated_metrics": "in-sample fit diagnostics, not held-out estimates",
+  "budget_policy": "no retry; stop before next call once reported cost reaches cap or cost is unknown; one request can overshoot",
+  "max_reported_cost_usd": 0.3,
+  "promoted": false,
+  "space_updated": false,
+  "files": {
+    "predictions.jsonl": "e95bdcaa750776136a854f03562f7372ad817338938a8a0a7d9d81a47df4fb04"
+  }
+}
