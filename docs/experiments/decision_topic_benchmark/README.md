@@ -1,7 +1,11 @@
 # Primary-topic comparison
 
-**Prepared, not evaluated.** Human labels and paid decision inference are
-pending. The existing Space and notebook 21 are unaffected.
+**Human labels validated; first logistic dev run complete.** All 500 final
+labels passed the identity/completeness checks on 12 October 2026. The
+[first supervised baseline](results/logistic_dev_20261012/README.md) predicts
+`other` on every dev review: accuracy 64%, macro-F1 0.1561. Reviewer
+independence remains unverified. Qwen/Microsoft dev inference and the final
+test are pending. This does not select a model or change the Space.
 
 [Protocol](PROTOCOL.md) is fixed before any labels or inference. Five classes
 describe one main topic regardless of sentiment. A sample of 500 whole
@@ -83,7 +87,8 @@ Local/offline tests exercise real scikit-learn fits, frozen dev calibration,
 API request/response contracts, failure accounting, and a tiny random Qwen2
 through real Transformers APIs. They establish wiring, **not** the quality
 of the published Qwen or Microsoft model. The 500-review labels, real Qwen
-weights and real Microsoft responses have not been run here.
+weights and real Microsoft responses were pending at initial preparation;
+the validated submission and actual logistic dev run are now recorded above.
 
 The [preparation record](preparation_record.json) documents a sequential local
 execution of notebook 22's code cells with a real fresh clone, isolated

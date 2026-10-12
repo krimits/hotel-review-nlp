@@ -25,7 +25,7 @@ A **binary sentiment classifier** trained on about **118,000 real Booking.com re
 - Exposes a **FastAPI service** — `/predict` for scoring, `/absa` for per-aspect extraction — with health checks and batch paths for both
 - Ships as a Docker image and includes an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md)
 - Has an experimental, unvalidated `POST /triage` that chains sentiment, complaint topics (Jev, off by default) and suggested actions (Qwen, off by default): [what it does, what it sends out and what has not been measured](docs/TRIAGE.md)
-- Prepares a separate [primary-topic decision-model comparison](docs/experiments/decision_topic_benchmark/README.md): 500 whole reviews, human labels, TF-IDF logistic regression, prompted Qwen and a dated Microsoft-Decision-1 build. The 300/100/100 split supports training, dev calibration and a paired held-out test; labels and real model evaluation are pending, with no Space update or reliability claim.
+- Has a separate [primary-topic decision-model comparison](docs/experiments/decision_topic_benchmark/README.md): 500 validated final annotations, split 300/100/100. The [first logistic dev run](docs/experiments/decision_topic_benchmark/results/logistic_dev_20261012/README.md) predicts `other` throughout (64% accuracy, macro-F1 0.1561). Qwen/Microsoft inference and the paired held-out test are pending; no model was selected or promoted.
 - Includes a reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run
 
 For teams, this is the difference between reading reviews and *acting* on them.

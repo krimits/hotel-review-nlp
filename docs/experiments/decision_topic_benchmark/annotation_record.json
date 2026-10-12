@@ -1,0 +1,29 @@
+{
+  "version": "decision-topics-inputs-v1",
+  "validated_at": "2026-10-12",
+  "source_commit": "d2a9348f373a8638e154d58e7b6270df3d327c8e",
+  "sample_manifest_sha256": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+  "labels_sha256": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+  "input_files_sha256": {
+    "sample/sheet_B.csv": "01fa6cfeb380477f751244f76b792a1a7df78aa2ff6e255bfb06a385b1164e7f",
+    "sample/labels_final.csv": "cc392b4c12a0f8472f1fdc7b031675038bfff03d145505a1baf07798645a1a1c",
+    "sample/sample_manifest.json": "e0d66deb41b017ad51529c0de49618e23cd7adae02364ab49f2542d673c8bd9b",
+    "sample/reviews.json": "fed8774081ceba2b1df129ca8a4da4626ffd40d2fba3974d358f6e9dbd7ee1e6",
+    "sample/sheet_A.csv": "cc392b4c12a0f8472f1fdc7b031675038bfff03d145505a1baf07798645a1a1c",
+    "completed_A.csv": "4dd1df762c844ed2f393dc5b34ad5405484e67059062a3fe7640252ccc0ed8a1",
+    "completed_B.csv": "5e209262aa9ffb4999c8d96c918388a804196441f0be406ebf85d5caece7583c",
+    "completed_final.csv": "66771e1349ba7ff9be923db3fa79c247296fdea522236c22537bcff0725d8055",
+    "labels.json": "f3f2139fbcc82f2861dc973261f5a06ce5ac133bf45c8c8515d5672939fdda38",
+    "source_record.json": "9ee31f6b6694a610b3efa76a283cc31e853237a7c5ee63af6142cd35d21d17a6"
+  },
+  "original_final_xlsx_sha256": "0108b72e2290cdab3c3b23a2329c49bb738f6531ef7e3d1df29b4ce98f2a0693",
+  "sample_size": 500,
+  "agreement": {
+    "overlap": 100,
+    "agreements": 88,
+    "kappa": 0.7455470737913485,
+    "independence": "unverified"
+  },
+  "conversion": "literal XLSX cells to UTF-8 CSV; removed only 499 completely empty formatted rows; labels unchanged",
+  "actual_test_predictions_made": false
+}
