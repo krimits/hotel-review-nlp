@@ -15,6 +15,12 @@ An additional Jev development arm is prepared under the
 the same five-way question and 100 dev reviews, with the archived Microsoft
 capture reused as the reference. No new Jev provider result exists yet.
 The extension is CPU/API-only and does not resolve the Qwen precision caveat.
+Run [notebook 24](../../../notebooks/24_jev_primary_topics_dev_comparison_colab.ipynb)
+in a fresh Colab CPU session with the same `decision_topics_inputs_20261012.zip`.
+Default checks only. Set `ALLOW_JEV=True`, choose a positive `MAX_COST_USD`
+and enable the `OPENROUTER_API_KEY` Colab Secret to make the 100 new requests.
+Return `jev_primary_topics_dev_comparison.zip`, including failed-run diagnostics.
+No new annotation sheet, Microsoft run or Qwen/GPU work is needed for this extension.
 
 For the next dev comparison, run [notebook 23](../../../notebooks/23_decision_topics_dev_comparison_colab.ipynb)
 on a fresh Colab GPU and upload the validated `decision_topics_inputs_20261012.zip`

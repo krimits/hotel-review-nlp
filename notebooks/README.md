@@ -123,8 +123,18 @@ sets `ALLOW_MICROSOFT=True`, chooses the observed-spend limit and enables the
 `OPENROUTER_API_KEY` Secret. The package is checked against already locked hashes before
 any model work; actual dependency versions, import origins and CUDA are checked too.
 It exports a dev capture with errors/cost, not a test result or a selected model.
-Real-weight GPU/provider execution is pending; the local logistic result and its limitations
-are [recorded separately](../docs/experiments/decision_topic_benchmark/results/logistic_dev_20261012/README.md).
+The real Colab three-arm development execution and its precision/support limitations
+are [recorded separately](../docs/experiments/decision_topic_benchmark/results/comparison_dev_20261012/README.md).
+
+Notebook 24 adds a **Jev primary-topic development arm**:
+[24_jev_primary_topics_dev_comparison_colab.ipynb](24_jev_primary_topics_dev_comparison_colab.ipynb).
+Fresh Colab **CPU**, the same locked input ZIP and no new rating sheets.
+It reuses the verified Microsoft capture, making only up to 100 new Jev requests.
+Default is check-only; set `ALLOW_JEV=True`, choose `MAX_COST_USD` and enable the
+`OPENROUTER_API_KEY` Colab Secret. It uses the dated Jev 1.13 build and exports
+`jev_primary_topics_dev_comparison.zip`, including errors and partial captures.
+Raw/dev-fitted metrics, referral risk and a paired bootstrap are development evidence;
+no winner, test prediction or Space update is automatic. Real Jev execution is pending.
 
 ## Saving a run as evidence
 
