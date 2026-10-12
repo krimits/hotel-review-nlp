@@ -7,6 +7,14 @@ labels passed the identity/completeness checks on 12 October 2026. The
 independence remains unverified. Qwen/Microsoft dev inference and the final
 test are pending. This does not select a model or change the Space.
 
+For the next dev comparison, run [notebook 23](../../../notebooks/23_decision_topics_dev_comparison_colab.ipynb)
+on a fresh Colab GPU and upload the validated `decision_topics_inputs_20261012.zip`
+returned with the annotation check. Default is logistic + Qwen with no provider
+key. Add Microsoft only by explicitly setting `ALLOW_MICROSOFT=True`, choosing
+the USD observed-spend budget and enabling the Colab `OPENROUTER_API_KEY` Secret.
+The notebook never runs the test partition and retains failed-run diagnostics.
+Its GPU/Qwen and paid provider execution have not been performed here.
+
 [Protocol](PROTOCOL.md) is fixed before any labels or inference. Five classes
 describe one main topic regardless of sentiment. A sample of 500 whole
 reviews is split 300 train / 100 dev / 100 test. This is a pilot on the two

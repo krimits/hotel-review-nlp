@@ -114,6 +114,18 @@ logistic regression, prompted Qwen and a dated Microsoft decision build using he
 macro-F1/ECE, selective coverage, p95 request latency and known provider cost.
 This prepares 500 labels, **not 500 held-out test reviews**, and establishes no model-quality result.
 
+Notebook 23 uses the **validated 12 October annotation ZIP** to rerun logistic regression and
+score the pinned Qwen on the same 100 dev reviews:
+[23_decision_topics_dev_comparison_colab.ipynb](23_decision_topics_dev_comparison_colab.ipynb).
+Fresh Colab GPU and `decision_topics_inputs_20261012.zip` are needed. Default is local
+logistic + Qwen, with no API key or provider call. To include Microsoft, the owner explicitly
+sets `ALLOW_MICROSOFT=True`, chooses the observed-spend limit and enables the
+`OPENROUTER_API_KEY` Secret. The package is checked against already locked hashes before
+any model work; actual dependency versions, import origins and CUDA are checked too.
+It exports a dev capture with errors/cost, not a test result or a selected model.
+Real-weight GPU/provider execution is pending; the local logistic result and its limitations
+are [recorded separately](../docs/experiments/decision_topic_benchmark/results/logistic_dev_20261012/README.md).
+
 ## Saving a run as evidence
 
 Colab keeps outputs in the file it hands back, so the flow is just:
