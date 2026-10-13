@@ -12,9 +12,9 @@ Below are the performance metrics for the classical machine learning models:
 
 | Model | Macro-F1 | Accuracy |
 | :--- | :---: | :---: |
-| **naive_bayes_word** | **0.9345** | **95.09%%** |
-| lr_sgd_word | 0.9173 | 94.11%% |
-| naive_bayes_char | 0.8545 | 89.91%% |
-| lr_sgd_char | 0.5681 | 78.87%% |
+| **naive_bayes_word** | **0.9345** | **95.09%** |
+| lr_sgd_word | 0.9173 | 94.11% |
+| naive_bayes_char | 0.8545 | 89.91% |
+| lr_sgd_char | 0.5681 | 78.87% |
 
 The best performing model is **naive_bayes_word** with a Macro-F1 of **0.9345**. The trained artifact has been saved to `runs/classical/best_classical.joblib`.
