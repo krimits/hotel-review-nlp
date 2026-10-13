@@ -60,6 +60,28 @@ no provider request was made and no review was stored.
   example click after this rebuild is the first live use of the cache. The cache is empty after every
   restart or rebuild, so it needs warming before a demo.
 
+## Owner's check of the cached examples
+
+After the rebuild, the owner clicked the examples on the live Space while signed in, and reported the
+following. This is an owner observation, not part of the independent verification above, so
+`example_cache_checked_live` in [verification.json](verification.json) stays false.
+
+- **Praise example.** The first example click showed the stored-answer note with a recorded time of 11.9 s.
+  The result was positive (99.8%), with no lexicon match, no issue and no measure; every review is referred to a
+  person under the current policy. A later run without the note came from the «Ανάλυση κριτικής» button,
+  which is a fresh GPU analysis by design (2.2 s), not from the example cache.
+- **Lamp example.**
+  - The first click showed the note and a recorded time of 4.5 s.
+  - The issue was "Flickering reading lamp", reported, with a verbatim excerpt.
+  - The department was maintenance, and the measure was a check of the room's circuit, with points to confirm.
+  - Clicking it again returned the same answer immediately, with the same 4.5 s. This is the cache replay
+    working on the live Space.
+  - The lexicon had no match: none of its six rules covers lamps. Qwen found the issue from the whole review,
+    which is what the UI's "absence of a match is not absence of a problem" wording is for.
+
+One existing wording issue was seen: "Η θετική ετικέτα δεν αποκλείει παράπονο" also appears when the sentiment
+is negative. It predates this update and is left for the next change that needs a publication anyway.
+
 Also still pending: mobile and cold-start checks, Jev opt-in, systematic quota behaviour, and the
 [independent whole-review pilot](../../triage_lexicon_pilot/PROTOCOL.md).
 See the [deployment procedure](../../../TRIAGE_SPACE_DEPLOYMENT.md).
