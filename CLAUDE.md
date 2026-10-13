@@ -53,8 +53,8 @@ git push and PRs.
 
 ## Agents and handoff
 
-Agents are subagents that coordinate through `_agents_workspace/` (gitignored — schema
-and write boundaries are in `_agents_workspace/README.md`). Cross-session state lives in
+Agents are subagents that coordinate through `_agents_workspace/` (gitignored and never
+committed — schema and write boundaries are in `docs/AGENT_HARNESS.md`). Cross-session state lives in
 `docs/RUNS.md` (append-only run log, committed). Skills live in `.claude/skills/`:
 
 | Skill | Role |

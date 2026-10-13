@@ -24,7 +24,7 @@ You are the entry point of the pipeline. The gate rules live inline in the repo 
 - One pipeline stage per subagent, in this order:
   `methodologist (lock) → reviewnlp-engineering (build) → evidence-verifier (verify) →
   human gate → evidence-verifier (bundle) → methodologist (record) → evidence-audit`.
-- Hand off only through `_agents_workspace/` (schema in `_agents_workspace/README.md`).
+- Hand off only through `_agents_workspace/` (schema in `docs/AGENT_HARNESS.md`).
   Never pass state implicitly; write a task envelope and check the response's `status`.
 - Never let two agents write the same file. Write boundaries are per role and listed in
   the workspace README.

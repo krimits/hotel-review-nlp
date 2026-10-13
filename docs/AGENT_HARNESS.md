@@ -1,14 +1,39 @@
-# _agents_workspace — agent handoff contract
+# Agent harness — how the experiment process is run
 
-This directory is **local and gitignored**. It is the only place agents exchange state.
-Everything that must survive across sessions is mirrored to the committed
-`docs/RUNS.md` run log.
+This project's experiment rules live in [`CLAUDE.md`](../CLAUDE.md) at the repository
+root: nothing that produces evidence or claims starts without a protocol locked before
+the run, and a lock test that fails if the protocol changes after results exist. That
+discipline predates the harness — see the `protocol_sha256` assertions in
+`tests/test_pilot_results.py` and `tests/test_annotation_pilot.py` — which only
+mechanised a practice the repository already followed.
+
+This page documents the mechanics. It is process engineering, not part of the ML work;
+the evidence a reviewer cares about is in [`START_HERE.md`](START_HERE.md).
+
+## Roles
+
+Six skills under `.claude/skills/` split the work so that the agent producing results
+is never the one judging them:
+
+| Skill | Role |
+| --- | --- |
+| `reviewnlp-orchestrator` | triage, routing, human-gate handoffs, run state |
+| `methodologist` | writes and locks protocols plus lock tests; applies decision rules |
+| `reviewnlp-engineering` | code, scripts, configs, the Space app; offline tests with fakes |
+| `colab-handoff` | notebook templates and bundles verified by `scripts/verify_distilbert_handoff.py` |
+| `evidence-audit` | CI checks plus the protocol ↔ config ↔ code ↔ notebook ↔ hashes ↔ claims comparison; at most 2 rounds, then escalate |
+| `evidence-reporting` | decision notes and reports with explicit scope and limits |
+
+## The handoff workspace
+
+`_agents_workspace/` is **local and gitignored** — nothing in it is committed. It is the
+only place agents exchange state. Everything that must survive across sessions is
+mirrored to the committed [`RUNS.md`](RUNS.md) run log.
 
 ## Layout
 
 ```
 _agents_workspace/
-  README.md            <- this contract (committed, so the contract itself is versioned)
   tasks/
     <task-id>/         <- one folder per dispatch
       task.md          <- the envelope (see below)

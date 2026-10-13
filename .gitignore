@@ -57,6 +57,6 @@ Thumbs.db
 *.log
 *.zip
 
-# Agent handoff workspace (local only; contract README is committed via git add -f)
-_agents_workspace/*
-!_agents_workspace/README.md
+# Agent handoff workspace: entirely local. The contract it implements is documented
+# in docs/AGENT_HARNESS.md, so nothing of this directory is committed.
+_agents_workspace/
