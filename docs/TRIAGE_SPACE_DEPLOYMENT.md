@@ -1,10 +1,26 @@
 # Experimental triage Space publication
 
 Current source adds local lexical topic hints as the default primary (`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1`),
-with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). This source change is not a live-update
-receipt. Build a fresh package from its commit, run a new real-weight check and update using the existing
-`--resume` procedure. Old pinned publication notebooks do not include this source change.
+with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). It was published on 13 October at
+Space commit `2079d8b`; the [publication record](experiments/triage_space_publication/2079d8b/README.md)
+preserves the owner-run real-weight/live receipt and independent verification. For future updates,
+build a fresh package from its commit, run a new real-weight check and use the existing `--resume`
+procedure. Old pinned publication notebooks do not include this source change.
 The package manifest binds the lexicon version/SHA; diagnostics report actual configuration.
+Use [notebook 25](../notebooks/25_update_triage_lexicon_space_colab.ipynb) in a fresh Colab GPU session.
+It pins source `02d6e8c7b7297bd87b4060b8f9f504421e60244c`, uses `HF_TOKEN` only for the owner-run
+update, and exports `triage_lexicon_space_update.zip` including setup/model/publication failures.
+The owner-run receipt has 16 completed Colab checks and seven successful hosted regressions.
+Independent verification matched the source files, loaded snapshot and local-primary policy;
+three anonymous regressions passed before a visible `gpu_quota_exceeded` stopped the repeat.
+The template now handles Colab without `ensurepip` and installs all core dependencies before `pip check`.
+The successful deployment does not need a rerun for this setup-only correction. The old notebooks keep
+their historical pins.
+For this update, the publisher's `--local-primary` option requires a real-weight smoke receipt
+with verified lexical provenance and opt-out for every case. It sets exactly the two public Variables
+above, preserving all secrets/hardware, and checks the loaded source snapshot, actual lexicon hash,
+Jev disabled state and human-review policy after the rebuild. A mismatched setting cannot pass as a
+successful local-primary deployment. A dry run validates these requirements without changing the Hub.
 See [local-primary behavior](TRIAGE.md#local-primary-optional-external-enhancement) and
 the [whole-review pilot](experiments/triage_lexicon_pilot/PROTOCOL.md). No provider benchmark is required now.
 
@@ -59,7 +75,7 @@ python scripts/prepare_triage_space.py --output runs/triage-space-package
 python scripts/check_triage_space.py --package runs/triage-space-package \
   --output runs/triage-space-smoke.json
 python scripts/publish_triage_space.py --package runs/triage-space-package \
-  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --dry-run
+  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --dry-run --local-primary
 ```
 
 The real-weight check uses eight explicitly synthetic edge cases and the eight known G development
@@ -80,7 +96,7 @@ The account must be `krimits`. Publication is already authorized for this experi
 
 ```bash
 python scripts/publish_triage_space.py --package runs/triage-space-package \
-  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --resume
+  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --resume --local-primary
 ```
 
 The script creates a **new** public Space, requesting only `zero-a10g` (the HF API name for ZeroGPU).

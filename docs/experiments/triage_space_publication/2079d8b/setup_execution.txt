@@ -1,0 +1,145 @@
+Command: git clone --quiet https://github.com/krimits/hotel-review-nlp.git /content/hotel-triage-lexicon-update
+
+Exit: 0
+Command: git checkout --quiet --detach 02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /usr/bin/python3 -m venv /content/hotel-triage-lexicon-update-env
+Error: Command '['/content/hotel-triage-lexicon-update-env/bin/python3', '-m', 'ensurepip', '--upgrade', '--default-pip']' returned non-zero exit status 1.
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -r /content/hotel-triage-lexicon-update/spaces/hotel-triage-demo/requirements.txt spaces==0.51.3
+/content/hotel-triage-lexicon-update-env/bin/python: No module named pip
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -r /content/hotel-triage-lexicon-update/spaces/hotel-triage-demo/requirements.txt spaces==0.51.3
+/content/hotel-triage-lexicon-update-env/bin/python: No module named pip
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -r /content/hotel-triage-lexicon-update/spaces/hotel-triage-demo/requirements.txt spaces==0.51.3
+/content/hotel-triage-lexicon-update-env/bin/python: No module named pip
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m ensurepip --upgrade
+/content/hotel-triage-lexicon-update-env/bin/python: No module named ensurepip
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m ensurepip --upgrade
+/content/hotel-triage-lexicon-update-env/bin/python: No module named ensurepip
+
+Exit: 1
+Command: /content/hotel-triage-lexicon-update-env/bin/python /content/get-pip.py
+Collecting pip
+  Downloading pip-26.2.1-py3-none-any.whl.metadata (4.6 kB)
+Downloading pip-26.2.1-py3-none-any.whl (1.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 18.1 MB/s  0:00:00
+Installing collected packages: pip
+Successfully installed pip-26.2.1
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --upgrade pip
+Requirement already satisfied: pip in ./hotel-triage-lexicon-update-env/lib/python3.13/site-packages (26.2.1)
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -r /content/hotel-triage-lexicon-update/spaces/hotel-triage-demo/requirements.txt spaces==0.51.3
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet --no-deps -e /content/hotel-triage-lexicon-update
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip check
+reviewnlp 0.1.0 requires joblib, which is not installed.
+reviewnlp 0.1.0 requires matplotlib, which is not installed.
+reviewnlp 0.1.0 requires pyarrow, which is not installed.
+reviewnlp 0.1.0 requires scikit-learn, which is not installed.
+reviewnlp 0.1.0 requires scipy, which is not installed.
+reviewnlp 0.1.0 requires seaborn, which is not installed.
+
+Exit: 1
+Command: git rev-parse HEAD
+02d6e8c7b7297bd87b4060b8f9f504421e60244c
+
+Exit: 0
+Command: git status --porcelain --untracked-files=no
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m ensurepip --upgrade
+/content/hotel-triage-lexicon-update-env/bin/python: No module named ensurepip
+
+Exit: 1
+Command: /content/hotel-triage-lexicon-update-env/bin/python /content/get-pip.py
+Collecting pip
+  Using cached pip-26.2.1-py3-none-any.whl.metadata (4.6 kB)
+Using cached pip-26.2.1-py3-none-any.whl (1.8 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 26.2.1
+    Uninstalling pip-26.2.1:
+      Successfully uninstalled pip-26.2.1
+Successfully installed pip-26.2.1
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --upgrade pip
+Requirement already satisfied: pip in ./hotel-triage-lexicon-update-env/lib/python3.13/site-packages (26.2.1)
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -r /content/hotel-triage-lexicon-update/spaces/hotel-triage-demo/requirements.txt spaces==0.51.3
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip install --quiet -e /content/hotel-triage-lexicon-update
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -m pip check
+No broken requirements found.
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python -c import torch,json; print(json.dumps({'cuda':torch.cuda.is_available(),'torch':torch.__version__}))
+{"cuda": true, "torch": "2.11.0+cu130"}
+
+Exit: 0
+Command: /content/hotel-triage-lexicon-update-env/bin/python scripts/prepare_triage_space.py --output /content/hotel-triage-lexicon-update/runs/triage_lexicon_update_20261013T060100Z/package
+Prepared 21 files from 02d6e8c7b7297bd87b4060b8f9f504421e60244c without Hub writes.
+
+Exit: 0

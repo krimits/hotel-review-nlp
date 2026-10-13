@@ -141,6 +141,22 @@ interval crosses zero, and no model was promoted.
 
 ## Saving a run as evidence
 
+**25 — Local lexicon primary Space update:**
+[25_update_triage_lexicon_space_colab.ipynb](25_update_triage_lexicon_space_colab.ipynb).
+Fresh Colab GPU; pins source `02d6e8c`. Runs the real pinned weights locally, then updates the
+existing experimental Space using only the `HF_TOKEN` Colab Secret. Sets the two public Variables
+`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1` and `REVIEWNLP_JEV_ENABLED=0`, preserving Secrets/hardware.
+Verifies the new loaded snapshot, lexical fingerprint, opt-out and human referral policy.
+Exports `triage_lexicon_space_update.zip` even after failure, including setup diagnostics. No new
+provider/model comparison, reserved evaluation, human-label upload or reliability claim.
+The [13 October publication record](../docs/experiments/triage_space_publication/2079d8b/README.md)
+retains 16 completed real-weight Colab checks and seven successful hosted regressions. Independent
+verification matched the deployment and local-primary policy; an anonymous repeat then encountered
+a visible ZeroGPU quota failure after three successes. The setup template now handles missing
+`ensurepip` and installs declared core dependencies with the Space pins in one resolution.
+The next quality step is the
+[whole-review operational-topic pilot](../docs/experiments/triage_lexicon_pilot/PROTOCOL.md).
+
 Colab keeps outputs in the file it hands back, so the flow is just:
 
 1. Run the notebook top to bottom on Colab.

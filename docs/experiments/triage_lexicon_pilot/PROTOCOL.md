@@ -37,3 +37,65 @@ validate this stage. The old negative-field pilot and ABSA evaluations concern d
 Start with a feasible representative pilot and report its actual size, topic support and intervals.
 Rare topics may need a separately reported targeted sample. No sample size, target precision/recall,
 decision threshold or final candidate selection has been agreed or measured here.
+
+## Offline tools and human handoff
+
+Prepare a private CSV with exactly `review_id,text,language`. Use whole, deduplicated English
+reviews from the intended deployment population, with language `en` and at most 4,000 characters.
+Redact personal identifiers before handing texts to reviewers if appropriate. Record where/how the
+population was collected; the tool cannot certify language, representativeness or independence.
+Do not substitute the five-way primary-topic labels or the already inspected synthetic development cases.
+
+After committing the pilot sources, run from the repository root (50 is an illustrative size, not a
+validated sample-size requirement):
+
+```bash
+python scripts/triage_lexicon_pilot.py prepare --reviews private_whole_reviews.csv \
+  --size 50 --seed 20261013 --population "Describe the actual hotels, dates and collection method" \
+  --output runs/lexicon_pilot_RUN
+```
+
+The tool samples uniformly before reading any labels and freezes the lexicon/protocol/input hashes.
+Give **only `sheet_A.csv` to person A and `sheet_B.csv` to person B**. Keep `key.json`,
+`predictions.json` and `manifest.json` closed while annotating. Each person fills every topic with
+`1` (actual complaint), `0` (no complaint) or `unsure` (ambiguous), sets `done=yes`, and can use
+`note` to explain ambiguity. `other` means an actual complaint outside the five supported topics.
+Keep `item`, `text`, `text_sha256` unchanged. A suggestion implying a lack can count as a complaint;
+a successfully fixed incident still counts as reported, although it need not receive a corrective
+measure. This sheet evaluates topic detection, not pending-issue status or measure quality.
+
+Save completed copies under separate names. Before discussion:
+
+```bash
+python scripts/triage_lexicon_pilot.py agreement --run runs/lexicon_pilot_RUN \
+  --ratings-a completed_A.csv --ratings-b completed_B.csv \
+  --output runs/lexicon_pilot_RUN/agreement.json
+```
+
+It rejects incomplete/edited texts, reports agreement and three-label Cohen's kappa per topic,
+and lists each disagreement. Keep the original completed sheets and this report unchanged; record
+the agreement before adjudication as the protocol requires. Constant labels yield undefined kappa,
+not evidence of perfect reliability. Reviewer independence remains explicitly unverified by software.
+
+Resolve disagreements together (preferably with an independent adjudicator) in `adjudicated.csv`,
+using the same columns. A correction to a previously agreed label requires an explanation in `note`.
+Then score once against that ground truth:
+
+```bash
+python scripts/triage_lexicon_pilot.py score --run runs/lexicon_pilot_RUN \
+  --ratings-a completed_A.csv --ratings-b completed_B.csv \
+  --agreement runs/lexicon_pilot_RUN/agreement.json --gold adjudicated.csv \
+  --output runs/lexicon_pilot_RUN/scored.json
+```
+
+The report has per-topic counts, precision/recall/F1, per-topic Wilson intervals, human-uncertain
+denominators, abstentions, and micro metrics for the five supported topics. `other` is reported
+separately as an unsupported topic; lexical abstentions count as misses for true complaints.
+All reviews currently require human referral because `other` remains unknown, even when a supported
+topic matches. Binomial intervals do not model dependence between reviews from the same hotel.
+Outputs contain no quality/promotion claim and make no external model calls.
+
+**Keep the entire run private and out of the Space.** Both reviewer sheets contain review text;
+the key can identify the original reviews. Share a verified text-free aggregate only after reviewing
+the completed evidence. The human labels and the correct population are the remaining inputs;
+the tool does not generate them.

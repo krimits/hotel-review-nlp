@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.check_triage_space import (  # noqa: E402
     LAMP_REGRESSIONS,
     REQUIRED_REGRESSIONS,
+    primary_policy_problems,
     regression_problems,
 )
 from scripts.prepare_triage_space import build_package, verify_package  # noqa: E402
@@ -22,6 +23,7 @@ from scripts.publish_triage_space import (  # noqa: E402
     REPO_ID,
     check_live,
     deploy,
+    validate_local_primary,
     validate_smoke,
 )
 
@@ -74,6 +76,9 @@ class FakeApi:
         assert kwargs["revision"] in {"b" * 40, "c" * 40}
         return self.package / kwargs["filename"]
 
+    def add_space_variable(self, **kwargs):
+        self.calls.append(("variable", kwargs))
+
 
 def test_upload_checks_owner_uses_only_zero_gpu_and_guards_the_parent_commit(checked):
     package, manifest, report = checked
@@ -89,6 +94,105 @@ def test_upload_checks_owner_uses_only_zero_gpu_and_guards_the_parent_commit(che
     with pytest.raises(ValueError, match="expected_hf_account"):
         deploy(wrong, package, report, download=wrong.download)
     assert wrong.calls == []
+
+
+def local_report(manifest, report):
+    return {**report, "complaint_policy": {"primary": "lexicon", "verified": True, "jev_enabled": False,
+                "lexicon_sha256": manifest["runtime_snapshot"]["lexicon_sha256"]},
+            "records": [{**row, "primary_policy_passed": True} for row in report["records"]]}
+
+
+def test_local_update_changes_only_the_two_authorized_variables_after_smoke_and_owner_checks(checked):
+    package, manifest, report = checked
+    api = FakeApi(package)
+    result = deploy(api, package, local_report(manifest, report), resume=True, local_primary=True, download=api.download)
+    assert [name for name, _ in api.calls] == ["variable", "variable", "upload"]
+    assert {(entry["key"], entry["value"]) for name, entry in api.calls if name == "variable"} == {
+        ("REVIEWNLP_TRIAGE_LEXICON_FALLBACK", "1"), ("REVIEWNLP_JEV_ENABLED", "0")}
+    assert result["upload_verified"] and not result["runtime_verified"]
+    bad = FakeApi(package)
+    with pytest.raises(ValueError, match="verified_local_primary"):
+        deploy(bad, package, report, resume=True, local_primary=True, download=bad.download)
+    assert not bad.calls
+
+
+@pytest.mark.parametrize("field,value", [("verified", False), ("jev_enabled", True), ("lexicon_sha256", "bad"),
+                                        ("primary", "jev")])
+def test_local_primary_guard_rejects_stale_or_external_smoke_policy(checked, field, value):
+    _, manifest, report = checked
+    report = local_report(manifest, report)
+    report["complaint_policy"][field] = value
+    with pytest.raises(ValueError, match="verified_local_primary"):
+        validate_local_primary(manifest, report)
+
+
+def test_every_response_must_keep_local_primary_unknown_referral_and_no_external_call(checked):
+    _, manifest, _ = checked
+    expected = manifest["runtime_snapshot"]["lexicon_sha256"]
+    result = {"stored": False, "api_cost": {"attempts": 0}, "routing": {"needs_review": True},
+        "complaints": {"source": "lexicon", "status": "ok", "questions_sha256": expected,
+                       "coverage_status": "limited", "enhancement": {"status": "disabled"}}}
+    assert primary_policy_problems(result, expected) == []
+    for field, value in (("source", "jev"), ("questions_sha256", "bad"), ("enhancement", {"status": "ok"})):
+        assert primary_policy_problems({**result, "complaints": {**result["complaints"], field: value}}, expected)
+    assert primary_policy_problems({**result, "routing": {"needs_review": False}}, expected)
+    assert primary_policy_problems({**result, "api_cost": {"attempts": 1}}, expected)
+
+
+def test_live_config_mismatch_fails_before_any_review_is_sent(checked):
+    from scripts.publish_triage_space import LiveCheckError
+
+    package, manifest, _ = checked
+    class Client:
+        def predict(self, *args, api_name):
+            assert api_name == "/model_info"
+            return {"source_snapshot": manifest, "complaint_primary": "jev", "jev_enabled": True,
+                    "runtime": {"ready": True, "zero_gpu": True}}
+    with pytest.raises(LiveCheckError) as raised:
+        check_live(FakeApi(package), {}, manifest, client_factory=lambda *args, **kwargs: Client(), local_primary=True)
+    assert raised.value.receipt["functional_checks"] == []
+    assert raised.value.receipt["live_check_failure"]["error"] == "live_primary_policy_mismatch"
+
+
+def test_local_primary_live_receipt_requires_the_policy_in_every_returned_case(checked):
+    from reviewnlp.triage.lexicon import LexiconClassifier
+
+    package, manifest, _ = checked
+    class Client:
+        def predict(self, *args, api_name):
+            if api_name == "/model_info":
+                return {"source_snapshot": manifest, "complaint_primary": "lexicon", "jev_enabled": False,
+                    "lexicon_sha256": manifest["runtime_snapshot"]["lexicon_sha256"],
+                    "runtime": {"ready": True, "zero_gpu": True}}
+            text = args[0]
+            complaint = LexiconClassifier().classify(text).model_dump(mode="json")
+            complaint["enhancement"] = {"status": "disabled"}
+            lamp = text.startswith("The reading lamp flickered")
+            return "completed", [], [], {"stored": False, "api_cost": {"attempts": 0},
+                "complaints": complaint, "routing": {"needs_review": True},
+                "stage_reports": [{"stage": "issues", "status": "ok", "error": None}],
+                "issue_assessments": [{"status": "REAL_PENDING", "department": "maintenance", "excerpt": text}] if lamp else [],
+                "actions": {"actions": [{"department": "maintenance", "excerpt": text}] if lamp else []},
+                "stage_failure": None, "status": "complete", "timings": {"total_ms": 100}}
+    receipt = check_live(FakeApi(package), {}, manifest,
+        client_factory=lambda *args, **kwargs: Client(), local_primary=True)
+    assert receipt["runtime_verified"] and receipt["local_primary_verified"]
+    assert all(row["primary_policy_passed"] for row in receipt["functional_checks"])
+
+
+def test_local_primary_dry_run_performs_no_hub_calls(checked, tmp_path, monkeypatch):
+    import json
+
+    from scripts import publish_triage_space as publisher
+
+    package, manifest, report = checked
+    path = tmp_path / "smoke.json"
+    path.write_text(json.dumps(local_report(manifest, report)))
+    monkeypatch.setattr(sys, "argv", ["publish", "--package", str(package), "--smoke-report", str(path),
+                                      "--output", str(tmp_path / "receipt.json"), "--dry-run", "--local-primary"])
+    monkeypatch.setattr(publisher, "HfApi", lambda: pytest.fail("Hub accessed during dry run"))
+    publisher.main()
+    assert not (tmp_path / "receipt.json").exists()
 
 
 @pytest.mark.parametrize("change", ["extra", "modified", "symlink"])
