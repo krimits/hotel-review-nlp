@@ -1,0 +1,41 @@
+{
+  "source_commit": "c65e638c0eccb7979c3d2a1fa48d0ce5e06735fc",
+  "space_commit": "3f2aff8c1e0920ac0c052937d69dac9920a3d380",
+  "input_zip_sha256": "262c3d848234a6553230445b92c505f9922ce0eaf8856f80efe7a0189ccadcb1",
+  "input_members": {
+    "setup_execution.txt": {
+      "archived_as": "setup_execution.txt",
+      "sha256": "5b31e57efb557a1ecd8a070b56acfbfa98e64a28a14e7196197f29aa82fe71fb"
+    },
+    "source_manifest.json": {
+      "archived_as": "source_manifest.json",
+      "sha256": "afc42f65d0297842465e7134769749277a0db000eb81a74e7a74e07c4abe5312"
+    },
+    "smoke.json": {
+      "archived_as": "colab_smoke.json",
+      "sha256": "8f8c380a817f6a78ae13b827c0ac0e87e66d7a115370f805e414c418f1056dcc"
+    },
+    "published.json": {
+      "archived_as": "published.json",
+      "sha256": "8795dcb9aef5ad11792b910772ab02e195ee5d521dd2eadb6e8d43699f857660"
+    },
+    "smoke_execution.txt": {
+      "archived_as": "smoke_execution.txt",
+      "sha256": "33ba578be9d1fc756870e05839cf7785c521fc6cca58c60a804cf4a3f464a39f"
+    },
+    "publish_execution.txt": {
+      "archived_as": "publish_execution.txt",
+      "sha256": "7116cfaf26cd4187362e6b772b3c2488fe0ec71311dbd17201196088780db662"
+    }
+  },
+  "files": {
+    "colab_smoke.json": "8f8c380a817f6a78ae13b827c0ac0e87e66d7a115370f805e414c418f1056dcc",
+    "publish_execution.txt": "7116cfaf26cd4187362e6b772b3c2488fe0ec71311dbd17201196088780db662",
+    "published.json": "8795dcb9aef5ad11792b910772ab02e195ee5d521dd2eadb6e8d43699f857660",
+    "setup_execution.txt": "5b31e57efb557a1ecd8a070b56acfbfa98e64a28a14e7196197f29aa82fe71fb",
+    "smoke_execution.txt": "33ba578be9d1fc756870e05839cf7785c521fc6cca58c60a804cf4a3f464a39f",
+    "source_manifest.json": "afc42f65d0297842465e7134769749277a0db000eb81a74e7a74e07c4abe5312",
+    "verification.json": "a8006ea11eed4baf2e47e5fc5d9d46303290d0e17edb0ebe5e02ca2946a290e7"
+  },
+  "quality_evaluated": false
+}
