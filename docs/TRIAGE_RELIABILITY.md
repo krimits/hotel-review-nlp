@@ -83,6 +83,17 @@ there is no averaged-away adjudication. Agreeing sheets do not prove reviewer in
 selection or promotion is performed. Resolve disagreements through human discussion and new completed
 copies, retaining the originals. Machine failures remain in the development evidence.
 
+For the reconciliation step, `scripts/adjudicate_triage_review.py` applies the agreed decisions
+mechanically: it takes the captured run, the two unreconciled sheets and a decisions CSV
+(`blind_id, field, agreed_value, adjudication_notes`), writes reconciled v3 sheets whose changed
+cells record `Μετά τη συζήτηση: <field> <old>→<new>. <note>` (unchanged cells keep their note),
+fills the disagreement record, and emits a fresh `manifest.json` whose hashes cover the final
+files — a manifest from before the adjudication is stale by definition. The archived adjudication of
+2026-10-06 (`experiments/triage_space_publication/e1e37e5/human_review_v3/`) predates the tool; its
+values and reports match a replay, while a few of its notes carry hand-merged phrasing the
+deterministic rule does not reproduce. The archive stays the recorded evidence; the tool defines the
+convention going forward.
+
 ## Next corrections and release gates
 
 The first structural correction is isolated in a
