@@ -1,5 +1,14 @@
 # Experimental triage Space publication
 
+**Latest publication (13 October 2026):** Space commit `3f2aff8`, from source `c65e638`, using
+[notebook 26](../notebooks/26_update_triage_examples_space_colab.ipynb). It adds lazily cached, labelled
+examples and pins `spaces==0.51.3`. The lexicon, prompts, models and local-primary, Jev-off policy are those of
+the `2079d8b` publication described below. The [publication record](experiments/triage_space_publication/3f2aff8/README.md)
+preserves the owner's receipt (16 real-weight checks, seven hosted regressions) and states what independent
+verification could not reach: the live API and Hub file hashes beyond `requirements.txt`. **Before a demo,
+warm the example cache.** Open the Space signed in and click each example once. The cache is empty after
+every restart or rebuild.
+
 Current source adds local lexical topic hints as the default primary (`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1`),
 with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). It was published on 13 October at
 Space commit `2079d8b`; the [publication record](experiments/triage_space_publication/2079d8b/README.md)

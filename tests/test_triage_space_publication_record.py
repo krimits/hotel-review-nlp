@@ -201,3 +201,43 @@ def test_local_primary_publication_preserves_successful_owner_receipt_and_failed
     setup = (record / "setup_execution.txt").read_text()
     assert "No module named ensurepip" in setup and "requires joblib, which is not installed" in setup
     assert "No broken requirements found." in setup
+
+
+def test_cached_examples_publication_binds_the_owner_receipt_to_the_merged_source_and_states_its_limits():
+    import subprocess
+
+    record = ROOT / "docs/experiments/triage_space_publication/3f2aff8"
+    archive = json.loads((record / "record_manifest.json").read_bytes())
+    assert set(archive["files"]) == {"source_manifest.json", "colab_smoke.json", "published.json", "verification.json",
+                                     "setup_execution.txt", "smoke_execution.txt", "publish_execution.txt"}
+    for name, expected in archive["files"].items():
+        assert hashlib.sha256((record / name).read_bytes()).hexdigest() == expected
+    for member, entry in archive["input_members"].items():
+        assert archive["files"][entry["archived_as"]] == entry["sha256"], member
+    manifest, smoke, receipt, verification = (json.loads((record / name).read_bytes()) for name in (
+        "source_manifest.json", "colab_smoke.json", "published.json", "verification.json"))
+    digest = hashlib.sha256((record / "source_manifest.json").read_bytes()).hexdigest()
+    assert manifest["source_commit"] == "c65e638c0eccb7979c3d2a1fa48d0ce5e06735fc" == archive["source_commit"]
+    for report in (smoke, receipt, verification):
+        assert report["source_commit"] == manifest["source_commit"] and report["source_manifest_sha256"] == digest
+        assert report["quality_evaluated"] is False
+    # Every packaged source file is the merged commit's, byte for byte.
+    sources = {"app.py": "spaces/hotel-triage-demo/app.py", "README.md": "spaces/hotel-triage-demo/README.md",
+               "requirements.txt": "spaces/hotel-triage-demo/requirements.txt"}
+    for name, expected in manifest["files"].items():
+        path = sources.get(name) or "src/" + name
+        content = subprocess.check_output(["git", "show", manifest["source_commit"] + ":" + path], cwd=ROOT)
+        assert hashlib.sha256(content).hexdigest() == expected, name
+    assert "spaces==0.51.3" in subprocess.check_output(
+        ["git", "show", manifest["source_commit"] + ":spaces/hotel-triage-demo/requirements.txt"], cwd=ROOT, text=True)
+    assert smoke["passed"] and smoke["real_weights_loaded"] and smoke["problems"] == [] and len(smoke["records"]) == 16
+    assert smoke["package_files"] == manifest["files"] and smoke["runtime"]["versions"]["spaces"] == "0.51.3"
+    assert receipt["space_commit"] == verification["space_commit"] == archive["space_commit"]
+    assert receipt["upload_verified"] and receipt["runtime_verified"] and receipt["local_primary_verified"]
+    assert receipt["live_model_info"]["source_snapshot"] == manifest
+    assert all(case["status"] == "complete" and case["stage_failure"] is None for case in receipt["functional_checks"])
+    assert verification["hub_file_set_matches_package"] and verification["hub_file_sizes_match_source"]
+    # What the independent check could not reach stays recorded as unchecked, not as passed.
+    for unchecked in ("hub_file_hashes_verified", "live_api_checked_independently", "example_cache_checked_live",
+                      "mobile_layout_checked", "cold_start_after_sleep_checked", "independent_human_pilot_completed"):
+        assert verification[unchecked] is False
