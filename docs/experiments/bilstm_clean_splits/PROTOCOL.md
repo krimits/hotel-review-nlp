@@ -1,7 +1,7 @@
-# BiLSTM on the clean splits — version 1
+# BiLSTM on the clean splits — version 2
 
 **Fixed before any training run, 13 October 2026. Status: locked; no run has been
-executed under it. Scope: development evidence; no selection is frozen and no model is
+executed under it or under version 1 (see the version history at the end). Scope: development evidence; no selection is frozen and no model is
 promoted.**
 
 The legacy five-model table compares the BiLSTM on a test set that shares 170 review
@@ -78,11 +78,19 @@ recall; the random-to-time drop; training wall time.
 Let `d` be the macro-F1 difference (BiLSTM − DistilBERT) on the `time` test set and
 `[lo, hi]` its 95% paired bootstrap interval.
 
+The rule is the repository's own, from
+[`docs/experiments/phase2_analysis_plan.md`](../phase2_analysis_plan.md): a gain is
+**meaningful** when the paired interval excludes zero *and* the difference is at least
+1 macro-F1 point (0.01); a gain that meets only the first condition is **clear but
+small**. Applied to this pair:
+
 | Condition | Conclusion |
 | --- | --- |
-| `hi < 0` | DistilBERT is better on clean out-of-time data. The legacy ordering is confirmed and the README keeps its transformer claim, now on uncontaminated data. |
-| `lo > 0` | The BiLSTM is better. The legacy ordering is reversed; the README's transformer claim must be restated. |
+| `hi < 0 and d <= -0.01` | DistilBERT is meaningfully better on clean out-of-time data. The legacy ordering is confirmed and the README keeps its transformer claim, now on uncontaminated data. |
+| `hi < 0 and d > -0.01` | DistilBERT is better, but the gain is clear but small. The ordering is confirmed; the README must state the gap as under one point. |
 | `lo <= 0 <= hi` | The two are indistinguishable on this split. The legacy claim that the transformer beats the BiLSTM is **not confirmed on clean data**, and the README must say exactly that. |
+| `lo > 0 and d < 0.01` | The BiLSTM is better, but the gain is clear but small. The legacy ordering is reversed by under one point; the README's transformer claim must be restated. |
+| `lo > 0 and d >= 0.01` | The BiLSTM is meaningfully better. The legacy ordering is reversed; the README's transformer claim must be restated. |
 
 This is applied exactly as written once results exist, with no discretion. The other two
 views are reported alongside and cannot change the conclusion. If the rule turns out to
@@ -126,3 +134,10 @@ artifacts each run must produce, matching the shape
 `run_config.yaml`, `metrics.json` (including the `data` fingerprints this protocol
 pins), `dev_logits.npy`, `dev_labels.npy`, `test_logits.npy`, `test_labels.npy` and
 `train_log.txt`.
+
+## Version history
+
+| Version | Commit | Change |
+| --- | --- | --- |
+| 1 | `3ddb358` | Locked with a three-branch rule on the interval alone. |
+| 2 | this commit | The rule omitted the analysis plan's 1-point magnitude criterion, so it could not tell a meaningful gain from a clear but small one. Amended to the plan's two-condition rule. **No run had been executed under version 1**, so no result could have influenced the change. |

@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "docs" / "experiments" / "bilstm_clean_splits" / "PROTOCOL.md"
 VIEWS = ROOT / "docs" / "experiments" / "results" / "v2_splits"
 COMPARISON = ROOT / "docs" / "experiments" / "results" / "model_comparison_v2.json"
+ANALYSIS_PLAN = ROOT / "docs" / "experiments" / "phase2_analysis_plan.md"
 
 RAW_SHA256 = "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9"
 PRIMARY_VIEW = "time"
@@ -107,19 +108,53 @@ def test_the_primary_comparison_quotes_the_recorded_numbers(protocol, prose):
     assert "BiLSTM versus DistilBERT (full fine-tune)" in prose
 
 
-def test_the_decision_rule_partitions_every_interval(protocol):
+def test_the_decision_rule_partitions_every_outcome(protocol):
     rule = protocol.split("## 4. Decision rule", 1)[1].split("## 5. Limits", 1)[0]
     conditions = [cells[0] for cells in table_rows(rule) if len(cells) == 2]
-    assert conditions == ["hi < 0", "lo > 0", "lo <= 0 <= hi"], conditions
+    assert conditions == [
+        "hi < 0 and d <= -0.01",
+        "hi < 0 and d > -0.01",
+        "lo <= 0 <= hi",
+        "lo > 0 and d < 0.01",
+        "lo > 0 and d >= 0.01",
+    ], conditions
 
-    # Machine-checkable: exactly one branch fires for any interval, and each fires once.
+    # Machine-checkable: for any (lo, d, hi) with lo <= d <= hi exactly one branch fires,
+    # and every branch is reachable. The 0.01 edges are included on purpose.
+    outcomes = [
+        (-0.030, -0.020, -0.015), (-0.012, -0.010, -0.008),  # meaningful, DistilBERT
+        (-0.008, -0.005, -0.002), (-0.012, -0.009, -0.001),  # clear but small, DistilBERT
+        (-0.010, 0.000, 0.010), (0.000, 0.000, 0.000), (-0.020, -0.010, 0.000),  # indistinguishable
+        (0.001, 0.004, 0.007), (0.001, 0.009, 0.012),  # clear but small, BiLSTM
+        (0.015, 0.020, 0.030), (0.008, 0.010, 0.012),  # meaningful, BiLSTM
+    ]
     fired = {c: 0 for c in conditions}
-    for low, high in ((-0.02, -0.01), (0.01, 0.02), (-0.01, 0.01), (0.0, 0.0),
-                      (-0.03, 0.0), (0.0, 0.03)):
-        matches = [c for c in conditions if eval(c, {"__builtins__": {}}, {"lo": low, "hi": high})]  # noqa: S307
-        assert len(matches) == 1, f"interval [{low}, {high}] matched {matches}"
+    for low, diff, high in outcomes:
+        assert low <= diff <= high
+        scope = {"lo": low, "d": diff, "hi": high}
+        matches = [c for c in conditions if eval(c, {"__builtins__": {}}, scope)]  # noqa: S307
+        assert len(matches) == 1, f"lo={low} d={diff} hi={high} matched {matches}"
         fired[matches[0]] += 1
-    assert all(count for count in fired.values()), f"a branch was never exercised: {fired}"
+    assert all(fired.values()), f"a branch was never exercised: {fired}"
+
+
+def test_the_rule_is_the_analysis_plans_rule(protocol, prose):
+    """Version 1 of this protocol dropped the plan's 1-point criterion. Pin the link so
+    the protocol and the plan cannot drift apart again without a test failing."""
+    plan = " ".join(ANALYSIS_PLAN.read_text(encoding="utf-8").split())
+    assert "the paired 95% interval of the macro-F1 difference excludes zero" in plan
+    assert "the difference is at least 1 macro-F1 point (0.01)" in plan
+    assert "clear but small" in plan
+    assert "phase2_analysis_plan.md" in protocol
+    assert "at least 1 macro-F1 point (0.01)" in prose
+    assert "clear but small" in prose
+
+
+def test_the_version_history_records_the_amendment(protocol):
+    assert protocol.startswith("# BiLSTM on the clean splits — version 2")
+    history = protocol.split("## Version history", 1)[1]
+    assert "3ddb358" in history
+    assert "No run had been executed under version 1" in history
 
 
 def test_the_limits_name_what_the_run_does_not_show(protocol):

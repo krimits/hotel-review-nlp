@@ -211,8 +211,9 @@ def test_peft_equivalence():
         intermediate_size=64,
     )
     base = BertModel(config)
+    pristine_state = {name: tensor.clone() for name, tensor in base.state_dict().items()}
     ours = BertModel(config)
-    ours.load_state_dict(base.state_dict())  # identical starting weights
+    ours.load_state_dict(pristine_state)  # identical starting weights
 
     targets = ["query", "value"]
     inject_lora(ours, target_modules=targets, r=4, alpha=8, dropout=0.0)
@@ -233,6 +234,15 @@ def test_peft_equivalence():
         if name.endswith("lora_A.weight"):
             nn.init.kaiming_uniform_(p, a=math.sqrt(5))
 
+    # B starts at zero, so delta W = BA = 0 and both models would simply reproduce
+    # the base: the comparison would pass for any scaling or any B/A order. Give B
+    # non-zero values so the adapter path, the alpha/r scaling and the B @ A
+    # product are all exercised.
+    torch.manual_seed(4321)
+    for name, p in ours.named_parameters():
+        if name.endswith("lora_B.weight"):
+            nn.init.normal_(p, mean=0.0, std=0.1)
+
     ours_map = dict(ours.named_parameters())
     peft_map = dict(peft_model.named_parameters())
     for name, p in peft_map.items():
@@ -243,9 +253,18 @@ def test_peft_equivalence():
 
     input_ids = torch.randint(0, 64, (2, 8))
     attention_mask = torch.ones_like(input_ids)
+    pristine = BertModel(config)
+    pristine.load_state_dict(pristine_state)
+    pristine.eval()
     with torch.no_grad():
         out_ours = ours(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
         out_peft = peft_model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+        out_base = pristine(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+    # Guard against a vacuous comparison: if the adapters change nothing, matching
+    # peft proves only that both wrappers leave the base model alone.
+    assert not torch.allclose(out_ours, out_base, atol=1e-3), (
+        "adapters leave the output unchanged - the peft comparison would not test the LoRA math"
+    )
     assert torch.allclose(out_ours, out_peft, atol=1e-5), (
         "from-scratch LoRA diverges from peft - check scaling/init/forward"
     )

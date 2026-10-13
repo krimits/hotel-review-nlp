@@ -42,8 +42,11 @@ and the run is pending.
 [`tests/test_lora.py`](../tests/test_lora.py)
 
 LoRA (Hu et al., 2021) in pure PyTorch: the update rule, the official initialisation,
-`merge`/`unmerge`, adapter-only checkpoints. The tests assert each property and compare
-the implementation numerically against Hugging Face `peft` on a locally built tiny BERT.
+`merge`/`unmerge`, adapter-only checkpoints. The tests assert each property, check the
+scaling against a hand computation, and compare the implementation numerically against
+Hugging Face `peft` on a locally built tiny BERT — with non-zero adapter weights, and an
+assertion that the adapters actually change the output, so the comparison exercises the
+`alpha / r` scaling and the `B @ A` product rather than two copies of the base model.
 
 "I implemented the paper" is a tested claim here, not an assertion.
 
