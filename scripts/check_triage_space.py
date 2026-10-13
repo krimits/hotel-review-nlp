@@ -33,6 +33,21 @@ REQUIRED_REGRESSIONS = {"smoke-positive", "smoke-negative", "smoke-lamp-mixed", 
 LAMP_REGRESSIONS = {"smoke-negative", "smoke-lamp-mixed", "smoke-lamp-short"}
 
 
+def primary_policy_problems(result: dict, expected_sha: str) -> list[str]:
+    """Verify actual local primary and opt-out, separately from generation quality."""
+    complaint = result.get("complaints", {})
+    enhancement = complaint.get("enhancement") or {}
+    if (complaint.get("source") != "lexicon" or complaint.get("status") != "ok"
+            or complaint.get("questions_sha256") != expected_sha
+            or complaint.get("coverage_status") != "limited"
+            or enhancement.get("status") != "disabled"
+            or result.get("api_cost", {}).get("attempts") != 0
+            or result.get("stored") is not False
+            or result.get("routing", {}).get("needs_review") is not True):
+        return ["local_primary_or_opt_out_policy_failed"]
+    return []
+
+
 def regression_problems(case: str, text: str, result: dict) -> list[str]:
     """Named development regressions gate this fix; these are not held-out accuracy estimates."""
     if case not in REQUIRED_REGRESSIONS:
@@ -64,6 +79,8 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
     spec.loader.exec_module(app)
     runtime = app.initialize()
     information = app.model_info()
+    local_primary = information.get("complaint_primary") == "lexicon"
+    expected_lexicon = manifest["runtime_snapshot"].get("lexicon_sha256")
     if not runtime.information()["ready"]:
         raise RuntimeError("real_model_startup_failed: " + runtime.startup_failure["stage"])
     rows = list(EDGE_CASES)
@@ -81,6 +98,8 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
             stage_reports = result["stage_reports"]
             complaints = result["complaints"]
             jev = complaints.get("enhancement") or complaints
+            policy_errors = primary_policy_problems(result, expected_lexicon) if local_primary else []
+            problems.extend(row["id"] + ": " + error for error in policy_errors)
             if result["stored"] or result["api_cost"]["attempts"] or jev["status"] != "disabled":
                 problems.append(row["id"] + ": opt_out_or_storage_contract")
             if not any(item["stage"] == "issues" for item in stage_reports):
@@ -97,6 +116,8 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
                             "issues": len(result["issue_assessments"]), "actions": len(result["actions"]["actions"]),
                             "required_regression": row["id"] in REQUIRED_REGRESSIONS,
                             "regression_passed": not regression_errors,
+                            "complaint_primary": complaints.get("source"),
+                            "primary_policy_passed": local_primary and not policy_errors,
                             "total_ms": result["timings"]["total_ms"], "needs_review": result["routing"]["needs_review"]})
             print(row["id"], result["status"], result["stage_failure"] or "stages completed", flush=True)
     finally:
@@ -107,6 +128,10 @@ def check(package: Path, *, include_dev_failures=True) -> dict:
             "source_commit": manifest["source_commit"], "package_files": manifest["files"],
             "source_manifest_sha256": hashlib.sha256((package / "source_manifest.json").read_bytes()).hexdigest(),
             "runtime": information["runtime"], "records": records, "problems": problems,
+            "complaint_policy": {"primary": information.get("complaint_primary"),
+                "lexicon_sha256": information.get("lexicon_sha256"),
+                "jev_enabled": information.get("jev_enabled"),
+                "verified": local_primary and bool(records) and all(row["primary_policy_passed"] for row in records)},
             "required_regression_ids": sorted(REQUIRED_REGRESSIONS),
             "regression_checks_passed": all(item["regression_passed"] for item in records if item["required_regression"]),
             "passed": not problems, "seconds": round(time.perf_counter() - started, 3)}

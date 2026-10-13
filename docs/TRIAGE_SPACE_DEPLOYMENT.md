@@ -5,6 +5,11 @@ with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). This sour
 receipt. Build a fresh package from its commit, run a new real-weight check and update using the existing
 `--resume` procedure. Old pinned publication notebooks do not include this source change.
 The package manifest binds the lexicon version/SHA; diagnostics report actual configuration.
+For this update, the publisher's `--local-primary` option requires a real-weight smoke receipt
+with verified lexical provenance and opt-out for every case. It sets exactly the two public Variables
+above, preserving all secrets/hardware, and checks the loaded source snapshot, actual lexicon hash,
+Jev disabled state and human-review policy after the rebuild. A mismatched setting cannot pass as a
+successful local-primary deployment. A dry run validates these requirements without changing the Hub.
 See [local-primary behavior](TRIAGE.md#local-primary-optional-external-enhancement) and
 the [whole-review pilot](experiments/triage_lexicon_pilot/PROTOCOL.md). No provider benchmark is required now.
 

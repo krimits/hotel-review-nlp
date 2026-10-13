@@ -20,12 +20,14 @@ sys.path.insert(0, str(ROOT))
 from scripts.check_triage_space import (  # noqa: E402
     EDGE_CASES,
     REQUIRED_REGRESSIONS,
+    primary_policy_problems,
     regression_problems,
 )
 from scripts.prepare_triage_space import verify_package  # noqa: E402
 
 REPO_ID = "krimits/hotel-triage-demo"
 HARDWARE = "zero-a10g"  # HF API name for ZeroGPU; never a dedicated paid A10G.
+LOCAL_VARIABLES = {"REVIEWNLP_TRIAGE_LEXICON_FALLBACK": "1", "REVIEWNLP_JEV_ENABLED": "0"}
 
 
 class LiveCheckError(ValueError):
@@ -54,8 +56,20 @@ def validate_smoke(package: Path, report: dict) -> dict:
     return manifest
 
 
-def deploy(api, package: Path, report: dict, *, resume=False, download=hf_hub_download) -> dict:
+def validate_local_primary(manifest: dict, report: dict) -> None:
+    snapshot, policy = manifest.get("runtime_snapshot", {}), report.get("complaint_policy", {})
+    if (snapshot.get("complaint_primary_default") != "lexicon"
+            or not snapshot.get("lexicon_sha256") or policy.get("primary") != "lexicon"
+            or policy.get("lexicon_sha256") != snapshot["lexicon_sha256"]
+            or policy.get("verified") is not True or policy.get("jev_enabled") is not False
+            or not report.get("records") or any(row.get("primary_policy_passed") is not True for row in report["records"])):
+        raise ValueError("verified_local_primary_smoke_required")
+
+
+def deploy(api, package: Path, report: dict, *, resume=False, local_primary=False, download=hf_hub_download) -> dict:
     manifest = validate_smoke(package, report)
+    if local_primary:
+        validate_local_primary(manifest, report)
     if api.whoami()["name"] != "krimits":
         raise ValueError("expected_hf_account_krimits")
     parent = None
@@ -73,10 +87,15 @@ def deploy(api, package: Path, report: dict, *, resume=False, download=hf_hub_do
         api.create_repo(repo_id=REPO_ID, repo_type="space", space_sdk="gradio",
                         private=False, space_hardware=HARDWARE, exist_ok=False)
         parent = api.repo_info(repo_id=REPO_ID, repo_type="space").sha
+    if local_primary:
+        # Only these public variables change. Existing secrets and hardware remain intact.
+        for key, value in LOCAL_VARIABLES.items():
+            api.add_space_variable(repo_id=REPO_ID, key=key, value=value)
     expected = {*manifest["files"], "source_manifest.json"}
     uploaded = api.upload_folder(repo_id=REPO_ID, repo_type="space", folder_path=str(package),
                                  allow_patterns=sorted(expected), delete_patterns=["*"], parent_commit=parent,
-                                 commit_message="Fix evidence extraction using source spans; experimental workflow")
+                                 commit_message=("Use local lexicon primary; experimental workflow" if local_primary else
+                                                 "Fix evidence extraction using source spans; experimental workflow"))
     commit = uploaded.oid
     actual = set(api.list_repo_files(repo_id=REPO_ID, repo_type="space", revision=commit))
     if actual - {".gitattributes"} != expected:
@@ -94,7 +113,7 @@ def deploy(api, package: Path, report: dict, *, resume=False, download=hf_hub_do
             "upload_verified": True, "runtime_verified": False}
 
 
-def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_factory=None) -> dict:
+def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_factory=None, local_primary=False) -> dict:
     if client_factory is None:
         from gradio_client import Client
         client_factory = Client
@@ -121,6 +140,11 @@ def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_facto
         time.sleep(5)
     else:
         raise TimeoutError("space_startup_timeout")
+    if local_primary and (info.get("complaint_primary") != "lexicon" or info.get("jev_enabled") is not False
+            or info.get("lexicon_sha256") != manifest["runtime_snapshot"]["lexicon_sha256"]):
+        raise LiveCheckError({**receipt, "runtime_verified": False, "live_model_info": info,
+            "functional_checks": [], "live_check_failure": {"case": "model_info", "error": "live_primary_policy_mismatch"},
+            "quality_evaluated": False}, "model_info")
     checked = []
     for case in EDGE_CASES:
         if case["id"] not in REQUIRED_REGRESSIONS:
@@ -138,12 +162,15 @@ def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_facto
                   "stage_reports": result["stage_reports"], "issues": len(result["issue_assessments"]),
                   "actions": len(result["actions"]["actions"]),
                   "total_ms": result["timings"]["total_ms"], "stored": result["stored"]}
+        policy_errors = primary_policy_problems(result, manifest["runtime_snapshot"]["lexicon_sha256"]) if local_primary else []
+        if local_primary:
+            record["primary_policy_passed"] = not policy_errors
         checked.append(record)
         if (result["stored"] or result["api_cost"]["attempts"]
                 or not any(item["stage"] == "issues" for item in result["stage_reports"])
                 or any(item["error"] in {"generation_failed", "gpu_unavailable_or_timeout"} for item in result["stage_reports"])
                 or (result["stage_failure"] and "Αποτυχία σταδίου" not in summary)
-                or regression_problems(label, text, result)):
+                or policy_errors or regression_problems(label, text, result)):
             raise LiveCheckError({**receipt, "runtime_verified": False, "live_model_info": info,
                 "functional_checks": checked,
                 "live_check_failure": {"case": label, "error": "live_regression_failed"},
@@ -151,6 +178,7 @@ def check_live(api, receipt: dict, manifest: dict, *, timeout=1500, client_facto
     if receipt.get("space_commit") and api.repo_info(repo_id=REPO_ID, repo_type="space").sha != receipt["space_commit"]:
         raise ValueError("space_head_changed_during_live_check")
     return {**receipt, "runtime_verified": True, "live_model_info": info, "functional_checks": checked,
+            "local_primary_verified": local_primary,
             "quality_evaluated": False, "manual_mobile_and_pilot_checks": "pending"}
 
 
@@ -161,22 +189,29 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--local-primary", action="store_true",
+                        help="Require lexicon smoke checks and set only lexicon=1 / Jev=0 Space Variables")
     args = parser.parse_args()
     report = json.loads(args.smoke_report.read_text(encoding="utf-8"))
     manifest = validate_smoke(args.package, report)
+    if args.local_primary:
+        validate_local_primary(manifest, report)
     if args.dry_run:
         print("Package and real-weight check verified. No Hub writes.")
         return
-    receipt = deploy(HfApi(), args.package, report, resume=args.resume)
+    receipt = deploy(HfApi(), args.package, report, resume=args.resume, local_primary=args.local_primary)
+    if args.local_primary:
+        receipt["configured_variables"] = dict(LOCAL_VARIABLES)
     # Save the verified upload even if startup subsequently fails.
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     print("Upload verified:", receipt["url"], receipt["space_commit"], flush=True)
     try:
-        receipt = check_live(HfApi(), receipt, manifest)
+        receipt = check_live(HfApi(), receipt, manifest, local_primary=args.local_primary)
     except LiveCheckError as error:
         args.output.write_text(json.dumps(error.receipt, indent=2) + "\n", encoding="utf-8")
-        failure = error.receipt["functional_checks"][-1]
+        failure = (error.receipt["functional_checks"][-1] if error.receipt["functional_checks"] else
+                   error.receipt["live_check_failure"])
         print("Live check failed:", failure["case"], failure.get("stage_failure") or failure.get("error") or "regression_failed", flush=True)
         raise
     args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
