@@ -149,7 +149,12 @@ existing experimental Space using only the `HF_TOKEN` Colab Secret. Sets the two
 Verifies the new loaded snapshot, lexical fingerprint, opt-out and human referral policy.
 Exports `triage_lexicon_space_update.zip` even after failure, including setup diagnostics. No new
 provider/model comparison, reserved evaluation, human-label upload or reliability claim.
-Actual Colab execution/live receipt is pending; the next quality step is the
+The [13 October publication record](../docs/experiments/triage_space_publication/2079d8b/README.md)
+retains 16 completed real-weight Colab checks and seven successful hosted regressions. Independent
+verification matched the deployment and local-primary policy; an anonymous repeat then encountered
+a visible ZeroGPU quota failure after three successes. The setup template now handles missing
+`ensurepip` and installs declared core dependencies with the Space pins in one resolution.
+The next quality step is the
 [whole-review operational-topic pilot](../docs/experiments/triage_lexicon_pilot/PROTOCOL.md).
 
 Colab keeps outputs in the file it hands back, so the flow is just:

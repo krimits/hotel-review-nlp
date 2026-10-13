@@ -1,15 +1,21 @@
 # Experimental triage Space publication
 
 Current source adds local lexical topic hints as the default primary (`REVIEWNLP_TRIAGE_LEXICON_FALLBACK=1`),
-with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). This source change is not a live-update
-receipt. Build a fresh package from its commit, run a new real-weight check and update using the existing
-`--resume` procedure. Old pinned publication notebooks do not include this source change.
+with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). It was published on 13 October at
+Space commit `2079d8b`; the [publication record](experiments/triage_space_publication/2079d8b/README.md)
+preserves the owner-run real-weight/live receipt and independent verification. For future updates,
+build a fresh package from its commit, run a new real-weight check and use the existing `--resume`
+procedure. Old pinned publication notebooks do not include this source change.
 The package manifest binds the lexicon version/SHA; diagnostics report actual configuration.
 Use [notebook 25](../notebooks/25_update_triage_lexicon_space_colab.ipynb) in a fresh Colab GPU session.
 It pins source `02d6e8c7b7297bd87b4060b8f9f504421e60244c`, uses `HF_TOKEN` only for the owner-run
 update, and exports `triage_lexicon_space_update.zip` including setup/model/publication failures.
-The source and notebook checks are complete; this notebook has not yet supplied a real-weight
-Colab receipt or verified live deployment. The old notebooks keep their historical pins.
+The owner-run receipt has 16 completed Colab checks and seven successful hosted regressions.
+Independent verification matched the source files, loaded snapshot and local-primary policy;
+three anonymous regressions passed before a visible `gpu_quota_exceeded` stopped the repeat.
+The template now handles Colab without `ensurepip` and installs all core dependencies before `pip check`.
+The successful deployment does not need a rerun for this setup-only correction. The old notebooks keep
+their historical pins.
 For this update, the publisher's `--local-primary` option requires a real-weight smoke receipt
 with verified lexical provenance and opt-out for every case. It sets exactly the two public Variables
 above, preserving all secrets/hardware, and checks the loaded source snapshot, actual lexicon hash,

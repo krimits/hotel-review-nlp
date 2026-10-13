@@ -251,14 +251,18 @@ Paste any hotel review and get a live prediction. No setup required.
 review and shows sentiment, reported/excluded/uncertain issues, evidence and suggested measures.
 It runs the pinned Qwen2.5-1.5B source-span workflow G-source-spans on ZeroGPU; all reviews reach issue extraction,
 including positive ones. Jev is optional and off by default, and the app keeps no review database.
-The local-primary update is prepared in [notebook 25](notebooks/25_update_triage_lexicon_space_colab.ipynb):
-local lexical topic hints, optional Jev enhancement and human referral for unknown topics.
-It requires a new owner-run real-weight/live receipt before being recorded as published.
+The local-primary update was published on 13 October at Space commit `2079d8b` using
+[notebook 25](notebooks/25_update_triage_lexicon_space_colab.ipynb): local lexical topic hints,
+optional Jev enhancement (disabled on the server) and human referral for unknown topics.
+The [publication record](docs/experiments/triage_space_publication/2079d8b/README.md) retains 16 completed
+Colab checks and seven successful hosted regressions, plus independent file/snapshot verification.
+Three anonymous repeated regressions passed; the next request reported visible `gpu_quota_exceeded`.
 The [whole-review pilot tools and annotation instructions](docs/experiments/triage_lexicon_pilot/PROTOCOL.md)
 are ready; human ground truth is still required before new paid topic-model comparisons.
 This is an **experimental snapshot, not a selected or promoted production workflow**. Known
 quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
-remain unvalidated. See the [current update and development capture](docs/experiments/triage_space_publication/e1e37e5/README.md).
+remain unvalidated. The [earlier development capture](docs/experiments/triage_space_publication/e1e37e5/README.md)
+retains its separate generator-quality findings.
 
 The source-span extraction fix was published at Space commit `ea8c7f8` through
 [notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb). All 16 Colab functional checks

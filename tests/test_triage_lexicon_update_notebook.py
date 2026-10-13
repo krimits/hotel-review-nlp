@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import csv
 import hashlib
 import io
 import json
@@ -11,11 +12,13 @@ import subprocess
 import sys
 import zipfile
 from contextlib import redirect_stdout
+from importlib.metadata import metadata
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from packaging.requirements import Requirement
 
 from scripts.prepare_triage_space import build_package
 
@@ -157,3 +160,81 @@ def test_export_after_setup_failure_does_not_require_a_package_or_upload(tmp_pat
         exec(code["export"], namespace)
     with zipfile.ZipFile(downloaded[0]) as archive:
         assert archive.namelist() == ["setup_execution.txt"]
+
+
+def metadata_wheel(directory, name, version, dependencies=()):
+    """Small local distributions exercise pip resolution, not model execution."""
+    stem = name.replace("-", "_") + "-" + version
+    info = stem + ".dist-info/"
+    contents = {
+        info + "METADATA": "Metadata-Version: 2.1\nName: " + name + "\nVersion: " + version + "\n"
+            + "".join("Requires-Dist: " + dependency + "\n" for dependency in dependencies),
+        info + "WHEEL": "Wheel-Version: 1.0\nGenerator: offline-setup-test\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
+    }
+    record = io.StringIO()
+    writer = csv.writer(record)
+    for filename in (*contents, info + "RECORD"):
+        writer.writerow([filename, "", ""])
+    contents[info + "RECORD"] = record.getvalue()
+    wheel = directory / (stem + "-py3-none-any.whl")
+    with zipfile.ZipFile(wheel, "w") as archive:
+        for filename, content in contents.items():
+            archive.writestr(filename, content)
+    return wheel
+
+
+@pytest.mark.parametrize("partial_environment", [False, True])
+def test_actual_notebook_installation_resolves_core_dependencies_in_a_pipless_isolated_environment(
+        tmp_path, partial_environment):
+    _, code = cells()
+    function = next(node for node in ast.parse(code["setup"]).body
+                    if isinstance(node, ast.FunctionDef) and node.name == "install_environment")
+    project = metadata("reviewnlp")
+    dependencies = [text for text in project.get_all("Requires-Dist", [])
+                    if Requirement(text).marker is None or Requirement(text).marker.evaluate({"extra": ""})]
+    requirements = (ROOT / "spaces/hotel-triage-demo/requirements.txt").read_text().splitlines()
+    versions = {}
+    for text in [*dependencies, *requirements, "spaces==0.51.3"]:
+        requirement = Requirement(text)
+        pins = [spec.version for spec in requirement.specifier if spec.operator == "=="]
+        minima = [spec.version for spec in requirement.specifier if spec.operator == ">="]
+        if pins or (minima and requirement.name not in versions):
+            versions[requirement.name] = (pins or minima)[0]
+    wheels = tmp_path / "wheels"
+    wheels.mkdir()
+    for name, version in versions.items():
+        metadata_wheel(wheels, name, version)
+    project_wheel = metadata_wheel(wheels, project["Name"], project["Version"], dependencies)
+    target = tmp_path / "environment"
+    if partial_environment:
+        target.mkdir()  # A failed ensurepip may leave an existing directory behind.
+    calls = []
+    environment = {**os.environ, "PIP_NO_INDEX": "1", "PIP_FIND_LINKS": str(wheels),
+                   "PIP_CONFIG_FILE": os.devnull, "PIP_DISABLE_PIP_VERSION_CHECK": "1"}
+    environment.pop("PYTHONPATH", None)
+
+    def run(arguments):
+        arguments = list(arguments)
+        calls.append(arguments[:])
+        if "-e" in arguments:
+            index = arguments.index("-e")
+            # Real project dependency metadata, in a wheel, avoids an online build-backend download.
+            arguments[index:index + 2] = [str(project_wheel)]
+        if "venv" in arguments:
+            assert "--without-pip" in arguments
+        subprocess.run(arguments, env=environment, capture_output=True, text=True, check=True)
+
+    namespace = {"sys": sys, "run_command": run}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(NOTEBOOK), "exec"), namespace)
+    python = namespace["install_environment"](ROOT, target)
+    info = json.loads(subprocess.check_output([python, "-c",
+        "import sys,json,importlib.util,importlib.metadata as m; "
+        "print(json.dumps({'isolated':sys.prefix!=sys.base_prefix,'pip':importlib.util.find_spec('pip') is not None,"
+        "'versions':{n:m.version(n) for n in " + repr(list(versions)) + "}}))"], env=environment, text=True))
+    assert info["isolated"] and info["pip"] is False
+    assert info["versions"] == versions
+    install = next(arguments for arguments in calls if "install" in arguments)
+    assert "--no-deps" not in install
+    assert "-r" in install and "-e" in install
+    assert calls[-1][-1] == "check"
+    assert "include-system-site-packages = false" in (target / "pyvenv.cfg").read_text()
