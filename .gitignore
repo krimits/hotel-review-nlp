@@ -56,3 +56,7 @@ Thumbs.db
 !.env.example
 *.log
 *.zip
+
+# Agent handoff workspace (local only; contract README is committed via git add -f)
+_agents_workspace/*
+!_agents_workspace/README.md
