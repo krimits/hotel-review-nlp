@@ -23,19 +23,28 @@ from packaging.requirements import Requirement
 from scripts.prepare_triage_space import build_package
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK = ROOT / "notebooks/25_update_triage_lexicon_space_colab.ipynb"
+# Notebook 26 republishes notebook 25's local-primary Space with cached examples; both stay runnable.
+NOTEBOOKS = {
+    "notebooks/25_update_triage_lexicon_space_colab.ipynb": "02d6e8c7b7297bd87b4060b8f9f504421e60244c",
+    "notebooks/26_update_triage_examples_space_colab.ipynb": "c65e638c0eccb7979c3d2a1fa48d0ce5e06735fc",
+}
 
 
-def cells():
-    nb = json.loads(NOTEBOOK.read_text())
+@pytest.fixture(params=sorted(NOTEBOOKS))
+def notebook(request):
+    return ROOT / request.param
+
+
+def cells(notebook):
+    nb = json.loads(notebook.read_text(encoding="utf-8"))
     return nb, {cell["id"]: "".join(cell["source"]) for cell in nb["cells"] if cell["cell_type"] == "code"}
 
 
-def test_notebook_pins_the_complete_local_primary_source_and_preserves_historical_templates():
-    nb, code = cells()
+def test_notebook_pins_the_complete_local_primary_source_and_preserves_historical_templates(notebook):
+    nb, code = cells(notebook)
     parameters = {}
     exec(code["parameters"], parameters)
-    assert parameters["SOURCE_COMMIT"] == "02d6e8c7b7297bd87b4060b8f9f504421e60244c"
+    assert parameters["SOURCE_COMMIT"] == NOTEBOOKS[notebook.relative_to(ROOT).as_posix()]
     assert parameters["RESUME"] is True and parameters["DRY_RUN"] is False
     assert parameters["SPACE_ID"] == "krimits/hotel-triage-demo"
     assert "src/reviewnlp/triage/lexicon.py" in parameters["SOURCE_HASHES"]
@@ -52,8 +61,8 @@ def test_notebook_pins_the_complete_local_primary_source_and_preserves_historica
 
 
 @pytest.mark.parametrize("policy", ["valid", "unverified", "jev_enabled", "wrong_lexicon"])
-def test_smoke_gate_cannot_accept_wrong_primary_even_with_successful_model_execution(tmp_path, policy):
-    _, code = cells()
+def test_smoke_gate_cannot_accept_wrong_primary_even_with_successful_model_execution(tmp_path, policy, notebook):
+    _, code = cells(notebook)
     report = {"passed": True, "regression_checks_passed": True, "records": [], "problems": [], "runtime": {},
               "complaint_policy": {"primary": "lexicon", "lexicon_sha256": "expected", "jev_enabled": False,
                                    "verified": True}}
@@ -77,8 +86,8 @@ def test_smoke_gate_cannot_accept_wrong_primary_even_with_successful_model_execu
 @pytest.mark.parametrize("smoke_pass,dry_run,published_policy", [(True, False, True), (False, False, False),
                                                              (True, True, False), (True, False, False)])
 def test_top_to_bottom_real_cells_keep_secret_safe_skip_bad_smoke_and_require_live_primary_receipt(
-        tmp_path, smoke_pass, dry_run, published_policy):
-    _, code = cells()
+        tmp_path, smoke_pass, dry_run, published_policy, notebook):
+    _, code = cells(notebook)
     namespace = {}
     exec(code["parameters"], namespace)
     checkout = tmp_path / "checkout"
@@ -148,8 +157,8 @@ def test_top_to_bottom_real_cells_keep_secret_safe_skip_bad_smoke_and_require_li
         assert not any(name.endswith(".csv") for name in archive.namelist())
 
 
-def test_export_after_setup_failure_does_not_require_a_package_or_upload(tmp_path):
-    _, code = cells()
+def test_export_after_setup_failure_does_not_require_a_package_or_upload(tmp_path, notebook):
+    _, code = cells(notebook)
     setup = tmp_path / "setup.txt"
     setup.write_text("pinned dependency install failed\n")
     downloaded = []
@@ -185,8 +194,8 @@ def metadata_wheel(directory, name, version, dependencies=()):
 
 @pytest.mark.parametrize("partial_environment", [False, True])
 def test_actual_notebook_installation_resolves_core_dependencies_in_a_pipless_isolated_environment(
-        tmp_path, partial_environment):
-    _, code = cells()
+        tmp_path, partial_environment, notebook):
+    _, code = cells(notebook)
     function = next(node for node in ast.parse(code["setup"]).body
                     if isinstance(node, ast.FunctionDef) and node.name == "install_environment")
     project = metadata("reviewnlp")
@@ -225,7 +234,7 @@ def test_actual_notebook_installation_resolves_core_dependencies_in_a_pipless_is
         subprocess.run(arguments, env=environment, capture_output=True, text=True, check=True)
 
     namespace = {"sys": sys, "run_command": run}
-    exec(compile(ast.Module(body=[function], type_ignores=[]), str(NOTEBOOK), "exec"), namespace)
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(notebook), "exec"), namespace)
     python = namespace["install_environment"](ROOT, target)
     info = json.loads(subprocess.check_output([python, "-c",
         "import sys,json,importlib.util,importlib.metadata as m; "
