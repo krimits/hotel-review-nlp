@@ -10,7 +10,7 @@ import pytest
 
 from reviewnlp.triage.generator_experiment import RATINGS
 from reviewnlp.triage.workflow_review import COUNTS
-from scripts.adjudicate_triage_review import load_decisions
+from scripts.adjudicate_triage_review import load_decisions, submitted_adjudications_hold
 from scripts.adjudicate_triage_review import main as adjudicate_main
 from scripts.capture_triage_review import capture
 from scripts.score_triage_review import reconcile
@@ -154,3 +154,48 @@ def test_incomplete_or_outside_disagreements_decisions_are_rejected(tmp_path):
         load_decisions(decision_csv(tmp_path, [{"blind_id": identity[0], "field": identity[1],
                                                 "agreed_value": "1", "adjudication_notes": " "}]),
                        report["disagreements"])
+
+
+def test_manifest_pins_its_inputs_and_keeps_the_pre_adjudication_report(tmp_path, monkeypatch):
+    """A manifest that hashes only its outputs cannot show which sheets produced them."""
+    run, sheet_a = divergent_sheets(tmp_path)
+    sheet_b = tmp_path / "completed_B.csv"
+    report = reconcile(run, sheet_a, sheet_b)
+    item = report["disagreements"][0]
+    decisions_path = decision_csv(tmp_path, [{"blind_id": item["blind_id"], "field": item["field"],
+                                              "agreed_value": "0", "adjudication_notes": "agreed"}])
+    output = tmp_path / "adjudicated"
+    monkeypatch.setattr("sys.argv", ["adjudicate_triage_review.py", "--run", str(run),
+        "--ratings-a", str(sheet_a), "--ratings-b", str(sheet_b),
+        "--decisions", str(decisions_path), "--output", str(output)])
+    adjudicate_main()
+
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()  # noqa: E731
+    assert manifest["inputs"]["ratings_A_v2_sha256"] == digest(sheet_a)
+    assert manifest["inputs"]["ratings_B_v2_sha256"] == digest(sheet_b)
+    assert manifest["inputs"]["decisions_sha256"] == digest(decisions_path)
+    # the report from before the adjudication is kept and covered by the manifest
+    assert json.loads((output / "scored_v2.json").read_text(encoding="utf-8")) == report
+    assert manifest["files"]["scored_v2.json"] == digest(output / "scored_v2.json")
+
+
+def test_the_match_flag_is_measured_rather_than_asserted(tmp_path, monkeypatch):
+    """`all_submitted_adjudications_match_v3` must come from reading the sheets back."""
+    run, sheet_a = divergent_sheets(tmp_path)
+    sheet_b = tmp_path / "completed_B.csv"
+    item = reconcile(run, sheet_a, sheet_b)["disagreements"][0]
+    decisions_path = decision_csv(tmp_path, [{"blind_id": item["blind_id"], "field": item["field"],
+                                              "agreed_value": "0", "adjudication_notes": "agreed"}])
+    output = tmp_path / "adjudicated"
+    monkeypatch.setattr("sys.argv", ["adjudicate_triage_review.py", "--run", str(run),
+        "--ratings-a", str(sheet_a), "--ratings-b", str(sheet_b),
+        "--decisions", str(decisions_path), "--output", str(output)])
+    adjudicate_main()
+
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["all_submitted_adjudications_match_v3"] is True
+    assert manifest["original_capture_unchanged"] is True
+    # the same check against a value the sheets do not hold must come back False
+    identity = (item["blind_id"], item["field"])
+    assert submitted_adjudications_hold(output, {identity: {"value": "1", "note": "n"}}) is False

@@ -13,7 +13,7 @@ send the work back with the exact failing evidence.
 Run and require green:
 
 ```
-ruff check src tests scripts
+ruff check src tests scripts spaces
 pytest tests -q
 python scripts/verify_distilbert_handoff.py   # when a handoff bundle is in scope
 ```

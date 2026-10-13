@@ -53,7 +53,7 @@ use the run id from `docs/RUNS.md`.
 | Role | May write |
 | --- | --- |
 | orchestrator | `_agents_workspace/**`, `docs/RUNS.md` |
-| methodologist | `docs/protocols/**`, `docs/experiments/**`, `docs/RUNS.md`, workspace tasks; **never `src/`, `configs/`, `scripts/`** |
+| methodologist | `docs/experiments/**` (protocols live at `docs/experiments/<slug>/PROTOCOL.md`), `docs/annotation/**`, `docs/RUNS.md`, workspace tasks; **never `src/`, `configs/`, `scripts/`** |
 | engineering | `src/**`, `configs/**`, `scripts/**`, `docker/**`, `spaces/**`, `tests/**`, workspace tasks |
 | evidence-audit | workspace tasks only (verdicts) — never source, docs claims, or configs |
 
