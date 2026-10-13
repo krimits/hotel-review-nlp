@@ -89,9 +89,11 @@ mechanically: it takes the captured run, the two unreconciled sheets and a decis
 cells record `Μετά τη συζήτηση: <field> <old>→<new>. <note>` (unchanged cells keep their note),
 fills the disagreement record, and emits a fresh `manifest.json` whose hashes cover the final
 files — a manifest from before the adjudication is stale by definition. The archived adjudication of
-2026-10-06 (`experiments/triage_space_publication/e1e37e5/human_review_v3/`) predates the tool; its
-values and reports match a replay, while a few of its notes carry hand-merged phrasing the
-deterministic rule does not reproduce. The archive stays the recorded evidence; the tool defines the
+2026-10-06 (`experiments/triage_space_publication/e1e37e5/human_review_v3/`) predates the tool; a
+replay reproduces its B sheet and disagreement record byte for byte and every judged value in its A
+sheet, and differs only in three `notes` cells (blinds 0010, 0020 and 0022, where the archived note
+summarises the whole decision rather than the one cell that changed in that sheet) and in the
+`ratings_A_sha256` field that tracks the A sheet. The archive stays the recorded evidence; the tool defines the
 convention going forward.
 
 ## Next corrections and release gates

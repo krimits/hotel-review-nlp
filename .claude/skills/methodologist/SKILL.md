@@ -7,8 +7,9 @@ description: Write and lock experiment protocols with lock tests before any evid
 
 ## Before a run: write and lock the protocol
 
-A protocol is complete only when it states, in `docs/protocols/PROTOCOL_<slug>.md` (or
-the run folder for small captures):
+A protocol is complete only when it states, in `docs/experiments/<slug>/PROTOCOL.md`
+(the convention the existing protocols follow — see `docs/experiments/triage_lexicon_pilot/`
+and `docs/experiments/decision_topic_benchmark/`), or the run folder for small captures:
 
 1. **Question** — the single question the run answers, in one sentence.
 2. **Data** — the exact dataset and its fingerprint (SHA-256 per file, or the captured

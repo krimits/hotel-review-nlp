@@ -75,5 +75,7 @@ and write boundaries are in `_agents_workspace/README.md`). Cross-session state 
 - Judge the final `status`, not `model_status` (the protocol's own wording).
 - Every evaluation artifact that a protocol references must be versioned in this repo —
   no scorer, capture, or adjudication script may live only in a Downloads folder.
-- Run `ruff check src tests scripts` and `pytest tests -q` before any PR; CI runs the
-  same plus `python scripts/verify_distilbert_handoff.py`.
+- Run `ruff check src tests scripts spaces` and `pytest tests -q` before any PR — the
+  same two commands CI runs, plus `python scripts/verify_distilbert_handoff.py` there.
+  `spaces` is part of the lint target: leave it out and CI can still fail after your
+  own check passed.
