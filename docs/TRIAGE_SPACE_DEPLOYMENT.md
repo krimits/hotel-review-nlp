@@ -5,6 +5,11 @@ with Jev an opt-in enhancement (`REVIEWNLP_JEV_ENABLED=0` by default). This sour
 receipt. Build a fresh package from its commit, run a new real-weight check and update using the existing
 `--resume` procedure. Old pinned publication notebooks do not include this source change.
 The package manifest binds the lexicon version/SHA; diagnostics report actual configuration.
+Use [notebook 25](../notebooks/25_update_triage_lexicon_space_colab.ipynb) in a fresh Colab GPU session.
+It pins source `02d6e8c7b7297bd87b4060b8f9f504421e60244c`, uses `HF_TOKEN` only for the owner-run
+update, and exports `triage_lexicon_space_update.zip` including setup/model/publication failures.
+The source and notebook checks are complete; this notebook has not yet supplied a real-weight
+Colab receipt or verified live deployment. The old notebooks keep their historical pins.
 For this update, the publisher's `--local-primary` option requires a real-weight smoke receipt
 with verified lexical provenance and opt-out for every case. It sets exactly the two public Variables
 above, preserving all secrets/hardware, and checks the loaded source snapshot, actual lexicon hash,
@@ -64,7 +69,7 @@ python scripts/prepare_triage_space.py --output runs/triage-space-package
 python scripts/check_triage_space.py --package runs/triage-space-package \
   --output runs/triage-space-smoke.json
 python scripts/publish_triage_space.py --package runs/triage-space-package \
-  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --dry-run
+  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --dry-run --local-primary
 ```
 
 The real-weight check uses eight explicitly synthetic edge cases and the eight known G development
@@ -85,7 +90,7 @@ The account must be `krimits`. Publication is already authorized for this experi
 
 ```bash
 python scripts/publish_triage_space.py --package runs/triage-space-package \
-  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --resume
+  --smoke-report runs/triage-space-smoke.json --output runs/triage-space-published.json --resume --local-primary
 ```
 
 The script creates a **new** public Space, requesting only `zero-a10g` (the HF API name for ZeroGPU).
