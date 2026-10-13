@@ -32,7 +32,7 @@ description: Build and change code, scripts, configs, SQL, and the Space app for
 ## Working with other agents
 
 - You receive task envelopes from `_agents_workspace/tasks/<id>/task.md` and write
-  results back to `_agents_workspace/tasks/<id>/` (schema in `_agents_workspace/README.md`).
+  results back to `_agents_workspace/tasks/<id>/` (schema in `docs/AGENT_HARNESS.md`).
 - You own `src/`, `configs/`, `scripts/`, `docker/`, `spaces/`. You do not edit protocols
   or decision notes (methodologist territory) and do not write audit verdicts
   (evidence-audit territory).

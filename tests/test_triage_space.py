@@ -208,7 +208,8 @@ def test_space_package_contains_only_allowed_sources_and_imports_without_the_ori
     process = subprocess.run([sys.executable, "-c", "import app, json; print(json.dumps([x.get('api_name') for x in app.demo.config['dependencies']]))"],
         cwd=package, env={name: value for name, value in os.environ.items() if name != "PYTHONPATH"},
         capture_output=True, text=True, check=True)
-    assert {"analyze", "model_info"} <= set(json.loads(process.stdout))
+    # Gradio prints where lazily cached examples will go; the endpoint list is the last line.
+    assert {"analyze", "model_info"} <= set(json.loads(process.stdout.splitlines()[-1]))
     with pytest.raises(FileExistsError):
         script.build_package(ROOT, package, source_commit="a" * 40)
 
@@ -270,3 +271,44 @@ def test_unknown_message_containing_quota_is_not_reclassified_as_exceeded_quota(
     from reviewnlp.triage.space_runtime import runtime_failure_code
     assert runtime_failure_code(RuntimeError("SECRET quota exceeded")) == "gpu_unavailable_or_timeout"
     assert runtime_failure_code(TimeoutError("SECRET")) == "gpu_timeout"
+
+
+def test_example_answers_are_cached_once_and_a_gpu_failure_is_never_cached(tmp_path, monkeypatch):
+    import asyncio
+
+    import gradio
+
+    monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", str(tmp_path))
+    created = []
+
+    make_examples = gradio.Examples
+
+    def recording_examples(*args, **kwargs):
+        created.append(make_examples(*args, **kwargs))
+        return created[-1]
+
+    monkeypatch.setattr(gradio, "Examples", recording_examples)
+    app = load_script("triage_space_cached_examples", ROOT / "spaces/hotel-triage-demo/app.py")
+    (examples,) = created
+    assert examples.cache_examples == "lazy" and examples.fn is app.analyze_example
+    assert "αποθηκεύεται" in examples.dataset.label
+
+    def gpu_refused(*args):
+        raise RuntimeError("SECRET quota message")
+
+    with patch.object(app, "service", return_value=DemoService(FakeWrapper(POSITIVE), WorkerGenerator(gpu_refused))):
+        with pytest.raises(gradio.Error, match="δεν αποθηκεύτηκε"):
+            asyncio.run(examples.cache(example_id=0))
+    assert examples._get_cached_index_if_cached(0) is None  # the next click runs the models again
+
+    demo, extractor = service()
+    with patch.object(app, "service", return_value=demo):
+        summary, issues, actions, result = examples.load_from_cache(0)
+    assert summary.startswith(app.CACHED_EXAMPLE_NOTE.strip()) and len(extractor.calls) == 1
+    # The fake's quote is not in the example, so validation fails: a deterministic model answer, stored as is.
+    assert result["stage_failure"]["error"] == "issue_quote_missing" and "SECRET" not in json.dumps(result)
+
+    with patch.object(app, "service", side_effect=AssertionError("a cached example must not reach the models")):
+        replay = examples.load_from_cache(0)
+    assert replay[0] == summary and replay[3] == result
+    app.demo.close()

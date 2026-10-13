@@ -136,6 +136,29 @@ def analyze(text, use_jev):
         raise gr.Error("Αποτυχία σταδίου: ανάλυση. Το μοντέλο δεν μπόρεσε να ολοκληρώσει το αίτημα.") from None
 
 
+EXAMPLES = [["The reading lamp flickered all evening, although the bed was comfortable."],
+            ["The lobby tea was delicious and our suite was comfortable."]]
+CACHED_EXAMPLE_NOTE = ("**Αποθηκευμένη απάντηση παραδείγματος.** Τα μοντέλα την υπολόγισαν μία φορά και "
+                       "επαναχρησιμοποιείται χωρίς νέα χρήση GPU· ο χρόνος παρακάτω αφορά εκείνη την εκτέλεση. "
+                       "Για νέα ανάλυση, αλλάξτε το κείμενο και πατήστε «Ανάλυση κριτικής».\n\n")
+
+
+def analyze_example(text):
+    """Example clicks: Jev off, and a GPU or runtime failure never enters the shared cache.
+
+    Gradio stores what this returns for every later visitor; a raised error is not stored. A model
+    answer that fails validation (say, a quote missing from the review) is the model's greedy output
+    and is stored with its failure shown; a refused or crashed GPU call is retried on the next click.
+    """
+    title, issue_rows, action_rows, result = analyze(text, False)
+    transient = [item["error"] for item in result["stage_reports"] if item["status"] == "error"
+                 and (item["stage"] == "qwen_runtime" or item["error"] == "generation_failed")]
+    if transient:
+        raise gr.Error(f"Αποτυχία σταδίου στο παράδειγμα (`{transient[0]}`). "
+                       "Η απάντηση δεν αποθηκεύτηκε· δοκιμάστε ξανά αργότερα.")
+    return CACHED_EXAMPLE_NOTE + title, issue_rows, action_rows, result
+
+
 def build_demo():
     with gr.Blocks(title="Hotel Review Actions", analytics_enabled=False,
                    css=".owner-table * { font-family: var(--font) !important; }") as demo:
@@ -151,9 +174,7 @@ def build_demo():
                               interactive=space_environment()["jev_available"])
         gr.Markdown("Με ενεργό Jev, το κείμενο αποστέλλεται στον πάροχό του. Η εφαρμογή δεν κρατά ιστορικό κριτικών.")
         run = gr.Button("Ανάλυση κριτικής", variant="primary")
-        gr.Examples(examples=[["The reading lamp flickered all evening, although the bed was comfortable."],
-                              ["The lobby tea was delicious and our suite was comfortable."]], inputs=text,
-                    label="Επινοημένα παραδείγματα")
+        example_slot = gr.Column()  # filled below, once the outputs exist
         summary = gr.Markdown()
         gr.Markdown("### Ζητήματα και τεκμήρια — ελέγξτε και όσα εξαιρέθηκαν")
         issues = gr.Dataframe(headers=["Ζήτημα", "Κατάσταση", "Απόσπασμα", "Αναφορά προβλήματος",
@@ -167,6 +188,12 @@ def build_demo():
         info = gr.Button(visible=False)
         info.click(model_info, inputs=[], outputs=diagnostic, api_name="model_info", queue=False)
         run.click(analyze, inputs=[text, use_jev], outputs=[summary, issues, actions, diagnostic], api_name="analyze")
+        with example_slot:
+            # Lazy cache: the first click on an example runs the models once; later clicks, by anyone,
+            # replay that answer without GPU quota. The label says so before anyone clicks.
+            gr.Examples(examples=EXAMPLES, inputs=text, outputs=[summary, issues, actions, diagnostic],
+                        fn=analyze_example, cache_examples=True, cache_mode="lazy",
+                        label="Επινοημένα παραδείγματα — η απάντηση αποθηκεύεται μετά την πρώτη εκτέλεση")
         gr.Markdown("Τα αποσπάσματα ελέγχονται ως προς την παρουσία τους στο κείμενο. Αυτό δεν αποδεικνύει "
                     "σωστή ερμηνεία ή κατάλληλο μέτρο. Επιβεβαιώστε κάθε πρόταση πριν την εφαρμογή.")
     return demo.queue(default_concurrency_limit=1, max_size=10)
