@@ -46,11 +46,11 @@ from transformers import AutoModelForCausalLM, AutoModelForSequenceClassificatio
 DISTILBERT_ID = "krimits/distilbert-hotel-reviews"
 DISTILBERT_REVISION = "7306aebcaaebc00d579f5d0a91001ae376f18158"  # the clean-split model, pinned so the texts match the weights
 QWEN_ADAPTER_REPO = "krimits/hotel-review-nlp-qwen-qlora-adapter"
-QWEN_ADAPTER_REVISION = "main"  # replaced by a commit SHA: scripts/pin_review_demo_revisions.py
+QWEN_ADAPTER_REVISION = "1458bdb9058fbb629e72ce83d9b0f44a09271941"
 QWEN_BASE = "Qwen/Qwen2.5-0.5B-Instruct"
 QWEN_BASE_REVISION = "7ae557604adf67be50417f59c2c2f167def9a775"
 GREEK_ID = "krimits/greek-hotel-reviews-sentiment"
-GREEK_REVISION = "main"  # replaced by a commit SHA: scripts/pin_review_demo_revisions.py
+GREEK_REVISION = "9962dad48fe95287991ef54e7a4b6a6254b19843"
 LABELS = ("negative", "positive")
 GREEK_MAX_LENGTH = 160  # same truncation as the training config
 

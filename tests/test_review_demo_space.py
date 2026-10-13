@@ -51,8 +51,8 @@ def test_every_hub_download_names_a_revision_constant():
     assert set(script.revisions(source)) == {"DISTILBERT_REVISION", "QWEN_BASE_REVISION", *script.OWN_REPOS}
 
 
-def test_models_from_other_owners_and_the_served_distilbert_are_pinned_to_commits():
-    assert set(script.unpinned(APP.read_text(encoding="utf-8"))) <= set(script.OWN_REPOS)
+def test_every_revision_in_the_app_is_a_commit():
+    assert script.unpinned(APP.read_text(encoding="utf-8")) == []
 
 
 def test_pin_writes_the_resolved_commits_and_check_then_passes(tmp_path, capsys):
