@@ -4,8 +4,10 @@ Companion to https://github.com/krimits/hotel-review-nlp.
 - DistilBERT: krimits/distilbert-hotel-reviews, pinned to the clean-split model (full
   fine-tune; macro-F1 0.9642 on a test set that shares no review text with training).
 - Qwen2.5-0.5B-Instruct + QLoRA adapter from
-  krimits/hotel-review-nlp-qwen-qlora-adapter (public copy of run v1;
-  macro-F1 0.9571, 20k subset).
+  krimits/hotel-review-nlp-qwen-qlora-adapter (public copy of run v1, trained
+  on 20k reviews). Its legacy-split macro-F1 0.9571 was read from first-step
+  label scores, not from generated text like this demo's answers
+  (docs/experiments/results/qwen_legacy_v1/ in the repo).
 - GreekBERT (nlpaueb/bert-base-greek-uncased-v1) fine-tuned on the pinned
   DGurgurov/greek_sa corpus: krimits/greek-hotel-reviews-sentiment
   (test macro-F1 0.9086). Domain note: the Greek training corpus is
@@ -22,9 +24,13 @@ v3: every model download names a commit (DistilBERT already did), so a push to
 any model repo cannot change what a running demo answers. The two own-repo
 commits are written by scripts/pin_review_demo_revisions.py.
 
-The Qwen path replicates the training-time decision rule exactly: greedy generation
-of the label word over the Qwen2.5-Instruct chat prompt used in training, with the
-robust line/token parser from src/reviewnlp/llm/prompt_format.py.
+v4: the Qwen prompt carries the chat markers (<|im_start|>, <|im_end|>) that
+training used. Earlier versions sent the same words without them.
+
+The Qwen path builds the training prompt from src/reviewnlp/llm/prompt_format.py
+(tests/test_review_demo_space.py checks that the copy matches). It reads the label
+from greedy generation with the lenient parser from the same file. That reading
+rule has not been scored on a test set.
 
 Each model is wired to its own click event: the encoder's answer does not wait
 for the other paths, and a failure surfaces as a note
@@ -54,27 +60,28 @@ GREEK_REVISION = "9962dad48fe95287991ef54e7a4b6a6254b19843"
 LABELS = ("negative", "positive")
 GREEK_MAX_LENGTH = 160  # same truncation as the training config
 
-# --- Exact prompt constants from src/reviewnlp/llm/prompt_format.py (commit 530cf9e) ---
+# --- Copied from src/reviewnlp/llm/prompt_format.py; tests/test_review_demo_space.py checks the copy ---
 SYSTEM_PROMPT = (
     "You are a hotel review sentiment classifier. "
     "Classify the review as exactly one of: positive, negative. "
     "Answer with a single word, nothing else."
 )
 USER_TEMPLATE = "Classify the following hotel review:\n\n{review}"
-ASSISTANT_PREFIX = "assistant\n"
+ASSISTANT_PREFIX = "<|im_start|>assistant\n"
 
 
 def format_prompt(review: str) -> str:
+    """The Qwen2.5 chat-format prompt used in training, ending right before the answer."""
     review = " ".join(str(review).split())[:4000]
     return (
-        f"system\n{SYSTEM_PROMPT}\n"
-        f"user\n{USER_TEMPLATE.format(review=review)}\n"
+        f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n"
+        f"<|im_start|>user\n{USER_TEMPLATE.format(review=review)}<|im_end|>\n"
         f"{ASSISTANT_PREFIX}"
     )
 
 
 def parse_label(generated_text: str) -> str:
-    """Robust parser — identical logic to the verified run-v3 decision rule."""
+    """Lenient parser: the first label word in the generated text, as parse_label in prompt_format.py."""
     text = str(generated_text).strip().lower()
     for token in text.replace(".", " ").replace(",", " ").split():
         if token in LABELS:
@@ -206,7 +213,8 @@ with gr.Blocks(title="Hotel Review Sentiment — encoder vs decoder vs Greek") a
         "# 🏨 Hotel Review Sentiment — DistilBERT vs Qwen QLoRA vs GreekBERT\n"
         "The same review, three model families. "
         "DistilBERT full fine-tune: macro-F1 **0.9642** on a test set that shares no review "
-        "text with training. Qwen QLoRA (**0.9571**) and GreekBERT (**0.9086**, Greek "
+        "text with training. Qwen QLoRA (**0.9571** on the legacy split, read from first-step "
+        "label scores rather than generated text) and GreekBERT (**0.9086**, Greek "
         "political-tweet corpus, cross-domain on hotel text) were measured on other test "
         "sets, so the three numbers are not comparable. "
         "[Project repo](https://github.com/krimits/hotel-review-nlp) · "

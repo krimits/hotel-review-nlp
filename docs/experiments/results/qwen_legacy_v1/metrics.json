@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-09-11T11:27:48.464619+00:00",
+  "model_family": "Qwen2.5-0.5B-Instruct QLoRA",
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "repository": {
+    "url": "https://github.com/krimits/hotel-review-nlp.git",
+    "branch": "main",
+    "commit": "e7a3c71f8cbd652a878ed5f19c2b7eae766f1615"
+  },
+  "dataset": {
+    "identity": "audited frozen v1 ordered splits",
+    "train_cap_total": 20000,
+    "dev_cap_total": 2000,
+    "eval_rows": 13278
+  },
+  "training": {
+    "epochs": 1,
+    "max_length": 320,
+    "batch_size": 8,
+    "gradient_accumulation_steps": 4,
+    "learning_rate": 0.0002,
+    "seed": 42,
+    "completion_only_loss": true,
+    "trainable_parameters": 8798208,
+    "total_parameters_visible": 323917696,
+    "lora": {
+      "r": 16,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    },
+    "seconds": 9856.886,
+    "peak_allocated_vram_bytes": 8618904576
+  },
+  "evaluation": {
+    "generation_metrics": {
+      "accuracy": 0.0,
+      "macro_f1": 0.0
+    },
+    "first_step_score_metrics": {
+      "accuracy": 0.9671,
+      "macro_f1": 0.9571
+    },
+    "invalid_output_count": 13278,
+    "invalid_output_rate": 1.0,
+    "invalid_output_samples": [
+      {
+        "test_row": 0,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 1,
+        "gold": "positive",
+        "raw_generation": "positive\nnegative\n"
+      },
+      {
+        "test_row": 2,
+        "gold": "positive",
+        "raw_generation": "positive\nnegative\n"
+      },
+      {
+        "test_row": 3,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 4,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 5,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 6,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 7,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 8,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 9,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 10,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 11,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 12,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 13,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 14,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 15,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 16,
+        "gold": "negative",
+        "raw_generation": "negative\nnegative\n"
+      },
+      {
+        "test_row": 17,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 18,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 19,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 20,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 21,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 22,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      },
+      {
+        "test_row": 23,
+        "gold": "negative",
+        "raw_generation": "negative\nnegative\n"
+      },
+      {
+        "test_row": 24,
+        "gold": "positive",
+        "raw_generation": "positive\npositive\n"
+      }
+    ],
+    "seconds": 916.725,
+    "rows_per_second": 14.484,
+    "peak_allocated_vram_bytes": 1498882048,
+    "max_new_tokens": 4
+  },
+  "environment": {
+    "gpu": "Tesla T4",
+    "torch": "2.14.0+cu130",
+    "cuda_runtime": "13.0"
+  }
+}
