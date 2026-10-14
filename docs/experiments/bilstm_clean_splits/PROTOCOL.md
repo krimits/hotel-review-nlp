@@ -1,8 +1,9 @@
-# BiLSTM on the clean splits — version 2
+# BiLSTM on the clean splits — version 3
 
-**Fixed before any training run, 13 October 2026. Status: locked; no run has been
-executed under it or under version 1 (see the version history at the end). Scope: development evidence; no selection is frozen and no model is
-promoted.**
+**Fixed before any training run: versions 1 and 2 on 13 October 2026, version 3 on
+14 October 2026. Status: locked; no run has been executed under any version (see the
+version history at the end). Scope: development evidence; no selection is frozen and no
+model is promoted.**
 
 The legacy five-model table compares the BiLSTM on a test set that shares 170 review
 texts with training (audit finding F02). DistilBERT and the scratch LoRA were re-run on
@@ -71,7 +72,52 @@ Values already recorded for that split, against which the BiLSTM will be placed:
 
 Reported but **unable to overturn the rule**: the BiLSTM on the `random` and `hotel`
 views; BiLSTM versus TF-IDF + Naive Bayes on all three views; per-class precision and
-recall; the random-to-time drop; training wall time.
+recall; the random-to-time drop; training wall time; the two secondary analyses below.
+
+### Secondary: three training seeds
+
+The BiLSTM is trained with seed 42 on all three views, and also with seeds 43 and 44 on
+the `time` view. These seeds are fixed here, before any run. **Seed 42 stays the primary
+result**: the decision rule in section 4 is applied to it alone.
+
+For seeds 43 and 44, the primary comparison is repeated against the same seed-42
+DistilBERT full fine-tune, and each seed's branch of the rule is reported. Then:
+
+| Seed check | What the README says |
+| --- | --- |
+| all three seeds land in the same branch | the conclusion holds across three training seeds of the BiLSTM |
+| any seed lands in another branch | the conclusion depends on the BiLSTM's seed: the seed-42 conclusion is stated with that caveat and all three branches |
+
+The mean and standard deviation of the BiLSTM's macro-F1 over the three seeds are also
+reported. Neither can change the primary conclusion.
+
+### Secondary: speed, size and the measured frontier
+
+Four models are timed in one session, on one CPU, with the method of
+[`latency.json`](../results/distilbert_v2/latency.json):
+- the same 500 `time` test reviews (sample seed 0);
+- one PyTorch thread, one review at a time, text to label with tokenization included;
+- 3 warm-up calls, then the median and 95th percentile per review.
+
+The four are TF-IDF + Naive Bayes, the BiLSTM (seed 42), the DistilBERT full fine-tune
+and the scratch LoRA merged into it. A DistilBERT timing may use any checkpoint of that
+architecture trained in the session: the architecture, not the weight values, sets the
+time. The BiLSTM's size is its saved weights plus its vocabulary file; the others' size
+is as `latency.json` defines it.
+
+Each model is a point: its macro-F1 on the `time` test (seed 42 for the neural models)
+and its median CPU latency. Let `[lo, hi]` be the paired 95% interval of macro-F1(A) −
+macro-F1(B). Model A dominates model B when:
+
+| Dominance condition |
+| --- |
+| `lat_a <= lat_b and hi >= 0 and (lat_a < 0.9 * lat_b or lo > 0)` |
+
+That is, A is no slower, not significantly less accurate, and either at least 10% faster
+or significantly more accurate. A timing gap under 10% counts as a tie, because timings on
+a shared cloud CPU vary. The measured frontier is the set of models that no other model
+dominates. The README may call a model "on the measured frontier" only by this rule. The
+frontier describes this CPU and this method; it does not change the primary conclusion.
 
 ## 4. Decision rule
 
@@ -101,14 +147,18 @@ it is never reinterpreted silently.
 
 - Binary positive/negative sentiment over Booking.com review text. **No production
   accuracy claim**: these are development splits of a public dataset.
-- **Qwen2.5-0.5B QLoRA is out of scope.** It needs a GPU and Hugging Face Hub access.
-  Its legacy claim — statistically indistinguishable from the scratch LoRA, McNemar
-  p = 0.53 — stays unconfirmed on clean splits and keeps its legacy caveat in the README
-  until a separate protocol covers it.
-- **One seed.** The BiLSTM is trained once per view with seed 42. There is no
-  seed-variation interval, so a difference smaller than seed noise cannot be separated
-  by this run. The existing DistilBERT artifacts carry a second seed on the `time`
-  split; the BiLSTM will not.
+- **Qwen2.5-0.5B QLoRA is out of scope.** It is not carried forward for binary scoring
+  ([decision, 14 October 2026](../decision_qwen_binary_scope.md)). Its legacy claim —
+  statistically indistinguishable from the scratch LoRA, McNemar p = 0.53 — stays
+  unconfirmed on clean splits and keeps its legacy caveat in the README.
+- **Three seeds on the `time` view, one elsewhere.** Seed 42 decides; seeds 43 and 44 show
+  whether its branch depends on the seed. Three seeds give a rough spread, not an
+  interval. The `random` and `hotel` views are trained once.
+- **The DistilBERT reference is one seed.** All four DistilBERT runs on the clean splits
+  used seed 42. Whether DistilBERT's own results move with the seed is the subject of a
+  [separate protocol](../distilbert_seed_robustness/PROTOCOL.md).
+- **The frontier is one CPU's.** Timings depend on the processor and its load. The
+  frontier holds for this session's CPU and this method only.
 - **No tuning.** Hyperparameters are the committed `configs/bilstm.yaml`: hidden 128,
   1 layer, bidirectional, dropout 0.3, `last` pooling, embedding 128, batch 128, lr
   1e-3, weight decay 1e-4, grad clip 5.0, 6 epochs, early stopping patience 2 on dev
@@ -133,11 +183,14 @@ artifacts each run must produce, matching the shape
 `docs/experiments/results/distilbert_v2/<view>/<model>/` already uses, are:
 `run_config.yaml`, `metrics.json` (including the `data` fingerprints this protocol
 pins), `dev_logits.npy`, `dev_labels.npy`, `test_logits.npy`, `test_labels.npy` and
-`train_log.txt`.
+`train_log.txt`. Seeds 43 and 44 add the same files under `time/bilstm_seed43/` and
+`time/bilstm_seed44/`. The session adds a `latency.json` with the four models' CPU
+timings and sizes, the CPU model, the thread count and the package versions.
 
 ## Version history
 
 | Version | Commit | Change |
 | --- | --- | --- |
 | 1 | `3ddb358` | Locked with a three-branch rule on the interval alone. |
-| 2 | this commit | The rule omitted the analysis plan's 1-point magnitude criterion, so it could not tell a meaningful gain from a clear but small one. Amended to the plan's two-condition rule. **No run had been executed under version 1**, so no result could have influenced the change. |
+| 2 | `334eb82` | The rule omitted the analysis plan's 1-point magnitude criterion, so it could not tell a meaningful gain from a clear but small one. Amended to the plan's two-condition rule. **No run had been executed under version 1**, so no result could have influenced the change. |
+| 3 | this commit | Added, before any run, seeds 43 and 44 on the `time` view (seed 42 stays primary) and CPU latency and size for a measured frontier. Both are reported beside the primary rule and cannot change it. Corrected version 2's limits, which said the DistilBERT artifacts had another seed on the `time` split: all four DistilBERT runs used seed 42. **No run had been executed under version 2.** |

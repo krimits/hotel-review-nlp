@@ -209,8 +209,11 @@ was scored, above).
 - **DistilBERT and the scratch LoRA were re-run on the clean splits** (above).
   - They score about the same there (0.9642 and 0.9576).
   - Full fine-tuning again beats LoRA, by 0.66–0.68 points.
-- **The BiLSTM and Qwen have not been re-run**, so their comparisons are not confirmed on
-  clean splits.
+- **The BiLSTM has not been re-run yet.** Its [protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md)
+  is locked, with three training seeds and CPU latency and size for a measured speed–accuracy frontier.
+- **Qwen QLoRA is not carried forward for binary scoring**
+  ([decision, 14 October 2026](docs/experiments/decision_qwen_binary_scope.md)). Its legacy
+  comparisons stay unconfirmed on clean splits.
 
 ### Archived API load test (CPU, FastAPI)
 
@@ -722,8 +725,8 @@ and praise by topic, with quotes and a suggested action.
 - The five-family comparison is **not complete on clean splits**.
   - The historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact.
   - On the v2 random and out-of-time splits, two families are measured and verified from committed logits: the classical baseline and DistilBERT, fine-tuned in full and with the scratch LoRA ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
-  - The BiLSTM and Qwen are not.
-  - Each DistilBERT result comes from one training seed.
+  - The BiLSTM is not yet: its [protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md) is locked. Qwen QLoRA is not carried forward for binary scoring ([decision](docs/experiments/decision_qwen_binary_scope.md)).
+  - Each DistilBERT result comes from one training seed. A check across three seeds is [locked](docs/experiments/distilbert_seed_robustness/PROTOCOL.md) and not yet run.
 - The complaint-trend analysis names topics with a lexicon. A [pilot with two annotators](docs/case_study/results/annotation/README.md) measured it (300 texts, 80 labelled twice, kappa 0.83–1.00). Precision is about half or lower for cleanliness and responsiveness, and the lexicon finds only 2 of 16 responsiveness complaints. A change in its precision between the two periods cannot be told apart from zero, and a change in recall is not measured, so the rising topics stay unconfirmed.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
@@ -806,7 +809,8 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
 - [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
 - [x] Re-run DistilBERT (full fine-tune and scratch LoRA) on the v2 random and out-of-time splits, under a plan fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md))
-- [ ] Re-run the BiLSTM and Qwen QLoRA on the **v2 splits**, to complete the clean comparison
+- [ ] Re-run the BiLSTM on the **v2 splits**, with three seeds and CPU latency and size ([protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md), locked)
+- [ ] Check DistilBERT's full fine-tune against LoRA across three training seeds ([protocol](docs/experiments/distilbert_seed_robustness/PROTOCOL.md), locked)
 - [ ] Sort reviews by length before batching on a CPU: batches of 32 were slower per review than single reviews on one thread
 - [x] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md), [results](docs/case_study/results/annotation/README.md))
 - [ ] Break the rising complaint topics down by hotel and city
