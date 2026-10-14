@@ -78,3 +78,26 @@ def test_pin_refuses_anything_but_a_commit_and_check_reports_what_is_left(tmp_pa
     app.write_text(source.replace(script.revisions(source)["QWEN_BASE_REVISION"], "main"), encoding="utf-8")
     assert script.main(["--app", str(app), "--check"]) == 1
     assert "QWEN_BASE_REVISION" in capsys.readouterr().err
+
+
+def demo_prompt_code() -> dict:
+    """The demo's prompt constants and functions, run on their own: the app loads models on import."""
+    names = {"LABELS", "SYSTEM_PROMPT", "USER_TEMPLATE", "ASSISTANT_PREFIX", "format_prompt", "parse_label"}
+    body = [node for node in ast.parse(APP.read_text(encoding="utf-8")).body
+            if (isinstance(node, ast.FunctionDef) and node.name in names)
+            or (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in names)]
+    namespace: dict = {}
+    exec(compile(ast.Module(body=body, type_ignores=[]), str(APP), "exec"), namespace)
+    assert names <= set(namespace)
+    return namespace
+
+
+def test_the_demo_prompts_qwen_exactly_as_training_did():
+    from reviewnlp.llm import prompt_format
+
+    demo = demo_prompt_code()
+    for review in ("Great stay.", "  The   bed\nwas fine,\tthe shower cold. ", "x" * 5000, "Εξαιρετικό δωμάτιο."):
+        assert demo["format_prompt"](review) == prompt_format.format_prompt(review)
+    assert demo["format_prompt"]("ok").count("<|im_start|>") == 3
+    for generated in ("positive\npositive\n", " Negative.", "positive<|im_end|>", "unsure", "positively great"):
+        assert demo["parse_label"](generated) == prompt_format.parse_label(generated)
