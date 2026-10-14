@@ -4,8 +4,10 @@ Companion to https://github.com/krimits/hotel-review-nlp.
 - DistilBERT: krimits/distilbert-hotel-reviews, pinned to the clean-split model (full
   fine-tune; macro-F1 0.9642 on a test set that shares no review text with training).
 - Qwen2.5-0.5B-Instruct + QLoRA adapter from
-  krimits/hotel-review-nlp-qwen-qlora-adapter (public copy of run v1;
-  macro-F1 0.9571, 20k subset).
+  krimits/hotel-review-nlp-qwen-qlora-adapter (public copy of run v1, trained
+  on 20k reviews). Its legacy-split macro-F1 0.9571 was read from first-step
+  label scores, not from generated text like this demo's answers
+  (docs/experiments/results/qwen_legacy_v1/ in the repo).
 - GreekBERT (nlpaueb/bert-base-greek-uncased-v1) fine-tuned on the pinned
   DGurgurov/greek_sa corpus: krimits/greek-hotel-reviews-sentiment
   (test macro-F1 0.9086). Domain note: the Greek training corpus is
@@ -206,7 +208,8 @@ with gr.Blocks(title="Hotel Review Sentiment — encoder vs decoder vs Greek") a
         "# 🏨 Hotel Review Sentiment — DistilBERT vs Qwen QLoRA vs GreekBERT\n"
         "The same review, three model families. "
         "DistilBERT full fine-tune: macro-F1 **0.9642** on a test set that shares no review "
-        "text with training. Qwen QLoRA (**0.9571**) and GreekBERT (**0.9086**, Greek "
+        "text with training. Qwen QLoRA (**0.9571** on the legacy split, read from first-step "
+        "label scores rather than generated text) and GreekBERT (**0.9086**, Greek "
         "political-tweet corpus, cross-domain on hotel text) were measured on other test "
         "sets, so the three numbers are not comparable. "
         "[Project repo](https://github.com/krimits/hotel-review-nlp) · "

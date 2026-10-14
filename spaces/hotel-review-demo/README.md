@@ -22,8 +22,10 @@ the same review is classified by three model families.
 
 - **DistilBERT full fine-tune** (macro-F1 0.9642 on a test set that shares no review text with
   training), pinned to one model commit — an encoder, one forward pass per review.
-- **Qwen2.5-0.5B + QLoRA** (macro-F1 0.9571 on a 20k subset) — a decoder LLM
-  fine-tuned with parameter-efficient adapters, generating the label token by token.
+- **Qwen2.5-0.5B + QLoRA** — a decoder LLM fine-tuned with parameter-efficient adapters on
+  20k reviews, generating the label token by token. Its legacy-split macro-F1 of 0.9571 was read
+  from the first-step scores of the two label tokens, not from generated text like this demo's
+  answers ([record](https://github.com/krimits/hotel-review-nlp/blob/main/docs/experiments/results/qwen_legacy_v1/README.md)).
 - **GreekBERT sentiment** (test macro-F1 0.9086) — `nlpaueb/bert-base-greek-uncased-v1`
   fine-tuned on the pinned `DGurgurov/greek_sa` corpus (Tsakalidis et al. 2018). Domain note,
   stated not hidden: that corpus is Twitter political sentiment, so Greek-language hotel

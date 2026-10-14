@@ -4,6 +4,7 @@ These JSON files are immutable copies of the metrics that existed before the rep
 
 - `classical_legacy_metrics.json` records the original four classical runs. The entries named `*_char` were produced before the missing `analyzer="char"` bug was fixed and therefore must not be treated as real character n-gram results.
 - `bilstm_legacy_metrics.json` records the seed-42 BiLSTM result on the frozen legacy test split.
+- `qwen_legacy_v1/` archives the Qwen2.5-0.5B QLoRA metrics from its Hub adapter repo, pinned to commit `1458bdb`. Its README explains the two scores it holds: 0.0 for the strictly parsed generated answers, and 0.9571 for the first-step label scores that the main README reports.
 
 New final results belong in `runs/benchmark/` and must include predictions plus the common test-set fingerprint.
 

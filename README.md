@@ -171,7 +171,16 @@ the DistilBERT pair is also recomputed from saved logits by
 | BiLSTM (pure PyTorch) | 0.9503 | 96.29% | All | Custom training loop, seed 42 |
 | **DistilBERT (full FT)** | **0.9634** | **97.3%** | 67.0M (100%) | 🏆 Best accuracy |
 | DistilBERT + scratch LoRA | 0.9573 | 96.8% | 0.74M (**1.1%**) | 35% faster training, 38% less GPU memory |
-| Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | Adapter | 4-bit, 20k subset |
+| Qwen2.5-0.5B + QLoRA | 0.9571 | 96.7% | 8.8M (adapter) | 4-bit, 20k training rows; first-step label scores |
+
+**How the Qwen row was scored.** Its [archived metrics](docs/experiments/results/qwen_legacy_v1/README.md)
+hold two scores for the same 13,278 test reviews.
+- **From its generated answers, with a strict parser: macro-F1 0.0.** The parser accepts only a
+  single label word. Qwen kept writing after the label (for example `positive\npositive`), so every
+  answer was rejected.
+- **The 0.9571 above** reads the prediction at the first generated position: the higher-scoring of
+  the two label tokens.
+- **Not yet scored:** the lenient parser that the demo uses, which takes the first label word.
 
 <details>
 <summary><b>Pairwise McNemar tests (exact, on classification errors)</b></summary>
@@ -193,7 +202,8 @@ the DistilBERT pair is also recomputed from saved logits by
 
 </details>
 
-On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶), and **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53).
+On this legacy test set, **full fine-tuning beats scratch LoRA by 0.61 pp macro-F1** (McNemar p = 5.0 × 10⁻⁶), and **Qwen QLoRA is statistically indistinguishable from scratch LoRA** (p = 0.53; see how its row
+was scored, above).
 
 **Since then:**
 - **DistilBERT and the scratch LoRA were re-run on the clean splits** (above).
@@ -249,41 +259,22 @@ Paste any hotel review and get a live prediction. No setup required.
 
 #### Experimental hotel actions demo
 
-**[hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-triage-demo)** accepts one English
-review and shows sentiment, reported/excluded/uncertain issues, evidence and suggested measures.
-It runs the pinned Qwen2.5-1.5B source-span workflow G-source-spans on ZeroGPU; all reviews reach issue extraction,
-including positive ones. Jev is optional and off by default, and the app keeps no review database.
-The local-primary update was published on 13 October at Space commit `2079d8b` using
-[notebook 25](notebooks/25_update_triage_lexicon_space_colab.ipynb): local lexical topic hints,
-optional Jev enhancement (disabled on the server) and human referral for unknown topics.
-The [publication record](docs/experiments/triage_space_publication/2079d8b/README.md) retains 16 completed
-Colab checks and seven successful hosted regressions, plus independent file/snapshot verification.
-Three anonymous repeated regressions passed; the next request reported visible `gpu_quota_exceeded`.
-The [whole-review pilot tools and annotation instructions](docs/experiments/triage_lexicon_pilot/PROTOCOL.md)
-are ready; human ground truth is still required before new paid topic-model comparisons.
-This is an **experimental snapshot, not a selected or promoted production workflow**. Known
-quote/JSON failures are shown explicitly; semantic quality and an independent real-review pilot
-remain unvalidated. The [earlier development capture](docs/experiments/triage_space_publication/e1e37e5/README.md)
-retains its separate generator-quality findings.
-
-The source-span extraction fix was published at Space commit `ea8c7f8` through
-[notebook 19](notebooks/19_update_triage_evidence_space_colab.ipynb). All 16 Colab functional checks
-and seven required hosted regressions passed, including the two reported lamp inputs. A separate
-verification confirmed the source files and loaded snapshot. Three repeated regressions passed;
-the short-lamp repeat returned a visible `gpu_unavailable_or_timeout` failure. GPU availability
-remains a limitation. These are
-development checks; they do not establish general quality. The
-[local Qwen probe](docs/experiments/triage_space_publication/source-spans-v6/README.md) is retained separately.
-
-The [reliability update](docs/TRIAGE_RELIABILITY.md) was published on 6 October at Space commit
-`e1e37e5`, adding specific ZeroGPU error diagnostics and preserving failed live checks. Its 24-case
-authored-development capture returned 20 complete and four partial workflows, five accepted measures
-and eleven UNCERTAIN issues. The separately archived
-[adjudicated development review](docs/experiments/triage_space_publication/e1e37e5/human_review_v3/README.md)
-now passes the scorer: thirteen of seventeen actual problems lack an appropriate measure, while four
-of five emitted measures are useful. Reviewer independence remains unverified; these synthetic
-development judgments do not establish reliability on real hotel reviews. See the
-[exact evidence and next review](docs/experiments/triage_space_publication/e1e37e5/README.md).
+**[hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-triage-demo)** takes one English
+review and shows its sentiment, the issues it reports with quoted evidence, and suggested measures.
+- **How.** DistilBERT gives the sentiment and a small local lexicon gives topic hints. Qwen2.5-1.5B,
+  on ZeroGPU, extracts the issues and proposes measures; its quotes are cut from the review itself.
+  Jev, an optional external check, is disabled on the Space, and the app stores no reviews.
+- **Status: experimental, not selected or promoted.** An adjudicated review of the 6 October version
+  covered 24 authored development reviews; the reviewers' independence is unverified.
+  - It gave an appropriate measure for 4 of 17 actual problems, and 4 of its 5 measures were useful.
+  - Issues it marks uncertain get no measure by design
+    ([review](docs/experiments/triage_space_publication/e1e37e5/human_review_v3/README.md)).
+- **In the demo.** The two examples are stored after their first run and replay without GPU. A new
+  review needs ZeroGPU quota, which anonymous visitors exhaust quickly (`gpu_quota_exceeded`).
+- **More:** [how it works](docs/TRIAGE.md) ·
+  [publications and their checks](docs/TRIAGE_SPACE_DEPLOYMENT.md), latest at Space commit `3f2aff8` ·
+  [reliability plan](docs/TRIAGE_RELIABILITY.md) ·
+  [whole-review pilot](docs/experiments/triage_lexicon_pilot/PROTOCOL.md).
 
 ### Option 2 — Run locally
 
@@ -725,7 +716,7 @@ and praise by topic, with quotes and a suggested action.
 
 - The **historical training run** recorded normalized-text overlap (180 train/dev, 170 train/test, 24 dev/test). The newly uploaded three parquets were separately audited: they have **zero cross-split text overlap**, but 676 within-split duplicate rows and 19 train text groups with conflicting labels. The new clean baseline uses derived splits; the legacy five-model results do not become leakage-free by uploading later files. The v2 splits are rebuilt from the hash-checked raw file with duplicates removed before splitting, and their manifests record zero overlap between splits.
 - The classical baseline rows are **historical runs** that predate the fix moving model selection to dev. The old `*_char` rows used the wrong analyzer and are excluded from the summary table.
-- The Qwen QLoRA run used a **20k subset**, not the full 118,990 rows.
+- The Qwen QLoRA run was **trained on 20,000** of the 118,990 legacy training rows and tested on all 13,278 legacy test reviews. Its 0.9571 comes from first-step label scores; its generated answers failed a strict parser ([record](docs/experiments/results/qwen_legacy_v1/README.md)).
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
 - The five-family comparison is **not complete on clean splits**.
@@ -733,7 +724,7 @@ and praise by topic, with quotes and a suggested action.
   - On the v2 random and out-of-time splits, two families are measured and verified from committed logits: the classical baseline and DistilBERT, fine-tuned in full and with the scratch LoRA ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
   - The BiLSTM and Qwen are not.
   - Each DistilBERT result comes from one training seed.
-- The complaint-trend analysis names topics with a lexicon. Its precision was checked only by Claude, on 20 quotes per topic and period, and its recall is not measured. A [pilot evaluation](docs/annotation/pilot_protocol.md) with two annotators comes next: its protocol and scoring rules are locked, and notebook 09 draws the sample.
+- The complaint-trend analysis names topics with a lexicon. A [pilot with two annotators](docs/case_study/results/annotation/README.md) measured it (300 texts, 80 labelled twice, kappa 0.83–1.00). Precision is about half or lower for cleanliness and responsiveness, and the lexicon finds only 2 of 16 responsiveness complaints. A change in its precision between the two periods cannot be told apart from zero, and a change in recall is not measured, so the rising topics stay unconfirmed.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
 </details>
@@ -783,9 +774,11 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
   - One jump in February 2016 lifted every complaint topic at once.
   - Comparing only the months after it changed which topics looked like rises.
 - **Say what was measured, and by whom.**
-  - The complaint lexicon's precision was checked on a small sample, by an AI
-    reader. Its recall was not checked at all.
-  - So the report says both, and a pilot with two people comes next.
+  - The complaint lexicon's precision was first checked on a small sample, by an
+    AI reader, and its recall not at all. The report said both.
+  - A pilot with two people then measured precision and recall. Precision was about
+    0.9 for air conditioning, but about half or lower for cleanliness and
+    responsiveness.
 - **Decide what counts as a win before training.**
   - The comparison and the rule were committed before the first DistilBERT run: a
     paired interval above zero and a gain of at least one point.
@@ -794,11 +787,14 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - **Full fine-tuning beat LoRA, on the legacy split and again on the clean
   splits** (by 0.6–0.7 points). With 118k training rows, LoRA's parameter savings
   did not translate into accuracy.
-- **Decoder models aren't automatically better.** On the legacy split,
-  Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA. Qwen generates the label token
-  by token; its speed relative to DistilBERT has not been measured. For
-  classification here, the encoder is the pragmatic choice: it has 67M parameters
-  against 0.5B, and it returns class probabilities rather than a generated word.
+- **Decoder models aren't automatically better.**
+  - On the legacy split, Qwen2.5-0.5B + QLoRA matched DistilBERT + LoRA only when its label was
+    read from the first-step scores of the two label tokens.
+  - Its generated answers failed a strict parser, because it kept writing after the label. How the
+    label is read out of a generative model is part of the result.
+  - Its speed relative to DistilBERT has not been measured.
+  - For classification here, the encoder is the pragmatic choice: it has 67M parameters against 0.5B,
+    and it returns class probabilities rather than a generated word.
 - **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers quickly.
 - **Quantization deserves a full-test check.** A 32-example observation is a prompt for a larger, saved experiment, not a guarantee about accuracy or serialized model size.
 
@@ -812,7 +808,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Re-run DistilBERT (full fine-tune and scratch LoRA) on the v2 random and out-of-time splits, under a plan fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md))
 - [ ] Re-run the BiLSTM and Qwen QLoRA on the **v2 splits**, to complete the clean comparison
 - [ ] Sort reviews by length before batching on a CPU: batches of 32 were slower per review than single reviews on one thread
-- [ ] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md))
+- [x] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md), [results](docs/case_study/results/annotation/README.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion
 - [ ] Experiment with **ONNX Runtime** for further CPU speedups
