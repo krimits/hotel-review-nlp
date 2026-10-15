@@ -60,7 +60,9 @@ assertion that the adapters actually change the output, so the comparison exerci
 [live demo](https://huggingface.co/spaces/krimits/hotel-review-demo)
 
 FastAPI with `/predict`, `/absa` and health checks, env-configured model loading, batch
-paths, a Docker image and a dynamic INT8 quantisation benchmark. The `/triage` endpoint
+paths and a Docker image. Dynamic INT8 was measured on the full test set under a locked
+protocol: 3.0 times faster on one CPU thread, macro-F1 unchanged within 0.001
+([decision](experiments/decision_int8_and_batching.md)). The `/triage` endpoint
 is explicitly experimental and unvalidated — [what it does and what has not been
 measured](TRIAGE.md).
 

@@ -1,0 +1,152 @@
+{
+ "protocol": "docs/experiments/int8_and_batching/PROTOCOL.md",
+ "model": {
+  "repo": "krimits/distilbert-hotel-reviews",
+  "revision": "7306aebcaaebc00d579f5d0a91001ae376f18158"
+ },
+ "test": {
+  "rows": 13263,
+  "negative": 3263,
+  "positive": 10000,
+  "sha256": "8cd21cdac358f10b6791497060ec3608726ab67e06674abc30503caeede92717"
+ },
+ "integrity": {
+  "fp32_agrees_with_committed": 13263,
+  "reviews": 13263
+ },
+ "sample": {
+  "reviews": 500,
+  "seed": 0
+ },
+ "method": {
+  "threads": 1,
+  "warmup": 3,
+  "batch": 32,
+  "resamples": 2000,
+  "seed": 0
+ },
+ "hardware": {
+  "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+  "cpu_count": 2,
+  "torch_threads": 1,
+  "gpu": "Tesla T4",
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "scikit_learn": "1.6.1"
+ },
+ "models": {
+  "fp32": {
+   "size_mb": 255.5,
+   "test": {
+    "macro_f1": 0.9642,
+    "accuracy": 0.9733,
+    "recall": {
+     "negative": 0.9531,
+     "positive": 0.9799
+    }
+   },
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 27.824,
+     "ms_per_review": 55.648,
+     "ms_per_batch_median": 51.535,
+     "ms_per_batch_p95": 84.72,
+     "reviews_per_second": 18.0,
+     "agrees": 500
+    },
+    "batch_32": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 46.497,
+     "ms_per_review": 92.995,
+     "ms_per_batch_median": 2476.958,
+     "ms_per_batch_p95": 5281.171,
+     "reviews_per_second": 10.8,
+     "agrees": 500
+    },
+    "batch_32_sorted": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 12.555,
+     "ms_per_review": 25.11,
+     "ms_per_batch_median": 455.085,
+     "ms_per_batch_p95": 2288.001,
+     "reviews_per_second": 39.8,
+     "sorted_by": "token length",
+     "sort_seconds": 0.04,
+     "agrees": 500
+    }
+   },
+   "sorted_batching": "faster"
+  },
+  "int8": {
+   "size_mb": 132.3,
+   "test": {
+    "macro_f1": 0.9637,
+    "accuracy": 0.9729,
+    "recall": {
+     "negative": 0.951,
+     "positive": 0.9801
+    }
+   },
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 10.962,
+     "ms_per_review": 21.924,
+     "ms_per_batch_median": 17.208,
+     "ms_per_batch_p95": 50.485,
+     "reviews_per_second": 45.6,
+     "agrees": 498
+    },
+    "batch_32": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 41.175,
+     "ms_per_review": 82.351,
+     "ms_per_batch_median": 2210.566,
+     "ms_per_batch_p95": 4802.761,
+     "reviews_per_second": 12.1,
+     "agrees": 499
+    },
+    "batch_32_sorted": {
+     "batch_size": 32,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 10.636,
+     "ms_per_review": 21.272,
+     "ms_per_batch_median": 395.081,
+     "ms_per_batch_p95": 1992.043,
+     "reviews_per_second": 47.0,
+     "sorted_by": "token length",
+     "sort_seconds": 0.036,
+     "agrees": 499
+    }
+   },
+   "sorted_batching": "not faster"
+  }
+ },
+ "primary": {
+  "d_int8_minus_fp32": -0.0005,
+  "paired_ci95": [
+   -0.0024,
+   0.0013
+  ],
+  "agreement": 13182,
+  "lat_int8": 17.208,
+  "lat_fp32": 51.535,
+  "speedup_batch_1": 2.99,
+  "conclusion": "INT8 keeps macro-F1 within one point and is meaningfully faster: recommended for single-review CPU serving."
+ },
+ "selection_frozen": false,
+ "promoted": false
+}
