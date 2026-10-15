@@ -30,6 +30,7 @@ saved outputs.
 | `12_confirmation_sample_colab.ipynb` | nothing: downloads the raw CSV and draws 400 new texts for confirming Jev's responsiveness result ([protocol](../docs/annotation/confirmation_protocol.md)) | Colab CPU |
 | `13_triage_smoke_colab.ipynb` | nothing: downloads the published DistilBERT and the base Qwen and runs the triage chain on 14 invented reviews. Jev only if a Colab secret named `OPENROUTER_API_KEY` exists ([README](../docs/experiments/triage_smoke/README.md)) | Colab GPU, about 10 minutes |
 | `27_seeds_and_bilstm_colab.ipynb` | a GPU; downloads the raw CSV, trains the BiLSTM on the three clean views (seed 42, plus seeds 43 and 44 on the out-of-time view) and DistilBERT with seeds 43 and 44, times four models on one CPU thread, and applies the two protocols' rules ([BiLSTM](../docs/experiments/bilstm_clean_splits/PROTOCOL.md), [seeds](../docs/experiments/distilbert_seed_robustness/PROTOCOL.md)) | Colab T4, about 1½ hours |
+| `28_int8_and_batching_colab.ipynb` | a T4 runtime for its CPU; downloads the raw CSV and the published DistilBERT at `7306aeb`, labels the random test set with FP32 and dynamic INT8, times both on one CPU thread at batch 1, batch 32 and batch 32 sorted by length, and applies the [INT8 protocol's](../docs/experiments/int8_and_batching/PROTOCOL.md) rule | Colab T4, about 20–30 minutes |
 
 Notebook 14 compares four Qwen prompt/model variants on 24 new synthetic development cases, sharing
 frozen DistilBERT/Jev results, and exports a human-review sheet. It needs Colab GPU and an enabled
