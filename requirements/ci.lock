@@ -1,0 +1,113 @@
+accelerate==1.10.1        # via peft, -r requirements/ci.in
+aiofiles==24.1.0          # via gradio
+annotated-doc==0.0.5      # via fastapi, typer
+annotated-types==0.8.0    # via pydantic
+anyio==4.15.1             # via gradio, httpx, starlette, watchfiles
+bidict==0.24.1            # via python-socketio
+blinker==1.9.0            # via flask
+brotli==1.2.0             # via geventhttpclient, gradio
+certifi==2026.7.22        # via geventhttpclient, httpcore, httpx, requests
+charset-normalizer==3.5.2  # via requests
+click==8.5.0              # via flask, uvicorn
+cloudpickle==3.1.2        # via joblib
+configargparse==1.8.0     # via locust
+contourpy==1.3.3          # via matplotlib
+cycler==0.12.1            # via matplotlib
+fastapi==0.143.1          # via gradio, reviewnlp (pyproject.toml)
+ffmpy==1.0.0              # via gradio
+filelock==4.2.0           # via huggingface-hub, torch, transformers
+flask==3.1.3              # via flask-cors, flask-login, locust
+flask-cors==6.0.5         # via locust
+flask-login==0.6.3        # via locust
+fonttools==4.67.0         # via matplotlib
+fsspec==2026.9.0          # via gradio-client, huggingface-hub, torch
+gevent==26.9.0            # via geventhttpclient, locust
+geventhttpclient==2.6.1   # via locust
+gradio==5.49.1            # via spaces, -r requirements/ci.in
+gradio-client==1.13.3     # via gradio
+greenlet==3.5.6           # via gevent
+groovy==0.1.2             # via gradio
+h11==0.16.0               # via httpcore, uvicorn, wsproto
+hf-xet==1.7.0             # via huggingface-hub
+httpcore==1.0.9           # via httpx
+httptools==0.9.0          # via uvicorn
+httpx==0.28.1             # via gradio, gradio-client, safehttpx, spaces, reviewnlp (pyproject.toml)
+huggingface-hub==0.36.2   # via accelerate, gradio, gradio-client, peft, tokenizers, transformers
+idna==3.20                # via anyio, httpx, requests
+iniconfig==2.3.1          # via pytest
+interegular==0.3.3        # via lm-format-enforcer
+itsdangerous==2.2.0       # via flask
+jinja2==3.1.6             # via flask, gradio, torch
+joblib==1.6.0             # via scikit-learn, reviewnlp (pyproject.toml)
+kiwisolver==1.5.1         # via matplotlib
+lm-format-enforcer==0.11.3  # via -r requirements/ci.in
+locust==2.46.7            # via reviewnlp (pyproject.toml)
+markdown-it-py==4.2.0     # via rich
+markupsafe==3.0.4         # via flask, gradio, jinja2, werkzeug
+matplotlib==3.11.2        # via seaborn, reviewnlp (pyproject.toml)
+mdurl==0.1.2              # via markdown-it-py
+mpmath==1.3.0             # via sympy
+msgpack==1.2.3            # via locust
+narwhals==2.27.1          # via scikit-learn
+networkx==3.6.1           # via torch
+numpy==2.4.6              # via accelerate, contourpy, gradio, matplotlib, pandas, peft, scikit-learn, scipy, seaborn, transformers, reviewnlp (pyproject.toml)
+opentelemetry-api==1.45.1  # via fastapi
+orjson==3.13.0            # via gradio
+packaging==26.3           # via accelerate, gradio, gradio-client, huggingface-hub, lm-format-enforcer, matplotlib, peft, pytest, spaces, transformers
+pandas==2.3.3             # via gradio, seaborn, reviewnlp (pyproject.toml)
+peft==0.17.1              # via -r requirements/ci.in
+pillow==11.3.0            # via gradio, matplotlib
+pluggy==1.7.0             # via pytest
+psutil==7.2.2             # via accelerate, locust, peft
+pyarrow==26.0.0           # via reviewnlp (pyproject.toml)
+pydantic==2.11.10         # via fastapi, gradio, lm-format-enforcer, spaces
+pydantic-core==2.33.2     # via pydantic
+pydub==0.25.1             # via gradio
+pygments==2.21.0          # via pytest, rich
+pyparsing==3.3.3          # via matplotlib
+pytest==9.1.1             # via locust, reviewnlp (pyproject.toml)
+python-dateutil==2.9.0.post0  # via matplotlib, pandas
+python-dotenv==1.2.4      # via uvicorn
+python-engineio==4.14.0   # via locust, python-socketio
+python-multipart==0.0.32  # via gradio
+python-socketio==5.17.0   # via locust
+pytz==2026.5              # via pandas
+pyyaml==6.0.3             # via accelerate, gradio, huggingface-hub, lm-format-enforcer, peft, transformers, uvicorn, reviewnlp (pyproject.toml)
+pyzmq==27.2.0             # via locust
+regex==2026.9.29          # via transformers
+requests==2.34.2          # via huggingface-hub, locust, python-socketio, spaces, transformers
+rich==15.0.0              # via typer
+ruff==0.17.0              # via gradio, reviewnlp (pyproject.toml)
+safehttpx==0.1.7          # via gradio
+safetensors==0.8.0        # via accelerate, peft, transformers
+scikit-learn==1.9.1       # via reviewnlp (pyproject.toml)
+scipy==1.17.1             # via scikit-learn, reviewnlp (pyproject.toml)
+seaborn==0.13.2           # via reviewnlp (pyproject.toml)
+semantic-version==2.10.0  # via gradio
+setuptools==84.0.0        # via torch
+shellingham==1.5.4        # via typer
+simple-websocket==1.1.0   # via python-engineio
+six==1.17.0               # via python-dateutil
+spaces==0.51.3            # via -r requirements/ci.in
+starlette==0.52.1         # via fastapi, gradio
+sympy==1.14.0             # via torch
+threadpoolctl==3.7.0      # via scikit-learn
+tokenizers==0.22.2        # via transformers
+tomlkit==0.13.3           # via gradio
+torch==2.14.1+cpu         # via accelerate, peft, reviewnlp (pyproject.toml)
+tqdm==4.70.1              # via huggingface-hub, peft, transformers, reviewnlp (pyproject.toml)
+transformers==4.56.2      # via peft, -r requirements/ci.in
+typer==0.27.3             # via gradio
+typing-extensions==4.16.0  # via anyio, bidict, fastapi, gradio, gradio-client, huggingface-hub, locust, opentelemetry-api, pydantic, pydantic-core, spaces, starlette, torch, typing-inspection
+typing-inspection==0.4.4  # via fastapi, pydantic
+tzdata==2026.5            # via pandas
+urllib3==2.8.0            # via requests
+uvicorn==0.54.0           # via gradio, reviewnlp (pyproject.toml)
+uvloop==0.23.0            # via uvicorn
+watchfiles==1.3.0         # via uvicorn
+websocket-client==1.9.2   # via python-socketio
+websockets==15.0.1        # via gradio-client, uvicorn
+werkzeug==3.1.9           # via flask, flask-cors, flask-login, locust
+wsproto==1.3.2            # via simple-websocket
+zope-event==6.2           # via gevent
+zope-interface==8.7       # via gevent

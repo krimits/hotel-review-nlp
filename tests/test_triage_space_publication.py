@@ -208,7 +208,10 @@ def test_packages_reject_extra_sensitive_files_changes_and_symlinks_before_any_u
         outside = package.parent / "outside.py"
         outside.write_bytes(content)
         original.unlink()
-        original.symlink_to(outside)
+        try:
+            original.symlink_to(outside)
+        except OSError as error:  # Windows without Developer Mode may not create symlinks
+            pytest.skip(f"this system cannot create a symlink: {error}")
     api = FakeApi(package)
     with pytest.raises(ValueError):
         deploy(api, package, report, download=api.download)

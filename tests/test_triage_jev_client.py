@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import socket
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -281,9 +282,14 @@ def test_a_redirect_is_an_error_and_the_key_stays_put(servers, monkeypatch):
 
 
 def test_a_connection_that_is_refused_is_a_network_failure():
-    sender = JevClient(JevConfig(enabled=True, api_key="sk-secret", max_attempts=1, timeout_s=2),
+    # A port that was just freed, so nothing listens on it. Windows retries a refused local
+    # connection for about two seconds before reporting it, so the timeout leaves room for that.
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    sender = JevClient(JevConfig(enabled=True, api_key="sk-secret", max_attempts=1, timeout_s=10),
                        transport=lambda url, body, key, timeout: jev_client.urllib_transport(
-                           "http://127.0.0.1:9/v1/systemone", body, key, timeout))
+                           f"http://127.0.0.1:{port}/v1/systemone", body, key, timeout))
     with pytest.raises(JevError) as raised:
         sender.classify(REVIEW)
     assert raised.value.kind == "network"

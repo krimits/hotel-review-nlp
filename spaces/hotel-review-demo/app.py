@@ -40,6 +40,7 @@ instead of killing the whole UI.
 from __future__ import annotations
 
 import hashlib
+import re
 import time
 from pathlib import Path
 
@@ -161,10 +162,21 @@ def predict_qwen(text: str):
     return confidences, note
 
 
+GREEK_LETTERS = re.compile("[Ͱ-Ͽἀ-῿]")  # Greek and Coptic, Greek Extended
+GREEK_ONLY_NOTE = "GreekBERT reads Greek text only; this review has no Greek characters, so no label is shown"
+
+
+def has_greek(text: str) -> bool:
+    return bool(GREEK_LETTERS.search(text))
+
+
 def predict_greek(text: str):
     """Greek-language path. Returns (confidences, note) — two values, two components."""
     if not text.strip():
         return {"negative": 0.0, "positive": 0.0}, "empty input"
+    if not has_greek(text):
+        # On English text it would still answer, confidently and meaninglessly.
+        return {"negative": 0.0, "positive": 0.0}, GREEK_ONLY_NOTE
     started = time.perf_counter()
     inputs = gtok(text, return_tensors="pt", truncation=True, max_length=GREEK_MAX_LENGTH)
     with torch.no_grad():

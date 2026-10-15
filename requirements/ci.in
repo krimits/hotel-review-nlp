@@ -1,0 +1,9 @@
+# What CI installs beyond pyproject.toml's dependencies and its dev and serving extras:
+# the transformers stack of the phase 2 runs, and the Space demo's Gradio.
+# requirements/ci.lock pins every package, compiled from this file and pyproject.toml.
+transformers==4.56.2
+peft==0.17.1
+accelerate==1.10.1
+lm-format-enforcer==0.11.3
+gradio==5.49.1
+spaces==0.51.3
