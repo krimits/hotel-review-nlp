@@ -57,4 +57,8 @@ def test_ci_installs_with_the_lock():
     installs = [line.strip() for line in workflow.splitlines() if "pip install" in line]
     assert installs and all("-c requirements/ci.lock" in line for line in installs), installs
     assert "-r requirements/ci.in" in workflow
+    # The lock was compiled from PyPI and PyTorch's index together; installing torch from
+    # PyTorch's index alone cannot find every pinned dependency.
+    (torch,) = [line for line in installs if "download.pytorch.org" in line]
+    assert "--extra-index-url https://pypi.org/simple" in torch
     assert 'requires-python = ">=3.10"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
