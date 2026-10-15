@@ -1,0 +1,12 @@
+{
+  "distilbert_repo": "krimits/distilbert-hotel-reviews",
+  "distilbert_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+  "loaded_commit": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+  "weights_sha256": "f2a2bbc9a31c8f3b1d9bee46ec11bb3d8942e7e59c0ef4711c3cb2a6c1cf81c2",
+  "revisions": {
+    "Qwen/Qwen2.5-0.5B-Instruct": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "krimits/hotel-review-nlp-qwen-qlora-adapter": "1458bdb9058fbb629e72ce83d9b0f44a09271941",
+    "krimits/greek-hotel-reviews-sentiment": "9962dad48fe95287991ef54e7a4b6a6254b19843"
+  },
+  "adapter_loaded_commit": "1458bdb9058fbb629e72ce83d9b0f44a09271941"
+}

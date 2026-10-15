@@ -150,15 +150,47 @@ def test_the_rule_is_the_analysis_plans_rule(protocol, prose):
     assert "clear but small" in prose
 
 
-def test_the_version_history_records_the_amendment(protocol):
-    assert protocol.startswith("# BiLSTM on the clean splits — version 2")
+def test_the_version_history_records_the_amendments(protocol):
+    assert protocol.startswith("# BiLSTM on the clean splits — version 3")
     history = protocol.split("## Version history", 1)[1]
-    assert "3ddb358" in history
+    assert "3ddb358" in history and "334eb82" in history
     assert "No run had been executed under version 1" in history
+    assert "No run had been executed under version 2" in history
 
 
 def test_the_limits_name_what_the_run_does_not_show(protocol):
     limits = protocol.split("## 5. Limits", 1)[1]
-    for required in ("Qwen", "out of scope", "No production", "One seed", "min_freq",
-                     "selection_frozen"):
+    for required in ("Qwen", "out of scope", "No production", "Three seeds", "min_freq",
+                     "selection_frozen", "one CPU"):
         assert required in limits, f"limits must mention {required}"
+
+
+def test_the_seeds_are_fixed_and_seed_42_decides(prose):
+    assert "seeds 43 and 44 on the `time` view" in prose
+    assert "Seed 42 stays the primary result" in prose
+    assert "the decision rule in section 4 is applied to it alone" in prose
+    assert "Neither can change the primary conclusion" in prose
+
+
+def test_the_frontier_rule_is_machine_checkable(protocol):
+    (condition,) = [cells[0] for cells in table_rows(protocol) if len(cells) == 1]
+    assert condition == "lat_a <= lat_b and hi >= 0 and (lat_a < 0.9 * lat_b or lo > 0)"
+
+    def dominates(lat_a, lat_b, lo, hi):
+        return eval(condition, {"__builtins__": {}}, {"lat_a": lat_a, "lat_b": lat_b, "lo": lo, "hi": hi})  # noqa: S307
+
+    assert dominates(1.2, 57.0, -0.01, 0.01)        # much faster, accuracy indistinguishable
+    assert not dominates(55.0, 57.0, -0.01, 0.01)   # under 10% faster: a tie
+    assert dominates(57.0, 57.0, 0.002, 0.01)       # as fast, significantly more accurate
+    assert not dominates(1.2, 57.0, -0.04, -0.02)   # faster but significantly less accurate
+    assert not dominates(80.0, 57.0, 0.02, 0.04)    # more accurate but slower
+
+
+def test_the_correction_matches_the_distilbert_runs(protocol):
+    """Version 2 said the DistilBERT artifacts had another seed; every run used seed 42."""
+    limits = protocol.split("## 5. Limits", 1)[1].split("## Execution", 1)[0]
+    assert "second seed" not in limits
+    runs = sorted((ROOT / "docs" / "experiments" / "results" / "distilbert_v2").glob("*/*/run_config.yaml"))
+    assert len(runs) == 4
+    for run in runs:
+        assert "seed: 42" in run.read_text(encoding="utf-8").splitlines(), run
