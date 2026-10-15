@@ -27,7 +27,9 @@ jobs:
           python-version: "3.11"
       # CPU-only torch keeps CI fast; all tests run offline on tiny fixtures.
       # Every version is pinned by requirements/ci.lock, compiled for Linux and Python 3.11.
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu -c requirements/ci.lock
+      # torch's CPU build comes from PyTorch's index; its dependencies from PyPI, because the
+      # PyTorch index does not carry every version the lock pins (filelock, for one).
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -c requirements/ci.lock
       # requirements/ci.in adds the phase 2 transformers stack and the Space demo's Gradio,
       # whose app is imported and run end to end with a stub model.
       - run: pip install -e ".[dev,serving]" -r requirements/ci.in -c requirements/ci.lock
