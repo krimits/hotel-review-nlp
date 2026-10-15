@@ -29,6 +29,7 @@ saved outputs.
 | `11_publish_model_colab.ipynb` | the phase 2 weights in Google Drive and a Hugging Face write token; no training. Checks the run and its weights, publishes the random-split DistilBERT to the Hub (the legacy model stays under a tag) and pins the demo to it, resumably | Colab CPU, 15–30 minutes |
 | `12_confirmation_sample_colab.ipynb` | nothing: downloads the raw CSV and draws 400 new texts for confirming Jev's responsiveness result ([protocol](../docs/annotation/confirmation_protocol.md)) | Colab CPU |
 | `13_triage_smoke_colab.ipynb` | nothing: downloads the published DistilBERT and the base Qwen and runs the triage chain on 14 invented reviews. Jev only if a Colab secret named `OPENROUTER_API_KEY` exists ([README](../docs/experiments/triage_smoke/README.md)) | Colab GPU, about 10 minutes |
+| `27_seeds_and_bilstm_colab.ipynb` | a GPU; downloads the raw CSV, trains the BiLSTM on the three clean views (seed 42, plus seeds 43 and 44 on the out-of-time view) and DistilBERT with seeds 43 and 44, times four models on one CPU thread, and applies the two protocols' rules ([BiLSTM](../docs/experiments/bilstm_clean_splits/PROTOCOL.md), [seeds](../docs/experiments/distilbert_seed_robustness/PROTOCOL.md)) | Colab T4, about 1½ hours |
 
 Notebook 14 compares four Qwen prompt/model variants on 24 new synthetic development cases, sharing
 frozen DistilBERT/Jev results, and exports a human-review sheet. It needs Colab GPU and an enabled
