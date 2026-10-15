@@ -115,9 +115,12 @@ def sheet(key: pd.DataFrame, pop: pd.DataFrame) -> pd.DataFrame:
 
 
 def source_of(path: Path) -> str:
-    """A path as the manifest records it: relative to the repository when it is inside."""
+    """A path as the manifest records it: relative to the repository when it is inside.
+
+    Always with forward slashes, so a draw made on Windows records the same manifest.
+    """
     resolved = Path(path).resolve()
-    return str(resolved.relative_to(ROOT)) if resolved.is_relative_to(ROOT) else str(path)
+    return resolved.relative_to(ROOT).as_posix() if resolved.is_relative_to(ROOT) else str(path)
 
 
 def build_sample(csv: Path, out: Path, seed: int = SEED, expect_hotels: int | None = None, overwrite: bool = False,
@@ -148,7 +151,7 @@ def build_sample(csv: Path, out: Path, seed: int = SEED, expect_hotels: int | No
     table.to_csv(out / "sheet.csv", index=False, encoding="utf-8-sig")
     key.to_csv(out / "key.csv", index=False)
     manifest = {
-        "protocol": str(PROTOCOL.relative_to(ROOT)),
+        "protocol": PROTOCOL.relative_to(ROOT).as_posix(),
         "protocol_sha256": trends._sha256(PROTOCOL),
         "guideline_sha256": trends._sha256(GUIDELINE),
         "code_commit": pilot.git_commit(),

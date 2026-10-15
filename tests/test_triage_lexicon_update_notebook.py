@@ -192,6 +192,8 @@ def metadata_wheel(directory, name, version, dependencies=()):
     return wheel
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="the notebook runs in Colab, on Linux: it builds a venv "
+                    "whose interpreter is bin/python, which a Windows venv does not have")
 @pytest.mark.parametrize("partial_environment", [False, True])
 def test_actual_notebook_installation_resolves_core_dependencies_in_a_pipless_isolated_environment(
         tmp_path, partial_environment, notebook):
