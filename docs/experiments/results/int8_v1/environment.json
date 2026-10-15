@@ -1,0 +1,17 @@
+{
+ "commit": "93dfdff49545faf81a71386baaeaf8a45d889d21",
+ "gpu": "Tesla T4",
+ "python": "3.13.15",
+ "packages": {
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "tokenizers": "0.22.2",
+  "numpy": "2.1.3",
+  "pandas": "2.2.3"
+ },
+ "model": {
+  "repo": "krimits/distilbert-hotel-reviews",
+  "revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+  "weights_sha256": "f2a2bbc9a31c8f3b1d9bee46ec11bb3d8942e7e59c0ef4711c3cb2a6c1cf81c2"
+ }
+}

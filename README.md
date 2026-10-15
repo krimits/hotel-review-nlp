@@ -35,19 +35,19 @@ A **binary sentiment classifier** trained on about **118,000 real Booking.com re
 - **Accuracy.** Fine-tuned DistilBERT reaches **0.9642 macro-F1** on a test set that shares no review text with training, and 0.9491 on reviews written after the training period. A TF-IDF + Naive Bayes baseline, 3 points lower, answers in about 1 ms on a CPU.
 - **Service.** A **FastAPI service**: `/predict` for scoring and `/absa` for per-aspect extraction, each with a batch path, plus health checks. The archived load test measured `/predict` p50 **360 ms under load** on its Windows CPU.
 - **Deployment.** A Docker image and an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md).
-- **Experimental, not selected or promoted:** a triage endpoint, a topic-model comparison and an INT8 script (below).
+- **CPU cost.** Dynamic INT8 makes it 3.0 times faster on one CPU thread (17 ms per review) with macro-F1 unchanged within 0.001, measured on the full test set ([Quantization](#quantization)).
+- **Experimental, not selected or promoted:** a triage endpoint and a topic-model comparison (below).
 
 For teams, this is the difference between reading reviews and *acting* on them.
 
 <details>
-<summary><b>Experimental work: triage endpoint, topic-model comparison, INT8</b></summary>
+<summary><b>Experimental work: triage endpoint, topic-model comparison</b></summary>
 
 - **`POST /triage`, unvalidated.** It chains sentiment, local lexical complaint-topic hints (default primary), optional Jev enhancement and suggested actions (Qwen, off by default in the API): [what it does, what it sends out and what has not been measured](docs/TRIAGE.md). Unknown topics require human review; the [whole-review pilot](docs/experiments/triage_lexicon_pilot/PROTOCOL.md) comes before new paid comparisons.
 - **[Primary-topic decision-model comparison](docs/experiments/decision_topic_benchmark/README.md):** 500 validated final annotations, split 300/100/100.
   - The [actual three-arm dev run](docs/experiments/decision_topic_benchmark/results/comparison_dev_20261012/README.md) completed 100 reviews per arm: macro-F1 logistic 0.1561, Qwen 0.2299, Microsoft Decision-1 0.6524. These are development results with limited rare-class support, in-sample calibration and a documented Qwen T4 precision caveat.
   - The [Jev extension](docs/experiments/decision_topic_benchmark/results/jev_dev_20261012/README.md) completed the same 100 dev cases: macro-F1 0.6783, with a paired Jev-minus-Microsoft interval crossing zero. Its selective risk is recorded alongside coverage and in-sample calibration caveats.
   - The paired held-out test is pending; no model was selected or promoted.
-- **INT8.** A reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run ([Quantization](#quantization)).
 
 </details>
 
@@ -271,7 +271,7 @@ was scored, above).
 | Mixed traffic: `/predict`, `/predict/batch`, `/health` (20 users, 60 s) | **20.5 req/s total** |
 | `/predict` p50 / p95 / p99 | 360 ms / 1.2 s / 2.2 s |
 | Failures | **0 / 873** |
-| Old INT8 estimate | **1.38×** on a 32-review sample; new benchmark pending |
+| Dynamic INT8, one CPU thread | **3.0×** faster per review, macro-F1 within 0.001 ([full test](#quantization)) |
 
 ---
 
@@ -591,22 +591,29 @@ Zero failures across the run.
 
 ## Quantization
 
-The original CPU experiment used dynamic INT8 quantization on **32 reviews**:
+The published DistilBERT (`7306aeb`), quantized with dynamic INT8 on its linear layers, measured
+on all 13,263 random-split test reviews under a
+[protocol locked before the run](docs/experiments/int8_and_batching/PROTOCOL.md):
 
-| Metric | FP32 | INT8 | Δ |
-| :--- | ---: | ---: | ---: |
-| p50 latency / text | 101.4 ms | 73.5 ms | **1.38× faster** |
-| p95 latency / text | 102.3 ms | 82.0 ms | 1.25× faster |
-| Earlier size estimate | 255.4 MB | 91.0 MB | needs remeasurement |
-| Accuracy | 100% | 100% | 0 pp |
+| One CPU thread | FP32 | INT8 |
+| :--- | ---: | ---: |
+| Macro-F1 | 0.9642 | 0.9637 |
+| Median time per review, one at a time | 51.5 ms | **17.2 ms** (3.0× faster) |
+| Serialized size | 255.5 MB | 132.3 MB |
 
-Those values are historical, not a validated deployment guarantee: 32 reviews
-cannot establish zero accuracy loss on the whole test set, and the original
-size estimator counted parameters instead of serializing packed INT8 weights.
-The corrected [`scripts/quantize_distilbert.py`](scripts/quantize_distilbert.py)
-defaults to the full test set for accuracy, measures serialized state dicts,
-and reports latency separately on an equal-size batch. No new full-test INT8
-artifact is committed yet.
+- **The protocol's rule: INT8 keeps macro-F1 within one point and is meaningfully faster.**
+  The paired difference is −0.0005 (95% interval −0.0024 to 0.0013), and the two models agree
+  on 99.4% of the reviews.
+- **Batching on a CPU.** Batches of 32 in test order are slower per review than single reviews
+  (93 ms against 51.5 for FP32), because every review is padded to the longest in its batch.
+  Sorting the reviews by length first halves FP32's time per review (25 ms). For INT8 it saves
+  nothing (21 ms against 17).
+- **Limits.** One Colab CPU and one thread; only the linear layers are quantized, so the
+  embeddings keep the size from quartering; one checkpoint. The Space and the API still serve
+  FP32 ([decision note](docs/experiments/decision_int8_and_batching.md)).
+
+The 32-review experiment this replaces (1.38× faster, with a size estimator that counted
+parameters) is superseded.
 
 ---
 
@@ -774,7 +781,7 @@ and praise by topic, with quotes and a suggested action.
 - The **historical training run** recorded normalized-text overlap (180 train/dev, 170 train/test, 24 dev/test). The newly uploaded three parquets were separately audited: they have **zero cross-split text overlap**, but 676 within-split duplicate rows and 19 train text groups with conflicting labels. The new clean baseline uses derived splits; the legacy five-model results do not become leakage-free by uploading later files. The v2 splits are rebuilt from the hash-checked raw file with duplicates removed before splitting, and their manifests record zero overlap between splits.
 - The classical baseline rows are **historical runs** that predate the fix moving model selection to dev. The old `*_char` rows used the wrong analyzer and are excluded from the summary table.
 - The Qwen QLoRA run was **trained on 20,000** of the 118,990 legacy training rows and tested on all 13,278 legacy test reviews. Its 0.9571 comes from first-step label scores; its generated answers failed a strict parser ([record](docs/experiments/results/qwen_legacy_v1/README.md)).
-- Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
+- The INT8 and batching timings come from **one Colab CPU and one thread**, for one checkpoint on the random split; other processors, thread counts or quantization backends can change them ([decision note](docs/experiments/decision_int8_and_batching.md)).
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
 - On clean splits, **four of the five legacy models are measured**; Qwen is the fifth.
   - The historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact.
@@ -853,7 +860,10 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
   - For classification here, the encoder is the pragmatic choice: it has 67M parameters against 0.5B,
     and it returns class probabilities rather than a generated word.
 - **The serving layer matters as much as the model.** A 96% accurate model behind a slow API is worse than a 95% model that answers quickly.
-- **Quantization deserves a full-test check.** A 32-example observation is a prompt for a larger, saved experiment, not a guarantee about accuracy or serialized model size.
+- **Quantization deserves a full-test check.**
+  - A 32-example observation suggested INT8 was 1.38 times faster.
+  - Measured on the whole test set, with one review at a time, it is 3.0 times faster, with macro-F1 unchanged within 0.001.
+  - Batching was the surprise: unsorted batches were slower than single reviews, and sorting by length helped FP32 but not INT8.
 
 ---
 
@@ -865,7 +875,8 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Re-run DistilBERT (full fine-tune and scratch LoRA) on the v2 random and out-of-time splits, under a plan fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md))
 - [x] Re-run the BiLSTM on the **v2 splits**, with three seeds and CPU latency and size ([decision note](docs/experiments/decision_bilstm_clean_splits.md))
 - [x] Check DistilBERT's full fine-tune against LoRA across three training seeds ([decision note](docs/experiments/decision_distilbert_seeds.md))
-- [ ] Sort reviews by length before batching on a CPU: batches of 32 were slower per review than single reviews on one thread
+- [x] Measure dynamic INT8 and length-sorted CPU batching on the full test set ([decision note](docs/experiments/decision_int8_and_batching.md))
+- [ ] Serve the INT8 model from the API and the Space, with a check that it reproduces its recorded test labels
 - [x] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md), [results](docs/case_study/results/annotation/README.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion

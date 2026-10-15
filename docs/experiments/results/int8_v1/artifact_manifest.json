@@ -1,0 +1,30 @@
+{
+ "commit": "93dfdff49545faf81a71386baaeaf8a45d889d21",
+ "files": [
+  {
+   "path": "docs/experiments/results/int8_v1/environment.json",
+   "bytes": 447,
+   "sha256": "9729806596915bc1864c9bb7e20e8f6798c76224951bdbcf04692242145ddea9"
+  },
+  {
+   "path": "docs/experiments/results/int8_v1/fp32_test_logits.npy",
+   "bytes": 106232,
+   "sha256": "ccc6825cd52dfd658253ecf575a131ee22f4167d1536aa2d1d10c001b63dd894"
+  },
+  {
+   "path": "docs/experiments/results/int8_v1/int8_benchmark.json",
+   "bytes": 3380,
+   "sha256": "ee818b210bb58ebddb23a7d82e2f462e3bb8b0008b8b90d54d25585e78685a56"
+  },
+  {
+   "path": "docs/experiments/results/int8_v1/int8_test_logits.npy",
+   "bytes": 106232,
+   "sha256": "758476e0b0ea64b9dde6e9f2d03672f64791b1dabad96b3dd0c5f8ebe8f36f14"
+  },
+  {
+   "path": "docs/experiments/results/int8_v1/test_labels.npy",
+   "bytes": 106232,
+   "sha256": "0fb38038830134082806b15cd2e264259639719fe0fcf177fd74e03ccffa8798"
+  }
+ ]
+}
