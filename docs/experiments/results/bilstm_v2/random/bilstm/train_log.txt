@@ -1,0 +1,8 @@
+vocab=15,143 train=117,880 dev=14,734 test=13,263 device=cuda
+epoch 01 | loss 0.3137 | dev acc 0.9574 | dev macro-F1 0.9391 | 25.7s
+epoch 02 | loss 0.1177 | dev acc 0.9593 | dev macro-F1 0.9413 | 23.8s
+epoch 03 | loss 0.1012 | dev acc 0.9645 | dev macro-F1 0.9495 | 22.6s
+epoch 04 | loss 0.0882 | dev acc 0.9617 | dev macro-F1 0.9447 | 22.8s
+epoch 05 | loss 0.0759 | dev acc 0.9636 | dev macro-F1 0.9477 | 23.9s
+early stop (no dev improvement for 2 epochs)
+TEST  acc=0.9613 macro-F1=0.9486

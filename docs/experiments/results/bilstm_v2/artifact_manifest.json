@@ -1,0 +1,395 @@
+{
+ "commit": "ed4070c72c452d8e9ce80568e30170e0cafdd32e",
+ "files": [
+  {
+   "path": "docs/experiments/results/bilstm_v2/bilstm_comparison_v2.json",
+   "bytes": 7197,
+   "sha256": "7057ad209a43c193fe66b7211ab90de955ed0ef64aff2473c7abe92708e78c45"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/environment.json",
+   "bytes": 300,
+   "sha256": "51e923fb5ff341401a0e19fee6c6f151378a96aeb4356eaeccee2c00c5d054ac"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/dev_labels.npy",
+   "bytes": 120816,
+   "sha256": "fdcf4a794fb3af7524148e41b0ab40f981bf41c361199572a269c34aab37bc62"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/dev_logits.npy",
+   "bytes": 120816,
+   "sha256": "d4ee1c1a7c1ffc39e0158cb93bd685c0ae88e436b35d057310cf9198c29bdd9b"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/metrics.json",
+   "bytes": 1783,
+   "sha256": "a9b07d81553c582302f299e62f9e771969dc08f0d5c8027c3863df1323dc2aff"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/request.json",
+   "bytes": 181,
+   "sha256": "4ba1dece713424a673bebcd0a0e5319fcc483f12c05e3426c87062c4074f5f31"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/run_config.yaml",
+   "bytes": 362,
+   "sha256": "2e7e6dba693d3d20f398339012bc5e3e436f25acda82276cd8f732ed106438d8"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/test_labels.npy",
+   "bytes": 106440,
+   "sha256": "b1cf4d294a21316d20eaab6309847449fc2b9c2dba4ac78a7be931c3df51e6d6"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/test_logits.npy",
+   "bytes": 106440,
+   "sha256": "7439e5a73f9d69b05d1b8418e12569bc62ee6ad89ad24fa0bfdf6f7e541b3200"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/hotel/bilstm/train_log.txt",
+   "bytes": 515,
+   "sha256": "45ef5a5165ddd797fed90b7b90968345d91718393568cdb851d4ee3b8fb9dd48"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/latency_frontier.json",
+   "bytes": 2115,
+   "sha256": "a4fdabfe3cf350c7ac6ce618716411fae1441f72b90cadf3d55a0f824a2958f8"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/dev_labels.npy",
+   "bytes": 118000,
+   "sha256": "cbb2af1ffeaa5386be46486a9555847418fc540d02fdc92ffca2d0815d52f33f"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/dev_logits.npy",
+   "bytes": 118000,
+   "sha256": "1e437681ffaefc5d8e7294dd9a523eba0899da259deeeb2f25c81ca58d1c72c5"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/metrics.json",
+   "bytes": 1782,
+   "sha256": "024be25389f68a9da41d2083dd9ed6cdd2fb38bbf8061e0c8a2124828419271d"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/request.json",
+   "bytes": 175,
+   "sha256": "4a1a0433ecb6dc89797c80c3489d2f1c133e52e40eff8d55b1334c92d2bb2aca"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/run_config.yaml",
+   "bytes": 350,
+   "sha256": "e2a729ff270f452a30ebdbe67e2241f3c5f2ae9d33d6407a9af2ae2fa90d2465"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/test_labels.npy",
+   "bytes": 106232,
+   "sha256": "0fb38038830134082806b15cd2e264259639719fe0fcf177fd74e03ccffa8798"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/test_logits.npy",
+   "bytes": 106232,
+   "sha256": "fe45b52a65166d3ffff6ffa3f992470bf95c2e74ef386c022f8264d06b8ec456"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/random/bilstm/train_log.txt",
+   "bytes": 490,
+   "sha256": "e0f0d2d338e4d1c51f85c15f13d1117dc40689e887acad6e7cf8c54080423a44"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "536e84a910dda8438cae0b76a2c87a6020c9c5166add21a4ee04b822019bc69e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/metrics.json",
+   "bytes": 1782,
+   "sha256": "1b3c6564ebc04905c3a5acb7571fc9897557a927981d459d7248709f98768d6e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/request.json",
+   "bytes": 180,
+   "sha256": "98d22403cecffc685fb5d11d0027f3786cfb126e0848f855f535f429130777ea"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/run_config.yaml",
+   "bytes": 360,
+   "sha256": "c50e20e463a98bb7c4c99810aa8b9ef27a15f1a02793868da3ae694668177b5a"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "4aed8605c5176fe2892c298ff1fc71204cc11190f3c2eed9ece7984386cd997e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm/train_log.txt",
+   "bytes": 560,
+   "sha256": "deb1345ca7cffa933294321462798d4b82bf168a60020ebd88a076856f75cef8"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "77db582f9df88872fc0cf0111012d42c983ec3222afac084bd36b824c7284b9a"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/metrics.json",
+   "bytes": 1783,
+   "sha256": "eff651b64d62e5911a373874a4d93db6c48b672ebf5bcc6aa76c72babf2e4395"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/request.json",
+   "bytes": 192,
+   "sha256": "607fbed99c396de5375fdb7b7a813ab66d47a2f877309c557db2c0172b040674"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/run_config.yaml",
+   "bytes": 367,
+   "sha256": "673a6d18d68a6840211a84eee135f52f7cfe57b7b1c6351f4ad2a11da7912f0d"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "71e896f6b2b13888e790d2b14068f8384a67a37162a6f6b4e808861970536fbd"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed43/train_log.txt",
+   "bytes": 560,
+   "sha256": "00ae150f2f85d5f33f4e4e69e7e4abf6fc71ffb0467b020040be737fe765fecb"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "f0ea06e0fb844b5ef02686f07dda85cdf2c98b56c82574b7ef578be524f8cede"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/metrics.json",
+   "bytes": 1782,
+   "sha256": "4c03cce3ed4ac78b60f771a5efffbb97c020bcfb674932ec1202ddbcff38a6b5"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/request.json",
+   "bytes": 192,
+   "sha256": "bc8ab8a1984b160871283e7b97976041b967f86cd6c0347f619a2dc4b2d6a1a6"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/run_config.yaml",
+   "bytes": 367,
+   "sha256": "71cb85b96f317915e5c1b15cd629940e19408837ebd7e8cf610f5dc185d6d93c"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "56b382d7d7e488aebe1bba38b4ba46966f1d0a327489fa7a906568658e337005"
+  },
+  {
+   "path": "docs/experiments/results/bilstm_v2/time/bilstm_seed44/train_log.txt",
+   "bytes": 560,
+   "sha256": "575d8a642ea2d83ac0afcf247d01638014374cf2ec66cfe0a950d433997b0c20"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_seed_robustness.json",
+   "bytes": 3773,
+   "sha256": "1e677949db0dd1a11a7a8480f29c9417930d8ee4792b6ef3b14a3ea27e81fd3f"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "a630f7819d859c6bc051c85469e60f32ab39f5ea341c5908f7fdb63f5101fbdf"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/lora_scratch_config.json",
+   "bytes": 166,
+   "sha256": "587dcbebc8039dfafb2ead7106ed2d4b1087d6888e2a446f49802e7d4e81aff1"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/metrics.json",
+   "bytes": 1877,
+   "sha256": "d29d130c33a53d6838be31ef8403750e54c3c02e57dcb25806b80f8354563df3"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/request.json",
+   "bytes": 287,
+   "sha256": "7967a0565b699e056a82efb81f31eb2614a748cb46d4c99c50bff615847a4cc6"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/run_config.yaml",
+   "bytes": 291,
+   "sha256": "111e55181364845e66b9f6c8872180b7bf4a8b49845ad1cc0fe2893ce863b39a"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "7b28139a736cc96bb6ec8782568a72549ae5cc52e812d26134876d210c15cf67"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed43/train_log.txt",
+   "bytes": 1306,
+   "sha256": "a6e901b21c8e0a31f9b2edcb6d84a5fe0ea4df183941bba8bef0673fdaa209b8"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "32018a4ffb467753234d47183429c6cb04e25a3b702787531f45cec02fc778e6"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/lora_scratch_config.json",
+   "bytes": 166,
+   "sha256": "587dcbebc8039dfafb2ead7106ed2d4b1087d6888e2a446f49802e7d4e81aff1"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/metrics.json",
+   "bytes": 1876,
+   "sha256": "78787323d6311dc063a8a6d7ecb25fb176fa8de37efd328e1c21db7d393a9249"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/request.json",
+   "bytes": 287,
+   "sha256": "a35bb06460b11656f043625665f40fe6b8d18a20b33afdd094560dba3fd59100"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/run_config.yaml",
+   "bytes": 291,
+   "sha256": "91f233ee49a67dc71c5a7d859e21d006c726b6c5bbd04a538bd63f477172996a"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "fa14657b60a881144e0685cfae76fc7a8d0a6a0696d89db97ad1d3bf20a85a40"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_lora_scratch_seed44/train_log.txt",
+   "bytes": 1306,
+   "sha256": "1484ab040486762b927c236724e8c61404bf7dc67d9f66e5eb11779a01f5dc72"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "c2ca252c2a9091033544715a9a9d6bd3bb1503f029ae6e5eba7c79c1da2e26d2"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/metrics.json",
+   "bytes": 1665,
+   "sha256": "35ca2dc423390275c60536fe24b86d9e4fdfc14339c02b62285bcd07af366b3f"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/request.json",
+   "bytes": 200,
+   "sha256": "ca19e0832c39558bccff3d3f1f6b742bbccd55b71938995a049cd9ab117c7255"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/run_config.yaml",
+   "bytes": 291,
+   "sha256": "111e55181364845e66b9f6c8872180b7bf4a8b49845ad1cc0fe2893ce863b39a"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "ae4e577465f6703cff3215b75405b114004067f98af0c6cf92731159cae8288c"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed43/train_log.txt",
+   "bytes": 1174,
+   "sha256": "a8cdcc9f55c669f96687aa01bc49eec6c53f7a4ff246105ce9359a3516e4d61b"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/dev_labels.npy",
+   "bytes": 117024,
+   "sha256": "aa6faddf9896a915c8566548e28a53348a3edbbb14947d0f02cf263346088f8e"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/dev_logits.npy",
+   "bytes": 117024,
+   "sha256": "4208194b21534bd12da2f1c355be8c39487b1eaf0a5393ca498e0453ed464bc6"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/metrics.json",
+   "bytes": 1665,
+   "sha256": "9a14e28c3c9c52fe50f505e099a7a549f5b48f753b115ed597617cb36eb6b916"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/request.json",
+   "bytes": 200,
+   "sha256": "147d4169cf878ec2232c7d2f02d5f2c1df8900d4c25f9f4218eef70a19c0b40a"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/run_config.yaml",
+   "bytes": 291,
+   "sha256": "91f233ee49a67dc71c5a7d859e21d006c726b6c5bbd04a538bd63f477172996a"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/test_labels.npy",
+   "bytes": 111496,
+   "sha256": "64f46b45ea09bf8b935d102bf744e2dbea6d9ea7ac099a06ce2190c5bf673a08"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/test_logits.npy",
+   "bytes": 111496,
+   "sha256": "93afcb5e8c7144f616ff34e58398f4237058206554e289146a9cd965dfa09027"
+  },
+  {
+   "path": "docs/experiments/results/distilbert_v2/time/distilbert_seed44/train_log.txt",
+   "bytes": 1174,
+   "sha256": "49fe3eda3607ff7fe56eb8247d5fad138bb45492a62f19e0d6a4275055fb006a"
+  }
+ ]
+}

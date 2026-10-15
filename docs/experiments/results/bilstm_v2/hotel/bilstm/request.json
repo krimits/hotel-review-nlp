@@ -1,0 +1,7 @@
+{
+ "commit": "ed4070c72c452d8e9ce80568e30170e0cafdd32e",
+ "gpu": "Tesla T4",
+ "module": "reviewnlp.baselines.bilstm",
+ "config": "configs/bilstm_v2_hotel.yaml",
+ "extra_args": []
+}

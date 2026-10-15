@@ -30,13 +30,15 @@ The old numbers were kept rather than deleted, and labelled. The rebuilt splits 
 come in three views — random, out-of-time and by-hotel — because an out-of-time split
 answers a different question from a random one.
 
-**What is still open:** the BiLSTM row in the legacy table has not been re-run on the
-clean splits, so its comparisons still rest on the contaminated test set. The terms for
-closing that gap are locked in
-[`docs/experiments/bilstm_clean_splits/PROTOCOL.md`](experiments/bilstm_clean_splits/PROTOCOL.md),
-with three training seeds and CPU latency and size, and the run is pending. Qwen QLoRA is
+**Closed since:** the BiLSTM was re-run on the clean splits under a
+[protocol](experiments/bilstm_clean_splits/PROTOCOL.md) locked before training. DistilBERT is
+meaningfully better on later reviews, across three BiLSTM seeds
+([decision](experiments/decision_bilstm_clean_splits.md)). The full fine-tune's lead over LoRA
+also held across three DistilBERT seeds ([decision](experiments/decision_distilbert_seeds.md)).
+
+**What is still open:** Qwen QLoRA is
 [not carried forward](experiments/decision_qwen_binary_scope.md) for binary scoring; its
-row stays labelled legacy.
+row stays labelled legacy and its comparisons stay unconfirmed on clean data.
 
 ## 3. A paper implemented from its equations, checked against the reference (2 min)
 

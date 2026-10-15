@@ -187,10 +187,15 @@ def test_the_frontier_rule_is_machine_checkable(protocol):
 
 
 def test_the_correction_matches_the_distilbert_runs(protocol):
-    """Version 2 said the DistilBERT artifacts had another seed; every run used seed 42."""
+    """Version 2 said the DistilBERT artifacts had another seed; every phase 2 run used seed 42.
+
+    The seed-robustness protocol later added `*_seed43` and `*_seed44` runs beside them; the
+    sentence is about the four phase 2 runs.
+    """
     limits = protocol.split("## 5. Limits", 1)[1].split("## Execution", 1)[0]
     assert "second seed" not in limits
-    runs = sorted((ROOT / "docs" / "experiments" / "results" / "distilbert_v2").glob("*/*/run_config.yaml"))
+    runs = sorted(path for path in (ROOT / "docs" / "experiments" / "results" / "distilbert_v2")
+                  .glob("*/*/run_config.yaml") if "_seed" not in path.parent.name)
     assert len(runs) == 4
     for run in runs:
         assert "seed: 42" in run.read_text(encoding="utf-8").splitlines(), run
