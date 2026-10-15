@@ -92,6 +92,22 @@ def demo_prompt_code() -> dict:
     return namespace
 
 
+def test_greekbert_gives_no_label_for_text_without_greek():
+    """GreekBERT answered English reviews confidently and meaninglessly; it now says why it does not."""
+    names = {"GREEK_LETTERS", "GREEK_ONLY_NOTE", "has_greek", "predict_greek"}
+    body = [node for node in ast.parse(APP.read_text(encoding="utf-8")).body
+            if (isinstance(node, ast.FunctionDef) and node.name in names)
+            or (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in names)]
+    namespace: dict = {"re": __import__("re")}  # no tokenizer or model: a non-Greek review must not reach them
+    exec(compile(ast.Module(body=body, type_ignores=[]), str(APP), "exec"), namespace)
+    assert names <= set(namespace)
+    for english in ("The room was dirty and the staff were rude.", "Great stay, 10/10!"):
+        assert namespace["predict_greek"](english) == ({"negative": 0.0, "positive": 0.0}, namespace["GREEK_ONLY_NOTE"])
+    for greek in ("Εξαιρετικό δωμάτιο.", "ἄριστον", "Room was ok αλλά θορυβώδες"):
+        assert namespace["has_greek"](greek)
+    assert namespace["predict_greek"]("   ")[1] == "empty input"
+
+
 def test_the_demo_prompts_qwen_exactly_as_training_did():
     from reviewnlp.llm import prompt_format
 
