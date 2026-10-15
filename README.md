@@ -8,29 +8,48 @@
 
 > Hotel review classification and an emerging hotel-operations product, with an API, aspect extraction and hotel-scoped recommendations. On test sets that share no review text with training, fine-tuned DistilBERT reaches **0.9642 macro-F1** on a random split and **0.9491** on reviews written after the training period. That is about 3 points above TF-IDF + Naive Bayes chosen on dev, a gain that meets a rule fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md)). Earlier figures, from a split whose test set shares 170 texts with training, are kept as [history](#historical-results-legacy-split-text-overlap). What this project demonstrates, with links to the evidence: [evidence map](docs/EVIDENCE_MAP.md).
 
- **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)**  · **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** .**📦 [Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
+🚀 **[hotel-review-demo](https://huggingface.co/spaces/krimits/hotel-review-demo)** · 🇬🇷 **[greek-review-sentiment-demo](https://huggingface.co/spaces/krimits/greek-review-sentiment-demo)** · 🛠️ **[hotel-triage-demo](https://huggingface.co/spaces/krimits/hotel-triage-demo)** (experimental) · 📦 **[Model on HF Hub](https://huggingface.co/krimits/distilbert-hotel-reviews)**
+
+---
+
+## At a glance
+
+| Area | What is here | Evidence |
+| :--- | :--- | :--- |
+| **Data hygiene** | The raw file is refused unless its size and SHA-256 match; duplicates are removed before splitting; three splits (random, out-of-time, unseen hotels) whose manifests record zero text overlap | [`data/raw/README.md`](data/raw/README.md) · [`v2_splits/`](docs/experiments/results/v2_splits/) |
+| **Evaluation fixed in advance** | The comparisons and the rule for a meaningful gain were committed before training; paired bootstrap intervals (2,000 resamples) and exact McNemar tests; CI recomputes the comparison from saved logits on every push | [plan](docs/experiments/phase2_analysis_plan.md) · [`distilbert_v2/`](docs/experiments/results/distilbert_v2/) |
+| **Model internals** | LoRA written from the paper's equations in PyTorch and checked numerically against Hugging Face `peft` | [`lora.py`](src/reviewnlp/lora/lora.py) · [`test_lora.py`](tests/test_lora.py) |
+| **Serving** | FastAPI with pluggable backends (`stub`, `classical`, `encoder`, `qwen_qlora`); a Docker image with weights mounted at runtime; an archived Locust load test; an optional SQLite hotel dashboard for a local single-worker pilot | [product setup](docs/PRODUCT_SETUP.md) · [serving benchmark](#serving-benchmark) |
+| **Analytics** | SQL analysis of complaint topics rising within the same hotels, with a hotel-level bootstrap; the topic lexicon measured by two annotators (kappa 0.83–1.00), which leaves the rises unconfirmed | [case study](docs/case_study/complaint_trends.md) · [annotation](docs/case_study/results/annotation/README.md) |
 
 ---
 
 ## The problem
 
-Hotel chains receive **thousands of guest reviews every day** across Booking.com, TripAdvisor, Google, and internal channels. A single negative review left unaddressed can cost bookings; a missed pattern across hundreds of reviews can hide a systemic issue (broken AC, rude staff, misleading photos).
-
-Manual triage doesn't scale. Keyword rules miss sarcasm, mixed sentiment, and context. Traditional dashboards are backward-looking.
+Hotel chains receive **thousands of guest reviews every day** across Booking.com, TripAdvisor, Google, and internal channels. A single negative review left unaddressed can cost bookings; a missed pattern across hundreds of reviews can hide a systemic issue (broken AC, rude staff, misleading photos). Manual triage doesn't scale, keyword rules miss sarcasm, mixed sentiment and context, and traditional dashboards are backward-looking.
 
 ## The solution
 
-A **binary sentiment classifier** trained on about **118,000 real Booking.com reviews** that:
+A **binary sentiment classifier** trained on about **118,000 real Booking.com reviews**, behind an API:
 
-- Supports CPU inference; the archived FastAPI load test measured `/predict` p50 **360 ms under load** on its Windows CPU
-- Reaches **0.9642 macro-F1** with fine-tuned DistilBERT on a test set that shares no review text with training, and 0.9491 on reviews written after the training period; a TF-IDF + Naive Bayes baseline, 3 points lower, answers in about 1 ms on a CPU
-- Exposes a **FastAPI service** — `/predict` for scoring, `/absa` for per-aspect extraction — with health checks and batch paths for both
-- Ships as a Docker image and includes an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md)
-- Has an experimental, unvalidated `POST /triage` that chains sentiment, local lexical complaint-topic hints (default primary), optional Jev enhancement and suggested actions (Qwen, off by default in the API): [what it does, what it sends out and what has not been measured](docs/TRIAGE.md). Unknown topics require human review; the [whole-review pilot](docs/experiments/triage_lexicon_pilot/PROTOCOL.md) comes before new paid comparisons.
-- Has a separate [primary-topic decision-model comparison](docs/experiments/decision_topic_benchmark/README.md): 500 validated final annotations, split 300/100/100. The [actual three-arm dev run](docs/experiments/decision_topic_benchmark/results/comparison_dev_20261012/README.md) completed 100 reviews per arm: macro-F1 logistic 0.1561, Qwen 0.2299, Microsoft Decision-1 0.6524. These are development results with limited rare-class support, in-sample calibration and a documented Qwen T4 precision caveat. The [Jev extension](docs/experiments/decision_topic_benchmark/results/jev_dev_20261012/README.md) completed the same 100 dev cases: macro-F1 0.6783, with a paired Jev-minus-Microsoft interval crossing zero. Its selective risk is recorded alongside coverage and in-sample calibration caveats. The paired held-out test is pending; no model was selected or promoted.
-- Includes a reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run
+- **Accuracy.** Fine-tuned DistilBERT reaches **0.9642 macro-F1** on a test set that shares no review text with training, and 0.9491 on reviews written after the training period. A TF-IDF + Naive Bayes baseline, 3 points lower, answers in about 1 ms on a CPU.
+- **Service.** A **FastAPI service**: `/predict` for scoring and `/absa` for per-aspect extraction, each with a batch path, plus health checks. The archived load test measured `/predict` p50 **360 ms under load** on its Windows CPU.
+- **Deployment.** A Docker image and an optional [hotel operations dashboard](docs/PRODUCT_SETUP.md).
+- **Experimental, not selected or promoted:** a triage endpoint, a topic-model comparison and an INT8 script (below).
 
 For teams, this is the difference between reading reviews and *acting* on them.
+
+<details>
+<summary><b>Experimental work: triage endpoint, topic-model comparison, INT8</b></summary>
+
+- **`POST /triage`, unvalidated.** It chains sentiment, local lexical complaint-topic hints (default primary), optional Jev enhancement and suggested actions (Qwen, off by default in the API): [what it does, what it sends out and what has not been measured](docs/TRIAGE.md). Unknown topics require human review; the [whole-review pilot](docs/experiments/triage_lexicon_pilot/PROTOCOL.md) comes before new paid comparisons.
+- **[Primary-topic decision-model comparison](docs/experiments/decision_topic_benchmark/README.md):** 500 validated final annotations, split 300/100/100.
+  - The [actual three-arm dev run](docs/experiments/decision_topic_benchmark/results/comparison_dev_20261012/README.md) completed 100 reviews per arm: macro-F1 logistic 0.1561, Qwen 0.2299, Microsoft Decision-1 0.6524. These are development results with limited rare-class support, in-sample calibration and a documented Qwen T4 precision caveat.
+  - The [Jev extension](docs/experiments/decision_topic_benchmark/results/jev_dev_20261012/README.md) completed the same 100 dev cases: macro-F1 0.6783, with a paired Jev-minus-Microsoft interval crossing zero. Its selective risk is recorded alongside coverage and in-sample calibration caveats.
+  - The paired held-out test is pending; no model was selected or promoted.
+- **INT8.** A reproducible dynamic INT8 benchmark script; its earlier 32-review measurements need a fresh full-test run ([Quantization](#quantization)).
+
+</details>
 
 ---
 
