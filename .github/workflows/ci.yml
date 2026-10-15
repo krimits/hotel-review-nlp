@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff
+      - run: pip install ruff -c requirements/ci.lock
       - run: ruff check src tests scripts spaces
 
   test:
@@ -26,10 +26,10 @@ jobs:
         with:
           python-version: "3.11"
       # CPU-only torch keeps CI fast; all tests run offline on tiny fixtures.
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: pip install -e ".[dev,serving]"
-      - run: pip install transformers==4.56.2 peft==0.17.1 accelerate==1.10.1 lm-format-enforcer==0.11.3
-      # The Space demo's app is imported and run end to end with a stub model.
-      - run: pip install gradio==5.49.1 spaces==0.51.3
+      # Every version is pinned by requirements/ci.lock, compiled for Linux and Python 3.11.
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu -c requirements/ci.lock
+      # requirements/ci.in adds the phase 2 transformers stack and the Space demo's Gradio,
+      # whose app is imported and run end to end with a stub model.
+      - run: pip install -e ".[dev,serving]" -r requirements/ci.in -c requirements/ci.lock
       - run: pytest tests -v
       - run: python scripts/verify_distilbert_handoff.py
