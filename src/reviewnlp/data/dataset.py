@@ -69,7 +69,9 @@ class SentimentDataset(Dataset):
 
     def __init__(self, df: pd.DataFrame, vocab: TextVocab, max_tokens: int):
         self._label2id = {"negative": 0, "positive": 1}
-        self.encoded = [vocab.encode(t, max_tokens) for t in df["text"]]
+        # A review with no word tokens becomes one <unk>: pack_padded_sequence refuses length 0.
+        unk = vocab.itoi[UNK]
+        self.encoded = [vocab.encode(t, max_tokens) or [unk] for t in df["text"]]
         self.labels = [self._label2id[lbl] for lbl in df["label"]]
 
     def __len__(self) -> int:
@@ -84,9 +86,11 @@ def collate(batch: list[tuple[torch.Tensor, int, torch.Tensor]]) -> dict:
     """Pad token-id sequences to the longest item in the batch.
 
     Returns inputs sorted by descending length (required by pack_padded_sequence
-    when enforce_sorted=True, the faster path we use in training).
+    when enforce_sorted=True, the faster path we use in training). ``order`` holds
+    each sorted item's position in the batch as given, so evaluation can restore it.
     """
-    batch = sorted(batch, key=lambda item: item[1], reverse=True)
+    order = sorted(range(len(batch)), key=lambda i: batch[i][1], reverse=True)
+    batch = [batch[i] for i in order]
     ids_list, lengths, labels = zip(*batch, strict=False)
     max_len = lengths[0]
     padded = torch.zeros(len(batch), max_len, dtype=torch.long)  # 0 == <pad>
@@ -96,6 +100,7 @@ def collate(batch: list[tuple[torch.Tensor, int, torch.Tensor]]) -> dict:
         "input_ids": padded,
         "lengths": torch.tensor(lengths, dtype=torch.long),
         "labels": torch.tensor(labels, dtype=torch.long),
+        "order": torch.tensor(order, dtype=torch.long),
     }
 
 
