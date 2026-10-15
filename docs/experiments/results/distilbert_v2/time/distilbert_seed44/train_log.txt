@@ -1,0 +1,11 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1792048920.900171   13564 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1792048923.087055   13564 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: ['classifier.bias', 'classifier.weight', 'pre_classifier.bias', 'pre_classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+params: 66,955,010 total | 66,955,010 trainable (100.00%)
+epoch 1 | loss 0.1140 | dev macro-F1 0.9558 | lr 1.10e-05 | 420s
+epoch 2 | loss 0.0685 | dev macro-F1 0.9571 | lr 1.05e-12 | 421s
+TEST macro-F1 0.9480 acc 0.9576

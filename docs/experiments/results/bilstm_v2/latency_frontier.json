@@ -1,0 +1,100 @@
+{
+ "protocol": "docs/experiments/bilstm_clean_splits/PROTOCOL.md",
+ "method": {
+  "threads": 1,
+  "batch_size": 1,
+  "sample": 500,
+  "sample_seed": 0,
+  "warmup": 3
+ },
+ "test": {
+  "rows": 13921,
+  "negative": 3921,
+  "positive": 10000,
+  "sha256": "07429dd59e7cea222f201d9ab6e92848093f9fe466dc52f9ae3fbb2e8352dc7c"
+ },
+ "sample": {
+  "reviews": 500,
+  "seed": 0
+ },
+ "hardware": {
+  "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+  "cpu_count": 2,
+  "torch_threads": 1,
+  "gpu": "Tesla T4",
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "scikit_learn": "1.6.1"
+ },
+ "models": {
+  "tfidf_nb": {
+   "path": "runs/classical_v2_time/best_classical.joblib",
+   "size_mb": 3.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 0.648,
+     "ms_per_review": 1.296,
+     "ms_per_batch_median": 1.239,
+     "ms_per_batch_p95": 1.668,
+     "reviews_per_second": 771.3,
+     "agrees": 498
+    }
+   }
+  },
+  "bilstm": {
+   "path": "runs/bilstm_v2_time",
+   "size_mb": 8.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 1.19,
+     "ms_per_review": 2.379,
+     "ms_per_batch_median": 1.673,
+     "ms_per_batch_p95": 6.601,
+     "reviews_per_second": 420.3,
+     "agrees": 500
+    }
+   }
+  },
+  "distilbert": {
+   "path": "runs/distilbert_v2_time_seed43",
+   "size_mb": 255.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 31.01,
+     "ms_per_review": 62.021,
+     "ms_per_batch_median": 56.354,
+     "ms_per_batch_p95": 102.494,
+     "reviews_per_second": 16.1,
+     "agrees": 500
+    }
+   }
+  },
+  "distilbert_lora_scratch": {
+   "path": "runs/distilbert_v2_time_seed43_lora_scratch",
+   "size_mb": 255.4,
+   "cpu": {
+    "batch_1": {
+     "batch_size": 1,
+     "reviews": 500,
+     "warmup_batches": 3,
+     "seconds": 30.63,
+     "ms_per_review": 61.261,
+     "ms_per_batch_median": 54.1,
+     "ms_per_batch_p95": 111.264,
+     "reviews_per_second": 16.3,
+     "agrees": 500
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,22 @@
+seed: 42
+data:
+  processed_dir: data/processed_v2
+  max_tokens: 220
+  min_freq: 2
+  glove: null
+model:
+  hidden_dim: 128
+  num_layers: 1
+  bidirectional: true
+  dropout: 0.3
+  pooling: last
+train:
+  batch_size: 128
+  epochs: 6
+  embedding_dim: 128
+  lr: 0.001
+  weight_decay: 0.0001
+  grad_clip: 5.0
+  patience: 2
+output:
+  model_dir: runs/bilstm_v2

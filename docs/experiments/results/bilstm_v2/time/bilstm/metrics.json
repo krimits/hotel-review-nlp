@@ -1,0 +1,92 @@
+{
+  "test": {
+    "accuracy": 0.9472,
+    "macro_f1": 0.9357,
+    "macro_precision": 0.9299,
+    "macro_recall": 0.942,
+    "weighted_f1": 0.9476,
+    "per_class": {
+      "0": {
+        "precision": 0.8878,
+        "recall": 0.9301,
+        "f1": 0.9085,
+        "support": 3921
+      },
+      "1": {
+        "precision": 0.9721,
+        "recall": 0.9539,
+        "f1": 0.9629,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        3647,
+        274
+      ],
+      [
+        461,
+        9539
+      ]
+    ]
+  },
+  "dev": {
+    "accuracy": 0.9572,
+    "macro_f1": 0.9471,
+    "macro_precision": 0.9416,
+    "macro_recall": 0.953,
+    "weighted_f1": 0.9575,
+    "per_class": {
+      "0": {
+        "precision": 0.9048,
+        "recall": 0.9438,
+        "f1": 0.9239,
+        "support": 4018
+      },
+      "1": {
+        "precision": 0.9783,
+        "recall": 0.9623,
+        "f1": 0.9703,
+        "support": 10594
+      }
+    },
+    "confusion_matrix": [
+      [
+        3792,
+        226
+      ],
+      [
+        399,
+        10195
+      ]
+    ]
+  },
+  "best_dev_macro_f1": 0.9471,
+  "settings": {
+    "seed": 42,
+    "min_freq": 2,
+    "vocab_size": 14681,
+    "device": "cuda"
+  },
+  "training_seconds": 140.3,
+  "data": {
+    "train": {
+      "rows": 116547,
+      "negative": 24692,
+      "positive": 91855,
+      "sha256": "74f447be7e776135dcfd0d270ae9a711c005f13ef1ae74397ac58cc0e6d410b6"
+    },
+    "dev": {
+      "rows": 14612,
+      "negative": 4018,
+      "positive": 10594,
+      "sha256": "5ddec23ec9bb0bbfe16354469ced0945c8d36c4a09e46d8d705f694d94053b5a"
+    },
+    "test": {
+      "rows": 13921,
+      "negative": 3921,
+      "positive": 10000,
+      "sha256": "07429dd59e7cea222f201d9ab6e92848093f9fe466dc52f9ae3fbb2e8352dc7c"
+    }
+  }
+}

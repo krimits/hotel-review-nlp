@@ -1,0 +1,17 @@
+{
+ "commit": "ed4070c72c452d8e9ce80568e30170e0cafdd32e",
+ "gpu": "Tesla T4",
+ "python": "3.13.15",
+ "packages": {
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2",
+  "tokenizers": "0.22.2",
+  "scikit-learn": "1.6.1",
+  "numpy": "2.1.3",
+  "pandas": "2.2.3"
+ },
+ "extra_seeds": [
+  43,
+  44
+ ]
+}

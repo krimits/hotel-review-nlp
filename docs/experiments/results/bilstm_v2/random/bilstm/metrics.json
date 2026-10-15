@@ -1,0 +1,92 @@
+{
+  "test": {
+    "accuracy": 0.9613,
+    "macro_f1": 0.9486,
+    "macro_precision": 0.9425,
+    "macro_recall": 0.9553,
+    "weighted_f1": 0.9616,
+    "per_class": {
+      "0": {
+        "precision": 0.9037,
+        "recall": 0.9433,
+        "f1": 0.9231,
+        "support": 3263
+      },
+      "1": {
+        "precision": 0.9812,
+        "recall": 0.9672,
+        "f1": 0.9742,
+        "support": 10000
+      }
+    },
+    "confusion_matrix": [
+      [
+        3078,
+        185
+      ],
+      [
+        328,
+        9672
+      ]
+    ]
+  },
+  "dev": {
+    "accuracy": 0.9645,
+    "macro_f1": 0.9495,
+    "macro_precision": 0.9413,
+    "macro_recall": 0.9585,
+    "weighted_f1": 0.9648,
+    "per_class": {
+      "0": {
+        "precision": 0.8978,
+        "recall": 0.9476,
+        "f1": 0.922,
+        "support": 3263
+      },
+      "1": {
+        "precision": 0.9849,
+        "recall": 0.9693,
+        "f1": 0.977,
+        "support": 11471
+      }
+    },
+    "confusion_matrix": [
+      [
+        3092,
+        171
+      ],
+      [
+        352,
+        11119
+      ]
+    ]
+  },
+  "best_dev_macro_f1": 0.9495,
+  "settings": {
+    "seed": 42,
+    "min_freq": 2,
+    "vocab_size": 15143,
+    "device": "cuda"
+  },
+  "training_seconds": 124.7,
+  "data": {
+    "train": {
+      "rows": 117880,
+      "negative": 26105,
+      "positive": 91775,
+      "sha256": "37930e6da0c6487a64697835a6068a42f8c1abf3fb1599a47381188113b1198d"
+    },
+    "dev": {
+      "rows": 14734,
+      "negative": 3263,
+      "positive": 11471,
+      "sha256": "ba1d62768436766dab0082d74a2a2df3b9cfd3dc3aac8c2b595d69861068306a"
+    },
+    "test": {
+      "rows": 13263,
+      "negative": 3263,
+      "positive": 10000,
+      "sha256": "8cd21cdac358f10b6791497060ec3608726ab67e06674abc30503caeede92717"
+    }
+  }
+}

@@ -52,8 +52,14 @@ def test_every_file_matches_the_manifest():
         assert len(content) == entry["bytes"], entry["path"]
         assert hashlib.sha256(content).hexdigest() == entry["sha256"], entry["path"]
     present = {path.relative_to(BUNDLE).as_posix() for path in BUNDLE.rglob("*") if path.is_file()}
-    # The manifest describes the bundle as it came from Colab; the publication records were added later.
-    assert present - listed == {"artifact_manifest.json", "README.md", "published.json", "model_card.md"}
+    # The manifest describes the bundle as it came from Colab; the publication records were added later,
+    # and the seed 43 and 44 runs came with notebook 27, listed in bilstm_v2/artifact_manifest.json.
+    later = {path for path in present - listed if "_seed4" not in path}
+    assert later == {"artifact_manifest.json", "README.md", "published.json", "model_card.md"}
+    seeds = _json(BUNDLE.parent / "bilstm_v2" / "artifact_manifest.json")["files"]
+    assert {path for path in present - listed if "_seed4" in path} == {
+        entry["path"].removeprefix("docs/experiments/results/distilbert_v2/") for entry in seeds
+        if entry["path"].startswith("docs/experiments/results/distilbert_v2/")}
 
 
 def test_every_run_comes_from_the_same_commit():
@@ -113,5 +119,9 @@ def test_the_comparison_is_reproduced_from_the_logits():
     recomputed = json.loads(json.dumps(compare.compare(BUNDLE, _json(SPLIT_VIEWS))))
     committed = _json(COMPARISON)
     assert matches(recomputed, committed)
-    assert committed == _json(BUNDLE / "model_comparison_v2.json")  # as the notebook wrote it on Colab
+    # As the notebook wrote it on Colab, before the plan's extra seeds (notebook 27) filled primary_other_seeds.
+    colab = _json(BUNDLE / "model_comparison_v2.json")
+    assert colab["primary_other_seeds"] == {}
+    assert {**committed, "primary_other_seeds": {}} == colab
+    assert set(committed["primary_other_seeds"]) == {"distilbert_seed43", "distilbert_seed44"}
     assert committed["primary"]["verdict"] == {"better": "distilbert", "gain": "meaningful"}

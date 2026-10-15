@@ -1,0 +1,355 @@
+{
+ "protocol": "docs/experiments/bilstm_clean_splits/PROTOCOL.md",
+ "resamples": 2000,
+ "seed": 0,
+ "primary": {
+  "split": "time",
+  "d_bilstm_minus_distilbert": -0.0135,
+  "paired_ci95": [
+   -0.0169,
+   -0.0099
+  ],
+  "mcnemar": {
+   "a_wrong_b_right": 117,
+   "a_right_b_wrong": 274,
+   "statistic": 117.0,
+   "p_value": 1.257730657018508e-15,
+   "significant_at_0.05": true,
+   "n_discordant": 391
+  },
+  "branch": "DistilBERT meaningfully better"
+ },
+ "seeds": {
+  "42": {
+   "macro_f1": 0.9357,
+   "d_bilstm_minus_distilbert": -0.0135,
+   "paired_ci95": [
+    -0.0169,
+    -0.0099
+   ],
+   "mcnemar": {
+    "a_wrong_b_right": 117,
+    "a_right_b_wrong": 274,
+    "statistic": 117.0,
+    "p_value": 1.257730657018508e-15,
+    "significant_at_0.05": true,
+    "n_discordant": 391
+   },
+   "branch": "DistilBERT meaningfully better"
+  },
+  "43": {
+   "macro_f1": 0.9363,
+   "d_bilstm_minus_distilbert": -0.0128,
+   "paired_ci95": [
+    -0.0163,
+    -0.0093
+   ],
+   "mcnemar": {
+    "a_wrong_b_right": 124,
+    "a_right_b_wrong": 269,
+    "statistic": 124.0,
+    "p_value": 2.0162517337104258e-13,
+    "significant_at_0.05": true,
+    "n_discordant": 393
+   },
+   "branch": "DistilBERT meaningfully better"
+  },
+  "44": {
+   "macro_f1": 0.9372,
+   "d_bilstm_minus_distilbert": -0.0119,
+   "paired_ci95": [
+    -0.0153,
+    -0.0085
+   ],
+   "mcnemar": {
+    "a_wrong_b_right": 123,
+    "a_right_b_wrong": 260,
+    "statistic": 123.0,
+    "p_value": 2.1520331009888014e-12,
+    "significant_at_0.05": true,
+    "n_discordant": 383
+   },
+   "branch": "DistilBERT meaningfully better"
+  }
+ },
+ "seed_check": {
+  "branches": {
+   "42": "DistilBERT meaningfully better",
+   "43": "DistilBERT meaningfully better",
+   "44": "DistilBERT meaningfully better"
+  },
+  "same_branch": true,
+  "statement": "the conclusion holds across three training seeds of the BiLSTM",
+  "macro_f1_mean": 0.9363999999999999,
+  "macro_f1_sd": 0.0007549834435271021
+ },
+ "views": {
+  "random": {
+   "bilstm": {
+    "macro_f1": 0.9486,
+    "accuracy": 0.9613,
+    "macro_f1_ci95": [
+     0.9445,
+     0.9528
+    ],
+    "per_class": {
+     "negative": {
+      "precision": 0.9037,
+      "recall": 0.9433,
+      "f1": 0.9231,
+      "support": 3263
+     },
+     "positive": {
+      "precision": 0.9812,
+      "recall": 0.9672,
+      "f1": 0.9742,
+      "support": 10000
+     }
+    }
+   },
+   "bilstm vs tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "bilstm",
+    "macro_f1_difference_b_minus_a": 0.0135,
+    "paired_ci95": [
+     0.0094,
+     0.0178
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 295,
+     "a_right_b_wrong": 164,
+     "statistic": 164.0,
+     "p_value": 1.0055178422472782e-09,
+     "significant_at_0.05": true,
+     "n_discordant": 459
+    },
+    "verdict": {
+     "better": "bilstm",
+     "gain": "meaningful"
+    }
+   }
+  },
+  "time": {
+   "bilstm": {
+    "macro_f1": 0.9357,
+    "accuracy": 0.9472,
+    "macro_f1_ci95": [
+     0.931,
+     0.94
+    ],
+    "per_class": {
+     "negative": {
+      "precision": 0.8878,
+      "recall": 0.9301,
+      "f1": 0.9085,
+      "support": 3921
+     },
+     "positive": {
+      "precision": 0.9721,
+      "recall": 0.9539,
+      "f1": 0.9629,
+      "support": 10000
+     }
+    }
+   },
+   "bilstm vs tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "bilstm",
+    "macro_f1_difference_b_minus_a": 0.0173,
+    "paired_ci95": [
+     0.0131,
+     0.0216
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 408,
+     "a_right_b_wrong": 213,
+     "statistic": 213.0,
+     "p_value": 4.1761501688178736e-15,
+     "significant_at_0.05": true,
+     "n_discordant": 621
+    },
+    "verdict": {
+     "better": "bilstm",
+     "gain": "meaningful"
+    }
+   }
+  },
+  "hotel": {
+   "bilstm": {
+    "macro_f1": 0.9514,
+    "accuracy": 0.9637,
+    "macro_f1_ci95": [
+     0.9471,
+     0.9556
+    ],
+    "per_class": {
+     "negative": {
+      "precision": 0.9223,
+      "recall": 0.9316,
+      "f1": 0.9269,
+      "support": 3289
+     },
+     "positive": {
+      "precision": 0.9774,
+      "recall": 0.9742,
+      "f1": 0.9758,
+      "support": 10000
+     }
+    }
+   },
+   "bilstm vs tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "bilstm",
+    "macro_f1_difference_b_minus_a": 0.0166,
+    "paired_ci95": [
+     0.0122,
+     0.0211
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 343,
+     "a_right_b_wrong": 177,
+     "statistic": 177.0,
+     "p_value": 2.9303627474521005e-13,
+     "significant_at_0.05": true,
+     "n_discordant": 520
+    },
+    "verdict": {
+     "better": "bilstm",
+     "gain": "meaningful"
+    }
+   }
+  }
+ },
+ "drop_random_to_time": 0.0129,
+ "selection_frozen": false,
+ "promoted": false,
+ "frontier": {
+  "rule": "lat_a <= lat_b and hi >= 0 and (lat_a < 0.9 * lat_b or lo > 0)",
+  "median_ms_per_review": {
+   "tfidf_nb": 1.239,
+   "bilstm": 1.673,
+   "distilbert": 56.354,
+   "distilbert_lora_scratch": 54.1
+  },
+  "size_mb": {
+   "tfidf_nb": 3.4,
+   "bilstm": 8.4,
+   "distilbert": 255.4,
+   "distilbert_lora_scratch": 255.4
+  },
+  "hardware": {
+   "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+   "cpu_count": 2,
+   "torch_threads": 1,
+   "gpu": "Tesla T4",
+   "python": "3.13.15",
+   "torch": "2.11.0+cu130",
+   "transformers": "4.56.2",
+   "scikit_learn": "1.6.1"
+  },
+  "pairs": {
+   "tfidf_nb vs bilstm": {
+    "macro_f1_a_minus_b": -0.0173,
+    "paired_ci95": [
+     -0.0216,
+     -0.0131
+    ],
+    "a_dominates_b": false
+   },
+   "tfidf_nb vs distilbert": {
+    "macro_f1_a_minus_b": -0.0308,
+    "paired_ci95": [
+     -0.035,
+     -0.0264
+    ],
+    "a_dominates_b": false
+   },
+   "tfidf_nb vs distilbert_lora_scratch": {
+    "macro_f1_a_minus_b": -0.024,
+    "paired_ci95": [
+     -0.0283,
+     -0.0198
+    ],
+    "a_dominates_b": false
+   },
+   "bilstm vs tfidf_nb": {
+    "macro_f1_a_minus_b": 0.0173,
+    "paired_ci95": [
+     0.0131,
+     0.0216
+    ],
+    "a_dominates_b": false
+   },
+   "bilstm vs distilbert": {
+    "macro_f1_a_minus_b": -0.0135,
+    "paired_ci95": [
+     -0.0169,
+     -0.0099
+    ],
+    "a_dominates_b": false
+   },
+   "bilstm vs distilbert_lora_scratch": {
+    "macro_f1_a_minus_b": -0.0067,
+    "paired_ci95": [
+     -0.0102,
+     -0.0032
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert vs tfidf_nb": {
+    "macro_f1_a_minus_b": 0.0308,
+    "paired_ci95": [
+     0.0264,
+     0.035
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert vs bilstm": {
+    "macro_f1_a_minus_b": 0.0135,
+    "paired_ci95": [
+     0.0099,
+     0.0169
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert vs distilbert_lora_scratch": {
+    "macro_f1_a_minus_b": 0.0068,
+    "paired_ci95": [
+     0.0041,
+     0.0094
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert_lora_scratch vs tfidf_nb": {
+    "macro_f1_a_minus_b": 0.024,
+    "paired_ci95": [
+     0.0198,
+     0.0283
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert_lora_scratch vs bilstm": {
+    "macro_f1_a_minus_b": 0.0067,
+    "paired_ci95": [
+     0.0032,
+     0.0102
+    ],
+    "a_dominates_b": false
+   },
+   "distilbert_lora_scratch vs distilbert": {
+    "macro_f1_a_minus_b": -0.0068,
+    "paired_ci95": [
+     -0.0094,
+     -0.0041
+    ],
+    "a_dominates_b": false
+   }
+  },
+  "frontier": [
+   "tfidf_nb",
+   "bilstm",
+   "distilbert",
+   "distilbert_lora_scratch"
+  ]
+ }
+}

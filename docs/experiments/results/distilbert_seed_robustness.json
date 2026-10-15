@@ -1,0 +1,175 @@
+{
+ "protocol": "docs/experiments/distilbert_seed_robustness/PROTOCOL.md",
+ "resamples": 2000,
+ "seed": 0,
+ "seeds": {
+  "42": {
+   "full_macro_f1": 0.9491,
+   "lora_macro_f1": 0.9424,
+   "d_full_minus_lora": 0.0068,
+   "paired_ci95": [
+    0.0041,
+    0.0094
+   ],
+   "full_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert",
+    "macro_f1_difference_b_minus_a": 0.0308,
+    "paired_ci95": [
+     0.0264,
+     0.035
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 500,
+     "a_right_b_wrong": 148,
+     "statistic": 148.0,
+     "p_value": 1.4917145277376335e-45,
+     "significant_at_0.05": true,
+     "n_discordant": 648
+    },
+    "verdict": {
+     "better": "distilbert",
+     "gain": "meaningful"
+    }
+   },
+   "lora_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert_lora_scratch",
+    "macro_f1_difference_b_minus_a": 0.024,
+    "paired_ci95": [
+     0.0198,
+     0.0283
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 459,
+     "a_right_b_wrong": 186,
+     "statistic": 186.0,
+     "p_value": 1.4608628276952315e-27,
+     "significant_at_0.05": true,
+     "n_discordant": 645
+    },
+    "verdict": {
+     "better": "distilbert_lora_scratch",
+     "gain": "meaningful"
+    }
+   }
+  },
+  "43": {
+   "full_macro_f1": 0.9496,
+   "lora_macro_f1": 0.9428,
+   "d_full_minus_lora": 0.0067,
+   "paired_ci95": [
+    0.0042,
+    0.0094
+   ],
+   "full_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert_seed43",
+    "macro_f1_difference_b_minus_a": 0.0312,
+    "paired_ci95": [
+     0.027,
+     0.0353
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 492,
+     "a_right_b_wrong": 136,
+     "statistic": 136.0,
+     "p_value": 3.098691323915233e-48,
+     "significant_at_0.05": true,
+     "n_discordant": 628
+    },
+    "verdict": {
+     "better": "distilbert_seed43",
+     "gain": "meaningful"
+    }
+   },
+   "lora_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert_lora_scratch_seed43",
+    "macro_f1_difference_b_minus_a": 0.0245,
+    "paired_ci95": [
+     0.0202,
+     0.0286
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 453,
+     "a_right_b_wrong": 174,
+     "statistic": 174.0,
+     "p_value": 1.3598765530449887e-29,
+     "significant_at_0.05": true,
+     "n_discordant": 627
+    },
+    "verdict": {
+     "better": "distilbert_lora_scratch_seed43",
+     "gain": "meaningful"
+    }
+   }
+  },
+  "44": {
+   "full_macro_f1": 0.948,
+   "lora_macro_f1": 0.9436,
+   "d_full_minus_lora": 0.0045,
+   "paired_ci95": [
+    0.0017,
+    0.0071
+   ],
+   "full_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert_seed44",
+    "macro_f1_difference_b_minus_a": 0.0297,
+    "paired_ci95": [
+     0.0252,
+     0.0341
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 507,
+     "a_right_b_wrong": 167,
+     "statistic": 167.0,
+     "p_value": 1.0335568333197784e-40,
+     "significant_at_0.05": true,
+     "n_discordant": 674
+    },
+    "verdict": {
+     "better": "distilbert_seed44",
+     "gain": "meaningful"
+    }
+   },
+   "lora_vs_tfidf_nb": {
+    "a": "tfidf_nb",
+    "b": "distilbert_lora_scratch_seed44",
+    "macro_f1_difference_b_minus_a": 0.0252,
+    "paired_ci95": [
+     0.0209,
+     0.0294
+    ],
+    "mcnemar": {
+     "a_wrong_b_right": 464,
+     "a_right_b_wrong": 176,
+     "statistic": 176.0,
+     "p_value": 7.507944772247757e-31,
+     "significant_at_0.05": true,
+     "n_discordant": 640
+    },
+    "verdict": {
+     "better": "distilbert_lora_scratch_seed44",
+     "gain": "meaningful"
+    }
+   }
+  }
+ },
+ "outcome": "the lead holds across seeds",
+ "size": "clear but small",
+ "spread": {
+  "full": {
+   "mean": 0.9489000000000001,
+   "sd": 0.0008185352771872769
+  },
+  "lora": {
+   "mean": 0.9429333333333334,
+   "sd": 0.000611010092660772
+  }
+ },
+ "phase2_primary_stays": "seed 42",
+ "selection_frozen": false,
+ "promoted": false
+}

@@ -120,6 +120,9 @@ The results, manifests and test predictions are in
   and flags 345 positive reviews as negative instead of 537.
 - **LoRA.**
   - It is 0.7 points below the full fine-tune on both tests: clear but small.
+  - **The gap holds across three training seeds** on the out-of-time test (0.68, 0.67 and
+    0.45 points; every paired interval excludes zero), so it is not an accident of seed 42
+    ([decision note](docs/experiments/decision_distilbert_seeds.md)).
   - It trains in a third less time with 39% less GPU memory.
 - **Cost**, timed with the models of the out-of-time split.
   - On one CPU thread, one review at a time, from text to label: DistilBERT takes 57 ms per
@@ -144,6 +147,31 @@ The results, manifests and test predictions are in
   - The previous model is kept under the tag `legacy-split-v1`.
   - The steps, checks and records are in the
     [publication record](docs/experiments/results/distilbert_v2/README.md#published).
+
+**The BiLSTM on the same test sets.** Re-run on all three clean splits under a
+[protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md) locked before training, with the
+committed settings and no tuning.
+
+| BiLSTM, seed 42 | Random | Out-of-time | Unseen hotels |
+| :--- | ---: | ---: | ---: |
+| Macro-F1 (95% CI) | 0.9486 (0.9445–0.9528) | 0.9357 (0.9310–0.9400) | 0.9514 (0.9471–0.9556) |
+| Against Naive Bayes (paired) | +1.35 points | +1.73 points | +1.66 points |
+
+- **The protocol's question: DistilBERT is meaningfully better on clean out-of-time data.**
+  - The BiLSTM is 1.35 points below the full fine-tune, with a paired 95% interval of
+    0.99–1.69 points; it makes 735 errors against 578.
+  - Seeds 43 and 44 land in the same branch of the rule, so the conclusion holds across three
+    training seeds of the BiLSTM (macro-F1 0.9357, 0.9363, 0.9372).
+- **It beats Naive Bayes on every split**, each gain meaningful by the plan's rule.
+- **Speed.** On one CPU thread, one review at a time, the BiLSTM takes 1.7 ms per review (median)
+  and weighs 8.4 MB, against 1.2 ms for Naive Bayes and 56 ms for DistilBERT.
+  - By the protocol's rule, no model dominates another on that CPU, so all four are on the
+    measured frontier.
+  - The scratch LoRA stays on it only because it timed 4% faster than the full fine-tune, which
+    the protocol itself calls a tie; merged, it has the same architecture and size
+    ([decision note](docs/experiments/decision_bilstm_clean_splits.md)).
+- **Evidence.** [`results/bilstm_v2/`](docs/experiments/results/bilstm_v2/); CI recomputes both
+  rules from the logits on every push.
 
 **Which complaints are rising.** A SQL analysis of the same reviews asks which
 complaint topics became more frequent within the same hotels.
@@ -228,8 +256,10 @@ was scored, above).
 - **DistilBERT and the scratch LoRA were re-run on the clean splits** (above).
   - They score about the same there (0.9642 and 0.9576).
   - Full fine-tuning again beats LoRA, by 0.66–0.68 points.
-- **The BiLSTM has not been re-run yet.** Its [protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md)
-  is locked, with three training seeds and CPU latency and size for a measured speed–accuracy frontier.
+- **The BiLSTM was re-run on the clean splits** (above).
+  - DistilBERT's full fine-tune beats it meaningfully on later reviews, as on the legacy split,
+    and across three BiLSTM seeds.
+  - It beats Naive Bayes on all three splits.
 - **Qwen QLoRA is not carried forward for binary scoring**
   ([decision, 14 October 2026](docs/experiments/decision_qwen_binary_scope.md)). Its legacy
   comparisons stay unconfirmed on clean splits.
@@ -497,9 +527,10 @@ flowchart LR
     B --> C[Three v2 splits with manifests<br/>random · out-of-time · unseen hotels]
     C --> D[Classical baseline<br/>chosen on dev, bootstrap CI]
     C --> F[DistilBERT full FT · scratch LoRA<br/>random + out-of-time, paired bootstrap]
+    C --> G[BiLSTM, three splits<br/>three seeds on out-of-time]
     V --> S[SQLite + SQL<br/>complaint trends]
     L[Legacy frozen split<br/>test shares texts with train] -.-> E[BiLSTM · DistilBERT · LoRA · Qwen<br/>historical results]
-    D & F & E --> H[Saved artifacts]
+    D & F & G & E --> H[Saved artifacts]
     H --> I[FastAPI serving<br/>stub / classical / encoder / Qwen]
 ```
 
@@ -523,11 +554,13 @@ flowchart LR
 4. **Training and selection.**
    - **Classical baseline.** Chosen on dev, on all three splits.
    - **DistilBERT.** Fine-tuned in full and with the scratch LoRA on the random
-     and out-of-time splits. It keeps the epoch with the best dev macro-F1.
-   - **Other neural models.** The BiLSTM and Qwen2.5-0.5B QLoRA were trained
-     only on the legacy frozen split (118,990 / 14,872 / 13,278). That split's
-     test set shares 170 texts with training, so their results are kept as
-     history.
+     and out-of-time splits, with two extra training seeds on out-of-time. It
+     keeps the epoch with the best dev macro-F1.
+   - **BiLSTM.** Trained on all three splits, with two extra seeds on
+     out-of-time; early stopping on dev macro-F1.
+   - **Qwen2.5-0.5B QLoRA.** Trained only on the legacy frozen split (118,990 /
+     14,872 / 13,278), whose test set shares 170 texts with training, so its
+     results are kept as history.
 5. **Evaluation.**
    - Macro-F1 with bootstrap intervals, per-class metrics and confusion
      matrices.
@@ -599,6 +632,8 @@ It initializes `A` with Kaiming uniform and `B` with zeros, applies scaling and 
 - **Verdict.** The paired intervals exclude zero. By the plan's rule, the full fine-tune is
   better by a clear but small margin
   ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
+- **Across seeds.** On the out-of-time test the lead holds in each of three training seeds,
+  between 0.45 and 0.68 points ([decision note](docs/experiments/decision_distilbert_seeds.md)).
 
 ---
 
@@ -741,11 +776,11 @@ and praise by topic, with quotes and a suggested action.
 - The Qwen QLoRA run was **trained on 20,000** of the 118,990 legacy training rows and tested on all 13,278 legacy test reviews. Its 0.9571 comes from first-step label scores; its generated answers failed a strict parser ([record](docs/experiments/results/qwen_legacy_v1/README.md)).
 - Quantization numbers are from a **32-sample benchmark**; a full test-set run would tighten the confidence intervals.
 - The BiLSTM row is the **seed-42 run that has a saved metrics artifact**. Seed 100 reached a higher 0.9521 / 96.42% and a weighted-loss variant reached 0.9492 / 96.14% (see [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md)), but neither has a preserved artifact bundle, so the table reports the reproducible one.
-- The five-family comparison is **not complete on clean splits**.
+- On clean splits, **four of the five legacy models are measured**; Qwen is the fifth.
   - The historical McNemar table above is transcribed from the archived benchmark rather than regenerated from a committed artifact.
-  - On the v2 random and out-of-time splits, two families are measured and verified from committed logits: the classical baseline and DistilBERT, fine-tuned in full and with the scratch LoRA ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
-  - The BiLSTM is not yet: its [protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md) is locked. Qwen QLoRA is not carried forward for binary scoring ([decision](docs/experiments/decision_qwen_binary_scope.md)).
-  - Each DistilBERT result comes from one training seed. A check across three seeds is [locked](docs/experiments/distilbert_seed_robustness/PROTOCOL.md) and not yet run.
+  - On the v2 random and out-of-time splits, the classical baseline and DistilBERT, fine-tuned in full and with the scratch LoRA, are measured and verified from committed logits ([decision note](docs/experiments/decision_distilbert_vs_nb.md)).
+  - The BiLSTM is measured on all three clean splits ([decision note](docs/experiments/decision_bilstm_clean_splits.md)). Qwen QLoRA is not carried forward for binary scoring ([decision](docs/experiments/decision_qwen_binary_scope.md)).
+  - Training seeds: the full fine-tune against LoRA and the BiLSTM against DistilBERT were each checked across three seeds, on the out-of-time split only ([DistilBERT](docs/experiments/decision_distilbert_seeds.md), [BiLSTM](docs/experiments/decision_bilstm_clean_splits.md)). Three seeds give a rough spread, not an interval; the random split's DistilBERT results come from one seed.
 - The complaint-trend analysis names topics with a lexicon. A [pilot with two annotators](docs/case_study/results/annotation/README.md) measured it (300 texts, 80 labelled twice, kappa 0.83–1.00). Precision is about half or lower for cleanliness and responsiveness, and the lexicon finds only 2 of 16 responsiveness complaints. A change in its precision between the two periods cannot be told apart from zero, and a change in recall is not measured, so the rising topics stay unconfirmed.
 - The dashboard and SQLite store support a local single-worker pilot. ABSA aspect accuracy, Greek hotel-domain accuracy, access operations, and a real load test still need evidence before a public hosted product.
 
@@ -828,8 +863,8 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Rebuild the splits from the hash-checked raw file: random, **out-of-time** and **unseen hotels**, with bootstrap intervals
 - [x] Ask which complaint topics are rising within the same hotels, in SQL ([case study](docs/case_study/complaint_trends.md))
 - [x] Re-run DistilBERT (full fine-tune and scratch LoRA) on the v2 random and out-of-time splits, under a plan fixed before training ([decision note](docs/experiments/decision_distilbert_vs_nb.md))
-- [ ] Re-run the BiLSTM on the **v2 splits**, with three seeds and CPU latency and size ([protocol](docs/experiments/bilstm_clean_splits/PROTOCOL.md), locked)
-- [ ] Check DistilBERT's full fine-tune against LoRA across three training seeds ([protocol](docs/experiments/distilbert_seed_robustness/PROTOCOL.md), locked)
+- [x] Re-run the BiLSTM on the **v2 splits**, with three seeds and CPU latency and size ([decision note](docs/experiments/decision_bilstm_clean_splits.md))
+- [x] Check DistilBERT's full fine-tune against LoRA across three training seeds ([decision note](docs/experiments/decision_distilbert_seeds.md))
 - [ ] Sort reviews by length before batching on a CPU: batches of 32 were slower per review than single reviews on one thread
 - [x] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](docs/annotation/pilot_protocol.md), [results](docs/case_study/results/annotation/README.md))
 - [ ] Break the rising complaint topics down by hotel and city

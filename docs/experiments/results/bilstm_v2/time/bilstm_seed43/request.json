@@ -1,0 +1,7 @@
+{
+ "commit": "ed4070c72c452d8e9ce80568e30170e0cafdd32e",
+ "gpu": "Tesla T4",
+ "module": "reviewnlp.baselines.bilstm",
+ "config": "runs/configs/bilstm_v2_time_seed43.yaml",
+ "extra_args": []
+}
