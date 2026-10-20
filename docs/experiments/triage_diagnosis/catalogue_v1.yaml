@@ -1,14 +1,14 @@
-# Problem-type catalogue for the triage diagnosis protocol: DRAFT, awaiting the owner's review.
+# Problem-type catalogue for the triage diagnosis protocol. Approved as is by the owner on 20 October 2026.
 #
 # Each type has one department, one priority and one catalogue measure. The labels, the teacher's
-# prompt, the student's outputs and the Space's measures all use these ids. After the owner's review
-# its SHA-256 goes into PROTOCOL.md section 9; any later change is catalogue_v2, not an edit.
+# prompt, the student's outputs and the Space's measures all use these ids. Its SHA-256 is in
+# PROTOCOL.md section 2; any later change is catalogue_v2, not an edit.
 #
 # Priority: urgent = flagged first, measure due before the room's next arrival (the fault probably
 # still affects the next guest); routine = the department's weekly review; structural = no
 # operational measure, sent to management as information and counted for trends.
 version: catalogue_v1
-status: draft
+status: approved
 departments: [reception, housekeeping, maintenance, food_and_beverage, management, other]
 
 labelling_rules:

@@ -1,8 +1,8 @@
-# Triage diagnosis and routing: protocol — DRAFT, version 0
+# Triage diagnosis and routing: protocol — version 1, locked
 
-**Status: draft, not locked. 19 October 2026.** Nothing has been drawn, labelled, trained or scored.
-The protocol is locked only by the commit that also adds its lock test. That cannot happen until the
-open fields at the end are filled. Any later change needs a new version, not an edit.
+**Status: locked on 20 October 2026,** by the commit that adds its lock test,
+[`tests/test_triage_diagnosis_protocol.py`](../../../tests/test_triage_diagnosis_protocol.py). Nothing had been
+drawn, labelled, trained or scored at lock. Any later change needs a new version, not an edit.
 
 It turns the design in
 [`2026-10-16-triage-diagnosis-routing-design.md`](../../superpowers/specs/2026-10-16-triage-diagnosis-routing-design.md)
@@ -92,13 +92,16 @@ The pools come from a fixed hash, not a seed:
 
 No text is in two pools.
 
-**The student starts from `distilbert-base-uncased`**, at a revision pinned at lock, and not from the
+**The student starts from `distilbert/distilbert-base-uncased` at revision
+`12040accade4e8a0f71eabdb258fecc2e7e948be`**, not from the
 project's sentiment checkpoint. That checkpoint was trained on 165,511 reviews' fields drawn from every part
 of the dataset. Starting from it would put training text into the development and test pools.
 
 ### Samples
 
-Each sample is a stratified random draw without replacement, seeded and recorded in a manifest:
+Each sample is a stratified random draw without replacement, recorded in a manifest. Within each stratum the
+pool is sorted by `raw_row` and drawn with `DataFrame.sample(n=n_s, random_state=seed)`, with **seed 20261021
+for development and 20261022 for test**:
 
 - **Development:** 300 reviews from the development pool, split H 90, N 180, B 30.
 - **Test:** 500 reviews from the test pool, split H 150, N 300, B 50.
@@ -111,15 +114,20 @@ redrawn for what it contains.
 Each review gets the set of problem types present, from the catalogue's 15–20 types. The empty set is allowed.
 Each type maps to one department and one priority level, fixed by the catalogue.
 
-- **The catalogue** is `catalogue_v1`. Its SHA-256 is an [open field](#9-open-fields). The owner reviews it
-  before the protocol is locked.
+- **The catalogue** is [`catalogue_v1.yaml`](catalogue_v1.yaml), 20 types, SHA-256
+  `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`. The owner approved it as is on
+  20 October 2026.
 - **Plumbing** is split in two:
   - `plumbing_major`: no hot water, an active leak, or a toilet that does not work. Urgent; maintenance.
   - `plumbing_minor`: slow drain or low pressure. Routine; maintenance.
 - **Noise** is split in two:
-  - `noise_internal`: building, corridor or equipment noise. Routine; maintenance or reception, as the
-    catalogue says.
+  - `noise_internal`: building, corridor or equipment noise. Routine; reception.
   - `noise_external`: street or location noise. Structural; management.
+
+**The two LLMs**, both called through OpenRouter at their dated identifiers, with structured output:
+
+- **Teacher:** `anthropic/claude-sonnet-5.5-20260928`. It labels the teacher pool and is a baseline.
+- **Second rater:** `openai/gpt-6.1-sol-20260929`, a different provider and model family.
 
 Labelling and checking go in this order:
 
@@ -247,7 +255,7 @@ each.
 | Step | What | Human gate |
 | :--- | :--- | :--- |
 | 0 | `catalogue_v1`: types, departments, priority, measure templates | the owner reviews it |
-| 1 | Fill the open fields; lock this protocol with its lock test | the owner set `F = 5` and `L = 0.80` on 20 October 2026; the catalogue review remains |
+| 1 | Fill the fields in §9; lock this protocol with its lock test | done 20 October 2026: the owner set `F = 5` and `L = 0.80` and approved the catalogue |
 | 2 | Draw the development and test samples; produce the blind sheets | — |
 | 3 | The owner labels 800 reviews (about two weeks) | labelling |
 | 4 | Second rater on the 800; disagreements re-checked; 80 relabelled; labels committed | API key, data terms |
@@ -291,13 +299,14 @@ Review texts stay under `runs/`.
 | Point estimate ≥ 0.90; a lower bound "to be decided" | Point estimate ≥ 0.90 and `lo >= 0.80`, with the feasibility table above | The owner chose the bound knowing what 500 reviews can show. |
 | Plumbing and noise each one type | Split into major/minor and internal/external | The urgent and structural levels need the split. |
 
-## 9. Open fields
+## 9. Fields filled at lock
 
-These must be filled before lock. The owner set `F = 5` and `L = 0.80` on 20 October 2026; they are in sections 3 and 4.
-
-| Field | Who | Note |
+| Field | Value | Set by |
 | :--- | :--- | :--- |
-| `catalogue_v1` SHA-256 | builder, after the owner's review | |
-| Teacher and second-rater models, with pinned versions | builder; the owner checks data terms | They must come from different providers. |
-| `distilbert-base-uncased` revision | builder | |
-| Sample seeds | builder | Recorded before the draw. |
+| False-alarm budget `F` | 5 per 100 reviews | owner, 20 October 2026 |
+| Lower bound `L` | 0.80 | owner, 20 October 2026 |
+| `catalogue_v1` SHA-256 | `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9` | approved by the owner, 20 October 2026 |
+| Teacher | `anthropic/claude-sonnet-5.5-20260928` | builder |
+| Second rater | `openai/gpt-6.1-sol-20260929` | builder; the owner checks the data terms before step 4 |
+| Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder |
+| Sample seeds | development 20261021, test 20261022 | builder |
