@@ -157,7 +157,7 @@ All 500 reviews count:
 ### The guard: false urgent flags per 100 reviews, IPW-estimated on the test set
 
 `fa` counts the urgent types the student emits that are not gold urgent types of the same department. The
-budget `F` is an [open field](#9-open-fields).
+budget is **`F = 5` false urgent flags per 100 reviews**, set by the owner on 20 October 2026: for 80–100 reviews a day, about 4–5 needless urgent checks a day.
 
 ## 4. Decision rule
 
@@ -169,16 +169,16 @@ The rule applies only to a complete run:
 
 Otherwise the outcome is "not decided", with the reason.
 
-`L` is the lower-bound requirement, an [open field](#9-open-fields).
+The lower bound `lo` must reach **`L = 0.80`**, set by the owner on 20 October 2026, knowing the feasibility table below.
 
 | Condition | Outcome |
 | :--- | :--- |
-| `rec >= 0.90 and lo >= L and fa <= F` | **Met.** The student catches at least 90% of urgent problems, within the false-alarm budget. |
-| `rec >= 0.90 and lo >= L and fa > F` | **Recall met, over budget.** It catches enough but raises more false urgent flags than the budget. |
-| `rec >= 0.90 and lo < L` | **Point estimate met, not established.** The interval reaches below the required bound. |
+| `rec >= 0.90 and lo >= 0.80 and fa <= 5` | **Met.** The student catches at least 90% of urgent problems, within the false-alarm budget. |
+| `rec >= 0.90 and lo >= 0.80 and fa > 5` | **Recall met, over budget.** It catches enough but raises more false urgent flags than the budget. |
+| `rec >= 0.90 and lo < 0.80` | **Point estimate met, not established.** The interval reaches below the required bound. |
 | `rec < 0.90` | **Not met.** |
 
-**Feasibility, so that `L` is set knowingly.** The table comes from [`planning/power.py`](planning/power.py),
+**Feasibility, against which `L` was set.** The table comes from [`planning/power.py`](planning/power.py),
 covering cleanliness, pests and AC only:
 
 | Allocation (H/N/B) | True recall | 95% spread of `rec` | Urgent pairs in the sample |
@@ -197,7 +197,7 @@ They are committed in `thresholds_locked.json` before the test set is scored. Th
 one per priority group**, not one per type. The rare types would have only a handful of development positives
 each.
 
-- **Urgent group:** the smallest value on the grid 0.05, 0.10, …, 0.95 whose development `fa` is at most `F`.
+- **Urgent group:** the smallest value on the grid 0.05, 0.10, …, 0.95 whose development `fa` is at most 5.
   If none qualifies, the largest value.
 - **Routine and structural groups:** the grid value that maximises development micro-F1 within the group.
 
@@ -247,7 +247,7 @@ each.
 | Step | What | Human gate |
 | :--- | :--- | :--- |
 | 0 | `catalogue_v1`: types, departments, priority, measure templates | the owner reviews it |
-| 1 | Fill the open fields; lock this protocol with its lock test | the owner sets `F` and `L` |
+| 1 | Fill the open fields; lock this protocol with its lock test | the owner set `F = 5` and `L = 0.80` on 20 October 2026; the catalogue review remains |
 | 2 | Draw the development and test samples; produce the blind sheets | — |
 | 3 | The owner labels 800 reviews (about two weeks) | labelling |
 | 4 | Second rater on the 800; disagreements re-checked; 80 relabelled; labels committed | API key, data terms |
@@ -288,17 +288,15 @@ Review texts stay under `runs/`.
 | Samples from "the clean splits' test partition" | Whole reviews from the raw CSV, in hash pools | The v2 splits contain no mixed reviews. |
 | Reviews with complaint text oversampled | Three strata with a broad trigger word list; the IPW estimate decides | The unweighted estimate would favour complaints written with the obvious words. |
 | Thresholds "per problem type" | One threshold per priority group | Too few development positives per rare type. |
-| Point estimate ≥ 0.90; a lower bound "to be decided" | Point estimate ≥ 0.90 and `lo >= L`, with the feasibility table above | So the bound is chosen knowing what 500 reviews can show. |
+| Point estimate ≥ 0.90; a lower bound "to be decided" | Point estimate ≥ 0.90 and `lo >= 0.80`, with the feasibility table above | The owner chose the bound knowing what 500 reviews can show. |
 | Plumbing and noise each one type | Split into major/minor and internal/external | The urgent and structural levels need the split. |
 
 ## 9. Open fields
 
-These must be filled before lock.
+These must be filled before lock. The owner set `F = 5` and `L = 0.80` on 20 October 2026; they are in sections 3 and 4.
 
 | Field | Who | Note |
 | :--- | :--- | :--- |
-| `F`, false urgent flags per 100 reviews | owner | For 80–100 reviews a day, `F = 5` means about 4–5 needless urgent checks a day. |
-| `L`, the lower bound `lo` must reach | owner | See the feasibility table: 0.80 is attainable, 0.85 is not with 500 reviews. |
 | `catalogue_v1` SHA-256 | builder, after the owner's review | |
 | Teacher and second-rater models, with pinned versions | builder; the owner checks data terms | They must come from different providers. |
 | `distilbert-base-uncased` revision | builder | |
