@@ -1,0 +1,195 @@
+# Problem-type catalogue for the triage diagnosis protocol: DRAFT, awaiting the owner's review.
+#
+# Each type has one department, one priority and one catalogue measure. The labels, the teacher's
+# prompt, the student's outputs and the Space's measures all use these ids. After the owner's review
+# its SHA-256 goes into PROTOCOL.md section 9; any later change is catalogue_v2, not an edit.
+#
+# Priority: urgent = flagged first, measure due before the room's next arrival (the fault probably
+# still affects the next guest); routine = the department's weekly review; structural = no
+# operational measure, sent to management as information and counted for trends.
+version: catalogue_v1
+status: draft
+departments: [reception, housekeeping, maintenance, food_and_beverage, management, other]
+
+labelling_rules:
+  - Label a type when the guest reports the problem as having happened during the stay, in either field.
+  - A problem the hotel fixed during the stay is still labelled; the department still needs to know.
+  - Do not label praise, hypotheticals ("if the AC broke..."), or wishes ("a kettle would be nice").
+  - One review can carry several types; label each distinct problem once. The empty set is allowed.
+  - When two types fit, label the more specific one (e.g. a leaking shower is plumbing_major, not equipment_fault).
+  - If no type fits a real operational problem, use other_problem.
+
+types:
+  # --- Urgent: the owner's four (cleanliness, pests, safety and security, AC/heating) plus plumbing_major.
+  - id: cleanliness
+    priority: urgent
+    department: housekeeping
+    definition: Dirt, stains, dust, hair, mould, or a bad smell in the room, bathroom or bedding.
+    excludes: A smell from a drain or leak (plumbing_major); worn or old decor with no dirt (room_and_facilities).
+    measure: Re-clean and inspect the room before the next arrival; replace any stained linen.
+    deadline: before the next arrival
+    to_confirm: [room number, whether the room is occupied]
+  - id: pests
+    priority: urgent
+    department: housekeeping
+    definition: Insects, bed bugs, cockroaches, ants, mice or rats seen in the room or the hotel.
+    excludes: Mosquitoes coming in from outside through an open window with no screen (room_and_facilities).
+    measure: Take the room out of sale, call pest control for an inspection, and treat before reletting.
+    deadline: today
+    to_confirm: [room number, which pest, date of stay]
+  - id: security_fault
+    priority: urgent
+    department: maintenance
+    definition: A door, lock, window or in-room safe that does not close, lock or open as it should.
+    excludes: Theft, injury or fire risk (safety_hazard).
+    measure: Repair or replace the lock, door, window or safe, and test it before the next arrival.
+    deadline: before the next arrival
+    to_confirm: [room number, which fitting]
+  - id: safety_hazard
+    priority: urgent
+    department: management
+    definition: Theft, an injury or an injury risk (loose wiring, broken glass, slippery or broken stairs), or a fire-safety problem (blocked exit, smoke, missing alarm).
+    excludes: A lock or safe that does not work with no theft (security_fault).
+    measure: Inspect the reported area today, make it safe, and record the incident; for theft, open an incident report.
+    deadline: today
+    to_confirm: [location in the hotel, date of stay, whether a report was filed]
+  - id: hvac_failure
+    priority: urgent
+    department: maintenance
+    definition: The air conditioning or heating is present but does not work, or cannot bring the room to a usable temperature.
+    excludes: A room with no AC or heating at all (room_and_facilities); AC that works but is noisy (noise_internal).
+    measure: Check and repair the unit (filter, thermostat, refrigerant) and test it before the next arrival.
+    deadline: before the next arrival
+    to_confirm: [room number, AC or heating]
+  - id: plumbing_major
+    priority: urgent
+    department: maintenance
+    definition: No hot water, an active leak or flood, a blocked or broken toilet, or a sewage smell.
+    excludes: A slow drain or weak pressure (plumbing_minor).
+    measure: Repair the fault and run the water and toilet before the next arrival.
+    deadline: before the next arrival
+    to_confirm: [room number, which fixture]
+
+  # --- Routine
+  - id: plumbing_minor
+    priority: routine
+    department: maintenance
+    definition: A slow drain, weak water pressure, a shower that is hard to control, or lukewarm water.
+    excludes: No hot water, leaks or a broken toilet (plumbing_major).
+    measure: Schedule a check of the fixture in the weekly maintenance round.
+    deadline: within 7 days
+    to_confirm: [room number, which fixture]
+  - id: equipment_fault
+    priority: routine
+    department: maintenance
+    definition: Broken or faulty equipment or furniture other than plumbing, AC or locks (TV, lights, lift, kettle, fridge, hairdryer, curtains).
+    excludes: Wi-Fi (wifi); AC or heating (hvac_failure); locks and safes (security_fault).
+    measure: Repair or replace the item and record it in the maintenance log.
+    deadline: within 3 days
+    to_confirm: [room number or area, which item]
+  - id: wifi
+    priority: routine
+    department: maintenance
+    definition: Wi-Fi that is slow, drops, is unavailable in the room, or is charged for unexpectedly.
+    excludes: none
+    measure: Test the signal in the reported room or area and report the result to the provider if weak.
+    deadline: within 7 days
+    to_confirm: [room number or area]
+  - id: noise_internal
+    priority: routine
+    department: reception
+    definition: Noise from inside the building (neighbours, corridor, staff, events, lift, pipes, AC or other equipment).
+    excludes: Street, traffic, nightlife or construction outside (noise_external).
+    measure: Identify the source; if equipment, open a maintenance ticket; if guests or staff, brief the night shift and note the room for quieter allocation.
+    deadline: within 3 days
+    to_confirm: [room number, time of night, source if known]
+  - id: linen_amenities
+    priority: routine
+    department: housekeeping
+    definition: Towels, bedding or toiletries missing or not replaced, or the room not serviced as expected.
+    excludes: Stained or dirty linen (cleanliness).
+    measure: Remind the floor team of the service standard and check the room's supplies at the next service.
+    deadline: within 3 days
+    to_confirm: [room number, which item]
+  - id: bed_comfort
+    priority: routine
+    department: housekeeping
+    definition: An uncomfortable, sagging or noisy bed or mattress, or poor pillows.
+    excludes: Bed bugs (pests); dirty bedding (cleanliness).
+    measure: Inspect the mattress and pillows; offer a topper or other pillows; flag a worn mattress for replacement.
+    deadline: within 7 days
+    to_confirm: [room number]
+  - id: food_beverage
+    priority: routine
+    department: food_and_beverage
+    definition: Poor quality, variety, temperature or service of breakfast, restaurant or bar food and drink.
+    excludes: Breakfast price alone (price_value); breakfast hours as a policy (room_and_facilities).
+    measure: Review the reported item with the kitchen or bar manager at the weekly F&B meeting.
+    deadline: within 7 days
+    to_confirm: [meal, date]
+  - id: staff_service
+    priority: routine
+    department: reception
+    definition: Staff who were rude, unhelpful or slow, or a request or complaint left unanswered.
+    excludes: Billing or check-in errors (checkin_billing).
+    measure: Review the case with the shift supervisor and reply to the guest with what was done.
+    deadline: within 3 days
+    to_confirm: [date, time, which desk or department]
+  - id: checkin_billing
+    priority: routine
+    department: reception
+    definition: Check-in or check-out delays, a wrong or downgraded room, a lost booking, or an incorrect charge or deposit.
+    excludes: The price being high in general (price_value).
+    measure: Check the booking and the folio; correct and refund any wrong charge and reply to the guest.
+    deadline: within 3 days
+    to_confirm: [booking reference, date]
+  - id: other_problem
+    priority: routine
+    department: other
+    definition: A real operational problem that fits no other type.
+    excludes: Structural complaints (the four structural types).
+    measure: The manager reads the review and assigns it to a department.
+    deadline: within 7 days
+    to_confirm: []
+
+  # --- Structural: no operational measure.
+  - id: noise_external
+    priority: structural
+    department: management
+    definition: Noise from outside the building (street, traffic, nightlife, trains, construction).
+    excludes: Noise from inside the building (noise_internal).
+    measure: null
+    deadline: null
+    to_confirm: []
+  - id: room_and_facilities
+    priority: structural
+    department: management
+    definition: Room size or layout, dated decor, no lift, no AC, no parking or pool, breakfast hours or other policies.
+    excludes: Anything broken or dirty (the matching operational type).
+    measure: null
+    deadline: null
+    to_confirm: []
+  - id: location_view
+    priority: structural
+    department: management
+    definition: The location, neighbourhood, distance from the centre or transport, or the view.
+    excludes: none
+    measure: null
+    deadline: null
+    to_confirm: []
+  - id: price_value
+    priority: structural
+    department: management
+    definition: The price, or extras such as breakfast or parking, judged too high for what was offered.
+    excludes: An incorrect charge (checkin_billing).
+    measure: null
+    deadline: null
+    to_confirm: []
+
+# The fixed mapping for the complaint-lexicon-v1 baseline (PROTOCOL.md section 4): lexicon topic -> type.
+lexicon_mapping:
+  bathroom: plumbing_major
+  cleanliness: cleanliness
+  air_conditioning: hvac_failure
+  pests: pests
+  responsiveness: staff_service
