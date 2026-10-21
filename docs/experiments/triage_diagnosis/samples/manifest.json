@@ -1,0 +1,103 @@
+{
+ "protocol": "docs/experiments/triage_diagnosis/PROTOCOL.md",
+ "protocol_sha256": "58571778290438746c0710b1a3628785737c7401ff7315999d0406ce3f3ffff9",
+ "catalogue_sha256": "2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9",
+ "population_script_sha256": "73813486e0289d70e883f0180e0c63d92d8a21adfbd8c3f32502ba00e2404950",
+ "code_commit": "a61b51ffbd4f90291fc2b2568f29f44bab0f5086",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+ "duplicate_rows_dropped": 565,
+ "reviews": 515173,
+ "strata": {
+  "H": 63325,
+  "N": 285436,
+  "B": 166412
+ },
+ "excluded_owner_labelled": 700,
+ "excluded_duplicate_text": 20129,
+ "eligible": 494344,
+ "excluded_owner_labelled_raw_rows_sha256": "d4f38cfcb154f590f80c81d03d12b4bb956255f9bdd489d0c929680c22025b29",
+ "exclusion_order": "owner-labelled raw_rows first, then duplicate whole-review texts (earliest raw_row kept)",
+ "samples": {
+  "development": {
+   "pools": [
+    80,
+    89
+   ],
+   "seed": 20261021,
+   "reviews_in_pool": 49477,
+   "strata": {
+    "H": {
+     "N_s": 6265,
+     "n_s": 90,
+     "weight": 69.61111111111111
+    },
+    "N": {
+     "N_s": 28146,
+     "n_s": 180,
+     "weight": 156.36666666666667
+    },
+    "B": {
+     "N_s": 15066,
+     "n_s": 30,
+     "weight": 502.2
+    }
+   }
+  },
+  "test": {
+   "pools": [
+    90,
+    99
+   ],
+   "seed": 20261022,
+   "reviews_in_pool": 49502,
+   "strata": {
+    "H": {
+     "N_s": 6403,
+     "n_s": 150,
+     "weight": 42.68666666666667
+    },
+    "N": {
+     "N_s": 28138,
+     "n_s": 300,
+     "weight": 93.79333333333334
+    },
+    "B": {
+     "N_s": 14961,
+     "n_s": 50,
+     "weight": 299.22
+    }
+   }
+  }
+ },
+ "item_order_seed": 20261022,
+ "items": 800,
+ "text_hash": "SHA-256 of the whole-review text with its white space collapsed",
+ "sheet_columns": [
+  "item",
+  "text",
+  "cleanliness",
+  "pests",
+  "security_fault",
+  "safety_hazard",
+  "hvac_failure",
+  "plumbing_major",
+  "plumbing_minor",
+  "equipment_fault",
+  "wifi",
+  "noise_internal",
+  "linen_amenities",
+  "bed_comfort",
+  "food_beverage",
+  "staff_service",
+  "checkin_billing",
+  "other_problem",
+  "noise_external",
+  "room_and_facilities",
+  "location_view",
+  "price_value",
+  "none",
+  "done",
+  "note"
+ ],
+ "sheet_sha256": "219513fded5b066b31d32e5e8124b20e0c533b884d2377497e576152ef8befdc"
+}
