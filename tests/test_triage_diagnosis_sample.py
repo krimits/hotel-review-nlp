@@ -130,3 +130,12 @@ def test_build_writes_a_blind_sheet_and_a_key_without_text(tmp_path, monkeypatch
 def test_build_refuses_data_that_is_not_the_protocols(tmp_path):
     with pytest.raises(SystemExit, match="not the Kaggle file"):
         sample.build(raw_csv(tmp_path / "raw.csv", n=30), tmp_path / "o", tmp_path / "r")
+
+
+def test_files_are_written_with_lf_on_every_system(tmp_path, monkeypatch):
+    monkeypatch.setattr(sample, "SAMPLES", SMALL)
+    monkeypatch.setattr(sample, "SEEN_KEYS", ())
+    out, record = tmp_path / "runs", tmp_path / "record"
+    sample.build(raw_csv(tmp_path / "raw.csv"), out, record, check_population=False)
+    for path in (out / "sheet.csv", record / "key.csv", record / "manifest.json"):
+        assert b"\r\n" not in path.read_bytes(), path

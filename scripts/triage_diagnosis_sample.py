@@ -184,8 +184,9 @@ def build(csv: Path, out: Path, record: Path, overwrite: bool = False, check_pop
 
     out.mkdir(parents=True, exist_ok=True)
     record.mkdir(parents=True, exist_ok=True)
-    table.to_csv(out / "sheet.csv", index=False, encoding="utf-8-sig")
-    key(sample).to_csv(record / "key.csv", index=False)
+    # LF everywhere, so the recorded sheet hash does not depend on the system that drew it.
+    table.to_csv(out / "sheet.csv", index=False, encoding="utf-8-sig", lineterminator="\n")
+    key(sample).to_csv(record / "key.csv", index=False, lineterminator="\n")
     manifest = {
         "protocol": PROTOCOL.relative_to(ROOT).as_posix(),
         "protocol_sha256": trends._sha256(PROTOCOL),
@@ -205,7 +206,7 @@ def build(csv: Path, out: Path, record: Path, overwrite: bool = False, check_pop
         "sheet_columns": list(table.columns),
         "sheet_sha256": trends._sha256(out / "sheet.csv"),
     }
-    (record / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
+    (record / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8", newline="\n")
     return manifest
 
 
