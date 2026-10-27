@@ -155,3 +155,58 @@ def test_the_relabel_sheet_waits_seven_days_and_hides_the_original_items(tmp_pat
     record = labels.finish(tmp_path / "relabel_back.csv", "relabel", out, samples, dt.date(2026, 11, 4))
     assert record["labels"] == "owner_relabel" and record["reviews"] == 5 and "relabel_not_before" not in record
     assert (out / "owner_initial.csv").exists() and (out / "owner_relabel.csv").exists()
+
+
+def test_the_reference_prompt_carries_every_definition_and_rule_word_for_word():
+    import yaml
+
+    data = yaml.safe_load(labels.sample.CATALOGUE.read_text(encoding="utf-8"))
+    prompt = labels.reference_prompt()
+    for entry in data["types"]:
+        assert f"- `{entry['id']}`: {entry['definition']}" in prompt
+        if entry["excludes"] != "none":
+            assert f"  Not this type: {entry['excludes']}" in prompt
+    assert all(f"- {rule}" in prompt for rule in data["labelling_rules"])
+    assert "Do not write or run code" in prompt and "(Catalogue catalogue_v1, 20 types.)" in prompt
+    committed = labels.REFERENCE_PROMPT
+    if committed.exists():
+        assert committed.read_text(encoding="utf-8") == prompt
+
+
+def test_batches_split_the_blank_sheet_in_item_order_and_refuse_a_used_one(tmp_path):
+    samples, runs, blank = drawn(tmp_path, n=12)
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text(labels.reference_prompt(), encoding="utf-8", newline="\n")
+    record = labels.write_batches(runs, samples, prompt, size=5)
+    assert list(record["batches"]) == ["batch_01.csv", "batch_02.csv", "batch_03.csv"]
+    assert [b["items"] for b in record["batches"].values()] == [[1, 5], [6, 10], [11, 12]]
+    parts = [pd.read_csv(runs / "reference" / name, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+             for name in record["batches"]]
+    assert pd.concat(parts)["text"].tolist() == blank["text"].tolist()
+    assert json.loads((samples / "reference_batches.json").read_text(encoding="utf-8"))["batch_size"] == 5
+
+    prompt.write_text("an older prompt", encoding="utf-8")
+    with pytest.raises(labels.SheetError, match="does not match the catalogue"):
+        labels.write_batches(runs, samples, prompt, size=5)
+    filled(blank, runs / "sheet.csv")
+    with pytest.raises(labels.SheetError, match="not blank"):
+        labels.write_batches(runs, samples, prompt, size=5)
+
+
+def test_returned_batches_are_checked_as_one_sheet(tmp_path):
+    samples, _, blank = drawn(tmp_path, n=12)
+    back = tmp_path / "back"
+    back.mkdir()
+    whole = pd.read_csv(filled(blank, tmp_path / "whole.csv"), dtype=str, keep_default_na=False,
+                        encoding="utf-8-sig")
+    for i, start in enumerate(range(0, 12, 5), start=1):
+        whole.iloc[start:start + 5].to_csv(back / f"batch_{i:02d}_filled.csv", index=False, encoding="utf-8-sig")
+    (back / "batch_02_filled.csv").rename(back / "batch_02_missing.csv")
+    with pytest.raises(labels.SheetError, match="items missing"):
+        labels.finish(back, "reference", tmp_path / "labels", samples, DAY, "ChatGPT")
+    (back / "batch_02_missing.csv").rename(back / "batch_02_filled.csv")
+    record = labels.finish(back, "reference", tmp_path / "labels", samples, DAY, "ChatGPT, model X")
+    assert record["labels"] == "reference_chatgpt" and record["reviews"] == 12
+    assert record["source"] == "ChatGPT, model X" and sorted(record["sheet_sha256"]) == [
+        "batch_01_filled.csv", "batch_02_filled.csv", "batch_03_filled.csv"]
+    assert "relabel_not_before" not in record

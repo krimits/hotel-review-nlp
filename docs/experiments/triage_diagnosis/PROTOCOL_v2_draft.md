@@ -8,7 +8,8 @@ file's history and is summarised in [§10](#10-version-history).
 ChatGPT (OpenAI). Version 1 takes the owner's own blind labels as gold, so the sheet could not be recorded as
 `owner_initial` and was withdrawn. The owner then chose, the same day:
 
-- to keep the ChatGPT sheet as the **reference labels**;
+- **reference labels from ChatGPT**, made again from a committed prompt that carries the catalogue's
+  definitions, in batches of 50 (the first sheet had only the column names and is not used);
 - a **second rater from a third provider**, Google Gemini, reported only;
 - a **human check on 100 new reviews**, labelled by the owner by hand, reported only.
 
@@ -68,24 +69,23 @@ SHA-256 `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`). The
 
 **Reference labels, `reference_chatgpt` — the gold for the decision.**
 
-- The version 1 sheet of the 800 development and test reviews, returned on 27 October 2026, SHA-256
-  `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a`.
-- Filled entirely by ChatGPT, according to the owner, with the model the owner names **"Terra MAX"** in ChatGPT.
-  Its exact OpenAI identifier and version were not recorded.
-- The owner's prompt, given with the sheet, verbatim:
-
-  > Θέλω να είσαι ο αξιολογητής των κριτικών που έκαναν οι πελάτες. Συμπλήρωσε το αρχείο σύμφωνα με τις
-  > παρακάτω οδηγίες.
-  > Σε κάθε γραμμή:
-  > - βάζεις 1 στη στήλη κάθε τύπου προβλήματος που αναφέρει η κριτική·
-  > - βάζεις 1 στο none αν δεν υπάρχει κανένα πρόβλημα·
-  > - βάζεις 1 στο done όταν τελειώσεις τη γραμμή.
-
-- **The catalogue's definitions, exclusions and labelling rules were not given.** The model saw only the column
-  names (`cleanliness`, `room_and_facilities`, …) and inferred what each type covers.
-- It passed every check of `scripts/triage_diagnosis_labels.py finish` (all items, unchanged texts, every row
-  done, a type or `none` on each row and never both).
-- Recorded by `raw_row`, with no text, and never edited.
+- Made by ChatGPT (OpenAI), run by the owner, **after this version is locked**.
+- The model is the one the owner selects in ChatGPT, recorded as ChatGPT shows it, and the same for every batch.
+- The instructions are [`reference_prompt.md`](reference_prompt.md), SHA-256
+  `1147d9a9278717394d060d24c0e6618712165b7449e39f965f3a79048d7a6064`. It is generated from the catalogue by
+  `scripts/triage_diagnosis_labels.py prompt` and carries every definition, exclusion and labelling rule word
+  for word. It tells the model to read every review and not to label with code or keyword rules.
+- The 800 reviews go in **16 batches of 50**, in item order, written by `… batches` from the blank sheet and
+  recorded in [`samples/reference_batches.json`](samples/reference_batches.json) with each blank batch's
+  SHA-256. The prompt is given once at the start of the chat and again in any new chat.
+- **A batch is rerun** if ChatGPT shows code or keyword matching that assigns labels, or returns a file that
+  `finish` refuses. The owner reports which batches were rerun and why; they are recorded.
+- The returned `batch_NN_filled.csv` files are checked as one sheet by `… finish --kind reference` (all items,
+  unchanged texts, every row done, a type or `none` on each row and never both), recorded by `raw_row` with no
+  text, and never edited.
+- **The first ChatGPT sheet is not used.** It was returned on 27 October 2026 (SHA-256
+  `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a`), filled by the model the owner names
+  "Terra MAX" with a short prompt that gave the column names but not the catalogue's definitions (§10).
 
 **Second rater, `second_rater` — reported only.**
 
@@ -137,10 +137,9 @@ The lower bound `lo` must reach **`L = 0.80`**, set by the owner on 20 October 2
 | `rec >= 0.90 and lo < 0.80` | **Point estimate met, not established.** |
 | `rec < 0.90` | **Not met.** |
 
-**Feasibility.** Version 1 planned on about 102 urgent pairs in the test sample. The reference labels hold
-**106** (development 67); the builder saw these counts when the sheet was first recorded on 27 October 2026, and
-no model, threshold or rule was set from them. The version 1 feasibility table therefore still applies: with a
-true recall of 0.90, `lo` lies near 0.83.
+**Feasibility.** Version 1 planned on about 102 urgent pairs in the test sample, and the version 1 feasibility
+table still applies: with a true recall of 0.90, `lo` lies near 0.83. The first ChatGPT sheet, which is not used,
+held 106 urgent test pairs; the builder saw that count, and no model, threshold or rule was set from it.
 
 ### Thresholds are chosen on the development set only
 
@@ -151,8 +150,7 @@ maximises development micro-F1 within the group.
 
 ### Reported, not deciding
 
-- **Per type:** recall and precision with IPW estimates and support; counts only below 10. The reference has no
-  `pests` label in the test sample, so its test recall cannot be reported.
+- **Per type:** recall and precision with IPW estimates and support; counts only below 10.
 - **Strict type recall**, **department accuracy** on detected problems, the **unweighted sample recall**, and
   **recall per stratum**.
 - **Baselines on the same 500 reviews, paired:** `complaint-lexicon-v1` through the catalogue's lexicon mapping,
@@ -163,8 +161,8 @@ maximises development micro-F1 within the group.
   - the student's department-urgent recall and `fa` against `owner_check`, IPW-estimated, with the support stated
     (about 20 urgent pairs are expected, so the interval is wide);
   - the second rater against `owner_check`, per type, as Cohen's kappa with prevalence;
-  - the reference cannot be compared on these reviews: ChatGPT did not label them, and the session that made the
-    reference cannot be repeated.
+  - the reference is not compared on these reviews: ChatGPT labels only the 800, so the owner's check stays free
+    of any ChatGPT output.
 - **Evidence:** the quoted clause is the clause with the highest logit for the type; it is a substring of the
   review. Whether it supports the problem is judged by the owner on 100 caught problems drawn at random; this is
   not blind to the model and is labelled as such.
@@ -174,14 +172,12 @@ maximises development micro-F1 within the group.
 
 - **The gold is an LLM's labels, not a person's.** Every recall and precision is agreement with one OpenAI model
   through ChatGPT. Where the reference is wrong, the student is scored as wrong for being right, and the reverse.
-- **The reference cannot be reproduced.** The prompt is recorded, but "Terra MAX" names a ChatGPT model choice,
-  not a pinned version, and a ChatGPT session is not deterministic. Only the returned sheet and its SHA-256 fix
-  the labels.
-- **The reference did not use the catalogue's definitions.** It labelled from the type names alone, while the
-  teacher and the second rater are given the definitions, exclusions and labelling rules. Where a name and its
-  definition differ (for example `room_and_facilities`, which excludes anything broken or dirty, or
-  `noise_internal` against `noise_external`), the reference may follow the name, and the student is scored
-  against that reading.
+- **The reference cannot be reproduced.** The prompt and the batches are committed, but a ChatGPT model
+  choice is not a pinned version and a chat session is not deterministic. Only the returned files and their
+  SHA-256 fix the labels.
+- **How ChatGPT labelled cannot be fully verified.** The prompt forbids code and keyword rules, and batches
+  where ChatGPT shows them are rerun, but what the model did internally is not visible. Batches are 50 rows so
+  that reading each review is feasible.
 - **Two LLM families meet in the score.** The student learns from Claude (Anthropic) and is scored against
   ChatGPT (OpenAI). Part of any miss may be a disagreement between the two families rather than a student error;
   the teacher's own score against the reference shows how large that part is.
@@ -202,7 +198,7 @@ maximises development micro-F1 within the group.
 | Step | What | Human gate |
 | :--- | :--- | :--- |
 | 1 | Lock this version with its updated lock test | the owner approves this draft |
-| 2 | Record `reference_chatgpt` from the returned sheet; draw the check sample and write its blind sheet | — |
+| 2 | The owner runs ChatGPT on the 16 batches with the committed prompt; `reference_chatgpt` recorded; the check sample drawn and its blind sheet written | ChatGPT session, run by the owner |
 | 3 | The owner labels the 100 check reviews by hand; `owner_check` committed | labelling, no AI tool |
 | 4 | Second rater on the 800 and the 100; labels committed | API key; the owner checks Google's data terms through OpenRouter |
 | 5 | Teacher labels the teacher pool; student trained in Colab; thresholds on development, committed | API key, Anthropic's data terms, Colab |
@@ -224,7 +220,7 @@ Review texts stay under `runs/`.
 
 | Design | Here | Why |
 | :--- | :--- | :--- |
-| Gold labels from the owner, with an LLM second rater and the owner's re-check | Gold from ChatGPT; a Gemini second rater; the owner labels 100 other reviews by hand | The owner's choice on 27 October 2026, after the version 1 sheet was filled by ChatGPT |
+| Gold labels from the owner, with an LLM second rater and the owner's re-check | Gold from ChatGPT with the catalogue's definitions; a Gemini second rater; the owner labels 100 other reviews by hand | The owner's choice on 27 October 2026, after the version 1 sheet was filled by ChatGPT |
 | Samples from "the clean splits' test partition" | Whole reviews from the raw CSV, in hash pools | The v2 splits contain no mixed reviews (unchanged from version 1). |
 | Reviews with complaint text oversampled | Three strata; the IPW estimate decides | Unchanged from version 1. |
 | Thresholds "per problem type" | One threshold per priority group | Unchanged from version 1. |
@@ -237,7 +233,7 @@ Review texts stay under `runs/`.
 | False-alarm budget `F` | 5 per 100 reviews | owner, 20 October 2026 |
 | Lower bound `L` | 0.80 | owner, 20 October 2026 |
 | `catalogue_v1` SHA-256 | `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9` | owner, 20 October 2026 |
-| Reference labels | ChatGPT (OpenAI), model "Terra MAX" as named by the owner, the prompt in §2, no catalogue definitions; sheet SHA-256 `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a` | owner, 27 October 2026 |
+| Reference labels | ChatGPT (OpenAI), the model recorded as ChatGPT shows it; prompt `reference_prompt.md` (`1147d9a9…`); 16 batches of 50 | owner's choice, 27 October 2026 |
 | Teacher | `anthropic/claude-sonnet-5.5-20260928` | builder, version 1 |
 | Second rater | `google/gemini-4-argon-20261013` | owner's choice of a third provider, 27 October 2026; model by the builder |
 | Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder, version 1 |
@@ -248,4 +244,4 @@ Review texts stay under `runs/`.
 | Version | Commit | Change |
 | :--- | :--- | :--- |
 | 1 | `6a6dc63` | Locked 20 October 2026. Gold from the owner's own blind labels, `openai/gpt-6.1-sol-20260929` as second rater. Under it: the samples were drawn (`a61b51f`, `02092f4`); the returned sheet was recorded as `owner_initial` (`3a5d7f6`) and withdrawn the same day (`8d0c8bf`) when the owner reported it had been filled by ChatGPT. The builder saw the sheet's label counts (urgent pairs: development 67, test 106). **No model was trained, no threshold set and nothing scored under version 1.** |
-| 2 | this commit | The owner's choices of 27 October 2026: the ChatGPT sheet as reference labels, so the question becomes agreement with an LLM; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |
+| 2 | this commit | The owner's choices of 27 October 2026: reference labels from ChatGPT, made again from the committed prompt with the catalogue's definitions, so the question becomes agreement with an LLM; the first ChatGPT sheet (`6a9fa2bb…`, model named "Terra MAX", a prompt without the definitions) is not used; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |

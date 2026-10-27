@@ -9,6 +9,18 @@ committed, and writes the relabel sheet. The second rater and the adjudication a
     python scripts/triage_diagnosis_labels.py relabel
     python scripts/triage_diagnosis_labels.py finish --kind relabel --sheet filled_relabel_sheet.csv
 
+For reference labels made by an LLM through a chat interface (the draft of version 2):
+
+    python scripts/triage_diagnosis_labels.py prompt
+    python scripts/triage_diagnosis_labels.py batches
+    python scripts/triage_diagnosis_labels.py finish --kind reference --sheet runs/triage_diagnosis/reference \\
+        --source "ChatGPT, model as shown to the owner"
+
+`prompt` writes reference_prompt.md from the catalogue, so its definitions reach the labeller word for word.
+`batches` splits the blank sheet into batches of 50 rows in item order (runs/, git-ignored) and records each
+blank batch's SHA-256. `finish` accepts the folder of returned `batch_NN_filled.csv` files and checks them as
+one sheet.
+
 `finish` refuses a sheet as a whole if a column, an item or a text is not the one drawn, if a label is not
 empty, 0 or 1, if `done` is missing on any row, or if a row has both a type and `none`, or neither. It writes
 into --out (default docs/experiments/triage_diagnosis/labels), with no text and no notes:
@@ -34,6 +46,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -51,7 +64,10 @@ RELABEL_WAIT = dt.timedelta(days=7)
 KINDS = {  # kind -> (key, labels name)
     "initial": ("key.csv", "owner_initial"),
     "relabel": ("relabel_key.csv", "owner_relabel"),
+    "reference": ("key.csv", "reference_chatgpt"),
 }
+REFERENCE_PROMPT = FOLDER / "reference_prompt.md"
+BATCH_SIZE = 50
 
 
 class SheetError(ValueError):
@@ -62,9 +78,20 @@ def sheet_columns(types: list[str]) -> list[str]:
     return ["item", "text", *types, "none", "done", "note"]
 
 
-def check_sheet(path: Path, key: pd.DataFrame, types: list[str]) -> pd.DataFrame:
+def read_returned(path: Path) -> tuple[pd.DataFrame, dict[str, str]]:
+    """A returned sheet, or the folder of returned batch files read as one sheet, and each file's SHA-256."""
+    files = sorted(path.glob("batch_*_filled.csv")) if path.is_dir() else [path]
+    if not files:
+        raise SheetError(f"no batch_*_filled.csv in {path}")
+    tables = [pd.read_csv(file, dtype=str, keep_default_na=False, encoding="utf-8-sig") for file in files]
+    for file, table in zip(files, tables, strict=True):
+        if list(table.columns) != list(tables[0].columns):
+            raise SheetError(f"{file.name} has other columns than {files[0].name}")
+    return pd.concat(tables, ignore_index=True), {file.name: sample.trends._sha256(file) for file in files}
+
+
+def check_sheet(raw: pd.DataFrame, key: pd.DataFrame, types: list[str]) -> pd.DataFrame:
     """The labels of a filled sheet as 0/1 integers, indexed by item, or SheetError for the whole sheet."""
-    raw = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig")
     if list(raw.columns) != sheet_columns(types):
         raise SheetError(f"the columns are not the drawn sheet's: {list(raw.columns)}")
     items = raw["item"].str.strip()
@@ -95,7 +122,7 @@ def check_sheet(path: Path, key: pd.DataFrame, types: list[str]) -> pd.DataFrame
 
 
 def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path = SAMPLES,
-           received_on: dt.date | None = None) -> dict:
+           received_on: dt.date | None = None, source: str | None = None) -> dict:
     """Check a returned sheet and write its labels and record; refuse to replace labels already written."""
     key_name, name = KINDS[kind]
     if (out / f"{name}.csv").exists():
@@ -104,8 +131,9 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
     if "text" in key.columns:
         raise SheetError(f"{samples / key_name} must not hold review text")
     types = sample.catalogue_types()
-    marks = check_sheet(sheet, key, types)
-    notes = pd.read_csv(sheet, dtype=str, keep_default_na=False, encoding="utf-8-sig")["note"].str.strip()
+    raw, files = read_returned(sheet)
+    marks = check_sheet(raw, key, types)
+    notes = raw["note"].str.strip()
     by_item = key.set_index(key["item"].astype(str))
     labels = marks.join(by_item[["raw_row", "set"]])
     labels["raw_row"] = labels["raw_row"].astype(int)
@@ -118,7 +146,8 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
         "catalogue_sha256": sample.trends._sha256(sample.CATALOGUE),
         "key": key_name,
         "key_sha256": sample.trends._sha256(samples / key_name),
-        "sheet_sha256": sample.trends._sha256(sheet),
+        "sheet_sha256": files if sheet.is_dir() else files[sheet.name],
+        "source": source,
         "code_commit": sample.pilot.git_commit(),
         "received_on": received_on.isoformat(),
         "reviews": len(labels),
@@ -134,6 +163,78 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
     out.mkdir(parents=True, exist_ok=True)
     labels.to_csv(out / f"{name}.csv", index=False, lineterminator="\n")
     (out / f"{name}_record.json").write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8", newline="\n")
+    return record
+
+
+def reference_prompt(catalogue: Path = sample.CATALOGUE) -> str:
+    """The instructions an LLM labeller is given, with the catalogue's definitions and rules word for word."""
+    data = yaml.safe_load(catalogue.read_text(encoding="utf-8"))
+    lines = [
+        "# Labelling hotel guest reviews",
+        "",
+        "You label hotel guest reviews for the problems the guest reports. You will receive the reviews as CSV",
+        "files of 50 rows, one batch at a time. Label each batch and return it before the next one.",
+        "",
+        "## How to work",
+        "",
+        "- Read every review yourself, in full: both the `Disliked:` and the `Liked:` part. A complaint can be in",
+        "  either part.",
+        "- Decide every row from what the guest wrote. Do not write or run code, keyword rules or scripts to assign",
+        '  labels, and do not label from single words: "room" alone is not a problem, and "clean" is usually',
+        "  praise.",
+        "- Use only the problem types below, as they are defined here, including what each one excludes.",
+        "- Do not skip rows. If a review is unclear, decide as well as you can from its text.",
+        "",
+        "## What to put in the file",
+        "",
+        "- Keep every column and every row, in the same order. Do not change `item` or `text`.",
+        "- Put `1` in the column of each problem type the review reports. Leave the other type columns empty.",
+        "- If the review reports no problem, put `1` in `none` and leave every type column empty.",
+        "- Put `1` in `done` on every row. Leave `note` empty.",
+        "- Return the completed batch as a downloadable UTF-8 CSV file named like the batch with `_filled`, for",
+        "  example `batch_01_filled.csv`.",
+        "",
+        "## Labelling rules",
+        "",
+        *[f"- {rule}" for rule in data["labelling_rules"]],
+        "",
+        "## Problem types",
+        "",
+    ]
+    for entry in data["types"]:
+        lines += [f"- `{entry['id']}`: {entry['definition']}"]
+        if entry["excludes"] != "none":
+            lines += [f"  Not this type: {entry['excludes']}"]
+    lines += ["", f"(Catalogue {data['version']}, {len(data['types'])} types.)", ""]
+    return "\n".join(lines)
+
+
+def write_batches(runs: Path = RUNS, samples: Path = SAMPLES, prompt: Path = REFERENCE_PROMPT,
+                  size: int = BATCH_SIZE) -> dict:
+    """Split the blank sheet into batches in item order, after checking it is the drawn, blank sheet."""
+    blank = pd.read_csv(runs / "sheet.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    key = pd.read_csv(samples / "key.csv", dtype=str, keep_default_na=False)
+    drawn = dict(zip(key["item"], key["text_sha256"], strict=True))
+    if [sample.text_hash(t) for t in blank["text"]] != [drawn[i] for i in blank["item"]]:
+        raise SheetError(f"{runs / 'sheet.csv'} is not the drawn sheet")
+    if (blank.drop(columns=["item", "text"]) != "").any().any():
+        raise SheetError(f"{runs / 'sheet.csv'} is not blank")
+    if prompt.read_text(encoding="utf-8") != reference_prompt():
+        raise SheetError(f"{prompt} does not match the catalogue; run `prompt` first")
+    blank = blank.sort_values("item", key=lambda column: column.astype(int)).reset_index(drop=True)
+    folder = runs / "reference"
+    folder.mkdir(parents=True, exist_ok=True)
+    batches = {}
+    for start in range(0, len(blank), size):
+        name = f"batch_{start // size + 1:02d}.csv"
+        part = blank.iloc[start:start + size]
+        part.to_csv(folder / name, index=False, encoding="utf-8-sig", lineterminator="\n")
+        batches[name] = {"items": [int(part["item"].iloc[0]), int(part["item"].iloc[-1])],
+                         "sha256": sample.trends._sha256(folder / name)}
+    record = {"prompt": prompt.name, "prompt_sha256": sample.trends._sha256(prompt),
+              "blank_sheet_sha256": sample.trends._sha256(runs / "sheet.csv"), "batch_size": size, "batches": batches}
+    (samples / "reference_batches.json").write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8",
+                                                    newline="\n")
     return record
 
 
@@ -201,12 +302,23 @@ def main() -> None:
     first.add_argument("--sheet", type=Path, required=True, help="the filled sheet, as it came back")
     first.add_argument("--kind", choices=sorted(KINDS), default="initial")
     first.add_argument("--out", type=Path, default=LABELS)
+    first.add_argument("--source", help="who or what filled the sheet, as recorded (for --kind reference)")
     second = steps.add_parser("relabel", help="write the blind relabel sheet (7 days after owner_initial)")
     second.add_argument("--overwrite", action="store_true")
+    steps.add_parser("prompt", help="write reference_prompt.md from the catalogue")
+    steps.add_parser("batches", help="split the blank sheet into batches for an LLM labeller")
     args = parser.parse_args()
     try:
-        if args.step == "finish":
-            record = finish(args.sheet, args.kind, args.out)
+        if args.step == "prompt":
+            REFERENCE_PROMPT.write_text(reference_prompt(), encoding="utf-8", newline="\n")
+            print(f"{REFERENCE_PROMPT} ({sample.trends._sha256(REFERENCE_PROMPT)})")
+        elif args.step == "batches":
+            record = write_batches()
+            print(f"{len(record['batches'])} batches in {RUNS / 'reference'}; record in {SAMPLES}")
+        elif args.step == "finish":
+            if args.kind == "reference" and not args.source:
+                raise SheetError("--source is required for reference labels")
+            record = finish(args.sheet, args.kind, args.out, source=args.source)
             print(f"{record['labels']}: {record['reviews']} reviews {record['reviews_by_set']}, "
                   f"{record['type_labels']} type labels, {record['reviews_with_none']} with none -> {args.out}")
             if "relabel_not_before" in record:
