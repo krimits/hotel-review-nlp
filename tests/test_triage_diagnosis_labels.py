@@ -1,0 +1,157 @@
+"""Returned labelling sheets and the relabel draw of the triage diagnosis protocol, on tiny synthetic sheets."""
+
+from __future__ import annotations
+
+import datetime as dt
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _load(name: str):
+    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+labels = _load("triage_diagnosis_labels")
+TYPES = labels.sample.catalogue_types()
+DAY = dt.date(2026, 10, 27)
+
+
+def drawn(tmp_path: Path, n: int = 12) -> tuple[Path, Path, pd.DataFrame]:
+    """A key and a blank sheet for n reviews: half development, half test."""
+    texts = [f"Disliked: problem {i}\n\nLiked: nice {i}" for i in range(n)]
+    key = pd.DataFrame({"item": range(1, n + 1), "set": ["development", "test"] * (n // 2),
+                        "raw_row": [100 + 7 * i for i in range(n)], "stratum": "N", "weight": 2.0, "pool": 91,
+                        "text_sha256": [labels.sample.text_hash(t) for t in texts]})
+    samples, runs = tmp_path / "samples", tmp_path / "runs"
+    samples.mkdir()
+    runs.mkdir()
+    key.to_csv(samples / "key.csv", index=False)
+    blank = pd.DataFrame({"item": key["item"], "text": texts})
+    for column in labels.sheet_columns(TYPES)[2:]:
+        blank[column] = ""
+    blank.to_csv(runs / "sheet.csv", index=False, encoding="utf-8-sig")
+    return samples, runs, blank
+
+
+def filled(blank: pd.DataFrame, path: Path, change=None) -> Path:
+    """The blank sheet labelled: odd items get cleanliness and wifi, even items none; every row done."""
+    table = blank.astype(str)
+    for i, item in enumerate(table["item"]):
+        if int(item) % 2:
+            table.loc[i, ["cleanliness", "wifi"]] = "1"
+        else:
+            table.loc[i, "none"] = "1"
+    table["done"] = "1"
+    table.loc[0, "note"] = "my own note"
+    if change:
+        change(table)
+    table.to_csv(path, index=False, encoding="utf-8-sig")
+    return path
+
+
+def test_a_complete_sheet_becomes_labels_without_text_or_notes(tmp_path):
+    samples, _, blank = drawn(tmp_path)
+    sheet = filled(blank, tmp_path / "back.csv")
+    record = labels.finish(sheet, out=tmp_path / "labels", samples=samples, received_on=DAY)
+    table = pd.read_csv(tmp_path / "labels" / "owner_initial.csv")
+    assert list(table.columns) == ["raw_row", "set", *TYPES, "none"]
+    assert table["raw_row"].is_monotonic_increasing and len(table) == 12
+    odd = table[table["raw_row"].isin([100 + 7 * i for i in range(0, 12, 2)])]  # items 1, 3, ...
+    assert (odd["cleanliness"] == 1).all() and (odd["wifi"] == 1).all() and (odd["none"] == 0).all()
+    assert record["type_labels"] == 12 and record["reviews_with_none"] == 6
+    assert record["reviews_by_set"] == {"development": 6, "test": 6}
+    assert record["notes_left_out"] == 1 and record["relabel_not_before"] == "2026-11-03"
+    written = (tmp_path / "labels" / "owner_initial.csv").read_text(encoding="utf-8")
+    assert "Disliked" not in written and "my own note" not in written
+    stored = json.loads((tmp_path / "labels" / "owner_initial_record.json").read_text(encoding="utf-8"))
+    assert stored["sheet_sha256"] == labels.sample.trends._sha256(sheet)
+
+
+def test_recorded_labels_are_never_replaced(tmp_path):
+    samples, _, blank = drawn(tmp_path)
+    sheet = filled(blank, tmp_path / "back.csv")
+    labels.finish(sheet, out=tmp_path / "labels", samples=samples, received_on=DAY)
+    with pytest.raises(labels.SheetError, match="never replaced"):
+        labels.finish(sheet, out=tmp_path / "labels", samples=samples, received_on=DAY)
+
+
+@pytest.mark.parametrize(("change", "message"), [
+    (lambda t: t.__setitem__("text", t["text"].str.replace("problem 3", "problem 33")), "not the one drawn"),
+    (lambda t: t.loc.__setitem__((2, "done"), ""), "`done` is missing"),
+    (lambda t: t.loc.__setitem__((0, "none"), "1"), "not both"),  # item 1 has types
+    (lambda t: t.loc.__setitem__((0, TYPES), ""), "not both"),
+    (lambda t: t.loc.__setitem__((4, "pests"), "x"), "only be empty, 0 or 1"),
+    (lambda t: t.loc.__setitem__((5, "item"), "4"), "repeated items"),
+    (lambda t: t.loc.__setitem__((5, "item"), "99"), "unknown"),
+    (lambda t: t.drop(index=3, inplace=True), "missing"),
+    (lambda t: t.insert(2, "model_guess", ""), "columns"),
+])
+def test_a_sheet_with_any_fault_is_refused_as_a_whole(tmp_path, change, message):
+    samples, _, blank = drawn(tmp_path)
+    sheet = filled(blank, tmp_path / "back.csv", change)
+    with pytest.raises(labels.SheetError, match=message):
+        labels.finish(sheet, out=tmp_path / "labels", samples=samples, received_on=DAY)
+    assert not (tmp_path / "labels").exists()
+
+
+def test_line_ends_and_zeros_from_a_spreadsheet_are_accepted(tmp_path):
+    samples, _, blank = drawn(tmp_path)
+
+    def spreadsheet(table):
+        table["text"] = table["text"].str.replace("\n", "\r\n")
+        table.loc[table["cleanliness"] == "", "cleanliness"] = "0"
+    sheet = filled(blank, tmp_path / "back.csv", spreadsheet)
+    record = labels.finish(sheet, out=tmp_path / "labels", samples=samples, received_on=DAY)
+    assert record["per_type"]["cleanliness"] == 6
+
+
+def test_the_relabel_draw_reads_the_key_only_and_is_fixed(tmp_path, monkeypatch):
+    monkeypatch.setattr(labels, "RELABEL_SIZES", {"development": 2, "test": 3})
+    samples, _, _ = drawn(tmp_path)
+    key = pd.read_csv(samples / "key.csv", dtype=str, keep_default_na=False)
+    first, again = labels.draw_relabel(key), labels.draw_relabel(key)
+    assert first.equals(again)
+    assert first["set"].value_counts().to_dict() == {"test": 3, "development": 2}
+    assert first["relabel_item"].tolist() == [1, 2, 3, 4, 5] and first["item"].is_unique
+
+
+def test_the_relabel_sheet_waits_seven_days_and_hides_the_original_items(tmp_path, monkeypatch):
+    monkeypatch.setattr(labels, "RELABEL_SIZES", {"development": 2, "test": 3})
+    samples, runs, blank = drawn(tmp_path)
+    out = tmp_path / "labels"
+    with pytest.raises(labels.SheetError, match="not recorded yet"):
+        labels.relabel(DAY, samples, out, runs)
+    labels.finish(filled(blank, tmp_path / "back.csv"), out=out, samples=samples, received_on=DAY)
+    with pytest.raises(labels.SheetError, match="from 2026-11-03, 7 day"):
+        labels.relabel(DAY, samples, out, runs)
+    with pytest.raises(labels.SheetError, match="1 day"):
+        labels.relabel(dt.date(2026, 11, 2), samples, out, runs)
+
+    manifest = labels.relabel(dt.date(2026, 11, 3), samples, out, runs)
+    sheet = pd.read_csv(runs / "relabel_sheet.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    assert list(sheet.columns) == labels.sheet_columns(TYPES) and len(sheet) == manifest["items"] == 5
+    assert (sheet.drop(columns=["item", "text"]) == "").all().all()
+    rkey = pd.read_csv(samples / "relabel_key.csv", dtype=str)
+    assert "text" not in rkey.columns and rkey["item"].tolist() == [str(i) for i in range(1, 6)]
+    assert [labels.sample.text_hash(t) for t in sheet["text"]] == rkey["text_sha256"].tolist()
+    with pytest.raises(labels.SheetError, match="exists"):
+        labels.relabel(dt.date(2026, 11, 3), samples, out, runs)
+
+    # The relabel comes back through the same check, into its own file.
+    back = sheet.copy()
+    back["none"], back["done"] = "1", "1"
+    back.to_csv(tmp_path / "relabel_back.csv", index=False, encoding="utf-8-sig")
+    record = labels.finish(tmp_path / "relabel_back.csv", "relabel", out, samples, dt.date(2026, 11, 4))
+    assert record["labels"] == "owner_relabel" and record["reviews"] == 5 and "relabel_not_before" not in record
+    assert (out / "owner_initial.csv").exists() and (out / "owner_relabel.csv").exists()
