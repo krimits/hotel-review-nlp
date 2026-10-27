@@ -65,6 +65,7 @@ KINDS = {  # kind -> (key, labels name)
     "initial": ("key.csv", "owner_initial"),
     "relabel": ("relabel_key.csv", "owner_relabel"),
     "reference": ("key.csv", "reference_chatgpt"),
+    "check": ("check_key.csv", "owner_check"),
 }
 REFERENCE_PROMPT = FOLDER / "reference_prompt.md"
 BATCH_SIZE = 50

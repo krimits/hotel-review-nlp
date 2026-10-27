@@ -139,3 +139,57 @@ def test_files_are_written_with_lf_on_every_system(tmp_path, monkeypatch):
     sample.build(raw_csv(tmp_path / "raw.csv"), out, record, check_population=False)
     for path in (out / "sheet.csv", record / "key.csv", record / "manifest.json"):
         assert b"\r\n" not in path.read_bytes(), path
+
+
+SMALL_CHECK = ("check", range(90, 100), 20261024, {"H": 3, "N": 4, "B": 2})
+
+
+def test_the_check_sample_constants_are_version_2s():
+    prose = " ".join((ROOT / "docs/experiments/triage_diagnosis/PROTOCOL.md").read_text(encoding="utf-8").split())
+    name, pools, seed, sizes = sample.CHECK
+    assert (name, pools.start, pools.stop, seed, sizes) == ("check", 90, 100, 20261024, {"H": 30, "N": 60, "B": 10})
+    assert "100 reviews from the test pool, none of them among the 500 test reviews: H 30, N 60, B 10" in prose
+    assert "**seed 20261024**" in prose
+
+
+def test_the_check_draw_leaves_out_the_drawn_reviews_and_reweights(frame, monkeypatch):
+    monkeypatch.setattr(sample, "SAMPLES", SMALL)
+    monkeypatch.setattr(sample, "CHECK", SMALL_CHECK)
+    loaded, positive = frame
+    pop, _ = sample.population(loaded, positive, sample.trigger_regex(), excluded=set())
+    drawn, _ = sample.draw(pop)
+    taken = set(drawn["raw_row"])
+    check, sizes = sample.draw_check(pop, taken)
+    again, _ = sample.draw_check(pop, taken)
+    assert check.equals(again) and not taken & set(check["raw_row"])
+    assert (check["set"] == "check").all() and check["pool"].isin(range(90, 100)).all()
+    assert sizes["left_out_already_drawn"] == int((drawn["set"] == "test").sum())
+    for stratum, n in SMALL_CHECK[3].items():
+        left = int((pop["pool"].isin(range(90, 100)) & ~pop["raw_row"].isin(taken) & (pop["stratum"] == stratum)).sum())
+        rows = check[check["stratum"] == stratum]
+        assert len(rows) == n and (rows["weight"] == left / n).all()
+
+
+def test_build_check_writes_a_blind_sheet_only_after_the_samples_redraw_exactly(tmp_path, monkeypatch):
+    monkeypatch.setattr(sample, "SAMPLES", SMALL)
+    monkeypatch.setattr(sample, "CHECK", SMALL_CHECK)
+    monkeypatch.setattr(sample, "SEEN_KEYS", ())
+    csv = raw_csv(tmp_path / "raw.csv")
+    out, record = tmp_path / "runs", tmp_path / "record"
+    sample.build(csv, out, record, check_population=False)
+    manifest = sample.build_check(csv, out, record, check_population=False)
+    sheet = pd.read_csv(out / "check_sheet.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    assert list(sheet.columns) == ["item", "text", *sample.catalogue_types(), "none", "done", "note"]
+    assert (sheet.drop(columns=["item", "text"]) == "").all().all() and len(sheet) == manifest["items"] == 9
+    check_key = pd.read_csv(record / "check_key.csv")
+    assert "text" not in check_key.columns and (check_key["set"] == "check").all()
+    assert not set(check_key["raw_row"]) & set(pd.read_csv(record / "key.csv")["raw_row"])
+    assert [sample.text_hash(t) for t in sheet["text"]] == check_key["text_sha256"].tolist()
+    for path in (out / "check_sheet.csv", record / "check_key.csv", record / "check_manifest.json"):
+        assert b"\r\n" not in path.read_bytes(), path
+    with pytest.raises(SystemExit, match="never redrawn"):
+        sample.build_check(csv, out, record, check_population=False)
+    (record / "key.csv").write_text((record / "key.csv").read_text(encoding="utf-8").replace(",test,", ",dev,", 1),
+                                    encoding="utf-8", newline="\n")
+    with pytest.raises(SystemExit, match="byte for byte"):
+        sample.build_check(csv, out, record, overwrite=True, check_population=False)
