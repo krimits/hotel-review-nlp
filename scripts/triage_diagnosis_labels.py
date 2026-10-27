@@ -9,7 +9,7 @@ committed, and writes the relabel sheet. The second rater and the adjudication a
     python scripts/triage_diagnosis_labels.py relabel
     python scripts/triage_diagnosis_labels.py finish --kind relabel --sheet filled_relabel_sheet.csv
 
-For reference labels made by an LLM through a chat interface (the draft of version 2):
+For reference labels made by an LLM through a chat interface (PROTOCOL.md version 2):
 
     python scripts/triage_diagnosis_labels.py prompt
     python scripts/triage_diagnosis_labels.py batches

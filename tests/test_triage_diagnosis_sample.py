@@ -40,15 +40,15 @@ def raw_csv(path: Path, n: int = 3000) -> Path:
 
 def test_constants_are_the_protocols():
     prose = " ".join((ROOT / "docs/experiments/triage_diagnosis/PROTOCOL.md").read_text(encoding="utf-8").split())
-    assert "seed 20261021 for development and 20261022 for test" in prose
-    assert "300 reviews from the development pool, split H 90, N 180, B 30" in prose
-    assert "500 reviews from the test pool, split H 150, N 300, B 50" in prose
-    assert "**80–89** is the development pool" in prose and "**90–99** is the test pool" in prose
+    # Version 2 kept version 1's samples; only the wording changed.
+    assert "Development:** 300 reviews, H 90, N 180, B 30, seed 20261021" in prose
+    assert "Test:** 500 reviews, H 150, N 300, B 50, seed 20261022" in prose
+    assert "0–79 teacher, 80–89 development, 90–99 test" in prose
     assert [(name, pools.start, pools.stop, seed, sizes) for name, pools, seed, sizes in sample.SAMPLES] == [
         ("development", 80, 90, 20261021, {"H": 90, "N": 180, "B": 30}),
         ("test", 90, 100, 20261022, {"H": 150, "N": 300, "B": 50})]
-    for name, count in sample.EXPECTED_STRATA.items():
-        assert f"| {name} |" in prose and f"| {count:,} |" in prose
+    strata = ", ".join(f"{name} {count:,}" for name, count in sample.EXPECTED_STRATA.items())
+    assert f"**Strata:** {strata}" in prose
     assert sample.trigger_regex().search("the carpet was STAINED") and not sample.trigger_regex().search("slow")
     assert len(sample.catalogue_types()) == 20
 
