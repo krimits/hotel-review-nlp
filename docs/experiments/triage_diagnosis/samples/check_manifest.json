@@ -1,0 +1,66 @@
+{
+ "protocol": "docs/experiments/triage_diagnosis/PROTOCOL.md",
+ "protocol_sha256": "962bcf60e1de410f21347e43dbc198810a9a29a756c47357653de3e3d127058f",
+ "catalogue_sha256": "2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9",
+ "code_commit": "8e41e3285ce5ebb2a7c06e4e69a976d1bfee697e",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9",
+ "eligible": 494344,
+ "samples_redrawn_and_matched": "samples/key.csv",
+ "check": {
+  "pools": [
+   90,
+   99
+  ],
+  "seed": 20261024,
+  "reviews_in_pool": 49002,
+  "strata": {
+   "H": {
+    "N_s": 6253,
+    "n_s": 30,
+    "weight": 208.43333333333334
+   },
+   "N": {
+    "N_s": 27838,
+    "n_s": 60,
+    "weight": 463.96666666666664
+   },
+   "B": {
+    "N_s": 14911,
+    "n_s": 10,
+    "weight": 1491.1
+   }
+  },
+  "left_out_already_drawn": 500
+ },
+ "item_order_seed": 20261024,
+ "items": 100,
+ "text_hash": "SHA-256 of the whole-review text with its white space collapsed",
+ "sheet_columns": [
+  "item",
+  "text",
+  "cleanliness",
+  "pests",
+  "security_fault",
+  "safety_hazard",
+  "hvac_failure",
+  "plumbing_major",
+  "plumbing_minor",
+  "equipment_fault",
+  "wifi",
+  "noise_internal",
+  "linen_amenities",
+  "bed_comfort",
+  "food_beverage",
+  "staff_service",
+  "checkin_billing",
+  "other_problem",
+  "noise_external",
+  "room_and_facilities",
+  "location_view",
+  "price_value",
+  "none",
+  "done",
+  "note"
+ ],
+ "sheet_sha256": "c0cb0c4844c5d80f2f0f9f16f71b6522d85477cd6bd132b62a304269506ba204"
+}

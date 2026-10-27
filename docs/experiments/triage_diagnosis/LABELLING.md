@@ -1,9 +1,20 @@
-# Triage diagnosis: how to fill the labelling sheet
+# Triage diagnosis: how to fill the check sheet
 
-For the owner, step 3 of [PROTOCOL.md](PROTOCOL.md). The sheet is `runs/triage_diagnosis/sheet.csv`
-(800 reviews, git-ignored because it holds review text). It was drawn by
-`scripts/triage_diagnosis_sample.py` at commit `a61b51f`; its SHA-256 is in
-[`samples/manifest.json`](samples/manifest.json).
+For the owner, step 3 of [PROTOCOL.md](PROTOCOL.md) (version 2). The sheet is
+`runs/triage_diagnosis/check_sheet.csv`: 100 reviews, git-ignored because it holds review text. It was drawn by
+`scripts/triage_diagnosis_sample.py draw-check` at commit `8e41e32`; its SHA-256 is in
+[`samples/check_manifest.json`](samples/check_manifest.json).
+
+These are your own labels, `owner_check`. They are the only human labels in version 2: the only measure of how
+the student, and the Gemini second rater, compare with a person's judgement.
+
+## Label by hand only
+
+- **No ChatGPT, Gemini, Claude or any other AI tool**, for any row, not even to check or to suggest.
+- **No model output** on these reviews before the labels are committed: not the Space, not the ChatGPT batches
+  (they hold other reviews), not any script.
+- If a row is hard, decide it yourself or write in `note`. A guess of your own is worth more here than a model's
+  answer.
 
 ## What to do per row
 
@@ -23,11 +34,11 @@ The types, their definitions and what each excludes are in [`catalogue_v1.yaml`]
 
 ## Keep it blind
 
-- Do not open `samples/key.csv` while labelling. It says which set and stratum each item belongs to.
-- No model output is on the sheet. Do not run the Space or any model on these reviews before the labels are committed.
-- Keep the text column unchanged. The sheet is checked against the text hashes when it comes back, and a
+- Do not open `samples/check_key.csv` while labelling. It says which stratum each item belongs to.
+- Keep the `text` column unchanged. The sheet is checked against the text hashes when it comes back, and a
   changed text is refused.
-- Work in the item order or any order you like. About 80 a day means about two weeks.
+- Save as "CSV UTF-8 (comma delimited)", not .xlsx. Work on a copy and keep the blank sheet.
+- About 40 seconds a review: roughly an hour and a half in all, in one sitting or several.
 
-When it is finished, send the sheet back as it is. It becomes `owner_initial`. The 80 reviews for the blind
-self-relabelling (30 development, 50 test) come later, at least 7 days after you label them.
+When it is finished, send the sheet back as it is, and say that it was labelled by hand. It is recorded with
+`scripts/triage_diagnosis_labels.py finish --kind check`.
