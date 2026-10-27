@@ -70,8 +70,19 @@ SHA-256 `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`). The
 
 - The version 1 sheet of the 800 development and test reviews, returned on 27 October 2026, SHA-256
   `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a`.
-- Filled entirely by ChatGPT, according to the owner. The model version, the prompt, and whether the
-  catalogue's definitions were given to it are not recorded.
+- Filled entirely by ChatGPT, according to the owner, with the model the owner names **"Terra MAX"** in ChatGPT.
+  Its exact OpenAI identifier and version were not recorded.
+- The owner's prompt, given with the sheet, verbatim:
+
+  > Θέλω να είσαι ο αξιολογητής των κριτικών που έκαναν οι πελάτες. Συμπλήρωσε το αρχείο σύμφωνα με τις
+  > παρακάτω οδηγίες.
+  > Σε κάθε γραμμή:
+  > - βάζεις 1 στη στήλη κάθε τύπου προβλήματος που αναφέρει η κριτική·
+  > - βάζεις 1 στο none αν δεν υπάρχει κανένα πρόβλημα·
+  > - βάζεις 1 στο done όταν τελειώσεις τη γραμμή.
+
+- **The catalogue's definitions, exclusions and labelling rules were not given.** The model saw only the column
+  names (`cleanliness`, `room_and_facilities`, …) and inferred what each type covers.
 - It passed every check of `scripts/triage_diagnosis_labels.py finish` (all items, unchanged texts, every row
   done, a type or `none` on each row and never both).
 - Recorded by `raw_row`, with no text, and never edited.
@@ -163,8 +174,14 @@ maximises development micro-F1 within the group.
 
 - **The gold is an LLM's labels, not a person's.** Every recall and precision is agreement with one OpenAI model
   through ChatGPT. Where the reference is wrong, the student is scored as wrong for being right, and the reverse.
-- **The reference cannot be reproduced.** The ChatGPT model version, its prompt and whether it saw the catalogue's
-  definitions are not recorded. Only the returned sheet and its SHA-256 are.
+- **The reference cannot be reproduced.** The prompt is recorded, but "Terra MAX" names a ChatGPT model choice,
+  not a pinned version, and a ChatGPT session is not deterministic. Only the returned sheet and its SHA-256 fix
+  the labels.
+- **The reference did not use the catalogue's definitions.** It labelled from the type names alone, while the
+  teacher and the second rater are given the definitions, exclusions and labelling rules. Where a name and its
+  definition differ (for example `room_and_facilities`, which excludes anything broken or dirty, or
+  `noise_internal` against `noise_external`), the reference may follow the name, and the student is scored
+  against that reading.
 - **Two LLM families meet in the score.** The student learns from Claude (Anthropic) and is scored against
   ChatGPT (OpenAI). Part of any miss may be a disagreement between the two families rather than a student error;
   the teacher's own score against the reference shows how large that part is.
@@ -220,7 +237,7 @@ Review texts stay under `runs/`.
 | False-alarm budget `F` | 5 per 100 reviews | owner, 20 October 2026 |
 | Lower bound `L` | 0.80 | owner, 20 October 2026 |
 | `catalogue_v1` SHA-256 | `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9` | owner, 20 October 2026 |
-| Reference labels | ChatGPT (OpenAI), sheet SHA-256 `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a` | owner, 27 October 2026 |
+| Reference labels | ChatGPT (OpenAI), model "Terra MAX" as named by the owner, the prompt in §2, no catalogue definitions; sheet SHA-256 `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a` | owner, 27 October 2026 |
 | Teacher | `anthropic/claude-sonnet-5.5-20260928` | builder, version 1 |
 | Second rater | `google/gemini-4-argon-20261013` | owner's choice of a third provider, 27 October 2026; model by the builder |
 | Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder, version 1 |
