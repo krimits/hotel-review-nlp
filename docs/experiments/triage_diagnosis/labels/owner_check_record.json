@@ -1,0 +1,43 @@
+{
+ "labels": "owner_check",
+ "protocol": "docs/experiments/triage_diagnosis/PROTOCOL.md",
+ "protocol_sha256": "962bcf60e1de410f21347e43dbc198810a9a29a756c47357653de3e3d127058f",
+ "catalogue_sha256": "2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9",
+ "key": "check_key.csv",
+ "key_sha256": "2ca63686b36cce36534d57648fc789a0d4b8f72ed42cef0c9cefe0e9f25e39da",
+ "sheet_sha256": "ebf604adf624a5fbe55d77cebbaef3de870f79ebd11b4c1470eea9c9684e8860",
+ "unwrapped_text_sha256": "580012a3863fb13a1a0c94f8918e1d0e51d0d73f6d9f25fcb2dc011052b4385f",
+ "source": null,
+ "code_commit": "0f27de72ee6968a3726332453e68420f3ad3518b",
+ "received_on": "2026-10-29",
+ "reviews": 100,
+ "reviews_by_set": {
+  "check": 100
+ },
+ "reviews_with_a_type": 80,
+ "reviews_with_none": 20,
+ "type_labels": 107,
+ "per_type": {
+  "cleanliness": 8,
+  "pests": 1,
+  "security_fault": 1,
+  "safety_hazard": 0,
+  "hvac_failure": 8,
+  "plumbing_major": 5,
+  "plumbing_minor": 1,
+  "equipment_fault": 3,
+  "wifi": 1,
+  "noise_internal": 4,
+  "linen_amenities": 0,
+  "bed_comfort": 2,
+  "food_beverage": 9,
+  "staff_service": 15,
+  "checkin_billing": 4,
+  "other_problem": 7,
+  "noise_external": 6,
+  "room_and_facilities": 17,
+  "location_view": 3,
+  "price_value": 12
+ },
+ "notes_left_out": 0
+}
