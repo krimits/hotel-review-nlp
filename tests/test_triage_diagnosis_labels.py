@@ -188,9 +188,52 @@ def test_batches_split_the_blank_sheet_in_item_order_and_refuse_a_used_one(tmp_p
     prompt.write_text("an older prompt", encoding="utf-8")
     with pytest.raises(labels.SheetError, match="does not match the catalogue"):
         labels.write_batches(runs, samples, prompt, size=5)
+    prompt.write_text(labels.reference_prompt(), encoding="utf-8", newline="\n")
     filled(blank, runs / "sheet.csv")
     with pytest.raises(labels.SheetError, match="not blank"):
         labels.write_batches(runs, samples, prompt, size=5)
+
+
+def test_the_second_rater_gets_the_references_batches_and_separate_check_batches(tmp_path):
+    samples, runs, blank = drawn(tmp_path, n=12)
+    check_texts = [f"Disliked: check problem {i}" for i in range(7)]
+    pd.DataFrame({"item": range(1, 8), "set": "check", "raw_row": [9000 + i for i in range(7)], "stratum": "N",
+                  "weight": 3.0, "pool": 95, "text_sha256": [labels.sample.text_hash(t) for t in check_texts]}
+                 ).to_csv(samples / "check_key.csv", index=False)
+    check = pd.DataFrame({"item": range(1, 8), "text": check_texts})
+    for column in labels.sheet_columns(TYPES)[2:]:
+        check[column] = ""
+    check.to_csv(runs / "check_sheet.csv", index=False, encoding="utf-8-sig")
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text(labels.reference_prompt(), encoding="utf-8", newline="\n")
+    labels.write_batches(runs, samples, prompt, size=5)
+    record = labels.write_second_rater_batches(runs, samples, prompt, size=5)
+    assert list(record["main"]["batches"]) == ["batch_01.csv", "batch_02.csv", "batch_03.csv"]
+    assert list(record["check"]["batches"]) == ["check_batch_01.csv", "check_batch_02.csv"]
+    for name in record["main"]["batches"]:
+        assert (runs / "second_rater" / name).read_bytes() == (runs / "reference" / name).read_bytes()
+
+    # Back in one folder: the main kind reads batch_*, the check kind check_batch_*.
+    back = tmp_path / "back"
+    back.mkdir()
+    main = pd.read_csv(filled(blank, tmp_path / "main.csv"), dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    for i, start in enumerate(range(0, 12, 5), start=1):
+        main.iloc[start:start + 5].to_csv(back / f"batch_{i:02d}_filled.csv", index=False, encoding="utf-8-sig")
+    done = check.astype(str).assign(none="1", done="1")
+    done.iloc[:5].to_csv(back / "check_batch_01_filled.csv", index=False, encoding="utf-8-sig")
+    done.iloc[5:].to_csv(back / "check_batch_02_filled.csv", index=False, encoding="utf-8-sig")
+    out = tmp_path / "labels"
+    first = labels.finish(back, "second_rater", out, samples, DAY, "Gemini web")
+    second = labels.finish(back, "second_rater_check", out, samples, DAY, "Gemini web")
+    assert (first["labels"], first["reviews"], len(first["sheet_sha256"])) == ("second_rater", 12, 3)
+    assert (second["labels"], second["reviews"], len(second["sheet_sha256"])) == ("second_rater_check", 7, 2)
+
+    # A record of the reference's batches that no longer matches stops the second rater's.
+    reference = json.loads((samples / "reference_batches.json").read_text(encoding="utf-8"))
+    reference["batches"]["batch_02.csv"]["sha256"] = "0" * 64
+    (samples / "reference_batches.json").write_text(json.dumps(reference), encoding="utf-8")
+    with pytest.raises(labels.SheetError, match="differ from the reference's"):
+        labels.write_second_rater_batches(runs, samples, prompt, size=5)
 
 
 def test_returned_batches_are_checked_as_one_sheet(tmp_path):

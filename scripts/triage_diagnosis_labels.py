@@ -21,6 +21,14 @@ For reference labels made by an LLM through a chat interface (PROTOCOL.md versio
 blank batch's SHA-256. `finish` accepts the folder of returned `batch_NN_filled.csv` files and checks them as
 one sheet.
 
+The second rater (version 3) runs the same way in a chat interface, on 18 batches written by
+`second-rater-batches` into runs/triage_diagnosis/second_rater: the 16 batches of the 800 (byte for byte the
+reference's blank batches) and `check_batch_01`/`02` for the 100 check reviews, whose items 1-100 would collide
+with the main sheet's. Both come back into one folder and are recorded separately:
+
+    python scripts/triage_diagnosis_labels.py finish --kind second_rater --sheet FOLDER --source "..."
+    python scripts/triage_diagnosis_labels.py finish --kind second_rater_check --sheet FOLDER --source "..."
+
 A spreadsheet that opens a comma-separated file as one column per line (Excel with a `;` list separator) saves
 every line back as one quoted cell, with inner quotes doubled. `finish --unwrap` undoes exactly that before the
 checks, and records the SHA-256 of the file as returned and of the unwrapped text.
@@ -72,7 +80,12 @@ KINDS = {  # kind -> (key, labels name)
     "relabel": ("relabel_key.csv", "owner_relabel"),
     "reference": ("key.csv", "reference_chatgpt"),
     "check": ("check_key.csv", "owner_check"),
+    "second_rater": ("key.csv", "second_rater"),
+    "second_rater_check": ("check_key.csv", "second_rater_check"),
 }
+# Which returned files of a folder belong to a kind; the check batches have their own prefix.
+BATCH_GLOBS = {"second_rater_check": "check_batch_*_filled.csv"}
+LLM_KINDS = ("reference", "second_rater", "second_rater_check")  # need --source
 REFERENCE_PROMPT = FOLDER / "reference_prompt.md"
 BATCH_SIZE = 50
 
@@ -107,11 +120,11 @@ def read_unwrapped(path: Path) -> tuple[pd.DataFrame, dict[str, str]]:
                    "unwrapped_text": hashlib.sha256(text.encode("utf-8")).hexdigest()}
 
 
-def read_returned(path: Path) -> tuple[pd.DataFrame, dict[str, str]]:
+def read_returned(path: Path, pattern: str = "batch_*_filled.csv") -> tuple[pd.DataFrame, dict[str, str]]:
     """A returned sheet, or the folder of returned batch files read as one sheet, and each file's SHA-256."""
-    files = sorted(path.glob("batch_*_filled.csv")) if path.is_dir() else [path]
+    files = sorted(path.glob(pattern)) if path.is_dir() else [path]
     if not files:
-        raise SheetError(f"no batch_*_filled.csv in {path}")
+        raise SheetError(f"no {pattern} in {path}")
     tables = [pd.read_csv(file, dtype=str, keep_default_na=False, encoding="utf-8-sig") for file in files]
     for file, table in zip(files, tables, strict=True):
         if list(table.columns) != list(tables[0].columns):
@@ -162,7 +175,8 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
     types = sample.catalogue_types()
     if unwrapped and sheet.is_dir():
         raise SheetError("--unwrap takes one returned file, not a folder")
-    raw, files = read_unwrapped(sheet) if unwrapped else read_returned(sheet)
+    pattern = BATCH_GLOBS.get(kind, "batch_*_filled.csv")
+    raw, files = read_unwrapped(sheet) if unwrapped else read_returned(sheet, pattern)
     marks = check_sheet(raw, key, types)
     notes = raw["note"].str.strip()
     by_item = key.set_index(key["item"].astype(str))
@@ -241,32 +255,60 @@ def reference_prompt(catalogue: Path = sample.CATALOGUE) -> str:
     return "\n".join(lines)
 
 
-def write_batches(runs: Path = RUNS, samples: Path = SAMPLES, prompt: Path = REFERENCE_PROMPT,
-                  size: int = BATCH_SIZE) -> dict:
-    """Split the blank sheet into batches in item order, after checking it is the drawn, blank sheet."""
-    blank = pd.read_csv(runs / "sheet.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
-    key = pd.read_csv(samples / "key.csv", dtype=str, keep_default_na=False)
-    drawn = dict(zip(key["item"], key["text_sha256"], strict=True))
-    if [sample.text_hash(t) for t in blank["text"]] != [drawn[i] for i in blank["item"]]:
-        raise SheetError(f"{runs / 'sheet.csv'} is not the drawn sheet")
+def split_sheet(sheet: Path, key: Path, folder: Path, prefix: str, size: int) -> dict:
+    """Split a drawn, blank sheet into batches in item order; each batch's items and SHA-256."""
+    blank = pd.read_csv(sheet, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    drawn = pd.read_csv(key, dtype=str, keep_default_na=False)
+    hashes = dict(zip(drawn["item"], drawn["text_sha256"], strict=True))
+    if [sample.text_hash(t) for t in blank["text"]] != [hashes.get(i) for i in blank["item"]]:
+        raise SheetError(f"{sheet} is not the drawn sheet")
     if (blank.drop(columns=["item", "text"]) != "").any().any():
-        raise SheetError(f"{runs / 'sheet.csv'} is not blank")
-    if prompt.read_text(encoding="utf-8") != reference_prompt():
-        raise SheetError(f"{prompt} does not match the catalogue; run `prompt` first")
+        raise SheetError(f"{sheet} is not blank")
     blank = blank.sort_values("item", key=lambda column: column.astype(int)).reset_index(drop=True)
-    folder = runs / "reference"
     folder.mkdir(parents=True, exist_ok=True)
     batches = {}
     for start in range(0, len(blank), size):
-        name = f"batch_{start // size + 1:02d}.csv"
+        name = f"{prefix}{start // size + 1:02d}.csv"
         part = blank.iloc[start:start + size]
         part.to_csv(folder / name, index=False, encoding="utf-8-sig", lineterminator="\n")
         batches[name] = {"items": [int(part["item"].iloc[0]), int(part["item"].iloc[-1])],
                          "sha256": sample.trends._sha256(folder / name)}
+    return batches
+
+
+def check_prompt(prompt: Path) -> None:
+    if prompt.read_text(encoding="utf-8") != reference_prompt():
+        raise SheetError(f"{prompt} does not match the catalogue; run `prompt` first")
+
+
+def write_batches(runs: Path = RUNS, samples: Path = SAMPLES, prompt: Path = REFERENCE_PROMPT,
+                  size: int = BATCH_SIZE) -> dict:
+    """The reference's batches: the blank sheet in item order, after checking it is the drawn, blank sheet."""
+    check_prompt(prompt)
+    batches = split_sheet(runs / "sheet.csv", samples / "key.csv", runs / "reference", "batch_", size)
     record = {"prompt": prompt.name, "prompt_sha256": sample.trends._sha256(prompt),
               "blank_sheet_sha256": sample.trends._sha256(runs / "sheet.csv"), "batch_size": size, "batches": batches}
     (samples / "reference_batches.json").write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8",
                                                     newline="\n")
+    return record
+
+
+def write_second_rater_batches(runs: Path = RUNS, samples: Path = SAMPLES, prompt: Path = REFERENCE_PROMPT,
+                               size: int = BATCH_SIZE) -> dict:
+    """The second rater's 18 batches: the 800 as the reference saw them, and the 100 check reviews."""
+    check_prompt(prompt)
+    folder = runs / "second_rater"
+    main = split_sheet(runs / "sheet.csv", samples / "key.csv", folder, "batch_", size)
+    check = split_sheet(runs / "check_sheet.csv", samples / "check_key.csv", folder, "check_batch_", size)
+    reference = json.loads((samples / "reference_batches.json").read_text(encoding="utf-8"))["batches"]
+    if {name: batch["sha256"] for name, batch in main.items()} != {n: b["sha256"] for n, b in reference.items()}:
+        raise SheetError("the second rater's batches of the 800 differ from the reference's")
+    record = {"prompt": prompt.name, "prompt_sha256": sample.trends._sha256(prompt), "batch_size": size,
+              "main": {"blank_sheet_sha256": sample.trends._sha256(runs / "sheet.csv"),
+                       "same_bytes_as": "reference_batches.json", "batches": main},
+              "check": {"blank_sheet_sha256": sample.trends._sha256(runs / "check_sheet.csv"), "batches": check}}
+    (samples / "second_rater_batches.json").write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8",
+                                                       newline="\n")
     return record
 
 
@@ -341,6 +383,7 @@ def main() -> None:
     second.add_argument("--overwrite", action="store_true")
     steps.add_parser("prompt", help="write reference_prompt.md from the catalogue")
     steps.add_parser("batches", help="split the blank sheet into batches for an LLM labeller")
+    steps.add_parser("second-rater-batches", help="write the second rater's 18 batches (version 3)")
     args = parser.parse_args()
     try:
         if args.step == "prompt":
@@ -349,9 +392,13 @@ def main() -> None:
         elif args.step == "batches":
             record = write_batches()
             print(f"{len(record['batches'])} batches in {RUNS / 'reference'}; record in {SAMPLES}")
+        elif args.step == "second-rater-batches":
+            record = write_second_rater_batches()
+            print(f"{len(record['main']['batches'])} + {len(record['check']['batches'])} batches in "
+                  f"{RUNS / 'second_rater'}; record in {SAMPLES}")
         elif args.step == "finish":
-            if args.kind == "reference" and not args.source:
-                raise SheetError("--source is required for reference labels")
+            if args.kind in LLM_KINDS and not args.source:
+                raise SheetError(f"--source is required for {args.kind} labels")
             record = finish(args.sheet, args.kind, args.out, source=args.source, unwrapped=args.unwrap)
             print(f"{record['labels']}: {record['reviews']} reviews {record['reviews_by_set']}, "
                   f"{record['type_labels']} type labels, {record['reviews_with_none']} with none -> {args.out}")
