@@ -283,3 +283,15 @@ def test_unwrap_refuses_anything_but_whole_wrapped_lines(tmp_path):
     samples, _, _ = drawn(tmp_path)
     with pytest.raises(labels.SheetError, match="not a folder"):
         labels.finish(tmp_path, "reference", tmp_path / "labels", samples, DAY, "ChatGPT", unwrapped=True)
+
+
+def test_the_teacher_prompt_shares_the_reference_prompts_rules_and_types_word_for_word():
+    reference, teacher = labels.reference_prompt(), labels.teacher_prompt()
+    for heading, end in (("## How to work", "## What to"), ("## Labelling rules", None)):
+        part = reference[reference.index(heading):reference.index(end) if end else None]
+        assert part in teacher, heading
+    assert "## What to put in the file" not in teacher and "CSV" not in teacher
+    assert '{"labels": [{"item": 1, "types": ["cleanliness"]}]}' in teacher and "up to 25 reviews" in teacher
+    committed = labels.TEACHER_PROMPT
+    if committed.exists():
+        assert committed.read_text(encoding="utf-8") == teacher

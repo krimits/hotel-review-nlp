@@ -255,6 +255,31 @@ def reference_prompt(catalogue: Path = sample.CATALOGUE) -> str:
     return "\n".join(lines)
 
 
+TEACHER_PROMPT = FOLDER / "teacher_prompt.md"
+REFERENCE_INTRO = ("You label hotel guest reviews for the problems the guest reports. You will receive the reviews as CSV\n"
+                   "files of 50 rows, one batch at a time. Label each batch and return it before the next one.\n")
+TEACHER_INTRO = ("You label hotel guest reviews for the problems the guest reports. Each message gives up to 25 reviews\n"
+                 "as a JSON list of objects with `item` and `text`. Label every review in the message.\n")
+TEACHER_OUTPUT = """## What to return
+
+- Return only a JSON object of the form `{"labels": [{"item": 1, "types": ["cleanliness"]}]}`, with one entry
+  for every review in the message, in the same order and with the same `item`.
+- `types` lists the id of each problem type the review reports. If the review reports no problem, `types` is an
+  empty list.
+- Use only the type ids below. Do not change `item`, and add nothing outside the JSON.
+
+"""
+
+
+def teacher_prompt(catalogue: Path = sample.CATALOGUE) -> str:
+    """PROTOCOL.md version 4: the reference prompt with its rules and types word for word; only the input and
+    output change, from CSV batches to JSON messages of up to 25 reviews."""
+    text = reference_prompt(catalogue)
+    start, end = text.index("## What to put in the file"), text.index("## Labelling rules")
+    assert text.count(REFERENCE_INTRO) == 1
+    return (text[:start] + TEACHER_OUTPUT + text[end:]).replace(REFERENCE_INTRO, TEACHER_INTRO)
+
+
 def split_sheet(sheet: Path, key: Path, folder: Path, prefix: str, size: int) -> dict:
     """Split a drawn, blank sheet into batches in item order; each batch's items and SHA-256."""
     blank = pd.read_csv(sheet, dtype=str, keep_default_na=False, encoding="utf-8-sig")
@@ -382,6 +407,7 @@ def main() -> None:
     second = steps.add_parser("relabel", help="write the blind relabel sheet (7 days after owner_initial)")
     second.add_argument("--overwrite", action="store_true")
     steps.add_parser("prompt", help="write reference_prompt.md from the catalogue")
+    steps.add_parser("teacher-prompt", help="write teacher_prompt.md from the catalogue (version 4)")
     steps.add_parser("batches", help="split the blank sheet into batches for an LLM labeller")
     steps.add_parser("second-rater-batches", help="write the second rater's 18 batches (version 3)")
     args = parser.parse_args()
@@ -389,6 +415,9 @@ def main() -> None:
         if args.step == "prompt":
             REFERENCE_PROMPT.write_text(reference_prompt(), encoding="utf-8", newline="\n")
             print(f"{REFERENCE_PROMPT} ({sample.trends._sha256(REFERENCE_PROMPT)})")
+        elif args.step == "teacher-prompt":
+            TEACHER_PROMPT.write_text(teacher_prompt(), encoding="utf-8", newline="\n")
+            print(f"{TEACHER_PROMPT} ({sample.trends._sha256(TEACHER_PROMPT)})")
         elif args.step == "batches":
             record = write_batches()
             print(f"{len(record['batches'])} batches in {RUNS / 'reference'}; record in {SAMPLES}")
