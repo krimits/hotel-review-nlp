@@ -210,3 +210,33 @@ def test_returned_batches_are_checked_as_one_sheet(tmp_path):
     assert record["source"] == "ChatGPT, model X" and sorted(record["sheet_sha256"]) == [
         "batch_01_filled.csv", "batch_02_filled.csv", "batch_03_filled.csv"]
     assert "relabel_not_before" not in record
+
+
+def spreadsheet_wrapped(path: Path, target: Path) -> Path:
+    """What a spreadsheet with a `;` list separator saves after opening a comma CSV as one column per line."""
+    lines = path.read_bytes().decode("utf-8-sig").replace("\r\n", "\n").split("\n")
+    cells = ['"' + line.replace('"', '""') + '"' if ("," in line or '"' in line) else line for line in lines]
+    target.write_bytes("\r\n".join(cells).encode("utf-8"))
+    return target
+
+
+def test_a_spreadsheet_wrapped_sheet_is_recorded_only_with_unwrap_and_gives_the_same_labels(tmp_path):
+    samples, _, blank = drawn(tmp_path)
+    clean = filled(blank, tmp_path / "clean.csv")
+    wrapped = spreadsheet_wrapped(clean, tmp_path / "wrapped.csv")
+    with pytest.raises(labels.SheetError):
+        labels.finish(wrapped, out=tmp_path / "plain", samples=samples, received_on=DAY)
+    record = labels.finish(wrapped, out=tmp_path / "unwrapped", samples=samples, received_on=DAY, unwrapped=True)
+    labels.finish(clean, out=tmp_path / "clean", samples=samples, received_on=DAY)
+    assert (tmp_path / "unwrapped" / "owner_initial.csv").read_bytes() == (tmp_path / "clean" / "owner_initial.csv").read_bytes()
+    assert record["sheet_sha256"] == labels.sample.trends._sha256(wrapped)
+    assert record["unwrapped_text_sha256"] and record["unwrapped_text_sha256"] != record["sheet_sha256"]
+
+
+def test_unwrap_refuses_anything_but_whole_wrapped_lines(tmp_path):
+    assert labels.unwrap('"1,""a"""\r\nplain line\r\n') == '1,"a"\nplain line\n'
+    with pytest.raises(labels.SheetError, match="not one wrapped cell"):
+        labels.unwrap('"1,a\nrest')
+    samples, _, _ = drawn(tmp_path)
+    with pytest.raises(labels.SheetError, match="not a folder"):
+        labels.finish(tmp_path, "reference", tmp_path / "labels", samples, DAY, "ChatGPT", unwrapped=True)

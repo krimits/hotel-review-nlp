@@ -21,6 +21,10 @@ For reference labels made by an LLM through a chat interface (PROTOCOL.md versio
 blank batch's SHA-256. `finish` accepts the folder of returned `batch_NN_filled.csv` files and checks them as
 one sheet.
 
+A spreadsheet that opens a comma-separated file as one column per line (Excel with a `;` list separator) saves
+every line back as one quoted cell, with inner quotes doubled. `finish --unwrap` undoes exactly that before the
+checks, and records the SHA-256 of the file as returned and of the unwrapped text.
+
 `finish` refuses a sheet as a whole if a column, an item or a text is not the one drawn, if a label is not
 empty, 0 or 1, if `done` is missing on any row, or if a row has both a type and `none`, or neither. It writes
 into --out (default docs/experiments/triage_diagnosis/labels), with no text and no notes:
@@ -41,6 +45,8 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
+import io
 import json
 import sys
 from pathlib import Path
@@ -77,6 +83,28 @@ class SheetError(ValueError):
 
 def sheet_columns(types: list[str]) -> list[str]:
     return ["item", "text", *types, "none", "done", "note"]
+
+
+def unwrap(text: str) -> str:
+    """Undo a save that put every line in one quoted cell. No line of a drawn sheet starts with a quote (a record
+    starts with its item number, a continuation of a multi-line text with text), so a line that does was wrapped:
+    drop the outer quotes and undouble the inner ones. Any other line is kept as it is."""
+    lines = []
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if line.startswith('"'):
+            if len(line) < 2 or not line.endswith('"'):
+                raise SheetError(f"a line starts with a quote but is not one wrapped cell: {line[:60]!r}")
+            line = line[1:-1].replace('""', '"')
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def read_unwrapped(path: Path) -> tuple[pd.DataFrame, dict[str, str]]:
+    """A returned sheet whose lines a spreadsheet wrapped, read after `unwrap`, with both SHA-256."""
+    text = unwrap(path.read_bytes().decode("utf-8-sig"))
+    table = pd.read_csv(io.StringIO(text), dtype=str, keep_default_na=False)
+    return table, {path.name: sample.trends._sha256(path),
+                   "unwrapped_text": hashlib.sha256(text.encode("utf-8")).hexdigest()}
 
 
 def read_returned(path: Path) -> tuple[pd.DataFrame, dict[str, str]]:
@@ -123,7 +151,7 @@ def check_sheet(raw: pd.DataFrame, key: pd.DataFrame, types: list[str]) -> pd.Da
 
 
 def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path = SAMPLES,
-           received_on: dt.date | None = None, source: str | None = None) -> dict:
+           received_on: dt.date | None = None, source: str | None = None, unwrapped: bool = False) -> dict:
     """Check a returned sheet and write its labels and record; refuse to replace labels already written."""
     key_name, name = KINDS[kind]
     if (out / f"{name}.csv").exists():
@@ -132,7 +160,9 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
     if "text" in key.columns:
         raise SheetError(f"{samples / key_name} must not hold review text")
     types = sample.catalogue_types()
-    raw, files = read_returned(sheet)
+    if unwrapped and sheet.is_dir():
+        raise SheetError("--unwrap takes one returned file, not a folder")
+    raw, files = read_unwrapped(sheet) if unwrapped else read_returned(sheet)
     marks = check_sheet(raw, key, types)
     notes = raw["note"].str.strip()
     by_item = key.set_index(key["item"].astype(str))
@@ -148,6 +178,7 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
         "key": key_name,
         "key_sha256": sample.trends._sha256(samples / key_name),
         "sheet_sha256": files if sheet.is_dir() else files[sheet.name],
+        "unwrapped_text_sha256": files.get("unwrapped_text"),
         "source": source,
         "code_commit": sample.pilot.git_commit(),
         "received_on": received_on.isoformat(),
@@ -304,6 +335,8 @@ def main() -> None:
     first.add_argument("--kind", choices=sorted(KINDS), default="initial")
     first.add_argument("--out", type=Path, default=LABELS)
     first.add_argument("--source", help="who or what filled the sheet, as recorded (for --kind reference)")
+    first.add_argument("--unwrap", action="store_true",
+                       help="undo a spreadsheet save that wrapped every line in one quoted cell")
     second = steps.add_parser("relabel", help="write the blind relabel sheet (7 days after owner_initial)")
     second.add_argument("--overwrite", action="store_true")
     steps.add_parser("prompt", help="write reference_prompt.md from the catalogue")
@@ -319,7 +352,7 @@ def main() -> None:
         elif args.step == "finish":
             if args.kind == "reference" and not args.source:
                 raise SheetError("--source is required for reference labels")
-            record = finish(args.sheet, args.kind, args.out, source=args.source)
+            record = finish(args.sheet, args.kind, args.out, source=args.source, unwrapped=args.unwrap)
             print(f"{record['labels']}: {record['reviews']} reviews {record['reviews_by_set']}, "
                   f"{record['type_labels']} type labels, {record['reviews_with_none']} with none -> {args.out}")
             if "relabel_not_before" in record:
