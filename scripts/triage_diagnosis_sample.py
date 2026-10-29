@@ -8,6 +8,7 @@ planning/population.py, the copy the lock test pins.
 
     python scripts/triage_diagnosis_sample.py draw
     python scripts/triage_diagnosis_sample.py draw-check
+    python scripts/triage_diagnosis_sample.py draw-teacher
 
 It writes into --out (default runs/triage_diagnosis, git-ignored because the sheet holds review text):
 
@@ -24,6 +25,10 @@ and into --record (default docs/experiments/triage_diagnosis/samples), what may 
 same way, for the owner's own labels. It first redraws both samples and stops unless they match the committed
 key, so the 500 it leaves out are exactly the recorded ones. It writes check_sheet.csv into --out, and
 check_key.csv and check_manifest.json into --record.
+
+`draw-teacher` draws version 4's teacher sample: 10,000 reviews from the teacher pool (0-79), H 4,000, N 5,000,
+B 1,000, seed 20261030, after the same redraw check. It writes teacher_sample.csv (item and text, for the teacher's
+calls) into --out, and teacher_key.csv and teacher_manifest.json into --record.
 
 No model, provider call or label is involved. A drawn sample is never redrawn by accident.
 """
@@ -63,6 +68,8 @@ SAMPLES = (("development", range(80, 90), 20261021, {"H": 90, "N": 180, "B": 30}
            ("test", range(90, 100), 20261022, {"H": 150, "N": 300, "B": 50}))
 # PROTOCOL.md version 2, "Samples": the check sample, from the test pool, outside the 500 test reviews.
 CHECK = ("check", range(90, 100), 20261024, {"H": 30, "N": 60, "B": 10})
+# PROTOCOL.md version 4, "The teacher": the teacher sample, from the teacher pool; it trains and is never scored.
+TEACHER = ("teacher", range(0, 80), 20261030, {"H": 4000, "N": 5000, "B": 1000})
 # The strata of the whole population, before any exclusion: PROTOCOL.md, "Strata".
 EXPECTED_STRATA = {"H": 63325, "N": 285436, "B": 166412}
 NEGATIVE_PLACEHOLDER, POSITIVE_PLACEHOLDER = "No Negative", "No Positive"
@@ -234,11 +241,8 @@ def build(csv: Path, out: Path, record: Path, overwrite: bool = False, check_pop
     return manifest
 
 
-def build_check(csv: Path, out: Path, record: Path, overwrite: bool = False, check_population: bool = True) -> dict:
-    """Redraw both samples, stop unless they match the committed key, then draw and write the check sample."""
-    if (out / "check_sheet.csv").exists() and not overwrite:
-        raise SystemExit(f"{out / 'check_sheet.csv'} exists; a drawn sample is never redrawn by accident "
-                         "(pass --overwrite to replace it)")
+def verified_population(csv: Path, record: Path, check_population: bool = True) -> tuple[pd.DataFrame, dict, str]:
+    """The eligible population, after redrawing both samples and finding the committed key byte for byte."""
     raw_sha = trends._sha256(csv)
     if check_population and raw_sha != RAW_SHA256:
         raise SystemExit(f"{csv} is not the Kaggle file the protocol fixes (SHA-256 {raw_sha})")
@@ -251,6 +255,15 @@ def build_check(csv: Path, out: Path, record: Path, overwrite: bool = False, che
     redrawn = key(number(draw(pop)[0], SAMPLES[-1][2])).to_csv(index=False, lineterminator="\n")
     if redrawn != (record / "key.csv").read_text(encoding="utf-8"):
         raise SystemExit(f"redrawing the samples does not give {record / 'key.csv'} byte for byte; nothing drawn")
+    return pop, counts, raw_sha
+
+
+def build_check(csv: Path, out: Path, record: Path, overwrite: bool = False, check_population: bool = True) -> dict:
+    """Redraw both samples, stop unless they match the committed key, then draw and write the check sample."""
+    if (out / "check_sheet.csv").exists() and not overwrite:
+        raise SystemExit(f"{out / 'check_sheet.csv'} exists; a drawn sample is never redrawn by accident "
+                         "(pass --overwrite to replace it)")
+    pop, counts, raw_sha = verified_population(csv, record, check_population)
     committed = pd.read_csv(record / "key.csv")
     taken = set(committed["raw_row"].astype(int))
     check, sizes = draw_check(pop, taken)
@@ -279,6 +292,37 @@ def build_check(csv: Path, out: Path, record: Path, overwrite: bool = False, che
     return manifest
 
 
+def build_teacher(csv: Path, out: Path, record: Path, overwrite: bool = False, check_population: bool = True) -> dict:
+    """Redraw both samples, stop unless they match the committed key, then draw the teacher sample."""
+    if (out / "teacher_sample.csv").exists() and not overwrite:
+        raise SystemExit(f"{out / 'teacher_sample.csv'} exists; a drawn sample is never redrawn by accident "
+                         "(pass --overwrite to replace it)")
+    pop, counts, raw_sha = verified_population(csv, record, check_population)
+    name, pools, seed, wanted = TEACHER
+    parts, sizes = stratified(pop[pop["pool"].isin(pools)], name, pools, seed, wanted)
+    teacher = number(pd.concat(parts, ignore_index=True), seed)
+    out.mkdir(parents=True, exist_ok=True)
+    teacher[["item", "text"]].to_csv(out / "teacher_sample.csv", index=False, encoding="utf-8-sig",
+                                     lineterminator="\n")
+    key(teacher).to_csv(record / "teacher_key.csv", index=False, lineterminator="\n")
+    manifest = {
+        "protocol": PROTOCOL.relative_to(ROOT).as_posix(),
+        "protocol_sha256": trends._sha256(PROTOCOL),
+        "code_commit": pilot.git_commit(),
+        "raw_csv_sha256": raw_sha,
+        "eligible": counts["eligible"],
+        "samples_redrawn_and_matched": "samples/key.csv",
+        "teacher": sizes,
+        "item_order_seed": seed,
+        "items": len(teacher),
+        "text_hash": "SHA-256 of the whole-review text with its white space collapsed",
+        "sample_sha256": trends._sha256(out / "teacher_sample.csv"),
+    }
+    (record / "teacher_manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8",
+                                                  newline="\n")
+    return manifest
+
+
 def pilot_rows(path: Path) -> set[int]:
     table = pd.read_csv(path, dtype=str, keep_default_na=False)
     if "text" in table.columns:
@@ -299,7 +343,18 @@ def main() -> None:
     check.add_argument("--out", type=Path, default=ROOT / "runs" / "triage_diagnosis")
     check.add_argument("--record", type=Path, default=FOLDER / "samples")
     check.add_argument("--overwrite", action="store_true", help="replace a check sample already drawn in --out")
+    teach = steps.add_parser("draw-teacher", help="draw version 4's teacher sample of 10,000")
+    teach.add_argument("--csv", type=Path, default=ROOT / "data" / "raw" / "booking_reviews_515k.csv")
+    teach.add_argument("--out", type=Path, default=ROOT / "runs" / "triage_diagnosis")
+    teach.add_argument("--record", type=Path, default=FOLDER / "samples")
+    teach.add_argument("--overwrite", action="store_true", help="replace a teacher sample already drawn in --out")
     args = parser.parse_args()
+    if args.step == "draw-teacher":
+        manifest = build_teacher(args.csv, args.out, args.record, args.overwrite)
+        strata = ", ".join(f"{s} {v['n_s']} of {v['N_s']:,}" for s, v in manifest["teacher"]["strata"].items())
+        print(f"teacher: pools 0-79, {manifest['teacher']['reviews_in_pool']:,} reviews; drawn {strata}")
+        print(f"{manifest['items']} reviews in {args.out / 'teacher_sample.csv'}; key and manifest in {args.record}")
+        return
     if args.step == "draw-check":
         manifest = build_check(args.csv, args.out, args.record, args.overwrite)
         numbers = manifest["check"]

@@ -193,3 +193,36 @@ def test_build_check_writes_a_blind_sheet_only_after_the_samples_redraw_exactly(
                                     encoding="utf-8", newline="\n")
     with pytest.raises(SystemExit, match="byte for byte"):
         sample.build_check(csv, out, record, overwrite=True, check_population=False)
+
+
+def test_the_teacher_sample_constants_are_version_4s():
+    prose = " ".join((ROOT / "docs/experiments/triage_diagnosis/PROTOCOL.md").read_text(encoding="utf-8").split())
+    name, pools, seed, sizes = sample.TEACHER
+    assert (name, pools.start, pools.stop, seed) == ("teacher", 0, 80, 20261030)
+    assert sizes == {"H": 4000, "N": 5000, "B": 1000}
+    assert "**H 4,000, N 5,000, B 1,000, seed 20261030**" in prose
+
+
+def test_build_teacher_draws_from_the_teacher_pool_only_after_the_samples_redraw(tmp_path, monkeypatch):
+    monkeypatch.setattr(sample, "SAMPLES", SMALL)
+    monkeypatch.setattr(sample, "TEACHER", ("teacher", range(0, 80), 20261030, {"H": 5, "N": 6, "B": 3}))
+    monkeypatch.setattr(sample, "SEEN_KEYS", ())
+    csv = raw_csv(tmp_path / "raw.csv")
+    out, record = tmp_path / "runs", tmp_path / "record"
+    sample.build(csv, out, record, check_population=False)
+    manifest = sample.build_teacher(csv, out, record, check_population=False)
+    texts = pd.read_csv(out / "teacher_sample.csv", dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    teacher_key = pd.read_csv(record / "teacher_key.csv")
+    assert list(texts.columns) == ["item", "text"] and len(texts) == manifest["items"] == 14
+    assert "text" not in teacher_key.columns and (teacher_key["set"] == "teacher").all()
+    assert teacher_key["pool"].between(0, 79).all()
+    assert teacher_key["stratum"].value_counts().to_dict() == {"N": 6, "H": 5, "B": 3}
+    assert not set(teacher_key["raw_row"]) & set(pd.read_csv(record / "key.csv")["raw_row"])
+    assert [sample.text_hash(t) for t in texts["text"]] == teacher_key["text_sha256"].tolist()
+    for path in (out / "teacher_sample.csv", record / "teacher_key.csv", record / "teacher_manifest.json"):
+        assert b"\r\n" not in path.read_bytes(), path
+    first = (record / "teacher_key.csv").read_bytes()
+    with pytest.raises(SystemExit, match="never redrawn"):
+        sample.build_teacher(csv, out, record, check_population=False)
+    sample.build_teacher(csv, out, record, overwrite=True, check_population=False)
+    assert (record / "teacher_key.csv").read_bytes() == first
