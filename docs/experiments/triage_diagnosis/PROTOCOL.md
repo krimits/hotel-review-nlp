@@ -1,9 +1,13 @@
-# Triage diagnosis and routing: protocol — version 2, locked
+# Triage diagnosis and routing: protocol — version 3, locked
 
-**Status: locked on 27 October 2026,** approved by the owner the same day, by the commit that updates its lock
-test, [`tests/test_triage_diagnosis_protocol.py`](../../../tests/test_triage_diagnosis_protocol.py). Version 1 is
-in this file's history and is summarised in [§10](#10-version-history). Nothing had been trained or scored at
-lock. Any later change needs a new version, not an edit.
+**Status: version 3 locked on 29 October 2026,** at the owner's choice the same day, by the commit that updates
+its lock test, [`tests/test_triage_diagnosis_protocol.py`](../../../tests/test_triage_diagnosis_protocol.py).
+Versions 1 and 2 are in this file's history and are summarised in [§10](#10-version-history). Nothing had been
+trained or scored at lock. Any later change needs a new version, not an edit.
+
+**Why a version 3.** It changes only how the second rater is run: through the Gemini web app by the owner, in
+batches like the reference, instead of through the OpenRouter API. The second rater is reported only and cannot
+change the decision; the change was made before any second-rater output existed.
 
 **Why a version 2.** The owner returned the version 1 labelling sheet on 27 October 2026, filled entirely by
 ChatGPT (OpenAI). Version 1 takes the owner's own blind labels as gold, so the sheet could not be recorded as
@@ -88,11 +92,21 @@ SHA-256 `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`). The
   `6a9fa2bb32cf44cd91d5e182fbc8287cc7603c0278f51e53a2649568543a0c6a`), filled by the model the owner names
   "Terra MAX" with a short prompt that gave the column names but not the catalogue's definitions (§10).
 
-**Second rater, `second_rater` — reported only.**
+**Second rater, `second_rater` and `second_rater_check` — reported only.**
 
-- `google/gemini-4-argon-20261013` through OpenRouter, with structured output. Its prompt holds the catalogue's
-  definitions and labelling rules and is committed before it runs.
-- It labels the 800 reviews and the 100 check reviews, independently, once.
+- Gemini (Google), run by the owner in the Gemini web app **after version 3 is locked**, with the model the owner
+  names "gemini-4-argon", recorded as the app shows it and the same for every batch.
+- The same prompt as the reference, [`reference_prompt.md`](reference_prompt.md) (`1147d9a9…`), given once at
+  the start of the chat and again in any new chat. Only blank batches are uploaded: Gemini never sees ChatGPT's
+  or the owner's labels.
+- **18 batches of 50**, written by `scripts/triage_diagnosis_labels.py second-rater-batches` into
+  `runs/triage_diagnosis/second_rater` and recorded in
+  [`samples/second_rater_batches.json`](samples/second_rater_batches.json): `batch_01`–`batch_16`, the 800 reviews
+  byte for byte as the reference received them, and `check_batch_01`–`02`, the 100 check reviews.
+- The rerun rule is the reference's: a batch is rerun if Gemini shows code or keyword matching that assigns labels,
+  or returns a file `finish` refuses; the owner reports reruns and they are recorded.
+- The returned files are checked by `finish --kind second_rater` (the 800) and `--kind second_rater_check` (the
+  100), recorded by `raw_row` with no text, and never edited.
 - Its provider and model family differ from both the teacher's (Anthropic) and the reference's (OpenAI).
 
 **Owner's check, `owner_check` — reported only.**
@@ -176,6 +190,8 @@ maximises development micro-F1 within the group.
 - **The reference cannot be reproduced.** The prompt and the batches are committed, but a ChatGPT model
   choice is not a pinned version and a chat session is not deterministic. Only the returned files and their
   SHA-256 fix the labels.
+- **The second rater cannot be reproduced or fully verified either.** It runs in the Gemini web app, with the
+  same limits as the reference: no pinned version, no deterministic session, and only what the app shows.
 - **How ChatGPT labelled cannot be fully verified.** The prompt forbids code and keyword rules, and batches
   where ChatGPT shows them are rerun, but what the model did internally is not visible. Batches are 50 rows so
   that reading each review is feasible.
@@ -201,7 +217,7 @@ maximises development micro-F1 within the group.
 | 1 | Lock this version with its updated lock test | done 27 October 2026: the owner approved version 2 |
 | 2 | The owner runs ChatGPT on the 16 batches with the committed prompt; `reference_chatgpt` recorded; the check sample drawn and its blind sheet written | ChatGPT session, run by the owner |
 | 3 | The owner labels the 100 check reviews by hand; `owner_check` committed | labelling, no AI tool |
-| 4 | Second rater on the 800 and the 100; labels committed | API key; the owner checks Google's data terms through OpenRouter |
+| 4 | Second rater: the owner runs the Gemini web app on the 18 batches with the committed prompt; labels committed | Gemini session, run by the owner |
 | 5 | Teacher labels the teacher pool; student trained in Colab; thresholds on development, committed | API key, Anthropic's data terms, Colab |
 | 6 | One scoring run on the test set; rule applied; decision note | — |
 
@@ -210,8 +226,8 @@ maximises development micro-F1 within the group.
 - **At lock:** this protocol, its lock test, `catalogue_v1`, the planning scripts.
 - **After the draws, without text:** the sample keys and manifests, including the check sample's; the blank-sheet
   hashes.
-- **After labelling, by `raw_row`, without text:** `reference_chatgpt`, `owner_check`, `second_rater`, with a
-  record of each sheet's SHA-256; the second rater's prompt and raw responses' hashes.
+- **After labelling, by `raw_row`, without text:** `reference_chatgpt`, `owner_check`, `second_rater` and
+  `second_rater_check`, with a record of each returned file's SHA-256.
 - **After the run:** the student's test and check logits, `thresholds_locked.json`, the scored summary, and a test
   that recomputes the decision from them.
 
@@ -236,7 +252,7 @@ Review texts stay under `runs/`.
 | `catalogue_v1` SHA-256 | `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9` | owner, 20 October 2026 |
 | Reference labels | ChatGPT (OpenAI), the model recorded as ChatGPT shows it; prompt `reference_prompt.md` (`1147d9a9…`); 16 batches of 50 | owner's choice, 27 October 2026 |
 | Teacher | `anthropic/claude-sonnet-5.5-20260928` | builder, version 1 |
-| Second rater | `google/gemini-4-argon-20261013` | owner's choice of a third provider, 27 October 2026; model by the builder |
+| Second rater | Gemini (Google) web app, model "gemini-4-argon" as the app shows it; prompt `reference_prompt.md`; 18 batches of 50 | owner's choice, 27 October (provider) and 29 October 2026 (web app) |
 | Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder, version 1 |
 | Sample seeds | development 20261021, test 20261022, check 20261024 | builder |
 
@@ -245,4 +261,5 @@ Review texts stay under `runs/`.
 | Version | Commit | Change |
 | :--- | :--- | :--- |
 | 1 | `6a6dc63` | Locked 20 October 2026. Gold from the owner's own blind labels, `openai/gpt-6.1-sol-20260929` as second rater. Under it: the samples were drawn (`a61b51f`, `02092f4`); the returned sheet was recorded as `owner_initial` (`3a5d7f6`) and withdrawn the same day (`8d0c8bf`) when the owner reported it had been filled by ChatGPT. The builder saw the sheet's label counts (urgent pairs: development 67, test 106). **No model was trained, no threshold set and nothing scored under version 1.** |
-| 2 | this commit | The owner's choices of 27 October 2026: reference labels from ChatGPT, made again from the committed prompt with the catalogue's definitions, so the question becomes agreement with an LLM; the first ChatGPT sheet (`6a9fa2bb…`, model named "Terra MAX", a prompt without the definitions) is not used; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |
+| 2 | `8d35b8b` | The owner's choices of 27 October 2026: reference labels from ChatGPT, made again from the committed prompt with the catalogue's definitions, so the question becomes agreement with an LLM; the first ChatGPT sheet (`6a9fa2bb…`, model named "Terra MAX", a prompt without the definitions) is not used; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |
+| 3 | this commit | The owner's choice of 29 October 2026: the second rater runs through the Gemini web app, by the owner, with the reference's prompt and the same 16 batches plus 2 check batches, instead of `google/gemini-4-argon-20261013` through the OpenRouter API. Under version 2 the reference (`c2780fe`) and the owner's check (`44812dc`) were recorded; no second-rater output existed. The second rater is reported only, so the change cannot affect the decision. Everything else is unchanged. |

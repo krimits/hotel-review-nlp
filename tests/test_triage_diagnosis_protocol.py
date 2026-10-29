@@ -1,4 +1,4 @@
-"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 2.
+"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 3.
 
 The protocol is frozen once committed. This test fails if its sections, its data fingerprint, the files it
 pins (catalogue, planning scripts, drawn samples, the reference prompt and batches), its models, seeds and
@@ -29,6 +29,9 @@ PINNED = {  # file -> SHA-256 at lock
     "samples/key.csv": "7b5e04415cee8db324214f4d45bebec8a56d1e3a480f68d93c2ff25519a815bb",
     "samples/manifest.json": "ea6468bc4dea6011c2afa6a9ce650ad5b318ef86f88ee85e5efabec694b4f804",
     "samples/reference_batches.json": "b84c6f93ae0289bb18fb0cb84b4b202490e52d5f4c82cca50266d363acb8e499",
+    "samples/check_key.csv": "2ca63686b36cce36534d57648fc789a0d4b8f72ed42cef0c9cefe0e9f25e39da",
+    "samples/check_manifest.json": "957761d794416074c504aea1c5bd05fbf822f2131e4a59a05d49e117cce1395c",
+    "samples/second_rater_batches.json": "a0ad9de8516e92de950aabc44a08c13bbb3f7dafe81eb200b93a8735b31aaf03",
 }
 IN_TEXT = ("catalogue_v1.yaml", "reference_prompt.md")  # pinned files whose hash the protocol itself states
 RULE = [
@@ -69,11 +72,11 @@ def section(protocol: str, start: str, end: str) -> str:
     return protocol.split(start, 1)[1].split(end, 1)[0]
 
 
-def test_the_five_required_sections_are_present_and_version_2_is_locked(protocol):
+def test_the_five_required_sections_are_present_and_version_3_is_locked(protocol):
     for heading in ("## 1. Question", "## 2. Data", "## 3. One primary comparison",
                     "## 4. Decision rule", "## 5. Limits"):
         assert heading in protocol, f"missing section: {heading}"
-    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 2, locked\n")
+    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 3, locked\n")
     assert "draft" not in protocol.lower() and "open field" not in protocol.lower()
     assert not (FOLDER / "PROTOCOL_v2_draft.md").exists()
 
@@ -104,7 +107,8 @@ def test_the_reference_prompt_is_the_catalogues():
 def test_models_seeds_and_sample_sizes_are_fixed(protocol, prose):
     fields = {cells[0]: cells[1] for cells in table_rows(section(protocol, "## 9. Fields", "## 10."))}
     assert fields["Teacher"] == "anthropic/claude-sonnet-5.5-20260928"
-    assert fields["Second rater"] == "google/gemini-4-argon-20261013"
+    assert fields["Second rater"].startswith("Gemini (Google) web app, model \"gemini-4-argon\"")
+    assert "**18 batches of 50**" in prose and "`check_batch_01`–`02`, the 100 check reviews" in prose
     assert fields["Reference labels"].startswith("ChatGPT (OpenAI)")
     # Three providers: the student is never scored against its teacher's family, nor the reference against its own.
     assert len({"anthropic", "google", "openai"}) == 3
@@ -153,11 +157,12 @@ def test_the_catalogue_is_the_approved_one():
         assert (types[name]["priority"], types[name]["department"]) == (priority, department), name
 
 
-def test_the_version_history_records_what_happened_under_version_1(protocol, prose):
+def test_the_version_history_records_what_happened_under_versions_1_and_2(protocol, prose):
     history = protocol.split("## 10. Version history", 1)[1]
     rows = {cells[0]: cells for cells in table_rows(history)}
-    assert set(rows) == {"1", "2"}
-    assert rows["1"][1] == "6a6dc63"
+    assert set(rows) == {"1", "2", "3"}
+    assert (rows["1"][1], rows["2"][1], rows["3"][1]) == ("6a6dc63", "8d35b8b", "this commit")
+    assert "c2780fe" in rows["3"][2] and "44812dc" in rows["3"][2] and "no second-rater output existed" in rows["3"][2]
     assert "No model was trained, no threshold set and nothing scored under version 1." in rows["1"][2]
     for commit in ("a61b51f", "02092f4", "3a5d7f6", "8d0c8bf"):
         assert commit in rows["1"][2], commit

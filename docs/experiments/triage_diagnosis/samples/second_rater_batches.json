@@ -1,0 +1,142 @@
+{
+ "prompt": "reference_prompt.md",
+ "prompt_sha256": "1147d9a9278717394d060d24c0e6618712165b7449e39f965f3a79048d7a6064",
+ "batch_size": 50,
+ "main": {
+  "blank_sheet_sha256": "219513fded5b066b31d32e5e8124b20e0c533b884d2377497e576152ef8befdc",
+  "same_bytes_as": "reference_batches.json",
+  "batches": {
+   "batch_01.csv": {
+    "items": [
+     1,
+     50
+    ],
+    "sha256": "597c3c050b45fda1fcac9b7a9c4f87d2762bbb74e0cb0f7ea0d0cbaf58762020"
+   },
+   "batch_02.csv": {
+    "items": [
+     51,
+     100
+    ],
+    "sha256": "72cd5979e73b6c6c6a3c16a95a1948096449b9422d02f14ff489b4f38289e8bf"
+   },
+   "batch_03.csv": {
+    "items": [
+     101,
+     150
+    ],
+    "sha256": "2319ea8d7b9f6f0d4c5e839ff338fb01d9347ee6f2c1d06e6cb7173ac3d76952"
+   },
+   "batch_04.csv": {
+    "items": [
+     151,
+     200
+    ],
+    "sha256": "b42e872f4323f0b45144a5c6e28b585a1bc7584fee122af35052cf56ce5b3e1f"
+   },
+   "batch_05.csv": {
+    "items": [
+     201,
+     250
+    ],
+    "sha256": "a2b23da1cf0b22724ca4b7860de9a497cd58a3ee2c459d808c7b88dd724a5c27"
+   },
+   "batch_06.csv": {
+    "items": [
+     251,
+     300
+    ],
+    "sha256": "ebd28761bcaba610804086e28eb7348d4cb72d20d16728375adbff4fc3f5dd93"
+   },
+   "batch_07.csv": {
+    "items": [
+     301,
+     350
+    ],
+    "sha256": "671b0646d5e702b6dedc002705d4fba78d4b45a162af623cafef557498946e13"
+   },
+   "batch_08.csv": {
+    "items": [
+     351,
+     400
+    ],
+    "sha256": "219aa61ed63306dd0e2d4997c6ee12884ed57e5dfcbd7bf6fe7366c10476ba37"
+   },
+   "batch_09.csv": {
+    "items": [
+     401,
+     450
+    ],
+    "sha256": "8fba4efa8e0509ad17912dd73e2b992e3b76c2d4459a5e10ab823f95eb3924de"
+   },
+   "batch_10.csv": {
+    "items": [
+     451,
+     500
+    ],
+    "sha256": "3df39bad46d33eb6821732385f9fe437132b59e50dd726da8ebde783c1909e61"
+   },
+   "batch_11.csv": {
+    "items": [
+     501,
+     550
+    ],
+    "sha256": "5cfb34ee69236238948d364f265e367985aa00a90c8195969cff6dc44d9ee058"
+   },
+   "batch_12.csv": {
+    "items": [
+     551,
+     600
+    ],
+    "sha256": "3ab3038218a8cc16f4955cc15f74611b9235f3196c5062510e14555443adf8dc"
+   },
+   "batch_13.csv": {
+    "items": [
+     601,
+     650
+    ],
+    "sha256": "8231101c507b25a291e8c592475115b14913a88cd95542d8d32651ba622c7e15"
+   },
+   "batch_14.csv": {
+    "items": [
+     651,
+     700
+    ],
+    "sha256": "cfc85f4e0deb76692cbdd4557dcc077c7722370bd7f10b39f6d3ad126b06c0fa"
+   },
+   "batch_15.csv": {
+    "items": [
+     701,
+     750
+    ],
+    "sha256": "e41cdcabaeda05bf0aa54868a26214e535ff9abf0ea64a1e1eebe93d479032c4"
+   },
+   "batch_16.csv": {
+    "items": [
+     751,
+     800
+    ],
+    "sha256": "e9e2d1fec23e43fad05d3c0d47f856af6879a13731a3ea052b648b85e68ea6e0"
+   }
+  }
+ },
+ "check": {
+  "blank_sheet_sha256": "c0cb0c4844c5d80f2f0f9f16f71b6522d85477cd6bd132b62a304269506ba204",
+  "batches": {
+   "check_batch_01.csv": {
+    "items": [
+     1,
+     50
+    ],
+    "sha256": "a86d81f0c1c928427faff54f3898fd1ad8c540e92507bfc6fb57e51c397da60c"
+   },
+   "check_batch_02.csv": {
+    "items": [
+     51,
+     100
+    ],
+    "sha256": "41850274e436ef7d91b1926d4def781e1e93f346cb98fc45156cda9149749404"
+   }
+  }
+ }
+}
