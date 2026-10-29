@@ -1,4 +1,4 @@
-"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 4.
+"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 5.
 
 The protocol is frozen once committed. This test fails if its sections, its data fingerprint, the files it
 pins (catalogue, planning scripts, drawn samples, the reference prompt and batches), its models, seeds and
@@ -73,11 +73,11 @@ def section(protocol: str, start: str, end: str) -> str:
     return protocol.split(start, 1)[1].split(end, 1)[0]
 
 
-def test_the_five_required_sections_are_present_and_version_4_is_locked(protocol):
+def test_the_five_required_sections_are_present_and_version_5_is_locked(protocol):
     for heading in ("## 1. Question", "## 2. Data", "## 3. One primary comparison",
                     "## 4. Decision rule", "## 5. Limits"):
         assert heading in protocol, f"missing section: {heading}"
-    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 4, locked\n")
+    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 5, locked\n")
     assert "draft" not in protocol.lower() and "open field" not in protocol.lower()
     assert not [path.name for path in FOLDER.glob("PROTOCOL_*draft*.md")]
 
@@ -114,7 +114,9 @@ def test_models_seeds_and_sample_sizes_are_fixed(protocol, prose):
     assert 4000 + 5000 + 1000 == 10000 and "25 reviews per call" in fields["Teacher sample"]
     assert ("**Rule: the teacher is `claude-sonnet-5.5` if `rec_dev(Sonnet) − rec_dev(Haiku) >= 0.05`; otherwise "
             "`claude-haiku-5.5`.**") in prose
-    assert fields["Second rater"].startswith("Gemini (Google) web app, model \"gemini-4-argon\"")
+    assert fields["Second rater"].startswith("Gemini (Google) web app, model \"Flash\" as the app showed it in all")
+    assert fields["Second rater"].endswith("read with `finish --numeric")  # table_rows strips the last backtick
+    assert "reads a label written `1.0` or `0.0` as `1` or `0`" in prose
     assert "**18 batches of 50**" in prose and "`check_batch_01`–`02`, the 100 check reviews" in prose
     assert fields["Reference labels"].startswith("ChatGPT (OpenAI)")
     # Three providers: the student is never scored against its teacher's family, nor the reference against its own.
@@ -164,11 +166,14 @@ def test_the_catalogue_is_the_approved_one():
         assert (types[name]["priority"], types[name]["department"]) == (priority, department), name
 
 
-def test_the_version_history_records_what_happened_under_versions_1_to_3(protocol, prose):
+def test_the_version_history_records_what_happened_under_versions_1_to_4(protocol, prose):
     history = protocol.split("## 10. Version history", 1)[1]
     rows = {cells[0]: cells for cells in table_rows(history)}
-    assert set(rows) == {"1", "2", "3", "4"}
-    assert [rows[v][1] for v in "1234"] == ["6a6dc63", "8d35b8b", "90e2c05", "this commit"]
+    assert set(rows) == {"1", "2", "3", "4", "5"}
+    assert [rows[v][1] for v in "12345"] == ["6a6dc63", "8d35b8b", "90e2c05", "ee6d642", "this commit"]
+    # Version 4's row said the second rater had not started; version 5 corrects it in its own row.
+    assert "A correction to version 4's row:** the second rater's run had started" in rows["5"][2]
+    assert "before any of its label counts or agreements was computed" in rows["5"][2]
     assert "before any teacher call" in rows["4"][2] and "had not started" in rows["4"][2]
     assert "c2780fe" in rows["3"][2] and "44812dc" in rows["3"][2] and "no second-rater output existed" in rows["3"][2]
     assert "No model was trained, no threshold set and nothing scored under version 1." in rows["1"][2]

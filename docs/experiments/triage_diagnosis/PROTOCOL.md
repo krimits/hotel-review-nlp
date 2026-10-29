@@ -1,9 +1,15 @@
-# Triage diagnosis and routing: protocol — version 4, locked
+# Triage diagnosis and routing: protocol — version 5, locked
 
-**Status: version 4 locked on 29 October 2026,** approved by the owner the same day, by the commit that updates
+**Status: version 5 locked on 29 October 2026,** at the owner's choice the same day, by the commit that updates
 its lock test, [`tests/test_triage_diagnosis_protocol.py`](../../../tests/test_triage_diagnosis_protocol.py).
-Versions 1–3 are in this file's history and are summarised in [§10](#10-version-history). Nothing had been
+Versions 1–4 are in this file's history and are summarised in [§10](#10-version-history). Nothing had been
 trained or scored at lock. Any later change needs a new version, not an edit.
+
+**Why a version 5.** It concerns only the second rater, which is reported only. The owner ran it with the model
+the Gemini app showed as "Flash", not the "gemini-4-argon" that version 3 named; and Gemini wrote `done`, and
+some labels, as `1.0` in all 16 batches of the 800, which version 3's checks refuse. Version 5 records the model
+as run and reads `1.0` and `0.0` as `1` and `0`. It was decided after the files came back and before any
+second-rater label count or agreement was computed. It also corrects version 4's history (§10).
 
 **Why a version 4.** Versions 1–3 said only that the teacher "labels the teacher pool", about 395,000 reviews,
 which with `claude-sonnet-5.5` would cost several hundred dollars. On 29 October 2026 the owner chose a cheaper
@@ -100,8 +106,9 @@ SHA-256 `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`). The
 
 **Second rater, `second_rater` and `second_rater_check` — reported only.**
 
-- Gemini (Google), run by the owner in the Gemini web app **after version 3 is locked**, with the model the owner
-  names "gemini-4-argon", recorded as the app shows it and the same for every batch.
+- Gemini (Google), run by the owner in the Gemini web app **after version 3 is locked**, with the model the app
+  showed as **"Flash" in all 18 batches**, as the owner reported on 29 October 2026. Version 3 named
+  "gemini-4-argon"; the batches were run with Flash.
 - The same prompt as the reference, [`reference_prompt.md`](reference_prompt.md) (`1147d9a9…`), given once at
   the start of the chat and again in any new chat. Only blank batches are uploaded: Gemini never sees ChatGPT's
   or the owner's labels.
@@ -113,6 +120,8 @@ SHA-256 `2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9`). The
   or returns a file `finish` refuses; the owner reports reruns and they are recorded.
 - The returned files are checked by `finish --kind second_rater` (the 800) and `--kind second_rater_check` (the
   100), recorded by `raw_row` with no text, and never edited.
+- **`finish --numeric`** reads a label written `1.0` or `0.0` as `1` or `0`, and records how many cells it read
+  this way; any other value is still refused. It is used for the second rater's files only.
 - Its provider and model family differ from both the teacher's (Anthropic) and the reference's (OpenAI).
 
 **Owner's check, `owner_check` — reported only.**
@@ -232,7 +241,9 @@ maximises development micro-F1 within the group.
   choice is not a pinned version and a chat session is not deterministic. Only the returned files and their
   SHA-256 fix the labels.
 - **The second rater cannot be reproduced or fully verified either.** It runs in the Gemini web app, with the
-  same limits as the reference: no pinned version, no deterministic session, and only what the app shows.
+  same limits as the reference: no pinned version, no deterministic session, and only what the app shows. It is
+  Gemini **Flash**, so its agreement figures describe Flash, not a larger Gemini model. The `1.0` values suggest
+  it wrote its files with code; whether code also chose labels cannot be seen, and the owner saw none that did.
 - **How ChatGPT labelled cannot be fully verified.** The prompt forbids code and keyword rules, and batches
   where ChatGPT shows them are rerun, but what the model did internally is not visible. Batches are 50 rows so
   that reading each review is feasible.
@@ -302,7 +313,7 @@ Review texts stay under `runs/`.
 | Reference labels | ChatGPT (OpenAI), the model recorded as ChatGPT shows it; prompt `reference_prompt.md` (`1147d9a9…`); 16 batches of 50 | owner's choice, 27 October 2026 |
 | Teacher | `anthropic/claude-haiku-5.5-20261007` or `anthropic/claude-sonnet-5.5-20260928`, chosen on development by the rule in §2 | owner's choice of the approach, 29 October 2026 |
 | Teacher sample | 10,000 from the teacher pool, H 4,000, N 5,000, B 1,000, seed 20261030; 25 reviews per call | builder |
-| Second rater | Gemini (Google) web app, model "gemini-4-argon" as the app shows it; prompt `reference_prompt.md`; 18 batches of 50 | owner's choice, 27 October (provider) and 29 October 2026 (web app) |
+| Second rater | Gemini (Google) web app, model "Flash" as the app showed it in all 18 batches; prompt `reference_prompt.md`; 18 batches of 50; read with `finish --numeric` | owner's choice, 27 October (provider) and 29 October 2026 (web app); model as run, reported by the owner |
 | Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder, version 1 |
 | Sample seeds | development 20261021, test 20261022, check 20261024 | builder |
 
@@ -313,4 +324,5 @@ Review texts stay under `runs/`.
 | 1 | `6a6dc63` | Locked 20 October 2026. Gold from the owner's own blind labels, `openai/gpt-6.1-sol-20260929` as second rater. Under it: the samples were drawn (`a61b51f`, `02092f4`); the returned sheet was recorded as `owner_initial` (`3a5d7f6`) and withdrawn the same day (`8d0c8bf`) when the owner reported it had been filled by ChatGPT. The builder saw the sheet's label counts (urgent pairs: development 67, test 106). **No model was trained, no threshold set and nothing scored under version 1.** |
 | 2 | `8d35b8b` | The owner's choices of 27 October 2026: reference labels from ChatGPT, made again from the committed prompt with the catalogue's definitions, so the question becomes agreement with an LLM; the first ChatGPT sheet (`6a9fa2bb…`, model named "Terra MAX", a prompt without the definitions) is not used; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |
 | 3 | `90e2c05` | The owner's choice of 29 October 2026: the second rater runs through the Gemini web app, by the owner, with the reference's prompt and the same 16 batches plus 2 check batches, instead of `google/gemini-4-argon-20261013` through the OpenRouter API. Under version 2 the reference (`c2780fe`) and the owner's check (`44812dc`) were recorded; no second-rater output existed. The second rater is reported only, so the change cannot affect the decision. Everything else is unchanged. |
-| 4 | this commit | The owner's choice of 29 October 2026, before any teacher call: a fixed teacher sample of 10,000 (H 4,000, N 5,000, B 1,000, seed 20261030) in place of "the teacher pool"; a teacher prompt generated from the catalogue; and the teacher chosen on development between `claude-haiku-5.5` and `claude-sonnet-5.5` by a rule fixed here (Sonnet only if it leads by 0.05 in development recall). The second rater's run and the student's training had not started. Everything else is unchanged. |
+| 4 | `ee6d642` | The owner's choice of 29 October 2026, before any teacher call: a fixed teacher sample of 10,000 (H 4,000, N 5,000, B 1,000, seed 20261030) in place of "the teacher pool"; a teacher prompt generated from the catalogue; and the teacher chosen on development between `claude-haiku-5.5` and `claude-sonnet-5.5` by a rule fixed here (Sonnet only if it leads by 0.05 in development recall). The second rater's run and the student's training had not started. Everything else is unchanged. |
+| 5 | this commit | The second rater as run, decided on 29 October 2026 after its files came back and before any of its label counts or agreements was computed: the model the Gemini app showed as "Flash" in all 18 batches (version 3 named "gemini-4-argon"), and `finish --numeric`, which reads `1.0` and `0.0` as `1` and `0` (Gemini wrote `done`, and some labels, as `1.0` in all 16 batches of the 800). **A correction to version 4's row:** the second rater's run had started. Its batches 01–11 were saved between 12:36 and 13:10, before version 4 was locked at 13:11. Version 4 changed only the teacher, which the second rater's labels do not touch, and nothing had been computed from them. Everything else is unchanged. |
