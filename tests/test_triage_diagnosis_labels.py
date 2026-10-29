@@ -295,3 +295,23 @@ def test_the_teacher_prompt_shares_the_reference_prompts_rules_and_types_word_fo
     committed = labels.TEACHER_PROMPT
     if committed.exists():
         assert committed.read_text(encoding="utf-8") == teacher
+
+
+def test_numeric_reads_only_1_0_and_0_0_as_integers_and_counts_them(tmp_path):
+    samples, _, blank = drawn(tmp_path)
+
+    def floats(table):
+        table["done"] = "1.0"
+        table.loc[table["cleanliness"] == "1", "cleanliness"] = "1.0"
+        table.loc[0, "pests"] = "0.0"
+    sheet = filled(blank, tmp_path / "floats.csv", floats)
+    with pytest.raises(labels.SheetError, match="only be empty, 0 or 1"):
+        labels.finish(sheet, out=tmp_path / "plain", samples=samples, received_on=DAY)
+    record = labels.finish(sheet, out=tmp_path / "numeric", samples=samples, received_on=DAY, numeric=True)
+    clean = labels.finish(filled(blank, tmp_path / "clean.csv"), out=tmp_path / "clean", samples=samples,
+                          received_on=DAY)
+    assert (tmp_path / "numeric" / "owner_initial.csv").read_bytes() == (tmp_path / "clean" / "owner_initial.csv").read_bytes()
+    assert record["numeric_cells_read_as_integers"] == 12 + 6 + 1 and clean["numeric_cells_read_as_integers"] is None
+    other = filled(blank, tmp_path / "other.csv", lambda t: t.loc.__setitem__((0, "wifi"), "1.00"))
+    with pytest.raises(labels.SheetError, match="only be empty, 0 or 1"):
+        labels.finish(other, out=tmp_path / "other", samples=samples, received_on=DAY, numeric=True)

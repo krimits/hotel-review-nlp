@@ -163,8 +163,22 @@ def check_sheet(raw: pd.DataFrame, key: pd.DataFrame, types: list[str]) -> pd.Da
     return marks.drop(columns="done")
 
 
+def read_numeric(raw: pd.DataFrame, columns: list[str]) -> tuple[pd.DataFrame, int]:
+    """PROTOCOL.md version 5: a label written `1.0` or `0.0` (a float a writer's code produced) is read as `1` or
+    `0`. Only these two spellings; anything else is left for the checks to refuse. Returns the count changed."""
+    raw = raw.copy()
+    changed = 0
+    for column in columns:
+        values = raw[column].str.strip()
+        floats = values.isin(["1.0", "0.0"])
+        changed += int(floats.sum())
+        raw.loc[floats, column] = values[floats].str[0]
+    return raw, changed
+
+
 def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path = SAMPLES,
-           received_on: dt.date | None = None, source: str | None = None, unwrapped: bool = False) -> dict:
+           received_on: dt.date | None = None, source: str | None = None, unwrapped: bool = False,
+           numeric: bool = False) -> dict:
     """Check a returned sheet and write its labels and record; refuse to replace labels already written."""
     key_name, name = KINDS[kind]
     if (out / f"{name}.csv").exists():
@@ -177,6 +191,9 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
         raise SheetError("--unwrap takes one returned file, not a folder")
     pattern = BATCH_GLOBS.get(kind, "batch_*_filled.csv")
     raw, files = read_unwrapped(sheet) if unwrapped else read_returned(sheet, pattern)
+    numeric_cells = None
+    if numeric:
+        raw, numeric_cells = read_numeric(raw, [*types, "none", "done"])
     marks = check_sheet(raw, key, types)
     notes = raw["note"].str.strip()
     by_item = key.set_index(key["item"].astype(str))
@@ -193,6 +210,7 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
         "key_sha256": sample.trends._sha256(samples / key_name),
         "sheet_sha256": files if sheet.is_dir() else files[sheet.name],
         "unwrapped_text_sha256": files.get("unwrapped_text"),
+        "numeric_cells_read_as_integers": numeric_cells,
         "source": source,
         "code_commit": sample.pilot.git_commit(),
         "received_on": received_on.isoformat(),
@@ -404,6 +422,8 @@ def main() -> None:
     first.add_argument("--source", help="who or what filled the sheet, as recorded (for --kind reference)")
     first.add_argument("--unwrap", action="store_true",
                        help="undo a spreadsheet save that wrapped every line in one quoted cell")
+    first.add_argument("--numeric", action="store_true",
+                       help="read a label written 1.0 or 0.0 as 1 or 0 (version 5), and record how many")
     second = steps.add_parser("relabel", help="write the blind relabel sheet (7 days after owner_initial)")
     second.add_argument("--overwrite", action="store_true")
     steps.add_parser("prompt", help="write reference_prompt.md from the catalogue")
@@ -428,7 +448,8 @@ def main() -> None:
         elif args.step == "finish":
             if args.kind in LLM_KINDS and not args.source:
                 raise SheetError(f"--source is required for {args.kind} labels")
-            record = finish(args.sheet, args.kind, args.out, source=args.source, unwrapped=args.unwrap)
+            record = finish(args.sheet, args.kind, args.out, source=args.source, unwrapped=args.unwrap,
+                            numeric=args.numeric)
             print(f"{record['labels']}: {record['reviews']} reviews {record['reviews_by_set']}, "
                   f"{record['type_labels']} type labels, {record['reviews_with_none']} with none -> {args.out}")
             if "relabel_not_before" in record:
