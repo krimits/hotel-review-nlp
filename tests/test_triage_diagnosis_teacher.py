@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import http.client
 import importlib.util
 import json
 import sys
+import urllib.error
 from pathlib import Path
 
 import pandas as pd
@@ -40,6 +42,8 @@ class FakeOpenRouter:
         reviews = json.loads(body["messages"][1]["content"])
         entries = [{"item": r["item"], "types": ["cleanliness"] if r["item"] % 2 else []} for r in reviews]
         behaviour = self.behaviours.pop(0) if self.behaviours else "ok"
+        if isinstance(behaviour, Exception):
+            raise behaviour
         if isinstance(behaviour, int):
             return behaviour, {"retry-after": "0"}, b'{"error": "status"}'
         if behaviour == "garbled":
@@ -150,6 +154,27 @@ def test_rate_limits_are_waited_out_and_other_errors_stop_the_run_until_it_resum
     record = run(layout, resumed)
     assert len(resumed.calls) == 2  # batch 1 is not sent again
     assert record["calls"] == 3 and record["retries"] == 0
+
+
+def test_network_failures_are_waited_out_and_do_not_count_as_tries(layout, monkeypatch):
+    monkeypatch.setattr(teacher, "BATCH", 2)
+    sleeps = []
+    fake = FakeOpenRouter([TimeoutError(), urllib.error.URLError("refused"), http.client.IncompleteRead(b""), "ok"])
+    record = run(layout, fake, sleeps=sleeps)
+    assert sleeps == [5, 15, 30] and len(fake.calls) == 6  # 3 lost calls, then the 3 batches
+    assert record["calls"] == 3 and record["retries"] == 0 and record["failed_reviews"] == 0
+
+
+def test_a_long_network_failure_stops_cleanly_and_the_run_resumes(layout, monkeypatch):
+    monkeypatch.setattr(teacher, "BATCH", 2)
+    sleeps = []
+    down = FakeOpenRouter(["ok", *[TimeoutError() for _ in range(len(teacher.NETWORK_WAITS) + 1)]])
+    with pytest.raises(teacher.Stop, match="rerun the same command"):
+        run(layout, down, sleeps=sleeps)
+    assert sleeps == list(teacher.NETWORK_WAITS)
+    resumed = FakeOpenRouter()
+    record = run(layout, resumed)
+    assert len(resumed.calls) == 2 and record["calls"] == 3  # the finished batch is not sent again
 
 
 def test_the_spending_limit_stops_before_a_call_and_the_run_resumes(layout, monkeypatch):
