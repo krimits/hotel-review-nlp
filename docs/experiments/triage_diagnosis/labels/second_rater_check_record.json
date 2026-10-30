@@ -1,0 +1,47 @@
+{
+ "labels": "second_rater_check",
+ "protocol": "docs/experiments/triage_diagnosis/PROTOCOL.md",
+ "protocol_sha256": "3eda59cae67a66a136c07ed57dd75f16de9a16de8153a02a0023e58c710ea292",
+ "catalogue_sha256": "2575996133afaa6e0178060df3bd5288d01ce9b7d842a6b3bf67d362d29445e9",
+ "key": "check_key.csv",
+ "key_sha256": "2ca63686b36cce36534d57648fc789a0d4b8f72ed42cef0c9cefe0e9f25e39da",
+ "sheet_sha256": {
+  "check_batch_01_filled.csv": "ebb87f17f4818e5e84c4e687b9a3062847749776254012444fdbaf11f35d1ca0",
+  "check_batch_02_filled.csv": "19d43d95ab108eda10f9aaa45e4c59c2e5e943ec1a5bc2364c7b0b2a56f2cc12"
+ },
+ "unwrapped_text_sha256": null,
+ "numeric_cells_read_as_integers": 0,
+ "source": "Gemini web app, model 'Flash' as shown to the owner in all 18 batches, 29 October 2026; prompt reference_prompt.md; no batch rerun and no labelling code shown (owner)",
+ "code_commit": "7d27877bc39edaac1feb7af013d5b2da35e87ebb",
+ "received_on": "2026-10-29",
+ "reviews": 100,
+ "reviews_by_set": {
+  "check": 100
+ },
+ "reviews_with_a_type": 83,
+ "reviews_with_none": 17,
+ "type_labels": 150,
+ "per_type": {
+  "cleanliness": 10,
+  "pests": 1,
+  "security_fault": 0,
+  "safety_hazard": 1,
+  "hvac_failure": 10,
+  "plumbing_major": 4,
+  "plumbing_minor": 0,
+  "equipment_fault": 2,
+  "wifi": 3,
+  "noise_internal": 10,
+  "linen_amenities": 7,
+  "bed_comfort": 1,
+  "food_beverage": 12,
+  "staff_service": 15,
+  "checkin_billing": 9,
+  "other_problem": 1,
+  "noise_external": 6,
+  "room_and_facilities": 40,
+  "location_view": 5,
+  "price_value": 13
+ },
+ "notes_left_out": 0
+}
