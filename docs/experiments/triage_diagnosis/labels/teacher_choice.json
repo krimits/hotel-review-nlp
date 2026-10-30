@@ -1,0 +1,23 @@
+{
+ "rule": "sonnet if rec_dev(sonnet) - rec_dev(haiku) >= 0.05, otherwise haiku",
+ "rec_dev": {
+  "haiku": 0.926171,
+  "sonnet": 0.955703
+ },
+ "fa_dev": {
+  "haiku": 3.0932,
+  "sonnet": 4.1473
+ },
+ "cost_usd": {
+  "haiku": 0.020257,
+  "sonnet": 0.181162
+ },
+ "failed_reviews": {
+  "haiku": 0,
+  "sonnet": 0
+ },
+ "sonnet_lead": 0.029532,
+ "teacher": "haiku",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "code_commit": "1ad58fed39159a4b952a6b66b8e7b83bf56952ff"
+}
