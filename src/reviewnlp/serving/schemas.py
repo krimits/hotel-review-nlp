@@ -2,15 +2,25 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from typing import Annotated
+
+from pydantic import BaseModel, Field, StringConstraints
+
+# One review, bounded at both ends: the tokenizer truncates to 256 tokens anyway, and an
+# unbounded string is a memory/CPU bill the caller chooses for the server.
+ReviewText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=8000)]
+
+# A batch is capped per item *and* per request. `texts: list[str]` alone let one request
+# carry 256 multi-megabyte strings straight into the tokenizer.
+MAX_BATCH_ITEMS = 64
 
 
 class PredictRequest(BaseModel):
-    text: str = Field(..., min_length=3, max_length=8000, examples=["The room was tiny but the location was perfect."])
+    text: ReviewText = Field(..., examples=["The room was tiny but the location was perfect."])
 
 
 class BatchPredictRequest(BaseModel):
-    texts: list[str] = Field(..., min_length=1, max_length=256)
+    texts: list[ReviewText] = Field(..., min_length=1, max_length=MAX_BATCH_ITEMS)
 
 
 class PredictResponse(BaseModel):

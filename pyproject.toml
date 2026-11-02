@@ -48,12 +48,15 @@ llm = [
 serving = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
+]
+loadtest = [
     "locust>=2.20",
 ]
 dev = [
     "pytest>=8.0",
     "ruff>=0.5",
     "httpx>=0.27",
+    "locust>=2.20",
 ]
 
 [tool.setuptools.packages.find]
@@ -61,6 +64,23 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "reviewnlp.serving" = ["dashboard.html"]
+
+[tool.mypy]
+# Scoped on purpose: these three packages are where the served API and the evaluation
+# numbers live. The rest of the tree is still untyped, and a check that starts by failing
+# on 60 files teaches nobody anything.
+python_version = "3.11"
+files = ["src/reviewnlp/serving", "src/reviewnlp/evaluation", "src/reviewnlp/data"]
+mypy_path = "src"
+# The three packages above are the gate. Modules they import (triage, analytics) still get
+# analysed, because their types flow into the checked code, but their own errors are not
+# reported yet: they carry 18, and a gate that starts red gets switched off. Move a package
+# into `files` to bring it under the floor.
+follow_imports = "silent"
+ignore_missing_imports = true
+warn_unused_ignores = false
+warn_redundant_casts = true
+no_implicit_optional = true
 
 [tool.ruff]
 line-length = 100
