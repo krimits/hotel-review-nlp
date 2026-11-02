@@ -92,7 +92,7 @@ class BatchAbsaRequest(BaseModel):
     """Request schema for batch ABSA analysis."""
 
     hotel_id: str = Field(..., min_length=1, max_length=100)
-    reviews: list[AbsaRequest] = Field(..., min_length=1, max_length=256)
+    reviews: list[AbsaRequest] = Field(..., min_length=1, max_length=64)
 
 
 class BatchAbsaResponse(BaseModel):

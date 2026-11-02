@@ -15,6 +15,7 @@ Local run:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -46,6 +47,16 @@ app = FastAPI(
     version="0.1.0",
 )
 wrapper = ModelWrapper()
+
+# A request that outlives this bound is a stuck worker, not a slow answer. Without it one
+# pathological input holds a worker thread until the client gives up and the queue behind it
+# keeps growing; the sync endpoints had no bound at all.
+INFERENCE_TIMEOUT_S = float(os.getenv("REVIEWNLP_INFERENCE_TIMEOUT_S", "30"))
+
+
+async def _run_inference(func, *args):
+    """Run a blocking predict call in the threadpool, with a hard deadline."""
+    return await asyncio.wait_for(asyncio.to_thread(func, *args), timeout=INFERENCE_TIMEOUT_S)
 
 # Include ABSA and analytics routers
 app.include_router(absa_router)
@@ -85,9 +96,12 @@ def health() -> HealthResponse:
 
 
 @app.post("/predict", response_model=PredictResponse, dependencies=[Depends(require_api_key)])
-def predict(req: PredictRequest) -> PredictResponse:
+async def predict(req: PredictRequest) -> PredictResponse:
     try:
-        result = timed_predict(wrapper, req.text)
+        result = await _run_inference(timed_predict, wrapper, req.text)
+    except TimeoutError as exc:
+        log.warning("inference timed out after %ss", INFERENCE_TIMEOUT_S)
+        raise HTTPException(status_code=504, detail="inference timed out") from exc
     except Exception as exc:  # noqa: BLE001
         log.exception("inference error")
         raise HTTPException(status_code=500, detail="inference failed") from exc
@@ -95,13 +109,16 @@ def predict(req: PredictRequest) -> PredictResponse:
 
 
 @app.post("/predict/batch", response_model=BatchPredictResponse, dependencies=[Depends(require_api_key)])
-def predict_batch(req: BatchPredictRequest) -> BatchPredictResponse:
+async def predict_batch(req: BatchPredictRequest) -> BatchPredictResponse:
     """Batch inference: one forward pass over the whole request."""
     import time
 
     t0 = time.perf_counter()
     try:
-        pairs = wrapper.predict_batch(req.texts)
+        pairs = await _run_inference(wrapper.predict_batch, req.texts)
+    except TimeoutError as exc:
+        log.warning("batch inference timed out after %ss", INFERENCE_TIMEOUT_S)
+        raise HTTPException(status_code=504, detail="inference timed out") from exc
     except Exception as exc:  # noqa: BLE001
         log.exception("batch inference error")
         raise HTTPException(status_code=500, detail="inference failed") from exc

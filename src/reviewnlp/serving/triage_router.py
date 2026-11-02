@@ -9,7 +9,7 @@ from __future__ import annotations
 import importlib
 import logging
 import threading
-from typing import Annotated
+from typing import Annotated, Literal, cast
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
@@ -74,9 +74,10 @@ def triage_review(
     response = TriageResponse(
         hotel_id=request.hotel_id, review_id=request.review_id, stored=stored,
         not_stored_reason=None if stored else "no_database" if store is None else "no_review_id",
-        status=result.status, sentiment=result.sentiment, complaints=result.complaints, routing=result.routing,
+        status=cast(Literal["complete", "partial"], result.status), sentiment=result.sentiment,
+        complaints=result.complaints, routing=result.routing,
         actions=result.actions, timings=result.timings)
-    if stored:
+    if store is not None and request.review_id is not None:
         store.save_triage(hotel_id=request.hotel_id, review_id=request.review_id, source=request.source or "api",
                           text=request.text, language=request.language, review_date=request.review_date,
                           result=response.model_dump(mode="json"))

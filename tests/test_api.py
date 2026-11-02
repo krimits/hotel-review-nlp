@@ -76,3 +76,69 @@ def test_stub_needs_no_model_path():
     label, confidence = wrapper.predict("Perfect stay, spotless room.")
     assert label in {"positive", "negative"}
     assert 0.5 <= confidence <= 1.0
+
+
+def test_batch_rejects_more_than_the_cap(client):
+    r = client.post("/predict/batch", json={"texts": ["A perfectly good review."] * 65})
+    assert r.status_code == 422
+
+
+def test_batch_rejects_an_oversized_item(client):
+    """The cap is per item as well as per request: list[str] had neither."""
+    r = client.post("/predict/batch", json={"texts": ["x" * 8001]})
+    assert r.status_code == 422
+
+
+def test_batch_accepts_exactly_the_cap(client):
+    texts = [f"Review number {i} was a fine stay." for i in range(64)]
+    r = client.post("/predict/batch", json={"texts": texts})
+    assert r.status_code == 200
+    assert len(r.json()["predictions"]) == 64
+
+
+def test_a_stuck_inference_returns_504(monkeypatch):
+    """A call that outlives REVIEWNLP_INFERENCE_TIMEOUT_S must not hold the worker."""
+    import time
+
+    app_module = __import__("sys").modules["reviewnlp.serving.app"]
+
+    class _SlowWrapper:
+        model_type = "stub"
+        model_path = ""
+
+        def predict(self, text):
+            time.sleep(0.5)
+            return ("positive", 0.9)
+
+        def predict_batch(self, texts):
+            time.sleep(0.5)
+            return [("positive", 0.9) for _ in texts]
+
+    monkeypatch.setattr(app_module, "INFERENCE_TIMEOUT_S", 0.05)
+    monkeypatch.setattr(app_module, "wrapper", _SlowWrapper())
+    r = TestClient(app).post("/predict", json={"text": "The room was spotless."})
+    assert r.status_code == 504
+
+
+def test_stub_labels_do_not_depend_on_the_process_hash_seed():
+    """`hash()` is salted per process, so the "deterministic" stub was not one."""
+    import subprocess
+    import sys
+
+    code = (
+        "from reviewnlp.serving.model_wrapper import ModelWrapper;"
+        "print(ModelWrapper('stub', '').predict('the room was clean'))"
+    )
+    outputs = []
+    for seed in ("0", "1"):
+        completed = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            env={**__import__("os").environ, "PYTHONHASHSEED": seed},
+            check=True,
+        )
+        outputs.append(completed.stdout.strip())
+    assert outputs[0] == outputs[1]
+
