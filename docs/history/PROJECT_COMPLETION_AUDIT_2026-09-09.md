@@ -1,3 +1,9 @@
+﻿> **Historical, superseded (2026-09-09).** This audit describes an earlier snapshot of the
+> repository (revision `e0c3289`) and its status list is out of date: several findings it
+> records as open were fixed later, and some numbers it could not find are now committed.
+> Kept for provenance. Current state: [docs/EVIDENCE_MAP.md](../EVIDENCE_MAP.md) and
+> [docs/RESULTS.md](../RESULTS.md).
+
 # Αναλυτικός έλεγχος ολοκλήρωσης Hotel Review NLP
 
 Ημερομηνία ελέγχου: **9 Σεπτεμβρίου 2026**
@@ -6,7 +12,7 @@
 
 Έκδοση αναφοράς: `e0c3289aa5f95cb130207055e921d03291b4df23`, συν τις δύο προϋπάρχουσες τοπικές διορθώσεις BiLSTM.
 
-Βάση αξιολόγησης: [ACTION_PLAN.md](ACTION_PLAN.md), κώδικας, notebooks, πραγματικά τοπικά artifacts και GitHub Actions.
+Βάση αξιολόγησης: [ACTION_PLAN_2026-09.md](ACTION_PLAN_2026-09.md), κώδικας, notebooks, πραγματικά τοπικά artifacts και GitHub Actions.
 
 ## 1. Συμπέρασμα
 
