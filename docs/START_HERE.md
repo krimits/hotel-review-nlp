@@ -19,7 +19,7 @@ not two independent scores put side by side.
 
 ## 2. The contamination we found in our own data (3 min)
 
-[README, historical results](../README.md#historical-results-legacy-split-text-overlap)
+[Results, historical split](RESULTS.md#historical-results-legacy-split-text-overlap)
 
 The first version of this benchmark scored five model families on a test set that shares
 **170 review texts with training**. We found it, audited it (finding F02), rebuilt the
@@ -90,8 +90,7 @@ ruff check src tests scripts spaces
 - Not production accuracy: these are development splits of a public dataset.
 - Not a selected or promoted model: the triage and topic experiments record
   `selection_frozen: false` and `promoted: false` deliberately.
-- Not fully reproducible from a clean machine: there is no dependency lockfile and no
-  pinned Python version yet.
+- Not fully reproducible from a clean machine: CI is locked (`requirements/ci.lock`, Linux and Python 3.11), but the project pins no Python version of its own (`requires-python = ">=3.10"`), several results were produced in Colab sessions whose environments were not frozen, and the weights live on the Hub rather than in the repository.
 
 The experiment process itself — protocols locked before runs, append-only run log, the
 agent workflow used to build this — is documented separately in

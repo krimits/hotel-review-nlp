@@ -45,9 +45,11 @@ def test_the_recorded_rejections_begin_with_their_gold_label():
     assert all(sample["raw_generation"].strip() != sample["gold"] for sample in samples)
 
 
-def test_the_readme_row_points_to_the_record_and_names_the_rule():
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    row = next(line for line in readme.splitlines() if line.startswith("| Qwen2.5-0.5B + QLoRA |"))
+def test_the_results_table_points_to_the_record_and_names_the_rule():
+    results = (ROOT / "docs" / "RESULTS.md").read_text(encoding="utf-8")
+    row = next(line for line in results.splitlines() if line.startswith("| Qwen2.5-0.5B + QLoRA |"))
     assert "0.9571" in row and "first-step label scores" in row
-    assert "docs/experiments/results/qwen_legacy_v1/README.md" in readme
-    assert "20k subset" not in readme
+    assert "docs/experiments/results/qwen_legacy_v1/README.md" in results or \
+        "experiments/results/qwen_legacy_v1/README.md" in results
+    assert "20k subset" not in (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "20k subset" not in results
