@@ -60,6 +60,14 @@ distilling the teacher into the student, not in a disagreement between ChatGPT a
 - **The student never emits `security_fault` or `safety_hazard` at the locked urgent threshold**, although the
   teacher gave them 293 and 251 training examples. One threshold for the whole urgent group, as the protocol
   fixed it, suits the frequent types and silences these two.
+- **The ceiling under the locked rule.** 16 of the 104 urgent pairs cannot be reached at
+  the locked urgent threshold of 0.30: 7 are `security_fault` and 9 `safety_hazard`, two
+  types the student never emits at that threshold. The most this rule could have scored is
+  therefore 88 of 104 pairs = 0.846, below the 0.90 bar. The shortfall has two parts, and
+  they are different claims: distillation took the score from 0.846 to 0.7087, and the
+  single-threshold choice fixed 0.846 as the ceiling, leaving 0.90 out of reach whatever
+  the student did inside the rule. Recovering it needs per-type thresholds, class weights
+  or more teacher data (a new protocol and new test reviews), not a re-read of this run.
 - **By stratum:** H (trigger word) 68 of 90 pairs (0.756); N (no trigger word) 8 of 14 (0.571); B none.
 - **Strict type recall** 0.692; **department accuracy on emitted types** 0.824.
 - **Baselines on the same 500 reviews:** the teacher 0.9669 (100 of 104); `complaint-lexicon-v1` 0.0083 (1 of
