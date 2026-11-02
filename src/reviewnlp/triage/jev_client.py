@@ -21,6 +21,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
+from typing import Any, cast
 
 from reviewnlp.triage.questions import LABELS, TOPIC_OF_QUESTION, request_body
 from reviewnlp.triage.schemas import OTHER, ComplaintTopic
@@ -141,7 +142,9 @@ def _topic(item: object, topic: str) -> ComplaintTopic:
         raise JevError("invalid_answer") from None
     if not 0.0 <= p_yes <= 1.0:
         raise JevError("invalid_answer")
-    return ComplaintTopic(topic=topic, answer=ANSWER_OF_LABEL[choice], probability=p_yes)
+    # ANSWER_OF_LABEL is keyed by the validated LABELS set above, so the value is one of the
+    # three literals the schema accepts; the mapping itself is typed as dict[str, str].
+    return ComplaintTopic(topic=topic, answer=cast(Any, ANSWER_OF_LABEL[choice]), probability=p_yes)
 
 
 def parse_answer(raw: bytes, route: str) -> JevResult:

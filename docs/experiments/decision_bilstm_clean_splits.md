@@ -106,7 +106,24 @@ in those words, as the protocol requires.
   - Naive Bayes was retrained in the session only to be timed. It agreed with the scored
     predictions on 498 of the 500 timed reviews; the script's floor is 99%.
 
+## Cluster-robust interval on the unseen-hotels split
+
+The intervals compared above resample reviews. On the hotel view that understates the
+uncertainty: reviews of one hotel share its staff, its building and its season, so drawing
+a different set of hotels is not the same as drawing different reviews from the same ones.
+Resampling whole hotels (1,000 resamples, seed 42) widens the BiLSTM interval from
+0.9472–0.9557 to **0.9452–0.9566** (×1.34), and Naive Bayes from 0.9296–0.9394 to
+**0.9287–0.9405** (×1.20).
+
+The ordering this note relies on is unchanged: the BiLSTM's clustered lower bound stays
+above Naive Bayes's clustered upper bound. The correction costs interval width, not the
+conclusion. Recorded in [`results/clustered/hotel.json`](results/clustered/hotel.json), with
+the method, the refusals and the limits in [its notes](results/clustered/README.md).
+
 ## Artifacts
+
+- [`results/clustered/`](results/clustered/): the hotel-split clustered intervals and their
+  method notes.
 
 - [`results/bilstm_v2/`](results/bilstm_v2/): the five BiLSTM runs (`metrics.json`, dev and test
   logits and labels, `run_config.yaml`, `train_log.txt`), `bilstm_comparison_v2.json`,

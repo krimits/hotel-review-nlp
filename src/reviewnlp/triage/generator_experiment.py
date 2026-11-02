@@ -41,7 +41,7 @@ DEFAULT_CANDIDATES = ("A", "B", "C", "D")
 RATINGS = ("useful", "grounded", "department_correct", "no_invented_facts")
 
 # These examples are separate from development, holdout, and the historical smoke reviews.
-EXAMPLES = (
+EXAMPLES: tuple = (
     ("The reading lamp flickered all evening.", {
         "actions": [{"problem": "Flickering reading lamp", "excerpt": "The reading lamp flickered all evening.",
                      "measure": "Inspect the lamp and replace the faulty component.",
@@ -145,7 +145,7 @@ def builder(candidate: str):
     if candidate == "G":
         return messages_evidence
     return lambda review, signals: messages_v2(
-        review, signals, sentiment_metadata=CANDIDATES[candidate]["sentiment_metadata"])
+        review, signals, sentiment_metadata=bool(CANDIDATES[candidate]["sentiment_metadata"]))
 
 
 def messages_v3(review: str, signals: ActionSignals) -> list[dict]:

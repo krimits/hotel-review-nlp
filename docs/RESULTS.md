@@ -103,6 +103,12 @@ The same pipeline, chosen on dev, gives these results on each split:
 The selected pipeline is word TF-IDF + Naive Bayes on all three splits.
 - **Unseen hotels.** The observed performance is similar to the random split in
   this comparison (0.9348 against 0.9351). This is not a test of equivalence.
+- **Unseen hotels, resampled by hotel.** The interval above resamples reviews; the hotel
+  view is about drawing a different set of hotels, and reviews of one hotel are not
+  independent. Resampling whole hotels widens the interval by about 20% for Naive Bayes
+  (0.9287–0.9405) and about 34% for the BiLSTM (0.9452–0.9566). No ordering changes: the
+  BiLSTM's lower bound stays above Naive Bayes's upper bound
+  ([`results/clustered/hotel.json`](experiments/results/clustered/hotel.json)).
 - **Later reviews.** Macro-F1 is 1.7 points lower, and the two intervals do not
   overlap. The test sets hold different reviews, so this is not a paired
   comparison.

@@ -16,8 +16,10 @@ jobs:
       - run: pip install ruff -c requirements/ci.lock
       - run: ruff check src tests scripts spaces
 
-  # The API and the evaluation code are the two places where a type error becomes a wrong
-  # number or a 500. They are checked first; the type coverage can grow from here.
+  # The API, the evaluation code and the packages they import are where a wrong type becomes
+  # a wrong number or a 500. Six packages are the gate; the config says how to widen it.
+  # The runtime dependencies are installed first: without them a missing import becomes Any
+  # and the check reports a different set of errors than a developer sees locally.
   # mypy is a tool a job installs, not a dependency of the project, so it is pinned inline;
   # requirements/ci.lock is compiled from the project's dependencies and does not carry it.
   typecheck:
@@ -27,6 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -c requirements/ci.lock
+      - run: pip install -e ".[dev,serving]" -r requirements/ci.in -c requirements/ci.lock
       - run: pip install mypy==2.4.1 -c requirements/ci.lock
       - run: mypy
 

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Any
 
 from reviewnlp.absa.aspects import normalize_aspect, normalize_sentiment
 
@@ -60,7 +61,9 @@ def parse_absa_output(raw: str, review: str | None = None) -> dict:
     aspects, error.
     """
     text = str(raw).strip()
-    out = {
+    # Heterogeneous by design: counts, flags, the aspect list and an error string. A
+    # TypedDict would be nicer; this is the honest declaration of a JSON-shaped record.
+    out: dict[str, Any] = {
         "json_valid": False, "salvaged": False,
         "entries_total": 0, "entries_kept": 0, "entries_dropped": 0,
         "quote_absent": 0, "quote_not_in_review": 0, "quote_truncated": 0,
