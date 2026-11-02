@@ -1,0 +1,25 @@
+{
+ "commit": "dba52d0340055d752ca6fe40ce5ec11ba60ad35f",
+ "files": [
+  {
+   "path": "docs/experiments/triage_diagnosis/student/logits_check.csv",
+   "bytes": 21484,
+   "sha256": "41b997ac8ea9857f29587951637de0878bdc4cee58e95b4d3058a291be991b44"
+  },
+  {
+   "path": "docs/experiments/triage_diagnosis/student/logits_development.csv",
+   "bytes": 65659,
+   "sha256": "7bf4a079eac6845a14b5c466938c7462f3fb216a35f4c75baba26e3af83056ee"
+  },
+  {
+   "path": "docs/experiments/triage_diagnosis/student/logits_test.csv",
+   "bytes": 105742,
+   "sha256": "6293ec64cbd54ace1023d73b25ccc3b53475e02b17c3300f90d07de336b6f374"
+  },
+  {
+   "path": "docs/experiments/triage_diagnosis/student/run.json",
+   "bytes": 1453,
+   "sha256": "81989d7ac773080c0f5df892c7914671d9abd4e6f7f72e0f32951d6bb6e08923"
+  }
+ ]
+}
