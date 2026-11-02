@@ -40,12 +40,15 @@ texts and duplicate whole-review texts left out; pools by text hash, 0–79 teac
 - **Development, 600 reviews.** The first protocol's 300 development reviews (`../triage_diagnosis/samples/key.csv`)
   and **300 new** from the development pool outside them: H 90, N 180, B 30, **seed 20261103**. The 300 old ones
   were used there to set thresholds and choose a teacher; here they are labelled again with `catalogue_v2`, and
-  no model of this protocol has seen them. Each review carries `N_s / n_s` within the pool.
+  no model of this protocol has seen them. Each review carries `N_s / n_s` within the pool, with `n_s` counting
+  the old and new reviews together (H 180, N 360, B 60).
 - **Test, 500 new reviews** from the test pool, none of the first protocol's 500 test or 100 check reviews:
   H 150, N 300, B 50, **seed 20261102**. Each carries `N_s / n_s`, with `N_s` counted after those 600 are removed.
 - **Teacher sample, 30,000** from the teacher pool: H 12,000, N 15,000, B 3,000, **seed 20261104**. It is split
   by a fixed hash of the text into **27,000 for training** and **3,000 held out** (`int(sha256(text)[:8], 16) % 10
-  == 0`, about a tenth). The held-out part is never trained on; variant C sets its thresholds there.
+  == 0`, about a tenth). The held-out part is never trained on; variant C sets its thresholds there. It is drawn
+  afresh, so it can include reviews of the first protocol's 10,000; every review is labelled again with
+  `catalogue_v2`.
 - **Not used:** the first protocol's 100 check reviews. They shaped `catalogue_v2`.
 
 Every draw is stratified as before (per stratum, sorted by `raw_row`, `DataFrame.sample(n=n_s,
@@ -89,7 +92,7 @@ the last epoch kept. They differ only as follows.
 | :--- | :--- | :--- |
 | **A** | binary cross-entropy, no class weights (the first protocol's) | one per priority group, by the first protocol's §4 rule, on development |
 | **B** | binary cross-entropy with `pos_weight` per type = min(negatives / positives in the training labels, 20) | as A |
-| **C** | B's model | routine and structural as A. **Each urgent type has its own threshold:** the grid value that maximises F1 against the teacher on the 3,000 held-out reviews; then, if development `fa` exceeds 5, every urgent threshold rises by 0.05 together until it does not, or reaches 0.95 |
+| **C** | B's model | routine and structural as B. **Each urgent type has its own threshold:** the grid value that maximises F1 against the teacher on the 3,000 held-out reviews; then, if development `fa` exceeds 5, every urgent threshold rises by 0.05 together until it does not, or reaches 0.95 |
 
 The grid is 0.05, 0.10, …, 0.95; ties go to the smallest value. A type is emitted when the sigmoid of its logit is
 at least its threshold. One Colab run trains A and B, and writes their logits for the development, test and
