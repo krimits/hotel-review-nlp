@@ -1,6 +1,6 @@
-# Problem-type catalogue, version 2: DRAFT. Its rules were decided by the owner on 2 November 2026; this text
-# awaits the owner's review. catalogue_v1 stays as it was and is still the catalogue of the closed triage
-# diagnosis protocol (versions 1-6); version 2 is for a later protocol.
+# Problem-type catalogue, version 2. Its rules were decided, and this text approved, by the owner on 2 November
+# 2026. catalogue_v1 stays as it was and is still the catalogue of the closed triage diagnosis protocol
+# (versions 1-6); version 2 is for a later protocol, and any change to it is catalogue_v3, not an edit.
 #
 # What changed from v1, each from a ruling on a disagreement between the owner's hand labels and the teacher's
 # on the 100 check reviews (items in docs/experiments/triage_diagnosis/samples/check_key.csv):
@@ -24,7 +24,7 @@
 # still affects the next guest); routine = the department's weekly review; structural = no
 # operational measure, sent to management as information and counted for trends.
 version: catalogue_v2
-status: draft
+status: approved
 departments: [reception, housekeeping, maintenance, food_and_beverage, management, other]
 
 labelling_rules:
