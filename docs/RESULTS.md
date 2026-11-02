@@ -635,8 +635,14 @@ on all 13,263 random-split test reviews under a
   Sorting the reviews by length first halves FP32's time per review (25 ms). For INT8 it saves
   nothing (21 ms against 17).
 - **Limits.** One Colab CPU and one thread; only the linear layers are quantized, so the
-  embeddings keep the size from quartering; one checkpoint. The Space and the API still serve
-  FP32 ([decision note](experiments/decision_int8_and_batching.md)).
+  embeddings keep the size from quartering; one checkpoint
+  ([decision note](experiments/decision_int8_and_batching.md)).
+- **Serving it.** `MODEL_QUANTIZE=dynamic_int8` switches the encoder backend to this
+  quantization: the weights are quantized at load, so a deployment needs no second artifact,
+  and `/health` reports `quantized: true`. `scripts/verify_int8_serving.py` runs the served
+  model against the recorded logits on the full test set and writes a
+  [receipt](experiments/results/int8_serving/receipt.json). The Hugging Face Space still
+  serves FP32.
 
 The 32-review experiment this replaces (1.38× faster, with a size estimator that counted
 parameters) is superseded.
@@ -885,7 +891,7 @@ docs/EVIDENCE_MAP.md  what the project shows, with links to the evidence
 - [x] Re-run the BiLSTM on the **v2 splits**, with three seeds and CPU latency and size ([decision note](experiments/decision_bilstm_clean_splits.md))
 - [x] Check DistilBERT's full fine-tune against LoRA across three training seeds ([decision note](experiments/decision_distilbert_seeds.md))
 - [x] Measure dynamic INT8 and length-sorted CPU batching on the full test set ([decision note](experiments/decision_int8_and_batching.md))
-- [ ] Serve the INT8 model from the API and the Space, with a check that it reproduces its recorded test labels
+- [x] Serve the INT8 model from the API, with a check that it reproduces its recorded test labels ([receipt](experiments/results/int8_serving/receipt.json)); the Space stays FP32
 - [x] Pilot evaluation of the complaint lexicon by two annotators: precision, recall, Cohen's kappa ([protocol](annotation/pilot_protocol.md), [results](case_study/results/annotation/README.md))
 - [ ] Break the rising complaint topics down by hotel and city
 - [ ] Add a **streaming inference** endpoint for high-throughput ingestion

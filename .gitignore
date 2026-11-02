@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -60,3 +60,6 @@ Thumbs.db
 # Agent handoff workspace: entirely local. The contract it implements is documented
 # in docs/AGENT_HARNESS.md, so nothing of this directory is committed.
 _agents_workspace/
+
+# Weights are downloaded at a pinned revision (see README), never committed
+models/
