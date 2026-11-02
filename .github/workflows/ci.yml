@@ -61,4 +61,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f docker/Dockerfile -t hotel-review-nlp:ci .
-      - run: docker run --rm -e MODEL_TYPE=stub hotel-review-nlp:ci python -c "import reviewnlp.serving.app as m; print(m.app.title)"
+      # `import reviewnlp.serving.app as m` hands back the FastAPI object, not the module:
+      # the package __init__ rebinds the name. Import the object from the module instead.
+      - run: docker run --rm -e MODEL_TYPE=stub hotel-review-nlp:ci python -c "from reviewnlp.serving.app import app; print(app.title)"

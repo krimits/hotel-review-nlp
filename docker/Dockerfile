@@ -16,14 +16,17 @@ WORKDIR /app
 
 # torch is pinned to the version CI tests against (requirements/ci.lock). Left unpinned, an
 # image rebuilt months later serves the model code on a torch nobody tested.
-RUN pip install "torch==2.14.1+cpu" --index-url https://download.pytorch.org/whl/cpu \
-    && pip install "fastapi==0.143.1" "uvicorn[standard]==0.54.0" \
+RUN pip install "torch==2.14.1+cpu" --index-url https://download.pytorch.org/whl/cpu
+
+# Serving stack pinned; the project's own dependencies come with the package below. `--no-deps`
+# was wrong: the app imports the ABSA, Greek and analytics routers, whose modules import pandas
+# and scikit-learn, so a deps-less install built an image that could not start.
+RUN pip install "fastapi==0.143.1" "uvicorn[standard]==0.54.0" \
                    transformers==4.56.2 accelerate==1.10.1
 
-# Packaging metadata first, source second: editing src/ no longer reinstalls the dependencies.
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install -e . --no-deps
+RUN pip install -e ".[serving]"
 
 # Not root: the service reads a mounted model and writes nothing but logs.
 RUN useradd --create-home --uid 1000 appuser && mkdir -p /models && chown appuser /models

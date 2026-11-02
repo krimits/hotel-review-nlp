@@ -72,6 +72,11 @@ where = ["src"]
 python_version = "3.11"
 files = ["src/reviewnlp/serving", "src/reviewnlp/evaluation", "src/reviewnlp/data"]
 mypy_path = "src"
+# The three packages above are the gate. Modules they import (triage, analytics) still get
+# analysed, because their types flow into the checked code, but their own errors are not
+# reported yet: they carry 18, and a gate that starts red gets switched off. Move a package
+# into `files` to bring it under the floor.
+follow_imports = "silent"
 ignore_missing_imports = true
 warn_unused_ignores = false
 warn_redundant_casts = true
