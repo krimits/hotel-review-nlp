@@ -1,9 +1,12 @@
-# Triage diagnosis and routing: protocol — version 5, locked
+# Triage diagnosis and routing: protocol — version 6, locked
 
-**Status: version 5 locked on 29 October 2026,** at the owner's choice the same day, by the commit that updates
+**Status: version 6 locked on 2 November 2026,** approved by the owner the same day, by the commit that updates
 its lock test, [`tests/test_triage_diagnosis_protocol.py`](../../../tests/test_triage_diagnosis_protocol.py).
-Versions 1–4 are in this file's history and are summarised in [§10](#10-version-history). Nothing had been
-trained or scored at lock. Any later change needs a new version, not an edit.
+Versions 1–5 are in this file's history and are summarised in [§10](#10-version-history). No student had been
+trained and nothing had been scored at lock. Any later change needs a new version, not an edit.
+
+**Why a version 6.** Versions 1–5 fixed the student's base model but not how it is trained. Version 6 fixes the
+training settings before any student exists, so that none of them can be chosen from a result.
 
 **Why a version 5.** It concerns only the second rater, which is reported only. The owner ran it with the model
 the Gemini app showed as "Flash", not the "gemini-4-argon" that version 3 named; and Gemini wrote `done`, and
@@ -163,6 +166,22 @@ and, in the teacher baseline, catches nothing.
 **The chosen teacher** then labels the 10,000 teacher reviews, the 500 test reviews and the 100 check reviews,
 each once. Its test and check labels are the teacher baseline (§4, "Reported"), scored only in step 6.
 
+### The student
+
+- **Model:** `distilbert/distilbert-base-uncased` at the pinned revision, with one output per catalogue type (20),
+  trained as multi-label classification: a sigmoid per type and binary cross-entropy, with no class weights.
+- **Training data:** the 10,000 teacher reviews with the teacher's labels, and nothing else. A review labelled
+  `none` is the all-zero target. A review the teacher failed on would be left out; there are none.
+- **Input:** the whole-review text exactly as on the sheets, truncated at 256 tokens.
+- **Settings, fixed here with no search:** 4 epochs, batch 32, learning rate 2e-5 with linear decay after a 6%
+  warmup, weight decay 0.01, fp16 on a GPU, seed 42. These are the project's DistilBERT settings
+  (`configs/distilbert_v2.yaml`) except the epochs: 4 instead of 2, as 10,000 reviews are about a twelfth of the
+  sentiment model's training set.
+- **The last epoch's model is kept.** The development set is used neither for training nor for stopping early,
+  only for the thresholds (§4).
+- **One training run,** in Colab, by a notebook pinned to its code commit. It writes the student's logits for the
+  300 development, 500 test and 100 check reviews, which are committed; the weights are not.
+
 **All labels and their SHA-256 are committed before the student is scored on either set.**
 
 ## 3. One primary comparison
@@ -313,6 +332,7 @@ Review texts stay under `runs/`.
 | Reference labels | ChatGPT (OpenAI), the model recorded as ChatGPT shows it; prompt `reference_prompt.md` (`1147d9a9…`); 16 batches of 50 | owner's choice, 27 October 2026 |
 | Teacher | `anthropic/claude-haiku-5.5-20261007` or `anthropic/claude-sonnet-5.5-20260928`, chosen on development by the rule in §2 | owner's choice of the approach, 29 October 2026 |
 | Teacher sample | 10,000 from the teacher pool, H 4,000, N 5,000, B 1,000, seed 20261030; 25 reviews per call | builder |
+| Student training | 4 epochs, batch 32, lr 2e-5, 6% warmup then linear decay, weight decay 0.01, 256 tokens, fp16, seed 42, last epoch kept | builder, version 6 |
 | Second rater | Gemini (Google) web app, model "Flash" as the app showed it in all 18 batches; prompt `reference_prompt.md`; 18 batches of 50; read with `finish --numeric` | owner's choice, 27 October (provider) and 29 October 2026 (web app); model as run, reported by the owner |
 | Student base | `distilbert/distilbert-base-uncased` @ `12040accade4e8a0f71eabdb258fecc2e7e948be` | builder, version 1 |
 | Sample seeds | development 20261021, test 20261022, check 20261024 | builder |
@@ -325,4 +345,5 @@ Review texts stay under `runs/`.
 | 2 | `8d35b8b` | The owner's choices of 27 October 2026: reference labels from ChatGPT, made again from the committed prompt with the catalogue's definitions, so the question becomes agreement with an LLM; the first ChatGPT sheet (`6a9fa2bb…`, model named "Terra MAX", a prompt without the definitions) is not used; the second rater moved to a third provider (Google), as the reference is OpenAI's; a check sample of 100 test-pool reviews labelled by the owner by hand, reported only. The owner-only steps of version 1 (adjudication, the 80-review relabel) are dropped. The data, samples, catalogue, teacher, student, metric, rule and its numbers are unchanged. |
 | 3 | `90e2c05` | The owner's choice of 29 October 2026: the second rater runs through the Gemini web app, by the owner, with the reference's prompt and the same 16 batches plus 2 check batches, instead of `google/gemini-4-argon-20261013` through the OpenRouter API. Under version 2 the reference (`c2780fe`) and the owner's check (`44812dc`) were recorded; no second-rater output existed. The second rater is reported only, so the change cannot affect the decision. Everything else is unchanged. |
 | 4 | `ee6d642` | The owner's choice of 29 October 2026, before any teacher call: a fixed teacher sample of 10,000 (H 4,000, N 5,000, B 1,000, seed 20261030) in place of "the teacher pool"; a teacher prompt generated from the catalogue; and the teacher chosen on development between `claude-haiku-5.5` and `claude-sonnet-5.5` by a rule fixed here (Sonnet only if it leads by 0.05 in development recall). The second rater's run and the student's training had not started. Everything else is unchanged. |
-| 5 | this commit | The second rater as run, decided on 29 October 2026 after its files came back and before any of its label counts or agreements was computed: the model the Gemini app showed as "Flash" in all 18 batches (version 3 named "gemini-4-argon"), and `finish --numeric`, which reads `1.0` and `0.0` as `1` and `0` (Gemini wrote `done`, and some labels, as `1.0` in all 16 batches of the 800). **A correction to version 4's row:** the second rater's run had started. Its batches 01–11 were saved between 12:36 and 13:10, before version 4 was locked at 13:11. Version 4 changed only the teacher, which the second rater's labels do not touch, and nothing had been computed from them. Everything else is unchanged. |
+| 5 | `7d27877` | The second rater as run, decided on 29 October 2026 after its files came back and before any of its label counts or agreements was computed: the model the Gemini app showed as "Flash" in all 18 batches (version 3 named "gemini-4-argon"), and `finish --numeric`, which reads `1.0` and `0.0` as `1` and `0` (Gemini wrote `done`, and some labels, as `1.0` in all 16 batches of the 800). **A correction to version 4's row:** the second rater's run had started. Its batches 01–11 were saved between 12:36 and 13:10, before version 4 was locked at 13:11. Version 4 changed only the teacher, which the second rater's labels do not touch, and nothing had been computed from them. Everything else is unchanged. |
+| 6 | this commit | The student's training settings, which versions 1–5 left open, fixed on 2 November 2026 before any student was trained: the project's DistilBERT settings with 4 epochs, multi-label with no class weights, the last epoch kept and no use of the development set except for the thresholds. Under version 5 the teacher (`claude-haiku-5.5`, chosen at `75c115f`) labelled the 10,000 (`469e787`) and the test and check reviews (`9c5ab69`); none of those labels was compared with anything. Everything else is unchanged. |
