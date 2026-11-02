@@ -1,0 +1,43 @@
+{
+ "model_revision": "7306aebcaaebc00d579f5d0a91001ae376f18158",
+ "model_path": "models/distilbert",
+ "split": "data/processed_v2",
+ "rows": 1024,
+ "batch_size": 32,
+ "torch_threads": 1,
+ "agreement_with_recorded_int8": 0.995117,
+ "agreement_int8_vs_fp32": 0.996094,
+ "macro_f1": {
+  "int8": 0.9551,
+  "fp32": 0.955,
+  "delta": 0.0001
+ },
+ "recorded": {
+  "int8_macro_f1": 0.9637,
+  "fp32_macro_f1": 0.9642,
+  "int8_minus_recorded": -0.0086
+ },
+ "latency_ms": {
+  "n": 20,
+  "fp32_median": 92.07,
+  "fp32_p95": 259.32,
+  "int8_median": 56.52,
+  "int8_p95": 141.88,
+  "speedup": 1.63
+ },
+ "checks": {
+  "int8_and_fp32_agree_on_this_machine": true,
+  "macro_f1_within_the_one_point_margin": true,
+  "still_faster_than_fp32": true,
+  "agrees_with_the_recorded_int8_run": true
+ },
+ "passed": true,
+ "environment": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+  "python": "3.13.5",
+  "torch": "2.13.0+cpu",
+  "transformers": "4.56.2",
+  "threads": 1
+ }
+}

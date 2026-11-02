@@ -38,3 +38,4 @@ class HealthResponse(BaseModel):
     model_type: str
     model_path: str
     device: str
+    quantized: bool = Field(False, description="dynamic INT8 linear layers (MODEL_QUANTIZE=dynamic_int8)")

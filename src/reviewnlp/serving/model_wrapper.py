@@ -51,12 +51,42 @@ def _max_concurrency() -> int:
     return max(1, min(4, os.cpu_count() or 1))
 
 
+QUANTIZE_MODES = ("", "dynamic_int8")
+
+
+def quantize_mode() -> str:
+    """`MODEL_QUANTIZE`: empty for FP32, `dynamic_int8` for the measured quantization.
+
+    Only the mode the decision note measured is accepted. A typo must fail at load with the
+    allowed values named, not quietly serve FP32 while the deployment believes it is INT8.
+    """
+    mode = os.environ.get("MODEL_QUANTIZE", "").strip().lower()
+    if mode in {"0", "false", "off", "none"}:
+        mode = ""
+    if mode not in QUANTIZE_MODES:
+        allowed = ", ".join(repr(value) for value in QUANTIZE_MODES if value)
+        raise ValueError(f"MODEL_QUANTIZE must be empty or one of {allowed}, got {mode!r}")
+    return mode
+
+
+def quantize_encoder(model):
+    """Dynamic INT8 on the linear layers — exactly what the INT8 decision note measured.
+
+    Weights are quantized in place at load time, so the deployment needs no second artifact:
+    the published FP32 checkpoint plus this call is the served INT8 model.
+    """
+    from torch.ao.quantization import quantize_dynamic
+
+    return quantize_dynamic(model, {torch.nn.Linear}, dtype=torch.qint8)
+
+
 class ModelWrapper:
     """Lazy single-model holder; thread-safe for Uvicorn workers."""
 
     def __init__(self, model_type: str | None = None, model_path: str | None = None):
         self.model_type = model_type or os.environ.get("MODEL_TYPE", "stub")
         self.model_path = model_path or os.environ.get("MODEL_PATH", "")
+        self.quantize = quantize_mode()
         self._lock = threading.Lock()          # guards load(), nothing else
         self._semaphore = threading.BoundedSemaphore(_max_concurrency())
         self._loaded = False
@@ -93,7 +123,7 @@ class ModelWrapper:
                 self._require_model_path()
                 # heavy models load here once; predict_* functions re-load per
                 # call in offline use, so we keep a dedicated fast path below
-                self._obj = _load_heavy(self.model_type, self.model_path)
+                self._obj = _load_heavy(self.model_type, self.model_path, quantize=self.quantize == "dynamic_int8")
             else:
                 raise ValueError(f"unknown MODEL_TYPE: {self.model_type}")
             self._loaded = True
@@ -149,16 +179,23 @@ class ModelWrapper:
 
     @property
     def info(self) -> dict:
-        return {"model_type": self.model_type, "model_path": self.model_path, "device": DEVICE}
+        return {
+            "model_type": self.model_type,
+            "model_path": self.model_path,
+            "device": DEVICE,
+            "quantized": self.quantize == "dynamic_int8",
+        }
 
 
-def _load_heavy(model_type: str, path: str):
+def _load_heavy(model_type: str, path: str, quantize: bool = False):
     """Preload heavy artifacts at startup (avoids first-request latency spike)."""
     if model_type == "encoder":
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         tokenizer = AutoTokenizer.from_pretrained(path)
         model = AutoModelForSequenceClassification.from_pretrained(path).to(DEVICE).eval()
+        if quantize:
+            model = quantize_encoder(model)
         return {"tokenizer": tokenizer, "model": model}
     from reviewnlp.llm.predict import load_qwen_qlora
 
