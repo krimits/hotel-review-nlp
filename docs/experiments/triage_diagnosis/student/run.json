@@ -1,0 +1,64 @@
+{
+ "protocol": "docs/experiments/triage_diagnosis/PROTOCOL.md",
+ "protocol_sha256": "18d2555c3ccdd91d4ce86b8c41b2af5263ffc1780cd9de9875f9f085de1af07b",
+ "code_commit": "dba52d0340055d752ca6fe40ce5ec11ba60ad35f",
+ "settings": {
+  "base": "distilbert/distilbert-base-uncased",
+  "revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+  "max_length": 256,
+  "epochs": 4,
+  "batch_size": 32,
+  "lr": 2e-05,
+  "warmup_ratio": 0.06,
+  "weight_decay": 0.01,
+  "schedule": "linear",
+  "fp16": true,
+  "seed": 42,
+  "eval_batch_size": 64
+ },
+ "types": [
+  "cleanliness",
+  "pests",
+  "security_fault",
+  "safety_hazard",
+  "hvac_failure",
+  "plumbing_major",
+  "plumbing_minor",
+  "equipment_fault",
+  "wifi",
+  "noise_internal",
+  "linen_amenities",
+  "bed_comfort",
+  "food_beverage",
+  "staff_service",
+  "checkin_billing",
+  "other_problem",
+  "noise_external",
+  "room_and_facilities",
+  "location_view",
+  "price_value"
+ ],
+ "device": "cuda",
+ "gpu": "Tesla T4",
+ "trained_on": 10000,
+ "left_out_failed": 0,
+ "loss_per_epoch": [
+  0.332334,
+  0.201821,
+  0.151416,
+  0.132576
+ ],
+ "training_seconds": 185.4,
+ "logits": {
+  "development": 300,
+  "test": 500,
+  "check": 100
+ },
+ "packages": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2"
+ },
+ "teacher_labels_sha256": "41c1f005c3efb81ad4dc19fde93a8a1b736578cd37bd4f36a0e138043843bb2e",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9"
+}
