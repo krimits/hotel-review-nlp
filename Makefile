@@ -1,4 +1,4 @@
-.PHONY: install data split-views baselines bilstm distilbert qlora greek greek-eval benchmark serve quantbench lint test docker
+.PHONY: install data split-views baselines bilstm distilbert qlora greek greek-eval benchmark serve quantbench lint typecheck test docker
 
 PY ?= python3
 
@@ -55,7 +55,11 @@ quantbench:
 	$(PY) scripts/quantize_distilbert.py --model runs/distilbert/best --dataset data/processed/test.parquet
 
 lint:
-	ruff check src tests scripts
+	ruff check src tests scripts spaces
+
+## Types are checked where the wrong one becomes a wrong number or a 500
+typecheck:
+	mypy
 
 test:
 	pytest tests -v

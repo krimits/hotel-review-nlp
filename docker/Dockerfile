@@ -14,20 +14,24 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# CPU-only torch first: slimmer than the CUDA default wheel
-RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+# torch is pinned to the version CI tests against (requirements/ci.lock). Left unpinned, an
+# image rebuilt months later serves the model code on a torch nobody tested.
+RUN pip install "torch==2.14.1+cpu" --index-url https://download.pytorch.org/whl/cpu \
+    && pip install "fastapi==0.143.1" "uvicorn[standard]==0.54.0" \
+                   transformers==4.56.2 accelerate==1.10.1
 
+# Packaging metadata first, source second: editing src/ no longer reinstalls the dependencies.
 COPY pyproject.toml README.md ./
 COPY src ./src
-# Pinned to the versions CI tests against, so an image rebuilt months from now
-# serves the same model code that produced the published numbers.
-RUN pip install -e ".[serving]" && pip install transformers==4.56.2 accelerate==1.10.1
+RUN pip install -e . --no-deps
 
-# models are mounted at runtime, never baked into the image
-RUN mkdir -p /models
+# Not root: the service reads a mounted model and writes nothing but logs.
+RUN useradd --create-home --uid 1000 appuser && mkdir -p /models && chown appuser /models
+USER appuser
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" || exit 1
 
-CMD ["uvicorn", "reviewnlp.serving.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "reviewnlp.serving.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

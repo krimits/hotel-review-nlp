@@ -1,0 +1,21 @@
+# Used by `docker build -f docker/Dockerfile .` (Docker reads a per-Dockerfile ignore file
+# with this exact name; a plain docker/.dockerignore is silently ignored for that build).
+# The image needs the source and the packaging metadata, nothing else.
+.git
+.github
+.venv
+analysis
+data
+docs
+notebooks
+runs
+spaces
+tests
+scripts
+configs
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+*.md
+!README.md
