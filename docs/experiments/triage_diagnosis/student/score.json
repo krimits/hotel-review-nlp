@@ -1,0 +1,474 @@
+{
+ "protocol_sha256": "18d2555c3ccdd91d4ce86b8c41b2af5263ffc1780cd9de9875f9f085de1af07b",
+ "code_commit": "817698ad0f539007d4c3adf1550b13beb38a0838",
+ "thresholds": {
+  "urgent": 0.3,
+  "routine": 0.35,
+  "structural": 0.4
+ },
+ "emission": "a type is emitted when sigmoid(logit) >= its priority group's threshold",
+ "test_reviews": 500,
+ "complete": true,
+ "decision": {
+  "rec": 0.708653,
+  "fa": 3.6206,
+  "pairs": 104,
+  "caught": 76,
+  "unweighted_recall": 0.730769,
+  "lo": 0.618456,
+  "bootstrap": {
+   "resamples": 2000,
+   "seed": 0,
+   "resamples_without_pairs": 0
+  },
+  "outcome": "Not met"
+ },
+ "rule": [
+  "rec >= 0.90 and lo >= 0.80 and fa <= 5",
+  "rec >= 0.90 and lo >= 0.80 and fa > 5",
+  "rec >= 0.90 and lo < 0.80",
+  "rec < 0.90"
+ ],
+ "reported": {
+  "student": {
+   "per_type": {
+    "cleanliness": {
+     "support": 37,
+     "emitted": 44,
+     "true_positive": 32,
+     "recall": 0.8452,
+     "precision": 0.7063
+    },
+    "pests": {
+     "support": 0,
+     "emitted": 0,
+     "true_positive": 0
+    },
+    "security_fault": {
+     "support": 7,
+     "emitted": 0,
+     "true_positive": 0
+    },
+    "safety_hazard": {
+     "support": 9,
+     "emitted": 0,
+     "true_positive": 0
+    },
+    "hvac_failure": {
+     "support": 38,
+     "emitted": 59,
+     "true_positive": 36,
+     "recall": 0.9474,
+     "precision": 0.598
+    },
+    "plumbing_major": {
+     "support": 13,
+     "emitted": 7,
+     "true_positive": 6,
+     "recall": 0.5069
+    },
+    "plumbing_minor": {
+     "support": 8,
+     "emitted": 6,
+     "true_positive": 2
+    },
+    "equipment_fault": {
+     "support": 16,
+     "emitted": 15,
+     "true_positive": 8,
+     "recall": 0.4424,
+     "precision": 0.4947
+    },
+    "wifi": {
+     "support": 16,
+     "emitted": 14,
+     "true_positive": 13,
+     "recall": 0.8359,
+     "precision": 0.9553
+    },
+    "noise_internal": {
+     "support": 38,
+     "emitted": 46,
+     "true_positive": 23,
+     "recall": 0.5583,
+     "precision": 0.4658
+    },
+    "linen_amenities": {
+     "support": 16,
+     "emitted": 9,
+     "true_positive": 5,
+     "recall": 0.35
+    },
+    "bed_comfort": {
+     "support": 25,
+     "emitted": 21,
+     "true_positive": 16,
+     "recall": 0.6877,
+     "precision": 0.8042
+    },
+    "food_beverage": {
+     "support": 54,
+     "emitted": 55,
+     "true_positive": 44,
+     "recall": 0.8252,
+     "precision": 0.8071
+    },
+    "staff_service": {
+     "support": 59,
+     "emitted": 58,
+     "true_positive": 44,
+     "recall": 0.7621,
+     "precision": 0.7434
+    },
+    "checkin_billing": {
+     "support": 30,
+     "emitted": 33,
+     "true_positive": 18,
+     "recall": 0.6326,
+     "precision": 0.5585
+    },
+    "other_problem": {
+     "support": 74,
+     "emitted": 0,
+     "true_positive": 0,
+     "recall": 0.0
+    },
+    "noise_external": {
+     "support": 14,
+     "emitted": 1,
+     "true_positive": 1,
+     "recall": 0.0887
+    },
+    "room_and_facilities": {
+     "support": 192,
+     "emitted": 157,
+     "true_positive": 137,
+     "recall": 0.6812,
+     "precision": 0.8758
+    },
+    "location_view": {
+     "support": 41,
+     "emitted": 18,
+     "true_positive": 16,
+     "recall": 0.4218,
+     "precision": 0.914
+    },
+    "price_value": {
+     "support": 50,
+     "emitted": 40,
+     "true_positive": 36,
+     "recall": 0.6692,
+     "precision": 0.8984
+    }
+   },
+   "strict_type_recall": 0.692091,
+   "department_accuracy_on_emitted": 0.824208,
+   "recall_per_stratum": {
+    "B": {
+     "pairs": 0,
+     "caught": 0,
+     "recall": null
+    },
+    "H": {
+     "pairs": 90,
+     "caught": 68,
+     "recall": 0.7556
+    },
+    "N": {
+     "pairs": 14,
+     "caught": 8,
+     "recall": 0.5714
+    }
+   }
+  },
+  "baselines": {
+   "teacher_claude_haiku_5_5": {
+    "rec": 0.966877,
+    "fa": 3.81,
+    "pairs": 104,
+    "caught": 100,
+    "unweighted_recall": 0.961538
+   },
+   "complaint_lexicon_v1": {
+    "rec": 0.008281,
+    "fa": 0.0,
+    "pairs": 104,
+    "caught": 1,
+    "unweighted_recall": 0.009615
+   }
+  },
+  "agreement_second_rater_vs_reference_800": {
+   "cleanliness": {
+    "kappa": 0.8495,
+    "gold_positive": 64,
+    "rater_positive": 82,
+    "reviews": 800
+   },
+   "pests": {
+    "kappa": 1.0,
+    "gold_positive": 2,
+    "rater_positive": 2,
+    "reviews": 800
+   },
+   "security_fault": {
+    "kappa": 0.8552,
+    "gold_positive": 11,
+    "rater_positive": 10,
+    "reviews": 800
+   },
+   "safety_hazard": {
+    "kappa": 0.7363,
+    "gold_positive": 14,
+    "rater_positive": 13,
+    "reviews": 800
+   },
+   "hvac_failure": {
+    "kappa": 0.7697,
+    "gold_positive": 52,
+    "rater_positive": 80,
+    "reviews": 800
+   },
+   "plumbing_major": {
+    "kappa": 0.9511,
+    "gold_positive": 20,
+    "rater_positive": 22,
+    "reviews": 800
+   },
+   "plumbing_minor": {
+    "kappa": 0.7796,
+    "gold_positive": 9,
+    "rater_positive": 14,
+    "reviews": 800
+   },
+   "equipment_fault": {
+    "kappa": 0.6876,
+    "gold_positive": 27,
+    "rater_positive": 50,
+    "reviews": 800
+   },
+   "wifi": {
+    "kappa": 1.0,
+    "gold_positive": 25,
+    "rater_positive": 25,
+    "reviews": 800
+   },
+   "noise_internal": {
+    "kappa": 0.8433,
+    "gold_positive": 53,
+    "rater_positive": 64,
+    "reviews": 800
+   },
+   "linen_amenities": {
+    "kappa": 0.8137,
+    "gold_positive": 30,
+    "rater_positive": 43,
+    "reviews": 800
+   },
+   "bed_comfort": {
+    "kappa": 0.9247,
+    "gold_positive": 46,
+    "rater_positive": 53,
+    "reviews": 800
+   },
+   "food_beverage": {
+    "kappa": 0.8962,
+    "gold_positive": 85,
+    "rater_positive": 100,
+    "reviews": 800
+   },
+   "staff_service": {
+    "kappa": 0.8001,
+    "gold_positive": 87,
+    "rater_positive": 119,
+    "reviews": 800
+   },
+   "checkin_billing": {
+    "kappa": 0.8903,
+    "gold_positive": 53,
+    "rater_positive": 65,
+    "reviews": 800
+   },
+   "other_problem": {
+    "kappa": 0.117,
+    "gold_positive": 121,
+    "rater_positive": 10,
+    "reviews": 800
+   },
+   "noise_external": {
+    "kappa": 0.8178,
+    "gold_positive": 22,
+    "rater_positive": 29,
+    "reviews": 800
+   },
+   "room_and_facilities": {
+    "kappa": 0.8869,
+    "gold_positive": 305,
+    "rater_positive": 316,
+    "reviews": 800
+   },
+   "location_view": {
+    "kappa": 0.9046,
+    "gold_positive": 60,
+    "rater_positive": 65,
+    "reviews": 800
+   },
+   "price_value": {
+    "kappa": 0.8962,
+    "gold_positive": 85,
+    "rater_positive": 100,
+    "reviews": 800
+   }
+  },
+  "teacher_choice": {
+   "rec_dev": {
+    "haiku": 0.926171,
+    "sonnet": 0.955703
+   },
+   "fa_dev": {
+    "haiku": 3.0932,
+    "sonnet": 4.1473
+   },
+   "cost_usd": {
+    "haiku": 0.020257,
+    "sonnet": 0.181162
+   },
+   "sonnet_lead": 0.029532,
+   "model": "anthropic/claude-haiku-5.5-20261007"
+  },
+  "owner_check_100": {
+   "student_vs_owner": {
+    "rec": 0.468641,
+    "fa": 3.0736,
+    "pairs": 23,
+    "caught": 13,
+    "unweighted_recall": 0.565217
+   },
+   "second_rater_vs_owner": {
+    "cleanliness": {
+     "kappa": 0.6341,
+     "gold_positive": 8,
+     "rater_positive": 10,
+     "reviews": 100
+    },
+    "pests": {
+     "kappa": 1.0,
+     "gold_positive": 1,
+     "rater_positive": 1,
+     "reviews": 100
+    },
+    "security_fault": {
+     "kappa": 0.0,
+     "gold_positive": 1,
+     "rater_positive": 0,
+     "reviews": 100
+    },
+    "safety_hazard": {
+     "kappa": 0.0,
+     "gold_positive": 0,
+     "rater_positive": 1,
+     "reviews": 100
+    },
+    "hvac_failure": {
+     "kappa": 0.6341,
+     "gold_positive": 8,
+     "rater_positive": 10,
+     "reviews": 100
+    },
+    "plumbing_major": {
+     "kappa": 0.6512,
+     "gold_positive": 5,
+     "rater_positive": 4,
+     "reviews": 100
+    },
+    "plumbing_minor": {
+     "kappa": 0.0,
+     "gold_positive": 1,
+     "rater_positive": 0,
+     "reviews": 100
+    },
+    "equipment_fault": {
+     "kappa": -0.0246,
+     "gold_positive": 3,
+     "rater_positive": 2,
+     "reviews": 100
+    },
+    "wifi": {
+     "kappa": 0.4924,
+     "gold_positive": 1,
+     "rater_positive": 3,
+     "reviews": 100
+    },
+    "noise_internal": {
+     "kappa": 0.3939,
+     "gold_positive": 4,
+     "rater_positive": 10,
+     "reviews": 100
+    },
+    "linen_amenities": {
+     "kappa": 0.0,
+     "gold_positive": 0,
+     "rater_positive": 7,
+     "reviews": 100
+    },
+    "bed_comfort": {
+     "kappa": 0.6622,
+     "gold_positive": 2,
+     "rater_positive": 1,
+     "reviews": 100
+    },
+    "food_beverage": {
+     "kappa": 0.4161,
+     "gold_positive": 9,
+     "rater_positive": 12,
+     "reviews": 100
+    },
+    "staff_service": {
+     "kappa": 0.9216,
+     "gold_positive": 15,
+     "rater_positive": 15,
+     "reviews": 100
+    },
+    "checkin_billing": {
+     "kappa": 0.5928,
+     "gold_positive": 4,
+     "rater_positive": 9,
+     "reviews": 100
+    },
+    "other_problem": {
+     "kappa": 0.2366,
+     "gold_positive": 7,
+     "rater_positive": 1,
+     "reviews": 100
+    },
+    "noise_external": {
+     "kappa": 0.8227,
+     "gold_positive": 6,
+     "rater_positive": 6,
+     "reviews": 100
+    },
+    "room_and_facilities": {
+     "kappa": 0.424,
+     "gold_positive": 17,
+     "rater_positive": 40,
+     "reviews": 100
+    },
+    "location_view": {
+     "kappa": 0.7403,
+     "gold_positive": 3,
+     "rater_positive": 5,
+     "reviews": 100
+    },
+    "price_value": {
+     "kappa": 0.7715,
+     "gold_positive": 12,
+     "rater_positive": 13,
+     "reviews": 100
+    }
+   }
+  },
+  "not_produced": {
+   "evidence": "needs the student's weights, which notebook 29 did not keep",
+   "cpu_latency": "needs the student's weights, which notebook 29 did not keep"
+  }
+ }
+}
