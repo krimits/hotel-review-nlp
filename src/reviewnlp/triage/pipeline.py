@@ -11,7 +11,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, TypedDict
 
 from reviewnlp.triage.jev_client import JevClient, JevError
 from reviewnlp.triage.lexicon import LexiconClassifier
@@ -26,6 +26,19 @@ from reviewnlp.triage.schemas import (
     SentimentResult,
     StageTimings,
 )
+
+
+class _QuestionMeta(TypedDict):
+    """The two provenance fields every result carries; a plain dict[str, str] loses their names."""
+
+    questions_version: str
+    questions_sha256: str
+
+
+class _ActionMeta(TypedDict):
+    model: str
+    prompt_version: str
+
 
 log = logging.getLogger("reviewnlp.triage")
 
@@ -78,7 +91,7 @@ class TriagePipeline:
     def _sentiment(self, text: str) -> SentimentResult:
         (distribution,) = self.wrapper.distribution_batch([text])
         if distribution:
-            label = max(distribution, key=distribution.get)
+            label = max(distribution, key=lambda name: distribution[name])
             return SentimentResult(label=label, confidence=distribution[label], probabilities=dict(distribution),
                                    model_type=self.wrapper.model_type, model_path=self.wrapper.model_path)
         label, confidence = self.wrapper.predict(text)
@@ -96,7 +109,7 @@ class TriagePipeline:
             **enhancement.model_dump(exclude={"source", "coverage_status", "evidence", "enhancement"}))})
 
     def _jev_complaints(self, text: str) -> ComplaintsResult:
-        base = {"questions_version": QUESTIONS_VERSION, "questions_sha256": QUESTIONS_SHA256}
+        base: _QuestionMeta = {"questions_version": QUESTIONS_VERSION, "questions_sha256": QUESTIONS_SHA256}
         if self.jev is None or not self.jev.enabled:
             return ComplaintsResult(status="disabled", **base)
         route = self.jev.config.route
@@ -127,7 +140,7 @@ class TriagePipeline:
         except Exception:  # noqa: BLE001
             log.error("action generation failed")
             return ActionsResult(status="error", error="generation_failed", model=self.generator.model_name)
-        base = {"model": generated.model, "prompt_version": generated.prompt_version}
+        base: _ActionMeta = {"model": generated.model, "prompt_version": generated.prompt_version}
         parsed = (parse_actions(generated.raw, text, exact_quotes=True)
                   if getattr(self.generator, "requires_exact_quotes", False) else parse_actions(generated.raw, text))
         if generated.hit_token_budget:

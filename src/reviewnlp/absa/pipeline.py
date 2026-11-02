@@ -8,6 +8,8 @@ that exhaust the token budget are flagged instead of being parsed silently.
 
 from __future__ import annotations
 
+from typing import Any
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -21,7 +23,7 @@ def load_absa_model(adapter_dir: str | None = None, device=None):
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, use_fast=True)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype=torch.bfloat16)
+    model: Any = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype=torch.bfloat16)
     variant = "base"
     if adapter_dir is not None:
         from peft import PeftModel

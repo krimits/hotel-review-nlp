@@ -45,7 +45,7 @@ def check_runtime(*, expected_prefix: Path | None = None, require_cuda: bool = F
                     if "=" in line for key, value in [line.split("=", 1)]} if config.is_file() else {}
         if settings.get("include-system-site-packages") != "false":
             raise RuntimePreflightError("system_site_packages_disallowed", {"prefix": str(prefix)})
-    installed = {}
+    installed: dict[str, str | None] = {}
     for name in required:
         try:
             installed[name] = importlib.metadata.version(name)
@@ -63,7 +63,11 @@ def check_runtime(*, expected_prefix: Path | None = None, require_cuda: bool = F
         except Exception as error:
             raise RuntimePreflightError("dependency_import_failed", {
                 "package": name, "error_type": type(error).__name__}) from None
-        origin = Path(module.__file__).resolve()
+        module_file = getattr(module, "__file__", None)
+        if module_file is None:
+            raise RuntimePreflightError("dependency_import_failed", {
+                "package": name, "error_type": "no_file"}) from None
+        origin = Path(module_file).resolve()
         origins[name], loaded[name] = str(origin), module
         if expected_prefix is not None and not origin.is_relative_to(prefix):
             raise RuntimePreflightError("dependency_outside_isolated_environment", {

@@ -46,7 +46,8 @@ def score_coverage(run_dir: Path, ratings: Path) -> dict:
     if len(rows) != len(source) or {row.get("blind_id") for row in rows} != set(source):
         raise ValueError("coverage ratings missing, duplicated or unexpected")
     key = {item["blind_id"]: item for item in json.loads((run_dir / "annotation_key.json").read_text())}
-    actual_by_review, summaries = {}, {}
+    actual_by_review: dict = {}
+    summaries: dict = {}
     for row in rows:
         if any(row.get(name) != source[row["blind_id"]][name] for name in FIXED):
             raise ValueError("review or model output changed")

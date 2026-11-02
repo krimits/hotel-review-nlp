@@ -22,7 +22,7 @@ import os
 import threading
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from reviewnlp.absa.extract import review_key
 from reviewnlp.triage.schemas import DEPARTMENTS, SuggestedAction
@@ -137,7 +137,9 @@ def parse_actions(raw: str, review: str, *, exact_quotes: bool = False) -> Parse
     if value is None:
         return ParsedActions([], 0, False, "no JSON with an actions list")
     entries = value if isinstance(value, list) else value["actions"]
-    haystack, kept, seen, dropped = review_key(review), [], set(), 0
+    haystack, dropped = review_key(review), 0
+    kept: list[SuggestedAction] = []
+    seen: set[tuple[str, str]] = set()
     for entry in entries:
         if not isinstance(entry, dict):
             dropped += 1
@@ -147,7 +149,12 @@ def parse_actions(raw: str, review: str, *, exact_quotes: bool = False) -> Parse
             literal = entry.get("excerpt")
             excerpt = literal if isinstance(literal, str) and 3 <= len(literal.strip()) <= MAX_FIELD_CHARS else None
         department, to_confirm = entry.get("department"), entry.get("to_confirm", [])
-        if (None in (problem, excerpt, measure) or department not in DEPARTMENTS
+        # Split from the list checks so the narrowing of the three fields survives to the
+        # quote test below; `None in (...)` does not narrow in mypy.
+        if problem is None or excerpt is None or measure is None:
+            dropped += 1
+            continue
+        if (department not in DEPARTMENTS
                 or not isinstance(to_confirm, list) or len(to_confirm) > 5
                 or any(_text(item) is None for item in to_confirm)
                 or (excerpt not in review if exact_quotes else review_key(excerpt) not in haystack)):
@@ -159,7 +166,7 @@ def parse_actions(raw: str, review: str, *, exact_quotes: bool = False) -> Parse
             continue
         seen.add(key)
         kept.append(SuggestedAction(problem=problem, excerpt=excerpt, measure=measure, department=department,
-                                    to_confirm=[_text(item) for item in to_confirm]))
+                                    to_confirm=[cast(str, _text(item)) for item in to_confirm]))
     return ParsedActions(kept, dropped, True)
 
 
@@ -196,7 +203,7 @@ def _load_qwen(model_id: str, device: str | None, revision: str | None = None) -
     revision_args = {"revision": revision} if revision else {}
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, **revision_args)
     tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=_dtype_for(torch, device), **revision_args).eval()
+    model: Any = AutoModelForCausalLM.from_pretrained(model_id, dtype=_dtype_for(torch, device), **revision_args).eval()
     return tokenizer, model.to(device)
 
 
