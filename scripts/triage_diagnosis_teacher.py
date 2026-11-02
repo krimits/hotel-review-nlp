@@ -13,10 +13,12 @@ PROTOCOL.md (version 4, "The teacher") fixes the steps, in this order:
 `label` sends the subset's reviews, 25 per call in item order, with teacher_prompt.md as the system message and
 structured output (the JSON schema of the catalogue's types); nothing else is set, as these models refuse
 sampling parameters. A call whose output does not parse, misses or repeats a review, or names an unknown type is
-retried at most twice; a review still unlabelled is recorded as failed. Rate limits and server errors are waited
-out and do not count as tries; any other HTTP error stops the run. Every raw response is saved under
-runs/triage_diagnosis/teacher (git-ignored) and hashed. A run stops before a call once --max-usd is spent and
-resumes where it stopped: finished batches are never sent again.
+retried at most twice; a review still unlabelled is recorded as failed. Rate limits, server errors and network
+failures are waited out and do not count as tries; any other HTTP error, or a failure that outlasts the waits,
+stops the run. Every raw response is saved under runs/triage_diagnosis/teacher (git-ignored) and hashed. A run
+stops before a call once --max-usd is spent and resumes where it stopped: finished batches are never sent again.
+--max-usd counts responses received; a call lost to the network may still be billed, so the spending limit on
+the OpenRouter key remains the hard cap.
 
 When every batch is finished it writes, with no text, labels/teacher_<model>_<subset>.csv (raw_row, set, 0/1 per
 type, none, failed) and its record (the model, the prompt's SHA-256, every response's SHA-256, tokens and cost).
@@ -32,6 +34,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import http.client
 import json
 import os
 import sys
@@ -60,6 +63,7 @@ BATCH = 25  # PROTOCOL.md version 4: 25 reviews per call
 TRIES = 3  # the first call and at most two retries
 TRANSIENT = {408, 429, 500, 502, 503, 504}
 TRANSIENT_WAITS = 5
+NETWORK_WAITS = (5, 15, 30, 60, 120)  # seconds between calls lost to the network; then the run stops
 MARGIN = 0.05  # PROTOCOL.md version 4: Sonnet only if it leads by at least 0.05
 SUBSETS = {  # subset -> (sheet under runs/, key under samples/, set to keep or None for all)
     "development": ("sheet.csv", "key.csv", "development"),
@@ -151,15 +155,25 @@ def usage(raw: bytes, model_key: str) -> dict:
 
 
 def send(transport: Transport, body: dict, api_key: str, sleep: Callable[[float], None]) -> bytes:
-    """One call, waiting out rate limits and server errors; any other non-200 status stops the run."""
-    for wait in range(1, TRANSIENT_WAITS + 2):
-        status, headers, raw = transport(URL, body, api_key, 120.0)
+    """One call. Rate limits, server errors and network failures are waited out: they gave no output to check, so
+    they are not tries. Any other status, or a failure that outlasts the waits, stops the run, which resumes."""
+    server_waits, network_waits = 0, 0
+    while True:
+        try:
+            status, headers, raw = transport(URL, body, api_key, 120.0)
+        except (OSError, http.client.HTTPException) as error:
+            if network_waits == len(NETWORK_WAITS):
+                raise Stop(f"the network failed {network_waits + 1} times in a row ({type(error).__name__}); finished "
+                           "batches are kept, so rerun the same command to continue") from None
+            sleep(NETWORK_WAITS[network_waits])
+            network_waits += 1
+            continue
         if status == 200:
             return raw
-        if status not in TRANSIENT or wait > TRANSIENT_WAITS:
+        server_waits += 1
+        if status not in TRANSIENT or server_waits > TRANSIENT_WAITS:
             raise Stop(f"OpenRouter answered {status}: {raw[:300].decode('utf-8', 'replace')}")
-        sleep(retry_delay(headers, wait))
-    raise AssertionError("unreachable")
+        sleep(retry_delay(headers, server_waits))
 
 
 def model_key_of(model: str, labels_dir: Path) -> str:

@@ -1,0 +1,58 @@
+{
+ "labels": "teacher_haiku_development",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "subset": "development",
+ "protocol_sha256": "3eda59cae67a66a136c07ed57dd75f16de9a16de8153a02a0023e58c710ea292",
+ "teacher_prompt_sha256": "937048f16cb781e90d5b93233146cc2d8874568deb9363ff25a9866f8043c645",
+ "code_commit": "1ad58fed39159a4b952a6b66b8e7b83bf56952ff",
+ "finished_on": "2026-10-30",
+ "reviews": 300,
+ "failed_reviews": 0,
+ "batches": 12,
+ "calls": 12,
+ "retries": 0,
+ "prompt_tokens": 57791,
+ "completion_tokens": 28956,
+ "cost_usd": 0.020257,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "b8c3efc4be820e0b6e17fb7cff67dbf5494b26c0a3490b43e35f923a40988177"
+  ],
+  "batch_0002": [
+   "9ed9cce11c0ff6ebe15dc9268a6fc8149f148e6c849604ae377bbed183629382"
+  ],
+  "batch_0003": [
+   "2562c3b83db5a1c455c44dc2f466014f165b1b913e59786b1064fe295b64e6dd"
+  ],
+  "batch_0004": [
+   "c18913f0166028fb067da4d4ab46b5e2b40a946af8f0ca13986220ab9c28f4d8"
+  ],
+  "batch_0005": [
+   "ab752cbbe4dfefe3f42c225108476d20149b82d75236261ec50a335bb6f52db3"
+  ],
+  "batch_0006": [
+   "e2b43f494e306ceac78bb11e8c14e48c7cee98815d0a116c462a014ea5428664"
+  ],
+  "batch_0007": [
+   "e03eec32b03b73936f736439952a79e3d5c91c9271b02ba92f3b5d8b93bb5812"
+  ],
+  "batch_0008": [
+   "4da27f7a3094f01848471baf7b499bffef49b16fc22f07d47fb21061de522558"
+  ],
+  "batch_0009": [
+   "9c6572d4c54809b60a2494e09c76ef01e59c46f4f3fd082ef45603cbd15ad9b7"
+  ],
+  "batch_0010": [
+   "e788b5395930d39bcffb5d165e6eb8563e56bcaf2a041785adceabdf8dbd816f"
+  ],
+  "batch_0011": [
+   "1a47029cf106a325aef3363e9ec84d732bdd71e6bcc12f52cc925e096ca1e6ef"
+  ],
+  "batch_0012": [
+   "3ee3d9a56f315c842d2552d095350f7fbc43c452b0cfa158b92da30f7074999a"
+  ]
+ }
+}

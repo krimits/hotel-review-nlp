@@ -1,4 +1,4 @@
-"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 5.
+"""Lock test for docs/experiments/triage_diagnosis/PROTOCOL.md, version 6.
 
 The protocol is frozen once committed. This test fails if its sections, its data fingerprint, the files it
 pins (catalogue, planning scripts, drawn samples, the reference prompt and batches), its models, seeds and
@@ -73,13 +73,14 @@ def section(protocol: str, start: str, end: str) -> str:
     return protocol.split(start, 1)[1].split(end, 1)[0]
 
 
-def test_the_five_required_sections_are_present_and_version_5_is_locked(protocol):
+def test_the_five_required_sections_are_present_and_version_6_is_locked(protocol):
     for heading in ("## 1. Question", "## 2. Data", "## 3. One primary comparison",
                     "## 4. Decision rule", "## 5. Limits"):
         assert heading in protocol, f"missing section: {heading}"
-    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 5, locked\n")
+    assert protocol.startswith("# Triage diagnosis and routing: protocol — version 6, locked\n")
     assert "draft" not in protocol.lower() and "open field" not in protocol.lower()
     assert not [path.name for path in FOLDER.glob("PROTOCOL_*draft*.md")]
+    assert not list(FOLDER.glob("drafts/*.md"))
 
 
 def test_the_question_is_agreement_with_the_reference_llm(prose):
@@ -128,6 +129,14 @@ def test_models_seeds_and_sample_sizes_are_fixed(protocol, prose):
     assert "**seed 20261024**" in prose and 30 + 60 + 10 == 100
     assert "**16 batches of 50**" in prose and 16 * 50 == 800
     assert "2,000 bootstrap resamples, seed 0" in prose
+    assert fields["Student training"] == ("4 epochs, batch 32, lr 2e-5, 6% warmup then linear decay, weight decay "
+                                          "0.01, 256 tokens, fp16, seed 42, last epoch kept")
+    assert ("**Settings, fixed here with no search:** 4 epochs, batch 32, learning rate 2e-5 with linear decay after "
+            "a 6% warmup, weight decay 0.01, fp16 on a GPU, seed 42.") in prose
+    for phrase in ("binary cross-entropy, with no class weights", "the 10,000 teacher reviews with the teacher's labels, "
+                   "and nothing else", "truncated at 256 tokens", "The last epoch's model is kept.",
+                   "used neither for training nor for stopping early"):
+        assert phrase in prose, phrase
 
 
 def test_the_decision_rule_partitions_every_outcome(protocol):
@@ -166,11 +175,12 @@ def test_the_catalogue_is_the_approved_one():
         assert (types[name]["priority"], types[name]["department"]) == (priority, department), name
 
 
-def test_the_version_history_records_what_happened_under_versions_1_to_4(protocol, prose):
+def test_the_version_history_records_what_happened_under_versions_1_to_5(protocol, prose):
     history = protocol.split("## 10. Version history", 1)[1]
     rows = {cells[0]: cells for cells in table_rows(history)}
-    assert set(rows) == {"1", "2", "3", "4", "5"}
-    assert [rows[v][1] for v in "12345"] == ["6a6dc63", "8d35b8b", "90e2c05", "ee6d642", "this commit"]
+    assert set(rows) == {"1", "2", "3", "4", "5", "6"}
+    assert [rows[v][1] for v in "123456"] == ["6a6dc63", "8d35b8b", "90e2c05", "ee6d642", "7d27877", "this commit"]
+    assert "before any student was trained" in rows["6"][2] and "none of those labels was compared" in rows["6"][2]
     # Version 4's row said the second rater had not started; version 5 corrects it in its own row.
     assert "A correction to version 4's row:** the second rater's run had started" in rows["5"][2]
     assert "before any of its label counts or agreements was computed" in rows["5"][2]

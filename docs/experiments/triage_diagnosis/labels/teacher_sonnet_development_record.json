@@ -1,0 +1,58 @@
+{
+ "labels": "teacher_sonnet_development",
+ "model": "anthropic/claude-sonnet-5.5-20260928",
+ "subset": "development",
+ "protocol_sha256": "3eda59cae67a66a136c07ed57dd75f16de9a16de8153a02a0023e58c710ea292",
+ "teacher_prompt_sha256": "937048f16cb781e90d5b93233146cc2d8874568deb9363ff25a9866f8043c645",
+ "code_commit": "1ad58fed39159a4b952a6b66b8e7b83bf56952ff",
+ "finished_on": "2026-10-30",
+ "reviews": 300,
+ "failed_reviews": 0,
+ "batches": 12,
+ "calls": 12,
+ "retries": 0,
+ "prompt_tokens": 57791,
+ "completion_tokens": 6558,
+ "cost_usd": 0.181162,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "b269fe8f3801f5bf22e2dc44afbe53e69d06a0786512b2b0bb4fe235329cab5b"
+  ],
+  "batch_0002": [
+   "b051b789415533b35e62879e2c7195ce9a076cdaace26fe39ac3306b8964e86b"
+  ],
+  "batch_0003": [
+   "5df1293d535ad1094c9e04257bc34c7339fdacc448f35abcc20137927b1f4a95"
+  ],
+  "batch_0004": [
+   "5504583fb7919e7078be9fc9b6740ca01e148f2f183043eba3eefcb1fa9c141d"
+  ],
+  "batch_0005": [
+   "fe9d430d2afa47e1c5b18cf24ab3b4097fd9943ed604e8a03d311b31bb02dac4"
+  ],
+  "batch_0006": [
+   "aa599f39a624bb545449b56d6f3d46e219377a0a8f1c47a21f082fa85a13f28c"
+  ],
+  "batch_0007": [
+   "bf1a21aeebb8810c62890b139cb7321e2763ec543c7fb82a0979b3d3afdc33b9"
+  ],
+  "batch_0008": [
+   "ffd84018915a01a9eef71d9310285a389fd0ad310080640c0007aaf760b14091"
+  ],
+  "batch_0009": [
+   "d25c96156b554ff187e53ac64392f915b7a472ef3635d44e86ce57ae3d34e120"
+  ],
+  "batch_0010": [
+   "f66d3961bbd5818286d5c004d47c63919990b325d127ced5dffdf06179e9c629"
+  ],
+  "batch_0011": [
+   "5665f636737075989e59bb1dfca9f1de5c4d670590e6b902d5e3c56afe1d76b6"
+  ],
+  "batch_0012": [
+   "12cbe04951a7b13ec33afc8ecf5626cbddc89c9605c98dd767d5b052d653db76"
+  ]
+ }
+}

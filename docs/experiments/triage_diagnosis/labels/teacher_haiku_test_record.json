@@ -1,0 +1,82 @@
+{
+ "labels": "teacher_haiku_test",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "subset": "test",
+ "protocol_sha256": "3eda59cae67a66a136c07ed57dd75f16de9a16de8153a02a0023e58c710ea292",
+ "teacher_prompt_sha256": "937048f16cb781e90d5b93233146cc2d8874568deb9363ff25a9866f8043c645",
+ "code_commit": "469e78794c76e72150d9e750ba590bd08c958938",
+ "finished_on": "2026-11-02",
+ "reviews": 500,
+ "failed_reviews": 0,
+ "batches": 20,
+ "calls": 20,
+ "retries": 0,
+ "prompt_tokens": 96847,
+ "completion_tokens": 47795,
+ "cost_usd": 0.033582,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "8f29082b1e86f652e121d85b3119485299729b2e5f91a15a80b136cd00ef77ff"
+  ],
+  "batch_0002": [
+   "1519eb8ead0d7093fc9c23fb764cbc3d7f69fa269a250e59c79ab899dc1cd010"
+  ],
+  "batch_0003": [
+   "f87a5826740ea2aa252ba2fe9c40ef4a919a25f7f6dbb63fc3b854c4700ae468"
+  ],
+  "batch_0004": [
+   "7ad6066acd1db8730b8df7512bac1b60e41f5d7fe600194c4d6c6f4b10b6addc"
+  ],
+  "batch_0005": [
+   "2fd0733f982509454de3c2f0359e732b0ee6a74cee92d44b9b129f0955c93870"
+  ],
+  "batch_0006": [
+   "f1bfb0697f12f16e00fbc06a6b8af4fe3035400d7c672a585bf26853258ba88a"
+  ],
+  "batch_0007": [
+   "467bab698dc055ec14266caadc354c8a0eaddf2474397109db0d9adb52cc2fc9"
+  ],
+  "batch_0008": [
+   "a58eca6abfa114176e467d10989647f91163cfd648aa22ba6a797a9860606e6a"
+  ],
+  "batch_0009": [
+   "99778b4ad2dce41d29f6bbad2e6a728fe901fd0a63b8e329cb7c63bd6524f7f5"
+  ],
+  "batch_0010": [
+   "4276dc41f3df76be2c641dab38db2484b5635d5d9c762f6cdcf5451b37fa9aca"
+  ],
+  "batch_0011": [
+   "13a5db566c16eeb1bc0ef11e2ebfb0d090cc44313eb277aa89f3ba8074bbe132"
+  ],
+  "batch_0012": [
+   "db4e2697780655a424194c8f3c04369f74213f265356f671cc78a1aebfd37c6d"
+  ],
+  "batch_0013": [
+   "c5e8d0ae3d819662e83665327a8f30e7f578ec69ee898d7f11173b365fea8046"
+  ],
+  "batch_0014": [
+   "f8dafb4830c9fbf9f54d923630bc410b7f322f485d9e180ec034f4afbe2ab9be"
+  ],
+  "batch_0015": [
+   "45c8d29d93b3785dd8130b4e1e939571d9508e03dc5d9b0abd471b6640b6b540"
+  ],
+  "batch_0016": [
+   "5dd3b75e39ed8be45577848add473404b29e95c00204fa18a8d3c63d0cba2d41"
+  ],
+  "batch_0017": [
+   "73dfb764908d0f28e01cb1fd06b43b1a47a666a7a0b370d20206162606ad7053"
+  ],
+  "batch_0018": [
+   "3c4a85fd6a2a47b019379ef885791444b80664357b870c590a6bbf5cdf8e328e"
+  ],
+  "batch_0019": [
+   "8d2d1a99e866c4cb21644712c04ddffd54f2eb864488f74f2ec486a33fc61d8a"
+  ],
+  "batch_0020": [
+   "0d3839089175577a4aec8620f9c98f82c7fa8f83375c44186bbd7e7fa1d1eaf0"
+  ]
+ }
+}

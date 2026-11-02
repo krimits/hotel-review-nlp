@@ -1,0 +1,34 @@
+{
+ "labels": "teacher_haiku_check",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "subset": "check",
+ "protocol_sha256": "3eda59cae67a66a136c07ed57dd75f16de9a16de8153a02a0023e58c710ea292",
+ "teacher_prompt_sha256": "937048f16cb781e90d5b93233146cc2d8874568deb9363ff25a9866f8043c645",
+ "code_commit": "469e78794c76e72150d9e750ba590bd08c958938",
+ "finished_on": "2026-11-02",
+ "reviews": 100,
+ "failed_reviews": 0,
+ "batches": 4,
+ "calls": 4,
+ "retries": 0,
+ "prompt_tokens": 19316,
+ "completion_tokens": 7205,
+ "cost_usd": 0.005534,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "55c4f1918f6abbd923d8bf40a0318e324e819d71ce325e5754631de55f778965"
+  ],
+  "batch_0002": [
+   "1e1a5fdf55103be6f309751dd2e5d1a2cc2cb69961b1300f5cdd88fb71e6c130"
+  ],
+  "batch_0003": [
+   "98d0bf6833b0a7d15febd787266a30897f712a10ba744cac7b6c89b807580de1"
+  ],
+  "batch_0004": [
+   "f318fd13cbd0f451a484af7cf630d9816d3360bdf1eea7505c8cf134c46b3c0b"
+  ]
+ }
+}
