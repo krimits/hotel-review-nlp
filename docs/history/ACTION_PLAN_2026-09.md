@@ -1,3 +1,8 @@
+> **Historical, superseded (2026-09-09).** This is the original four-week plan, kept for
+> provenance only: the checkboxes record what the plan expected, not the current status of
+> the repository. Current state: [docs/EVIDENCE_MAP.md](../EVIDENCE_MAP.md) and
+> [docs/RESULTS.md](../RESULTS.md).
+
 # 4-week action plan
 
 > Έλεγχος 2026-09-09: Δείτε την [αναλυτική αναφορά ολοκλήρωσης](PROJECT_COMPLETION_AUDIT_2026-09-09.md) για τεκμηριωμένη κατάσταση και εκκρεμότητες και των 22 σημείων. Τα αρχικά checkboxes διατηρούνται ως ιστορικό πλάνο.

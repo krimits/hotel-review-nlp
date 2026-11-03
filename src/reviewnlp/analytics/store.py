@@ -163,7 +163,7 @@ class SqliteAspectStore:
         date = review_date or datetime.now(timezone.utc)
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
-        date = date.astimezone(timezone.utc).isoformat()
+        date_iso = date.astimezone(timezone.utc).isoformat()
         now = datetime.now(timezone.utc).isoformat()
         # One aspect counts once per review. Conflicting polarities abstain.
         grouped: dict[str, list[dict]] = {}
@@ -185,7 +185,7 @@ class SqliteAspectStore:
                      salvaged=excluded.salvaged, entries_dropped=excluded.entries_dropped,
                      updated_at=excluded.updated_at""",
                 (hotel_id, source, review_id, hashlib.sha256(text.encode("utf-8")).hexdigest(),
-                 language, date, int(record["json_valid"]), int(record["salvaged"]),
+                 language, date_iso, int(record["json_valid"]), int(record["salvaged"]),
                  record["entries_dropped"], now),
             )
             key = connection.execute(
@@ -196,7 +196,7 @@ class SqliteAspectStore:
             for aspect, entries in grouped.items():
                 counts = {s: sum(item["sentiment"] == s for item in entries)
                           for s in ("positive", "negative", "neutral")}
-                winner = max(counts, key=counts.get)
+                winner = max(counts, key=lambda sentiment: counts[sentiment])
                 if list(counts.values()).count(counts[winner]) > 1:
                     winner = "neutral"
                 quote = next((i["quote"] for i in entries if i["sentiment"] == winner), entries[0]["quote"])
@@ -248,7 +248,7 @@ class SqliteAspectStore:
         date = review_date or datetime.now(timezone.utc)
         if date.tzinfo is None:
             date = date.replace(tzinfo=timezone.utc)
-        date = date.astimezone(timezone.utc).isoformat()
+        date_iso = date.astimezone(timezone.utc).isoformat()
         sentiment, complaints = result["sentiment"], result["complaints"]
         routing, actions, dump = result["routing"], result["actions"], json.dumps
         for action in actions["actions"]:
@@ -256,7 +256,7 @@ class SqliteAspectStore:
                 raise ValueError("cannot store an action with an unsupported excerpt")
         answers = [*complaints["topics"], *([complaints["other_complaint"]] if complaints["other_complaint"] else [])]
         values = (
-            hotel_id, source, review_id, hashlib.sha256(text.encode("utf-8")).hexdigest(), language, date,
+            hotel_id, source, review_id, hashlib.sha256(text.encode("utf-8")).hexdigest(), language, date_iso,
             result["status"], sentiment["label"], sentiment["confidence"],
             None if sentiment["probabilities"] is None else dump(sentiment["probabilities"], sort_keys=True),
             sentiment["model_type"], complaints["status"], complaints["error"], complaints["route"],

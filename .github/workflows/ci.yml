@@ -16,6 +16,24 @@ jobs:
       - run: pip install ruff -c requirements/ci.lock
       - run: ruff check src tests scripts spaces
 
+  # The API, the evaluation code and the packages they import are where a wrong type becomes
+  # a wrong number or a 500. Six packages are the gate; the config says how to widen it.
+  # The runtime dependencies are installed first: without them a missing import becomes Any
+  # and the check reports a different set of errors than a developer sees locally.
+  # mypy is a tool a job installs, not a dependency of the project, so it is pinned inline;
+  # requirements/ci.lock is compiled from the project's dependencies and does not carry it.
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -c requirements/ci.lock
+      - run: pip install -e ".[dev,serving]" -r requirements/ci.in -c requirements/ci.lock
+      - run: pip install mypy==2.4.1 -c requirements/ci.lock
+      - run: mypy
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +43,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # One Python version on purpose: requirements/ci.lock is compiled for Linux and 3.11,
+      # and a matrix that installs it on an interpreter it was not resolved for would test
+      # the resolver, not the code.
       # CPU-only torch keeps CI fast; all tests run offline on tiny fixtures.
       # Every version is pinned by requirements/ci.lock, compiled for Linux and Python 3.11.
       # torch's CPU build comes from PyTorch's index; its dependencies from PyPI, because the
@@ -33,5 +54,17 @@ jobs:
       # requirements/ci.in adds the phase 2 transformers stack and the Space demo's Gradio,
       # whose app is imported and run end to end with a stub model.
       - run: pip install -e ".[dev,serving]" -r requirements/ci.in -c requirements/ci.lock
-      - run: pytest tests -v
+      - run: pip install pytest-cov==7.1.0 -c requirements/ci.lock
+      # The floor is a ratchet: raise it when coverage rises, never lower it to make a build pass.
+      - run: pytest tests -v --cov=reviewnlp --cov-report=term-missing --cov-fail-under=82
       - run: python scripts/verify_distilbert_handoff.py
+
+  # The image the README tells people to build had never been built by CI.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f docker/Dockerfile -t hotel-review-nlp:ci .
+      # `import reviewnlp.serving.app as m` hands back the FastAPI object, not the module:
+      # the package __init__ rebinds the name. Import the object from the module instead.
+      - run: docker run --rm -e MODEL_TYPE=stub hotel-review-nlp:ci python -c "from reviewnlp.serving.app import app; print(app.title)"

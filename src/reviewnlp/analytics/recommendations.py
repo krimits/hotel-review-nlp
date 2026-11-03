@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 RECOMMENDATION_TEXT = {
     "cleanliness": (
         "Ενισχύστε τον τελικό έλεγχο καθαριότητας στα δωμάτια, "
@@ -147,7 +149,7 @@ def build_analytics(rows, previous_rows=None) -> list[dict]:
     previous = _count_by_aspect(previous_rows or [])
     max_total = max(tally["total"] for tally in counts.values())
 
-    analytics = []
+    analytics: list[dict[str, Any]] = []
     for aspect, tally in counts.items():
         negative_rate = tally["negative"] / tally["total"]
         before = previous.get(aspect)

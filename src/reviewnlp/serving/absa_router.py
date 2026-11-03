@@ -69,8 +69,8 @@ def analyze_review(
     authorize_hotel(request.hotel_id, x_api_key)
     started_at = time.perf_counter()
     record = model.analyze(request.text)
-    review_id = request.review_id or (uuid.uuid4().hex if store else None)
-    if store:
+    review_id = request.review_id or (uuid.uuid4().hex if store is not None else None)
+    if store is not None and review_id is not None:
         store.save_review(
             hotel_id=request.hotel_id, review_id=review_id, source=request.source or "api",
             text=request.text, language=request.language, review_date=request.review_date,
@@ -104,9 +104,9 @@ def analyze_reviews_batch(
     records = model.analyze_batch([review.text for review in request.reviews])
     review_ids = []
     for record, review in zip(records, request.reviews, strict=True):
-        review_id = review.review_id or (uuid.uuid4().hex if store else None)
+        review_id = review.review_id or (uuid.uuid4().hex if store is not None else None)
         review_ids.append(review_id)
-        if store:
+        if store is not None and review_id is not None:
             store.save_review(
                 hotel_id=review.hotel_id, review_id=review_id,
                 source=review.source or "api", text=review.text,

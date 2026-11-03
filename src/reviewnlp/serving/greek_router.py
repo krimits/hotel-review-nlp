@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from reviewnlp.greek.serve import GreekModelManager, get_greek_model
 from reviewnlp.serving.security import require_api_key
@@ -13,12 +13,15 @@ from reviewnlp.serving.security import require_api_key
 router = APIRouter(prefix="/greek", tags=["Greek sentiment"], dependencies=[Depends(require_api_key)])
 
 
+GreekText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=8000)]
+
+
 class GreekRequest(BaseModel):
-    text: str = Field(..., min_length=3, max_length=8000)
+    text: GreekText
 
 
 class GreekBatchRequest(BaseModel):
-    texts: list[str] = Field(..., min_length=1, max_length=256)
+    texts: list[GreekText] = Field(..., min_length=1, max_length=64)
 
 
 class GreekPrediction(BaseModel):

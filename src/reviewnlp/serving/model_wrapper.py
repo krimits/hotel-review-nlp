@@ -11,9 +11,11 @@ CI test-suite and for smoke-testing the container before weights are mounted.
 
 from __future__ import annotations
 
+import hashlib
 import os
 import threading
 import time
+from typing import Any
 
 import torch
 
@@ -22,15 +24,43 @@ from reviewnlp.llm.predict import predict_classical, predict_qwen_qlora
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
+def _stub_score(text: str) -> float:
+    """Deterministic pseudo-probability for the zero-dependency stub model.
+
+    `hash()` is salted per process, so the stub documented as deterministic returned
+    different labels in different workers. SHA-256 of the text does not.
+    """
+    digest = hashlib.sha256(str(text).encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big") % 1000 / 1000.0
+
+
+def _max_concurrency() -> int:
+    """How many forward passes may run at once (REVIEWNLP_MAX_CONCURRENCY).
+
+    A single blanket lock serialised every request behind the slowest one. A bounded
+    semaphore keeps the bound (memory, CPU oversubscription) without making the queue
+    strict FIFO against all callers. CPU-bound torch usually wants 1; small inputs on a
+    many-core box can use more.
+    """
+    configured = os.environ.get("REVIEWNLP_MAX_CONCURRENCY", "").strip()
+    if configured:
+        try:
+            return max(1, int(configured))
+        except ValueError as error:
+            raise ValueError(f"REVIEWNLP_MAX_CONCURRENCY must be an integer, got {configured!r}") from error
+    return max(1, min(4, os.cpu_count() or 1))
+
+
 class ModelWrapper:
     """Lazy single-model holder; thread-safe for Uvicorn workers."""
 
     def __init__(self, model_type: str | None = None, model_path: str | None = None):
         self.model_type = model_type or os.environ.get("MODEL_TYPE", "stub")
         self.model_path = model_path or os.environ.get("MODEL_PATH", "")
-        self._lock = threading.Lock()
+        self._lock = threading.Lock()          # guards load(), nothing else
+        self._semaphore = threading.BoundedSemaphore(_max_concurrency())
         self._loaded = False
-        self._obj = None
+        self._obj: Any = None
 
     def _require_model_path(self) -> None:
         """Every family but `stub` needs weights; say so before loading them.
@@ -76,13 +106,13 @@ class ModelWrapper:
         self.load()
         if self.model_type == "stub":
             # deterministic pseudo-classifier: hash-based, good for API tests
-            out = []
+            out: list[tuple[str, float | None]] = []
             for t in texts:
-                h = abs(hash(t)) % 1000 / 1000.0
+                h = _stub_score(t)
                 out.append(("positive" if h > 0.5 else "negative", max(h, 1 - h)))
             return out
 
-        with self._lock:
+        with self._semaphore:
             if self.model_type == "classical":
                 labels = predict_classical(self._obj, texts)
                 probs = self._obj.predict_proba(texts).max(axis=1)
@@ -103,12 +133,12 @@ class ModelWrapper:
         self.load()
         if self.model_type == "stub":
             # Same pseudo-classifier as predict_batch; "negative" comes first so a tie falls on it, as there.
-            out = []
+            out: list[dict[str, float] | None] = []
             for t in texts:
-                h = abs(hash(t)) % 1000 / 1000.0
+                h = _stub_score(t)
                 out.append({"negative": 1 - h, "positive": h})
             return out
-        with self._lock:
+        with self._semaphore:
             if self.model_type == "classical":
                 classes = [str(c) for c in self._obj.classes_]
                 return [dict(zip(classes, (float(p) for p in row), strict=True))
@@ -146,7 +176,7 @@ def _predict_encoder_fast(bundle: dict, texts: list[str]) -> list[tuple[str, flo
     return [(id2label[int(i)], float(c)) for i, c in zip(idx.cpu(), conf.cpu(), strict=False)]
 
 
-def _distribution_encoder(bundle: dict, texts: list[str]) -> list[dict[str, float]]:
+def _distribution_encoder(bundle: dict, texts: list[str]) -> list[dict[str, float] | None]:
     tokenizer, model = bundle["tokenizer"], bundle["model"]
     enc = tokenizer([str(t) for t in texts], truncation=True, max_length=256, padding=True, return_tensors="pt")
     with torch.no_grad():

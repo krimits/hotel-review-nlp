@@ -66,7 +66,7 @@ def source_spans(review: str) -> list[dict]:
             ranges[-1] = (ranges[-1][0], len(review))
         else:
             ranges = [(0, len(review))]
-    spans = []
+    spans: list = []
     for start, stop in ranges:
         text = review[start:stop].strip()
         while len(text) > MAX_FIELD_CHARS:
