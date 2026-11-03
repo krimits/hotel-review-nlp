@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -23,6 +24,12 @@ PINNED = {  # file -> SHA-256 at lock
         "5c592af14016cba5f97a0ee021af0a54e2196d1f50ad1f01b938be3a384f966d",
     FOLDER / "reference_prompt_v2.md": "16d07be08fe86584e16bfd74e8d98cd56d3d73a51c2adda1ab15400174c0a3c7",
     FOLDER / "teacher_prompt_v2.md": "f731026f001ea8262444edc7c3847b6729d0414588369a409de8f5717c98245a",
+}
+DRAWN = {  # step 2, drawn at 360e2fa: the keys are never redrawn or edited
+    "key.csv": "14d4f955ffa0fecc482b4d2f31c48fce2d6a9db5413d6b8873b8d7b5fe42b134",
+    "teacher_key.csv": "66d87a0f2c7acb851f234c53c3aace33cab47deffd2b512a5f9b3d3e99a82346",
+    "manifest.json": "4b76c60095c285225d0bbcf26d1e74caa0914c5fae40af869b9689bf69d8215f",
+    "reference_batches.json": "2dd52a3fc3de9b716569ae169f78483dc6206eb0eed91fe4fd6cbe2afce988f5",
 }
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
@@ -76,6 +83,18 @@ def test_the_data_the_catalogue_and_the_prompts_match_their_fingerprints(prose):
     for path, digest in PINNED.items():
         assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, path.name
     assert PINNED[v2.CATALOGUE] in prose
+
+
+def test_the_drawn_samples_are_the_committed_ones_and_redrew_the_first_protocols():
+    for name, digest in DRAWN.items():
+        assert hashlib.sha256((v2.SAMPLES / name).read_bytes()).hexdigest() == digest, name
+    manifest = json.loads((v2.SAMPLES / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["protocol_sha256"] == PROTOCOL_SHA256 and manifest["raw_csv_sha256"] == RAW_SHA256
+    assert set(manifest["first_protocol_keys_redrawn_and_matched"]) == {"key.csv", "check_key.csv",
+                                                                       "teacher_key.csv"}
+    assert manifest["items"] == {"development": [1, 600], "test": [601, 1100], "teacher": [1, 30000]}
+    batches = json.loads((v2.SAMPLES / "reference_batches.json").read_text(encoding="utf-8"))
+    assert batches["prompt_sha256"] == PINNED[v2.REFERENCE_PROMPT] and len(batches["batches"]) == 22
 
 
 def test_the_prompts_are_catalogue_v2s_word_for_word():
