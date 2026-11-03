@@ -1,7 +1,8 @@
-# Triage student, second attempt: protocol — version 1, DRAFT
+# Triage student, second attempt: protocol — version 1, locked
 
-**Status: draft, 2 November 2026, awaiting the owner's approval.** It is locked only by the commit that adds its
-lock test. Nothing in it has been drawn, labelled, trained or scored.
+**Status: approved by the owner on 3 November 2026 and locked by the commit that adds its lock test,
+[`tests/test_triage_student_v2_protocol.py`](../../../tests/test_triage_student_v2_protocol.py).** At lock nothing
+had been drawn, labelled, trained or scored. Any change is a version 2, recorded beside this one, not an edit.
 
 **Why a second attempt.** The [triage diagnosis protocol](../triage_diagnosis/PROTOCOL.md) closed on 2 November
 2026 with **Not met** ([decision](../decision_triage_diagnosis.md)): the student caught 0.709 of the urgent
@@ -45,15 +46,18 @@ texts and duplicate whole-review texts left out; pools by text hash, 0–79 teac
 - **Test, 500 new reviews** from the test pool, none of the first protocol's 500 test or 100 check reviews:
   H 150, N 300, B 50, **seed 20261102**. Each carries `N_s / n_s`, with `N_s` counted after those 600 are removed.
 - **Teacher sample, 30,000** from the teacher pool: H 12,000, N 15,000, B 3,000, **seed 20261104**. It is split
-  by a fixed hash of the text into **27,000 for training** and **3,000 held out** (`int(sha256(text)[:8], 16) % 10
-  == 0`, about a tenth). The held-out part is never trained on; variant C sets its thresholds there. It is drawn
+  by a fixed hash of the text into **27,000 for training** and **3,000 held out**, about a tenth: a review is held
+  out when `int(sha256(text)[:8], 16) % 10 == 0`, with the canonical text the pools hash, so exactly when its pool
+  number ends in 0 (pools 0, 10, …, 70). The held-out part is never trained on; variant C sets its thresholds there. It is drawn
   afresh, so it can include reviews of the first protocol's 10,000; every review is labelled again with
   `catalogue_v2`.
 - **Not used:** the first protocol's 100 check reviews. They shaped `catalogue_v2`.
 
 Every draw is stratified as before (per stratum, sorted by `raw_row`, `DataFrame.sample(n=n_s,
 random_state=seed)`), first redraws the first protocol's samples and stops unless they match its committed keys,
-and is recorded in a key and a manifest without text.
+and is recorded in a key and a manifest without text. The 600 development reviews are items 1–600 and the 500 test
+reviews items 601–1,100, each set in a random order (seeds 20261103 and 20261102); the teacher sample is items
+1–30,000 in a random order (seed 20261104).
 
 ### Labels
 
@@ -161,7 +165,7 @@ decided".
 
 | Step | What | Human gate |
 | :--- | :--- | :--- |
-| 1 | Lock with its lock test; generate and commit `reference_prompt_v2.md` and `teacher_prompt_v2.md` | the owner approves this draft |
+| 1 | Lock with its lock test; generate and commit `reference_prompt_v2.md` and `teacher_prompt_v2.md` | the owner's approval (given 3 November 2026) |
 | 2 | Draw the 300 new development, 500 test and 30,000 teacher reviews; write the 22 blank ChatGPT batches | — |
 | 3 | The owner runs the 22 batches in ChatGPT; `reference_chatgpt_v2` recorded | ChatGPT session, about 2 hours |
 | 4 | The owner runs the teacher on the 30,000, the 600 and the 500 | OpenRouter key with a spending limit, about $2.10, about 2.5 hours unattended |

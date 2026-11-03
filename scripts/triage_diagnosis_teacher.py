@@ -40,6 +40,7 @@ import os
 import sys
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -74,6 +75,20 @@ SUBSETS = {  # subset -> (sheet under runs/, key under samples/, set to keep or 
 Transport = Callable[[str, dict, str, float], tuple[int, dict, bytes]]
 
 
+@dataclass(frozen=True)
+class Setup:
+    """The files a teacher run reads and records. The first protocol's by default; the triage student v2
+    protocol passes its own catalogue, prompt, protocol and subsets to the same code."""
+
+    catalogue: Path
+    prompt: Path
+    protocol: Path
+    subsets: dict[str, tuple[str, str, str | None]]
+
+
+FIRST = Setup(sample.CATALOGUE, labels.TEACHER_PROMPT, sample.PROTOCOL, SUBSETS)
+
+
 class OutputError(ValueError):
     """A response whose labels cannot be used; the call is tried again."""
 
@@ -82,13 +97,14 @@ class Stop(RuntimeError):
     """The run stops here; finished batches are kept and a later run resumes after them."""
 
 
-def catalogue() -> dict:
-    return yaml.safe_load(sample.CATALOGUE.read_text(encoding="utf-8"))
+def catalogue(path: Path = sample.CATALOGUE) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-def load_subset(subset: str, runs: Path = labels.RUNS, samples: Path = labels.SAMPLES) -> pd.DataFrame:
+def load_subset(subset: str, runs: Path = labels.RUNS, samples: Path = labels.SAMPLES,
+                subsets: dict[str, tuple[str, str, str | None]] = SUBSETS) -> pd.DataFrame:
     """The subset's reviews in item order, each text checked against the key's hash."""
-    sheet_name, key_name, keep = SUBSETS[subset]
+    sheet_name, key_name, keep = subsets[subset]
     texts = pd.read_csv(runs / sheet_name, dtype=str, keep_default_na=False, encoding="utf-8-sig")
     key = pd.read_csv(samples / key_name, dtype=str, keep_default_na=False)
     if keep:
@@ -187,7 +203,7 @@ def model_key_of(model: str, labels_dir: Path) -> str:
 
 def label(model: str, subset: str, max_usd: float, transport: Transport | None = None, api_key: str | None = None,
           runs: Path = labels.RUNS, samples: Path = labels.SAMPLES, labels_dir: Path = labels.LABELS,
-          sleep: Callable[[float], None] = time.sleep) -> dict:
+          sleep: Callable[[float], None] = time.sleep, setup: Setup = FIRST) -> dict:
     """Label a subset in batches, resuming after finished ones; write the labels when every batch is finished."""
     model_key = model_key_of(model, labels_dir)
     name = f"teacher_{model_key}_{subset}"
@@ -197,12 +213,12 @@ def label(model: str, subset: str, max_usd: float, transport: Transport | None =
     if not api_key:
         raise Stop("set OPENROUTER_API_KEY first; nothing was sent")
     transport = transport or urllib_transport
-    data = catalogue()
+    data = catalogue(setup.catalogue)
     types = [entry["id"] for entry in data["types"]]
-    prompt = labels.TEACHER_PROMPT.read_text(encoding="utf-8")
-    if prompt != labels.teacher_prompt():
-        raise Stop(f"{labels.TEACHER_PROMPT} does not match the catalogue")
-    reviews = load_subset(subset, runs, samples)
+    prompt = setup.prompt.read_text(encoding="utf-8")
+    if prompt != labels.teacher_prompt(setup.catalogue):
+        raise Stop(f"{setup.prompt} does not match the catalogue")
+    reviews = load_subset(subset, runs, samples, setup.subsets)
     folder = runs / "teacher" / model_key / subset
     folder.mkdir(parents=True, exist_ok=True)
     batches = [reviews.iloc[start:start + BATCH] for start in range(0, len(reviews), BATCH)]
@@ -240,11 +256,11 @@ def label(model: str, subset: str, max_usd: float, transport: Transport | None =
                   "failed": [] if found else items, "attempts": attempts,
                   "cost_usd": sum(a["cost_usd"] for a in attempts)}
         record_path.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8", newline="\n")
-    return write_labels(model_key, subset, reviews, folder, labels_dir, types, len(batches))
+    return write_labels(model_key, subset, reviews, folder, labels_dir, types, len(batches), setup)
 
 
 def write_labels(model_key: str, subset: str, reviews: pd.DataFrame, folder: Path, labels_dir: Path,
-                 types: list[str], batches: int) -> dict:
+                 types: list[str], batches: int, setup: Setup = FIRST) -> dict:
     found: dict[int, list[str]] = {}
     failed: set[int] = set()
     records = [json.loads((folder / f"batch_{n:04d}.json").read_text(encoding="utf-8")) for n in range(1, batches + 1)]
@@ -263,8 +279,8 @@ def write_labels(model_key: str, subset: str, reviews: pd.DataFrame, folder: Pat
     attempts = [a for record in records for a in record["attempts"]]
     record = {
         "labels": name, "model": MODELS[model_key], "subset": subset,
-        "protocol_sha256": sample.trends._sha256(sample.PROTOCOL),
-        "teacher_prompt_sha256": sample.trends._sha256(labels.TEACHER_PROMPT),
+        "protocol_sha256": sample.trends._sha256(setup.protocol),
+        "teacher_prompt_sha256": sample.trends._sha256(setup.prompt),
         "code_commit": sample.pilot.git_commit(), "finished_on": dt.date.today().isoformat(),
         "reviews": len(table), "failed_reviews": len(failed), "batches": batches, "calls": len(attempts),
         "retries": len(attempts) - batches,
