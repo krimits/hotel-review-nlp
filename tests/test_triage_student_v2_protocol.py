@@ -51,6 +51,9 @@ TRAINED = {  # step 5, notebook 30 at fa0ed37: the bundle as it came back and wa
     "logits_B_held_out.csv": "dd13f8a3000bf46b746b343616eb4d6e6e543b224492eee43432c29ee467813f",
     "logits_B_test.csv": "72e0ad3d0af6388bf6b8492110587da02a018966b94570d61c720b307ba7bc14",
 }
+CHOSEN = {  # step 6, at a962c83, before any test score: thresholds of A, B and C, and the choice
+    "thresholds_locked.json": "a03f45b38466f0de2501768464b687bbb69d3a0914a77ad2679d137e73520b4e",
+}
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
     "rec >= 0.90 and lo >= 0.80 and fa > 5",
@@ -144,6 +147,16 @@ def test_the_trained_bundle_is_the_verified_one_from_the_pinned_commit():
     assert run["teacher_labels_sha256"] == RECORDED["teacher_haiku_teacher.csv"]
     assert (run["trained_on"], run["held_out"], run["weights_kept"]) == (27052, 2948, True)
     assert not [p for p in student.iterdir() if p.suffix in (".safetensors", ".bin", ".pt")]
+
+
+def test_the_thresholds_and_the_choice_were_fixed_on_development_before_the_test():
+    path = v2.FOLDER / "student" / "thresholds_locked.json"
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == CHOSEN["thresholds_locked.json"]
+    record = json.loads(path.read_text(encoding="utf-8"))
+    assert record["set"] == "development" and record["reviews"] == 600 and record["against"] == "reference_chatgpt_v2"
+    assert record["protocol_sha256"] == PROTOCOL_SHA256 and record["choice"]["variant"] in ("A", "B", "C")
+    assert all(name.rsplit("/", 1)[-1] in {**TRAINED, **RECORDED, **DRAWN} for name in record["inputs"])
+    assert not any("_test" in name for name in record["inputs"])
 
 
 def test_the_prompts_are_catalogue_v2s_word_for_word():
