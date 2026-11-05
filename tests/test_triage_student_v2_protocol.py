@@ -41,6 +41,16 @@ RECORDED = {  # steps 3 and 4: labels are recorded once and never replaced or ed
     "teacher_haiku_teacher.csv": "71ffe775c06e5643945923d78cbdfbe0c0ab560fbefcdd4ff270cd1836739678",
     "teacher_haiku_teacher_record.json": "171366aba9f50e2030020269d7a9dceb71d81bfce90bee1893d893a66df61694",
 }
+TRAINED = {  # step 5, notebook 30 at fa0ed37: the bundle as it came back and was verified
+    "run.json": "92310e7c953a5f10ab0d87d34c8ae504bd070587b635c7d2cf771f2d318c02b3",
+    "artifact_manifest.json": "40050c6536f6599c78918ba99fa9278579461c92b538b5f82c64521af22b46d5",
+    "logits_A_development.csv": "97f3d82f7a6c5dfe982718faab59df5e6a5fae5cdcc17c621823cdbc1615f34a",
+    "logits_A_held_out.csv": "75074982362f76b37461a4d6be0de34c1ec2ef6a2a182b192f2a0a0ea6e9511c",
+    "logits_A_test.csv": "f82ad93278129b92e3c1d8164af1b01865783a74f431da7ca6ac1ad3aa524218",
+    "logits_B_development.csv": "575bbbb2495f3ebeecca1fefeb34f38443860d47a997d72235211796ca7d9f45",
+    "logits_B_held_out.csv": "dd13f8a3000bf46b746b343616eb4d6e6e543b224492eee43432c29ee467813f",
+    "logits_B_test.csv": "72e0ad3d0af6388bf6b8492110587da02a018966b94570d61c720b307ba7bc14",
+}
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
     "rec >= 0.90 and lo >= 0.80 and fa > 5",
@@ -119,6 +129,21 @@ def test_the_recorded_labels_are_the_committed_ones_under_this_protocol():
     assert reference["catalogue_sha256"] == PINNED[v2.CATALOGUE]
     assert reference["reviews_by_set"] == {"development": 600, "test": 500}
     assert '"GPT 6.1 Terra", the same for all 22 batches; no reruns' in reference["source"]
+
+
+def test_the_trained_bundle_is_the_verified_one_from_the_pinned_commit():
+    student = v2.FOLDER / "student"
+    for name, digest in TRAINED.items():
+        assert hashlib.sha256((student / name).read_bytes()).hexdigest() == digest, name
+    manifest = json.loads((student / "artifact_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["commit"] == "fa0ed372b4934f50a4f864808f3af1a230033a3c"
+    assert {f["path"].rsplit("/", 1)[-1]: f["sha256"] for f in manifest["files"]} == {
+        name: digest for name, digest in TRAINED.items() if name != "artifact_manifest.json"}
+    run = json.loads((student / "run.json").read_text(encoding="utf-8"))
+    assert run["protocol_sha256"] == PROTOCOL_SHA256 and run["raw_csv_sha256"] == RAW_SHA256
+    assert run["teacher_labels_sha256"] == RECORDED["teacher_haiku_teacher.csv"]
+    assert (run["trained_on"], run["held_out"], run["weights_kept"]) == (27052, 2948, True)
+    assert not [p for p in student.iterdir() if p.suffix in (".safetensors", ".bin", ".pt")]
 
 
 def test_the_prompts_are_catalogue_v2s_word_for_word():
