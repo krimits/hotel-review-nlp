@@ -178,15 +178,19 @@ def read_numeric(raw: pd.DataFrame, columns: list[str]) -> tuple[pd.DataFrame, i
 
 def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path = SAMPLES,
            received_on: dt.date | None = None, source: str | None = None, unwrapped: bool = False,
-           numeric: bool = False) -> dict:
-    """Check a returned sheet and write its labels and record; refuse to replace labels already written."""
-    key_name, name = KINDS[kind]
+           numeric: bool = False, catalogue: Path = sample.CATALOGUE, protocol: Path = sample.PROTOCOL,
+           kinds: dict[str, tuple[str, str]] = KINDS) -> dict:
+    """Check a returned sheet and write its labels and record; refuse to replace labels already written.
+
+    `catalogue`, `protocol` and `kinds` are this protocol's by default; the triage student v2 protocol passes its
+    own, so its labels go through the same checks."""
+    key_name, name = kinds[kind]
     if (out / f"{name}.csv").exists():
         raise SheetError(f"{out / f'{name}.csv'} exists; recorded labels are never replaced")
     key = pd.read_csv(samples / key_name, dtype=str, keep_default_na=False)
     if "text" in key.columns:
         raise SheetError(f"{samples / key_name} must not hold review text")
-    types = sample.catalogue_types()
+    types = sample.catalogue_types(catalogue)
     if unwrapped and sheet.is_dir():
         raise SheetError("--unwrap takes one returned file, not a folder")
     pattern = BATCH_GLOBS.get(kind, "batch_*_filled.csv")
@@ -203,9 +207,9 @@ def finish(sheet: Path, kind: str = "initial", out: Path = LABELS, samples: Path
     received_on = received_on or dt.date.today()
     record = {
         "labels": name,
-        "protocol": sample.PROTOCOL.relative_to(ROOT).as_posix(),
-        "protocol_sha256": sample.trends._sha256(sample.PROTOCOL),
-        "catalogue_sha256": sample.trends._sha256(sample.CATALOGUE),
+        "protocol": protocol.relative_to(ROOT).as_posix(),
+        "protocol_sha256": sample.trends._sha256(protocol),
+        "catalogue_sha256": sample.trends._sha256(catalogue),
         "key": key_name,
         "key_sha256": sample.trends._sha256(samples / key_name),
         "sheet_sha256": files if sheet.is_dir() else files[sheet.name],

@@ -208,3 +208,36 @@ def test_the_teacher_runs_the_first_protocols_code_on_this_protocols_files(drawn
     assert result["teacher_prompt_sha256"] == sample.trends._sha256(prompt)
     with pytest.raises(teacher.Stop, match="never replaced"):
         v2.run_teacher("development", 1.0, transport=fake, api_key="sk-or-test")
+
+
+def test_the_returned_chatgpt_batches_are_recorded_with_catalogue_v2(drawn, monkeypatch, tmp_path):
+    _, _, runs, record, _ = drawn
+    monkeypatch.setattr(v2, "BATCH_SIZE", 9)
+    monkeypatch.setattr(v2, "BATCHES", {"development": 2, "test": 2})
+    prompt = tmp_path / "reference_prompt_v2.md"
+    prompt.write_text(labels.reference_prompt(v2.CATALOGUE), encoding="utf-8", newline="\n")
+    v2.write_batches(runs, record, prompt)
+    folder = runs / "reference"
+    for blank in sorted(folder.glob("batch_??.csv")):
+        table = pd.read_csv(blank, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+        table["done"] = "1"
+        table["none"] = "1"
+        odd = table["item"].astype(int) % 2 == 1
+        table.loc[odd, "safety_fault"], table.loc[odd, "none"] = "1", ""
+        table.to_csv(folder / blank.name.replace(".csv", "_filled.csv"), index=False, encoding="utf-8-sig")
+    out = tmp_path / "labels"
+    with pytest.raises(SystemExit, match="--source is required"):
+        v2.record_reference(" ", folder, out, record)
+    result = v2.record_reference("ChatGPT, model shown as X, no reruns", folder, out, record)
+    table = pd.read_csv(out / "reference_chatgpt_v2.csv")
+    assert list(table.columns) == ["raw_row", "set", *TYPES, "none"] and len(table) == 31
+    assert table["safety_fault"].sum() == 16 and "text" not in table.columns
+    assert result["reviews_by_set"] == {"development": 18, "test": 13}
+    assert result["catalogue_sha256"] == sample.trends._sha256(v2.CATALOGUE)
+    assert result["protocol"] == "docs/experiments/triage_student_v2/PROTOCOL.md"
+    assert result["source"] == "ChatGPT, model shown as X, no reruns"
+    with pytest.raises(SystemExit, match="never replaced"):
+        v2.record_reference("again", folder, out, record)
+    (folder / "batch_04_filled.csv").unlink()
+    with pytest.raises(SystemExit, match="3 returned batches"):
+        v2.record_reference("again", folder, tmp_path / "other", record)

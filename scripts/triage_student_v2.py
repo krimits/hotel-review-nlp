@@ -7,6 +7,7 @@
     python scripts/triage_student_v2.py teacher --subset development --max-usd 1
     python scripts/triage_student_v2.py teacher --subset test --max-usd 1
     python scripts/triage_student_v2.py teacher --subset teacher --max-usd 4
+    python scripts/triage_student_v2.py reference --source "ChatGPT, model shown as ..., reruns: ..."
 
 `prompts` writes reference_prompt_v2.md and teacher_prompt_v2.md from catalogue_v2 with the first protocol's
 code, so the definitions reach both labellers word for word.
@@ -32,11 +33,18 @@ copies the prompt beside them; samples/reference_batches.json records each batch
 `teacher` runs the first protocol's teacher code (anthropic/claude-haiku-5.5-20261007, 25 reviews per call, two
 retries, every response hashed) with this protocol's catalogue, prompt and samples. The API key is read from the
 environment, sent only to OpenRouter, and never written or printed.
+
+`reference` records the 22 returned ChatGPT batches (runs/triage_student_v2/reference/batch_*_filled.csv) as
+labels/reference_chatgpt_v2.csv, by raw_row and with no text, through the first protocol's checks with catalogue_v2:
+every drawn item once with its drawn text, labels only 0 or 1, a type or `none` on every row, `done` on every row.
+A file the checks refuse is not recorded; its batch is rerun. `--source` records the model as ChatGPT showed it and
+any reruns, as the owner reports them.
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import shutil
 import sys
@@ -74,6 +82,7 @@ SUBSETS = {  # subset -> (sheet under runs/, key under samples/, set to keep or 
     "teacher": ("teacher_sample.csv", "teacher_key.csv", None),
 }
 SETUP = teacher.Setup(CATALOGUE, TEACHER_PROMPT, PROTOCOL, SUBSETS)
+KINDS = {"reference": ("key.csv", "reference_chatgpt_v2")}  # kind -> (key, labels name)
 
 
 def write_prompts() -> dict[str, str]:
@@ -220,6 +229,22 @@ def run_teacher(subset: str, max_usd: float, **kwargs) -> dict:
                          setup=SETUP, **kwargs)
 
 
+def record_reference(source: str, returned: Path | None = None, out: Path | None = None,
+                     samples: Path | None = None, received_on: dt.date | None = None) -> dict:
+    """`reference_chatgpt_v2` from the 22 returned batches, through the first protocol's checks with catalogue_v2."""
+    if not source.strip():
+        raise SystemExit("--source is required: the model as ChatGPT showed it, and any reruns")
+    returned = returned or RUNS / "reference"
+    files = sorted(returned.glob("batch_*_filled.csv"))
+    if len(files) != sum(BATCHES.values()):
+        raise SystemExit(f"{len(files)} returned batches in {returned}; the protocol has {sum(BATCHES.values())}")
+    try:
+        return labels.finish(returned, "reference", out or LABELS, samples or SAMPLES, received_on, source,
+                             catalogue=CATALOGUE, protocol=PROTOCOL, kinds=KINDS)
+    except labels.SheetError as error:
+        raise SystemExit(str(error)) from None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     steps = parser.add_subparsers(dest="step", required=True)
@@ -231,6 +256,8 @@ def main() -> None:
     second = steps.add_parser("teacher", help="label a subset with the fixed teacher through OpenRouter")
     second.add_argument("--subset", choices=sorted(SUBSETS), required=True)
     second.add_argument("--max-usd", type=float, required=True, help="stop before a call once this much is spent")
+    third = steps.add_parser("reference", help="record the 22 returned ChatGPT batches as reference_chatgpt_v2")
+    third.add_argument("--source", required=True, help="the model as ChatGPT showed it, and any reruns")
     args = parser.parse_args()
     if args.step == "prompts":
         for name, digest in write_prompts().items():
@@ -241,6 +268,10 @@ def main() -> None:
     elif args.step == "batches":
         record = write_batches()
         print(f"{len(record['batches'])} batches in {RUNS / 'reference'}")
+    elif args.step == "reference":
+        record = record_reference(args.source)
+        print(f"{record['labels']}: {record['reviews']} reviews {record['reviews_by_set']}, "
+              f"{record['reviews_with_a_type']} with a type, {record['reviews_with_none']} none")
     else:
         try:
             record = run_teacher(args.subset, args.max_usd)
