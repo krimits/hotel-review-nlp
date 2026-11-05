@@ -54,6 +54,9 @@ TRAINED = {  # step 5, notebook 30 at fa0ed37: the bundle as it came back and wa
 CHOSEN = {  # step 6, at a962c83, before any test score: thresholds of A, B and C, and the choice
     "thresholds_locked.json": "a03f45b38466f0de2501768464b687bbb69d3a0914a77ad2679d137e73520b4e",
 }
+SCORED = {  # step 7, at 655ab18: the chosen variant scored once on the test set
+    "score.json": "caf551c4aa7fd5a4fe32d26796dcca63018ccec9eb6e0de4a96a5a57ebed29df",
+}
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
     "rec >= 0.90 and lo >= 0.80 and fa > 5",
@@ -157,6 +160,18 @@ def test_the_thresholds_and_the_choice_were_fixed_on_development_before_the_test
     assert record["protocol_sha256"] == PROTOCOL_SHA256 and record["choice"]["variant"] in ("A", "B", "C")
     assert all(name.rsplit("/", 1)[-1] in {**TRAINED, **RECORDED, **DRAWN} for name in record["inputs"])
     assert not any("_test" in name for name in record["inputs"])
+
+
+def test_the_one_score_is_the_committed_one_and_applies_the_rule():
+    path = v2.FOLDER / "student" / "score.json"
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == SCORED["score.json"]
+    result = json.loads(path.read_text(encoding="utf-8"))
+    choice = json.loads((v2.FOLDER / "student" / "thresholds_locked.json").read_text(encoding="utf-8"))["choice"]
+    assert result["variant"] == choice["variant"] and result["complete"] and result["test_reviews"] == 500
+    assert result["protocol_sha256"] == PROTOCOL_SHA256 and result["rule"] == RULE
+    decision = result["decision"]
+    score = _load("triage_diagnosis_score")
+    assert decision["outcome"] == score.outcome(decision["rec"], decision["lo"], decision["fa"])
 
 
 def test_the_prompts_are_catalogue_v2s_word_for_word():
