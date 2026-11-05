@@ -31,6 +31,14 @@ DRAWN = {  # step 2, drawn at 360e2fa: the keys are never redrawn or edited
     "manifest.json": "4b76c60095c285225d0bbcf26d1e74caa0914c5fae40af869b9689bf69d8215f",
     "reference_batches.json": "2dd52a3fc3de9b716569ae169f78483dc6206eb0eed91fe4fd6cbe2afce988f5",
 }
+RECORDED = {  # steps 3 and 4: labels are recorded once and never replaced or edited
+    "reference_chatgpt_v2.csv": "60342b539a191c8f84804103ab97c2b9d19b21d135252b2e489531b517f71520",
+    "reference_chatgpt_v2_record.json": "3707ff272c7c8cd9c55d9d0bfced9d7691d7b0d43f7984fb0753d2b709e3d5a2",
+    "teacher_haiku_development.csv": "9de0b8547eecc38a324feba93dd95ef67318fa08505655b5ab4d3f1cf52f1846",
+    "teacher_haiku_development_record.json": "1563dab924c84cdb42c7fce1eb9ed92a0db5710e30761d9bbae26518bb791c6e",
+    "teacher_haiku_test.csv": "d68eac256f9109e88d1b00b0adb5cd7c5317b700942ee1774fe7e4b47639187a",
+    "teacher_haiku_test_record.json": "b9c5f828a5aee322d59cb6fe44be719097441a7ff166c7b13fc18cd09ee6ba4c",
+}
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
     "rec >= 0.90 and lo >= 0.80 and fa > 5",
@@ -95,6 +103,20 @@ def test_the_drawn_samples_are_the_committed_ones_and_redrew_the_first_protocols
     assert manifest["items"] == {"development": [1, 600], "test": [601, 1100], "teacher": [1, 30000]}
     batches = json.loads((v2.SAMPLES / "reference_batches.json").read_text(encoding="utf-8"))
     assert batches["prompt_sha256"] == PINNED[v2.REFERENCE_PROMPT] and len(batches["batches"]) == 22
+
+
+def test_the_recorded_labels_are_the_committed_ones_under_this_protocol():
+    for name, digest in RECORDED.items():
+        assert hashlib.sha256((v2.LABELS / name).read_bytes()).hexdigest() == digest, name
+    for name in (n for n in RECORDED if n.endswith("_record.json")):
+        record = json.loads((v2.LABELS / name).read_text(encoding="utf-8"))
+        assert record["protocol_sha256"] == PROTOCOL_SHA256, name
+        assert "text" not in (v2.LABELS / name.replace("_record.json", ".csv")).read_text(
+            encoding="utf-8").splitlines()[0].split(","), name
+    reference = json.loads((v2.LABELS / "reference_chatgpt_v2_record.json").read_text(encoding="utf-8"))
+    assert reference["catalogue_sha256"] == PINNED[v2.CATALOGUE]
+    assert reference["reviews_by_set"] == {"development": 600, "test": 500}
+    assert '"GPT 6.1 Terra", the same for all 22 batches; no reruns' in reference["source"]
 
 
 def test_the_prompts_are_catalogue_v2s_word_for_word():
