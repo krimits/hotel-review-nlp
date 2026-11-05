@@ -80,9 +80,13 @@ def seed_everything(seed: int) -> None:
     torch.cuda.manual_seed_all(seed)
 
 
-def train(model, tokenizer, texts: list[str], y: np.ndarray, settings: dict, device: str) -> list[float]:
+def train(model, tokenizer, texts: list[str], y: np.ndarray, settings: dict, device: str,
+          pos_weight: np.ndarray | None = None) -> list[float]:
     """The fixed recipe: AdamW, linear decay after warmup, BCE through the model's multi-label head; mean loss per
-    epoch. Batches are reshuffled each epoch from the seed."""
+    epoch. Batches are reshuffled each epoch from the seed.
+
+    With `pos_weight` (one weight per type), the loss is BCE with those positive weights on the model's logits
+    instead: the triage student v2 protocol's variant B. Without it nothing changes."""
     import torch
     from transformers import get_linear_schedule_with_warmup
 
@@ -95,6 +99,8 @@ def train(model, tokenizer, texts: list[str], y: np.ndarray, settings: dict, dev
     scaler = torch.amp.GradScaler("cuda", enabled=fp16)
     order = torch.Generator().manual_seed(settings["seed"])
     targets_all = torch.tensor(y)
+    weighted = None if pos_weight is None else torch.nn.BCEWithLogitsLoss(
+        pos_weight=torch.tensor(pos_weight, dtype=torch.float32, device=device))
     losses = []
     for _ in range(settings["epochs"]):
         total, batches = 0.0, 0
@@ -102,7 +108,10 @@ def train(model, tokenizer, texts: list[str], y: np.ndarray, settings: dict, dev
             batch = tokenizer([texts[i] for i in index.tolist()], truncation=True, max_length=settings["max_length"],
                               padding=True, return_token_type_ids=False, return_tensors="pt").to(device)
             with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=fp16):
-                loss = model(**batch, labels=targets_all[index].to(device)).loss
+                if weighted is None:
+                    loss = model(**batch, labels=targets_all[index].to(device)).loss
+                else:
+                    loss = weighted(model(**batch).logits.float(), targets_all[index].to(device))
             optimizer.zero_grad()
             scaler.scale(loss).backward()
             scaler.step(optimizer)
