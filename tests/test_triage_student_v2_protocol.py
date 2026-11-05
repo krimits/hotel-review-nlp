@@ -38,6 +38,8 @@ RECORDED = {  # steps 3 and 4: labels are recorded once and never replaced or ed
     "teacher_haiku_development_record.json": "1563dab924c84cdb42c7fce1eb9ed92a0db5710e30761d9bbae26518bb791c6e",
     "teacher_haiku_test.csv": "d68eac256f9109e88d1b00b0adb5cd7c5317b700942ee1774fe7e4b47639187a",
     "teacher_haiku_test_record.json": "b9c5f828a5aee322d59cb6fe44be719097441a7ff166c7b13fc18cd09ee6ba4c",
+    "teacher_haiku_teacher.csv": "71ffe775c06e5643945923d78cbdfbe0c0ab560fbefcdd4ff270cd1836739678",
+    "teacher_haiku_teacher_record.json": "171366aba9f50e2030020269d7a9dceb71d81bfce90bee1893d893a66df61694",
 }
 RULE = [
     "rec >= 0.90 and lo >= 0.80 and fa <= 5",
