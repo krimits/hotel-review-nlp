@@ -1,0 +1,94 @@
+{
+ "labels": "teacher_haiku_development",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "subset": "development",
+ "protocol_sha256": "fd72c554b1b16871eee2ed3acc84fe2363e347b372ee822f69d024a9f2f2a7e9",
+ "teacher_prompt_sha256": "f731026f001ea8262444edc7c3847b6729d0414588369a409de8f5717c98245a",
+ "code_commit": "c572948f4ce37ef67876d84da691d55ac15c02eb",
+ "finished_on": "2026-11-05",
+ "reviews": 600,
+ "failed_reviews": 0,
+ "batches": 24,
+ "calls": 24,
+ "retries": 0,
+ "prompt_tokens": 129863,
+ "completion_tokens": 55732,
+ "cost_usd": 0.040852,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "83acae9ecb138d6a129b2ad07958094e032246d1ed79696f5c6b944b1902396e"
+  ],
+  "batch_0002": [
+   "b7e13a2955f23869209085175aacc8fd5ff7baade75aa09235a39059f2208e42"
+  ],
+  "batch_0003": [
+   "440bcd07274a27a62d229d7a983ba732022bb6a1a04747e3408764f93fc6b806"
+  ],
+  "batch_0004": [
+   "bbbd0bc35ec28a86db2381c08ca1d9cbc050c6308facc0455c702821633d5cd6"
+  ],
+  "batch_0005": [
+   "e1f54d7490576b5e52cdfe4393efbc8a03970174da81d7db8384f7b8ee206f97"
+  ],
+  "batch_0006": [
+   "551abb99b0d01dc1f6e73d6a91595bb3a1e85cc721c8c910c615c6e2bfa25316"
+  ],
+  "batch_0007": [
+   "239a8206103a978a8bc679b94af1e5c108da703cdde60effa90f03088c05ae75"
+  ],
+  "batch_0008": [
+   "19b92ac699f2a08fd7483123354155a1efe1026c688c03a3c030f1fba064a049"
+  ],
+  "batch_0009": [
+   "92029822f80ec246b89b007c1fcae65b583721b3392b16da51cb5707fa10e8df"
+  ],
+  "batch_0010": [
+   "9df896cf162c5aea85a5794148af644b879f80a1048c487cdf9212be058b6a77"
+  ],
+  "batch_0011": [
+   "3353dc9271d1440ac5a887ba6c1926f3c470621fd0d026042650ae579f4c1294"
+  ],
+  "batch_0012": [
+   "d71e003fed149d138593acf0db0bb41afbe5bcfbf1699a6a3782becf7b355caa"
+  ],
+  "batch_0013": [
+   "21660e22a4e293b4366af8888de0c0d7588312d2bc68a2390d50a054088e1333"
+  ],
+  "batch_0014": [
+   "8815e08e1622323481babc4f1abc04ded5a4b6942f2cab0f94caf5c182a6ac46"
+  ],
+  "batch_0015": [
+   "e3a1339b3ae9aa8cf5603f1e9df48a60af8eeb44f5bf50b93254ca19efabcb8d"
+  ],
+  "batch_0016": [
+   "ea4cdbce5ffe67e6a8aa94c192e004562918d4e4ae2f5962ba1c0e7e27d03477"
+  ],
+  "batch_0017": [
+   "9573b946ba440c761fed9d55360e344b8497109d8c54a028fbe18c7353a0b9f6"
+  ],
+  "batch_0018": [
+   "3637755103100104c319e3cedee672c3c28996daa7368ad31065f59e2fb6accb"
+  ],
+  "batch_0019": [
+   "d5e0e2a3d100ce1c2f99d6b241d02ce69ce744633daa169f6cc8d3a52fae53c7"
+  ],
+  "batch_0020": [
+   "6bd08abdb30fd5326a3195abafba0f1454ac5244a687f18fdfb00b6bac673745"
+  ],
+  "batch_0021": [
+   "29263ed3163fc2ce81c26ed850d540d91cc7660f2990db0f94ec18d9f953da4a"
+  ],
+  "batch_0022": [
+   "78294a4435a1754d6f09b5673fc0861c61e4caae68cc0cdc8968a33c07ecf3b3"
+  ],
+  "batch_0023": [
+   "815050e6fa99f49001414fec5d5c1e99280f525f92f95abb725a2c597c4f3512"
+  ],
+  "batch_0024": [
+   "5d046696e404d0f38c75eb6bd5eb28bf47a90bd4840869cab92593325fc98cc5"
+  ]
+ }
+}

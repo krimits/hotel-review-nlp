@@ -1,0 +1,40 @@
+{
+ "commit": "fa0ed372b4934f50a4f864808f3af1a230033a3c",
+ "files": [
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_A_development.csv",
+   "bytes": 136798,
+   "sha256": "97f3d82f7a6c5dfe982718faab59df5e6a5fae5cdcc17c621823cdbc1615f34a"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_A_held_out.csv",
+   "bytes": 662005,
+   "sha256": "75074982362f76b37461a4d6be0de34c1ec2ef6a2a182b192f2a0a0ea6e9511c"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_A_test.csv",
+   "bytes": 110564,
+   "sha256": "f82ad93278129b92e3c1d8164af1b01865783a74f431da7ca6ac1ad3aa524218"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_B_development.csv",
+   "bytes": 136208,
+   "sha256": "575bbbb2495f3ebeecca1fefeb34f38443860d47a997d72235211796ca7d9f45"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_B_held_out.csv",
+   "bytes": 658699,
+   "sha256": "dd13f8a3000bf46b746b343616eb4d6e6e543b224492eee43432c29ee467813f"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/logits_B_test.csv",
+   "bytes": 110006,
+   "sha256": "72e0ad3d0af6388bf6b8492110587da02a018966b94570d61c720b307ba7bc14"
+  },
+  {
+   "path": "docs/experiments/triage_student_v2/student/run.json",
+   "bytes": 3820,
+   "sha256": "92310e7c953a5f10ab0d87d34c8ae504bd070587b635c7d2cf771f2d318c02b3"
+  }
+ ]
+}

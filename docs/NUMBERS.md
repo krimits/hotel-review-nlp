@@ -66,6 +66,19 @@ rule was locked before the run; the verdict is **Not met** (see
 | 3.62 | False urgent flags per 100, `fa` | 500 test reviews | IPW | [score.json](experiments/triage_diagnosis/student/score.json) | `decision.fa` |
 | 0.9669 | Teacher (`claude-haiku-5.5`) urgent recall | 500 test reviews | agreement with `reference_chatgpt`; baseline, not the product | [score.json](experiments/triage_diagnosis/student/score.json) | `reported.baselines.teacher_claude_haiku_5_5.rec` |
 
+## Triage student v2 (agreement with an LLM's labels, not accuracy)
+
+The 500 new test reviews and 118 urgent (review, type) pairs the reference labels carry under
+`catalogue_v2`. The rule and the choice of variant B were locked before the run; the verdict is
+**Not met** (see [the decision note](experiments/decision_triage_student_v2.md)).
+
+| Value | Metric | Test set | Scope | Artifact | Key |
+| --- | --- | --- | --- | --- | --- |
+| 0.8423 | Urgent recall, `rec` (IPW), variant B | 500 test reviews | agreement with `reference_chatgpt_v2` | [score.json](experiments/triage_student_v2/student/score.json) | `decision.rec` |
+| 0.7517 | Bootstrap 2.5th percentile, `lo` | 500 test reviews | 2,000 resamples, seed 0 | [score.json](experiments/triage_student_v2/student/score.json) | `decision.lo` |
+| 4.39 | False urgent flags per 100, `fa` | 500 test reviews | IPW | [score.json](experiments/triage_student_v2/student/score.json) | `decision.fa` |
+| 0.9491 | Teacher (`claude-haiku-5.5`) urgent recall | 500 test reviews | agreement with `reference_chatgpt_v2`; baseline, not the product | [score.json](experiments/triage_student_v2/student/score.json) | `reported.baselines.teacher_claude_haiku_5_5.rec` |
+
 ## What is not in this table
 
 - Confidence intervals are in the artifacts and in

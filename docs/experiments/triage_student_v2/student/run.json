@@ -1,0 +1,133 @@
+{
+ "protocol": "docs/experiments/triage_student_v2/PROTOCOL.md",
+ "protocol_sha256": "fd72c554b1b16871eee2ed3acc84fe2363e347b372ee822f69d024a9f2f2a7e9",
+ "code_commit": "fa0ed372b4934f50a4f864808f3af1a230033a3c",
+ "settings": {
+  "base": "distilbert/distilbert-base-uncased",
+  "revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+  "max_length": 256,
+  "epochs": 4,
+  "batch_size": 32,
+  "lr": 2e-05,
+  "warmup_ratio": 0.06,
+  "weight_decay": 0.01,
+  "schedule": "linear",
+  "fp16": true,
+  "seed": 42,
+  "eval_batch_size": 64
+ },
+ "types": [
+  "cleanliness",
+  "pests",
+  "security_fault",
+  "safety_fault",
+  "safety_incident",
+  "hvac_failure",
+  "plumbing_major",
+  "plumbing_minor",
+  "equipment_fault",
+  "wifi",
+  "noise_internal",
+  "linen_amenities",
+  "bed_comfort",
+  "food_beverage",
+  "staff_service",
+  "checkin_billing",
+  "other_problem",
+  "noise_external",
+  "room_and_facilities",
+  "location_view",
+  "price_value"
+ ],
+ "device": "cuda",
+ "gpu": "Tesla T4",
+ "trained_on": 27052,
+ "left_out_failed": 0,
+ "held_out": 2948,
+ "pos_weight_b": {
+  "cleanliness": 7.17528,
+  "pests": 20.0,
+  "security_fault": 20.0,
+  "safety_fault": 20.0,
+  "safety_incident": 20.0,
+  "hvac_failure": 7.411692,
+  "plumbing_major": 20.0,
+  "plumbing_minor": 20.0,
+  "equipment_fault": 12.690284,
+  "wifi": 20.0,
+  "noise_internal": 12.704154,
+  "linen_amenities": 12.431976,
+  "bed_comfort": 18.077574,
+  "food_beverage": 7.541838,
+  "staff_service": 6.916886,
+  "checkin_billing": 10.996452,
+  "other_problem": 20.0,
+  "noise_external": 20.0,
+  "room_and_facilities": 1.935648,
+  "location_view": 12.780948,
+  "price_value": 7.488234
+ },
+ "pos_weight_cap": 20.0,
+ "variants": {
+  "A": {
+   "loss": "BCE, model head",
+   "loss_per_epoch": [
+    0.248691,
+    0.107025,
+    0.082725,
+    0.072254
+   ],
+   "training_seconds": 530.8,
+   "logits": {
+    "development": 600,
+    "test": 500,
+    "held_out": 2948
+   },
+   "weights": {
+    "folder": "/content/drive/MyDrive/hotel-review-nlp/triage_student_v2/A",
+    "files": {
+     "config.json": "73ad0c6b221082bf84316d325166e6bb1e683f09036eef048c6cdfc999d5ddf6",
+     "model.safetensors": "838aec9623967f41dd1fa513cc98f3fd986fd130abe96ac2112cb0cd1bde8eeb",
+     "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+     "tokenizer.json": "851ca67100d372ca3ae031a6abd168f53489eebfd7d89523f35c5c9b4d372c3c",
+     "tokenizer_config.json": "a3c9410f27554c6e26af779fd147e536c6c5f9e5cb0e6b8f38ddaa25e1b0f6af",
+     "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+   }
+  },
+  "B": {
+   "loss": "BCE with pos_weight",
+   "loss_per_epoch": [
+    0.695579,
+    0.354712,
+    0.270302,
+    0.231483
+   ],
+   "training_seconds": 562.4,
+   "logits": {
+    "development": 600,
+    "test": 500,
+    "held_out": 2948
+   },
+   "weights": {
+    "folder": "/content/drive/MyDrive/hotel-review-nlp/triage_student_v2/B",
+    "files": {
+     "config.json": "73ad0c6b221082bf84316d325166e6bb1e683f09036eef048c6cdfc999d5ddf6",
+     "model.safetensors": "8cbbbd3d6a984b6f157fb0a81de5864ac865943ec9ca88685706eee74f0c1394",
+     "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+     "tokenizer.json": "851ca67100d372ca3ae031a6abd168f53489eebfd7d89523f35c5c9b4d372c3c",
+     "tokenizer_config.json": "a3c9410f27554c6e26af779fd147e536c6c5f9e5cb0e6b8f38ddaa25e1b0f6af",
+     "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+   }
+  }
+ },
+ "weights_kept": true,
+ "packages": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "transformers": "4.56.2"
+ },
+ "teacher_labels_sha256": "71ffe775c06e5643945923d78cbdfbe0c0ab560fbefcdd4ff270cd1836739678",
+ "raw_csv_sha256": "a4810c2757934f0a826a1b16a437eb67a38be45b1a22ad56772afce0b6c11af9"
+}

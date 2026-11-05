@@ -1,0 +1,435 @@
+{
+ "protocol_sha256": "fd72c554b1b16871eee2ed3acc84fe2363e347b372ee822f69d024a9f2f2a7e9",
+ "code_commit": "655ab186b8a43825e6206c1bad65d057836748c3",
+ "variant": "B",
+ "logits": "B",
+ "thresholds": {
+  "cleanliness": 0.8,
+  "pests": 0.8,
+  "security_fault": 0.8,
+  "safety_fault": 0.8,
+  "safety_incident": 0.8,
+  "hvac_failure": 0.8,
+  "plumbing_major": 0.8,
+  "plumbing_minor": 0.9,
+  "equipment_fault": 0.9,
+  "wifi": 0.9,
+  "noise_internal": 0.9,
+  "linen_amenities": 0.9,
+  "bed_comfort": 0.9,
+  "food_beverage": 0.9,
+  "staff_service": 0.9,
+  "checkin_billing": 0.9,
+  "other_problem": 0.9,
+  "noise_external": 0.45,
+  "room_and_facilities": 0.45,
+  "location_view": 0.45,
+  "price_value": 0.45
+ },
+ "test_reviews": 500,
+ "complete": true,
+ "against": "reference_chatgpt_v2",
+ "decision": {
+  "rec": 0.842292,
+  "fa": 4.393,
+  "pairs": 118,
+  "caught": 104,
+  "unweighted_recall": 0.881356,
+  "lo": 0.751718,
+  "bootstrap": {
+   "resamples": 2000,
+   "seed": 0,
+   "resamples_without_pairs": 0
+  },
+  "outcome": "Not met"
+ },
+ "rule": [
+  "rec >= 0.90 and lo >= 0.80 and fa <= 5",
+  "rec >= 0.90 and lo >= 0.80 and fa > 5",
+  "rec >= 0.90 and lo < 0.80",
+  "rec < 0.90"
+ ],
+ "reported": {
+  "development_by_variant": {
+   "A": {
+    "rec": 0.846588,
+    "fa": 4.9915,
+    "pairs": 144,
+    "caught": 127,
+    "unweighted_recall": 0.881944
+   },
+   "B": {
+    "rec": 0.87485,
+    "fa": 4.183,
+    "pairs": 144,
+    "caught": 128,
+    "unweighted_recall": 0.888889
+   },
+   "C": {
+    "rec": 0.836129,
+    "fa": 4.5694,
+    "pairs": 144,
+    "caught": 124,
+    "unweighted_recall": 0.861111
+   }
+  },
+  "choice": {
+   "variant": "B",
+   "qualified": [
+    "A",
+    "B",
+    "C"
+   ],
+   "reason": "highest development rec (0.87485) among ['A', 'B', 'C']",
+   "rule": "among the variants with development fa <= 5, the highest development rec; on a tie the simpler (A, B, C); if none qualifies, A"
+  },
+  "student": {
+   "per_type": {
+    "cleanliness": {
+     "support": 47,
+     "emitted": 54,
+     "true_positive": 44,
+     "recall": 0.9116,
+     "precision": 0.7905
+    },
+    "pests": {
+     "support": 0,
+     "emitted": 1,
+     "true_positive": 0
+    },
+    "security_fault": {
+     "support": 8,
+     "emitted": 18,
+     "true_positive": 7,
+     "precision": 0.359
+    },
+    "safety_fault": {
+     "support": 10,
+     "emitted": 10,
+     "true_positive": 4,
+     "recall": 0.472,
+     "precision": 0.433
+    },
+    "safety_incident": {
+     "support": 1,
+     "emitted": 0,
+     "true_positive": 0
+    },
+    "hvac_failure": {
+     "support": 42,
+     "emitted": 44,
+     "true_positive": 37,
+     "recall": 0.8489,
+     "precision": 0.8569
+    },
+    "plumbing_major": {
+     "support": 10,
+     "emitted": 17,
+     "true_positive": 8,
+     "recall": 0.764,
+     "precision": 0.4518
+    },
+    "plumbing_minor": {
+     "support": 9,
+     "emitted": 15,
+     "true_positive": 6,
+     "precision": 0.3901
+    },
+    "equipment_fault": {
+     "support": 23,
+     "emitted": 29,
+     "true_positive": 18,
+     "recall": 0.8295,
+     "precision": 0.6224
+    },
+    "wifi": {
+     "support": 20,
+     "emitted": 20,
+     "true_positive": 19,
+     "recall": 0.9455,
+     "precision": 0.9455
+    },
+    "noise_internal": {
+     "support": 43,
+     "emitted": 44,
+     "true_positive": 30,
+     "recall": 0.7091,
+     "precision": 0.6538
+    },
+    "linen_amenities": {
+     "support": 25,
+     "emitted": 32,
+     "true_positive": 19,
+     "recall": 0.7996,
+     "precision": 0.5326
+    },
+    "bed_comfort": {
+     "support": 33,
+     "emitted": 37,
+     "true_positive": 31,
+     "recall": 0.9451,
+     "precision": 0.8516
+    },
+    "food_beverage": {
+     "support": 58,
+     "emitted": 42,
+     "true_positive": 39,
+     "recall": 0.6481,
+     "precision": 0.9165
+    },
+    "staff_service": {
+     "support": 58,
+     "emitted": 38,
+     "true_positive": 35,
+     "recall": 0.6068,
+     "precision": 0.9191
+    },
+    "checkin_billing": {
+     "support": 37,
+     "emitted": 39,
+     "true_positive": 25,
+     "recall": 0.6771,
+     "precision": 0.6373
+    },
+    "other_problem": {
+     "support": 33,
+     "emitted": 2,
+     "true_positive": 1,
+     "recall": 0.017
+    },
+    "noise_external": {
+     "support": 20,
+     "emitted": 52,
+     "true_positive": 20,
+     "recall": 1.0,
+     "precision": 0.413
+    },
+    "room_and_facilities": {
+     "support": 193,
+     "emitted": 197,
+     "true_positive": 164,
+     "recall": 0.8471,
+     "precision": 0.8251
+    },
+    "location_view": {
+     "support": 32,
+     "emitted": 56,
+     "true_positive": 31,
+     "recall": 0.9606,
+     "precision": 0.4936
+    },
+    "price_value": {
+     "support": 60,
+     "emitted": 79,
+     "true_positive": 58,
+     "recall": 0.9613,
+     "precision": 0.7757
+    }
+   },
+   "strict_type_recall": 0.815848,
+   "department_accuracy_on_emitted": 0.821846,
+   "recall_per_stratum": {
+    "B": {
+     "pairs": 0,
+     "caught": 0,
+     "recall": null
+    },
+    "H": {
+     "pairs": 91,
+     "caught": 85,
+     "recall": 0.9341
+    },
+    "N": {
+     "pairs": 27,
+     "caught": 19,
+     "recall": 0.7037
+    }
+   }
+  },
+  "baselines": {
+   "teacher_claude_haiku_5_5": {
+    "rec": 0.949123,
+    "fa": 2.8525,
+    "pairs": 118,
+    "caught": 114,
+    "unweighted_recall": 0.966102
+   },
+   "complaint_lexicon_v1": {
+    "rec": 0.026444,
+    "fa": 0.0848,
+    "pairs": 118,
+    "caught": 4,
+    "unweighted_recall": 0.033898
+   }
+  },
+  "student_vs_teacher_held_out": {
+   "reviews": 2948,
+   "rec": 0.84485,
+   "fa": 3.2613,
+   "pairs": 966,
+   "caught": 866,
+   "unweighted_recall": 0.89648,
+   "per_type": {
+    "cleanliness": {
+     "teacher": 348,
+     "student": 365,
+     "both": 324,
+     "recall": 0.931,
+     "precision": 0.8877
+    },
+    "pests": {
+     "teacher": 24,
+     "student": 20,
+     "both": 18,
+     "recall": 0.75,
+     "precision": 0.9
+    },
+    "security_fault": {
+     "teacher": 63,
+     "student": 77,
+     "both": 46,
+     "recall": 0.7302,
+     "precision": 0.5974
+    },
+    "safety_fault": {
+     "teacher": 60,
+     "student": 62,
+     "both": 34,
+     "recall": 0.5667,
+     "precision": 0.5484
+    },
+    "safety_incident": {
+     "teacher": 13,
+     "student": 6,
+     "both": 4,
+     "recall": 0.3077,
+     "precision": 0.6667
+    },
+    "hvac_failure": {
+     "teacher": 335,
+     "student": 342,
+     "both": 304,
+     "recall": 0.9075,
+     "precision": 0.8889
+    },
+    "plumbing_major": {
+     "teacher": 123,
+     "student": 178,
+     "both": 103,
+     "recall": 0.8374,
+     "precision": 0.5787
+    },
+    "plumbing_minor": {
+     "teacher": 116,
+     "student": 141,
+     "both": 80,
+     "recall": 0.6897,
+     "precision": 0.5674
+    },
+    "equipment_fault": {
+     "teacher": 204,
+     "student": 166,
+     "both": 125,
+     "recall": 0.6127,
+     "precision": 0.753
+    },
+    "wifi": {
+     "teacher": 133,
+     "student": 131,
+     "both": 127,
+     "recall": 0.9549,
+     "precision": 0.9695
+    },
+    "noise_internal": {
+     "teacher": 224,
+     "student": 228,
+     "both": 173,
+     "recall": 0.7723,
+     "precision": 0.7588
+    },
+    "linen_amenities": {
+     "teacher": 234,
+     "student": 165,
+     "both": 133,
+     "recall": 0.5684,
+     "precision": 0.8061
+    },
+    "bed_comfort": {
+     "teacher": 165,
+     "student": 181,
+     "both": 143,
+     "recall": 0.8667,
+     "precision": 0.7901
+    },
+    "food_beverage": {
+     "teacher": 338,
+     "student": 283,
+     "both": 246,
+     "recall": 0.7278,
+     "precision": 0.8693
+    },
+    "staff_service": {
+     "teacher": 366,
+     "student": 270,
+     "both": 238,
+     "recall": 0.6503,
+     "precision": 0.8815
+    },
+    "checkin_billing": {
+     "teacher": 257,
+     "student": 216,
+     "both": 185,
+     "recall": 0.7198,
+     "precision": 0.8565
+    },
+    "other_problem": {
+     "teacher": 138,
+     "student": 50,
+     "both": 23,
+     "recall": 0.1667,
+     "precision": 0.46
+    },
+    "noise_external": {
+     "teacher": 118,
+     "student": 308,
+     "both": 109,
+     "recall": 0.9237,
+     "precision": 0.3539
+    },
+    "room_and_facilities": {
+     "teacher": 1027,
+     "student": 1126,
+     "both": 894,
+     "recall": 0.8705,
+     "precision": 0.794
+    },
+    "location_view": {
+     "teacher": 192,
+     "student": 311,
+     "both": 173,
+     "recall": 0.901,
+     "precision": 0.5563
+    },
+    "price_value": {
+     "teacher": 381,
+     "student": 506,
+     "both": 369,
+     "recall": 0.9685,
+     "precision": 0.7292
+    }
+   }
+  },
+  "not_produced_here": {
+   "evidence": "needs the chosen model's weights, kept in the owner's Google Drive (run.json); not run",
+   "cpu_latency": "needs the chosen model's weights, kept in the owner's Google Drive (run.json); not run"
+  }
+ },
+ "inputs": {
+  "docs/experiments/triage_student_v2/student/thresholds_locked.json": "a03f45b38466f0de2501768464b687bbb69d3a0914a77ad2679d137e73520b4e",
+  "docs/experiments/triage_student_v2/student/logits_B_test.csv": "72e0ad3d0af6388bf6b8492110587da02a018966b94570d61c720b307ba7bc14",
+  "docs/experiments/triage_student_v2/student/logits_B_held_out.csv": "dd13f8a3000bf46b746b343616eb4d6e6e543b224492eee43432c29ee467813f",
+  "docs/experiments/triage_student_v2/labels/reference_chatgpt_v2.csv": "60342b539a191c8f84804103ab97c2b9d19b21d135252b2e489531b517f71520",
+  "docs/experiments/triage_student_v2/labels/teacher_haiku_test.csv": "d68eac256f9109e88d1b00b0adb5cd7c5317b700942ee1774fe7e4b47639187a",
+  "docs/experiments/triage_student_v2/labels/teacher_haiku_teacher.csv": "71ffe775c06e5643945923d78cbdfbe0c0ab560fbefcdd4ff270cd1836739678"
+ }
+}

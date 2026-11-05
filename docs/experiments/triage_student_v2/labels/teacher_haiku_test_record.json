@@ -1,0 +1,82 @@
+{
+ "labels": "teacher_haiku_test",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "subset": "test",
+ "protocol_sha256": "fd72c554b1b16871eee2ed3acc84fe2363e347b372ee822f69d024a9f2f2a7e9",
+ "teacher_prompt_sha256": "f731026f001ea8262444edc7c3847b6729d0414588369a409de8f5717c98245a",
+ "code_commit": "c572948f4ce37ef67876d84da691d55ac15c02eb",
+ "finished_on": "2026-11-05",
+ "reviews": 500,
+ "failed_reviews": 0,
+ "batches": 20,
+ "calls": 20,
+ "retries": 0,
+ "prompt_tokens": 107747,
+ "completion_tokens": 44793,
+ "cost_usd": 0.033171,
+ "cost_sources": [
+  "reported"
+ ],
+ "responses": {
+  "batch_0001": [
+   "528e45f1aa7f238675307d0eb63cd596c2c747dac00294006f53e1e332e37c22"
+  ],
+  "batch_0002": [
+   "f0bf12c58bb31c6471ffddd120505b62bba146f3459f7209220b6fcdfbf4d6f4"
+  ],
+  "batch_0003": [
+   "9124bbcb7f4f981eeb9670a9ab5e64ec3efdaa8be8800a169874cb7a5e73d50d"
+  ],
+  "batch_0004": [
+   "a06b2ad8dc9ee79daf6838ec542d878c53e199857a60299191cf82f74479e035"
+  ],
+  "batch_0005": [
+   "4210c1a0da32fe4d71936948f340c95f15047be0ede05f8eb24ca8e2c3e5dfdd"
+  ],
+  "batch_0006": [
+   "fe4af03adc69e0bc8125d5c550b6f4a8de25d7c84eef37ab4439bf260430bf2c"
+  ],
+  "batch_0007": [
+   "b389159d357c44be546ded35a635286976e2e13bb893b5df9a873f51830c28b3"
+  ],
+  "batch_0008": [
+   "986720c878e9961bdc30f6fe71b62467aeaf98b7df064a2af0684052ecce9532"
+  ],
+  "batch_0009": [
+   "57e0d26e7cb9872ac1b90b82207071b54dc5e6a26d9dd8b5a417ad2340fa7297"
+  ],
+  "batch_0010": [
+   "6904870f16c123736c251051ad4e2175bdb5984c8734b5df98fed57bacbed388"
+  ],
+  "batch_0011": [
+   "4317b3b4471349aa164ea8f1f4785ba4741b0d4a26784e379e3a1205cf716701"
+  ],
+  "batch_0012": [
+   "d49703d0ea81c9c5e23ab6352276d07361a1f42844f5c7a8672fb25257f1e37d"
+  ],
+  "batch_0013": [
+   "4d143703c85b0088647a577bce6ffeb87373a15a242539007476ac4a5947c971"
+  ],
+  "batch_0014": [
+   "deaca0b7ef206363e9df2986dfdddf4a92992d9df406155e3ecdc20c100d2cd7"
+  ],
+  "batch_0015": [
+   "e41904e34a9e4b6b78a78d1e38bab12d6ef6e1218710e1834716974e7e259cfc"
+  ],
+  "batch_0016": [
+   "c5858261e26f2c126d31ed465086765406d8ab363868ca5471c5decf120bebd0"
+  ],
+  "batch_0017": [
+   "1dbd21dec99036fc1f9956ddc637b1de3290d4ca78a3dcfbc004a6da8b15ca0a"
+  ],
+  "batch_0018": [
+   "346d98c914bc62fe5af3f6694339fb6cf2d7b264267e52df9a658698214cf90e"
+  ],
+  "batch_0019": [
+   "90f50bdd9106d36b6608d4ba149cf2e534380d648889783848dd9f0cdca2cbd3"
+  ],
+  "batch_0020": [
+   "569e13d834a235b52512b5678e88fa7018780574735844896a2ab8dafa8c9165"
+  ]
+ }
+}
