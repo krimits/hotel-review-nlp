@@ -1,0 +1,51 @@
+{
+ "protocol": "docs/experiments/hotelier_blind_eval/PROTOCOL.md",
+ "protocol_sha256": "6aa74caf65f0f34e7410bcafea4c893b3c5a3edbb55a460a7299336df9495cae",
+ "code_commit": "ce4b0afd16dd961f9803f2d279e0095623ab0d15",
+ "inputs": {
+  "docs/experiments/triage_student_v2/samples/key.csv": "14d4f955ffa0fecc482b4d2f31c48fce2d6a9db5413d6b8873b8d7b5fe42b134",
+  "docs/experiments/triage_student_v2/labels/teacher_haiku_test.csv": "d68eac256f9109e88d1b00b0adb5cd7c5317b700942ee1774fe7e4b47639187a",
+  "docs/experiments/triage_student_v2/student/logits_B_test.csv": "72e0ad3d0af6388bf6b8492110587da02a018966b94570d61c720b307ba7bc14",
+  "docs/experiments/triage_student_v2/student/thresholds_locked.json": "a03f45b38466f0de2501768464b687bbb69d3a0914a77ad2679d137e73520b4e",
+  "docs/experiments/triage_diagnosis/catalogue_v2.yaml": "5c592af14016cba5f97a0ee021af0a54e2196d1f50ad1f01b938be3a384f966d"
+ },
+ "variant": "B",
+ "groups": {
+  "D": {
+   "reviews": 49,
+   "strata": {
+    "H": 33,
+    "N": 16,
+    "B": 0
+   }
+  },
+  "C": {
+   "reviews": 97,
+   "strata": {
+    "H": 75,
+    "N": 22,
+    "B": 0
+   }
+  },
+  "Z": {
+   "reviews": 354,
+   "strata": {
+    "H": 42,
+    "N": 262,
+    "B": 50
+   }
+  }
+ },
+ "rated": {
+  "D": 49,
+  "C": 11,
+  "C_by_stratum": {
+   "H": 8,
+   "N": 3
+  },
+  "seed": 20261106,
+  "items": 60
+ },
+ "rated_key_sha256": "bdc98b58b340c383cf9c6ccaf184ff3737a4cb10ed92e77a4bb71cc9561a3315",
+ "outputs_sha256": "7424b85b65de6542a37594b93b548e522e9c3195957d2cde76fc807ff3a323e4"
+}
