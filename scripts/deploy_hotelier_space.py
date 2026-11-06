@@ -7,7 +7,9 @@
 
 `publish` refuses another account, a bundle built for another version of the protocol, or a missing file. It
 creates the private ratings dataset and the Space (public: the hoteliers have no Hugging Face accounts, and nothing
-is recorded without a code), and uploads exactly the bundle's files. Then, in the Space's settings, set the secrets
+is recorded without a code), and uploads exactly the bundle's files. If either already exists it stops, unless
+`--resume` is given: then it uses what exists, creates what is missing, refuses a ratings dataset that is public,
+and uploads the bundle again. Then, in the Space's settings, set the secrets
 RATINGS_REPO, HF_TOKEN (a fine-grained token with write access to the ratings dataset only) and HOTELIER_CODES.
 
 `codes` prints, on your terminal only, one access code per hotelier with its pseudonym, and the HOTELIER_CODES
@@ -25,6 +27,7 @@ import sys
 from pathlib import Path
 
 from huggingface_hub import HfApi
+from huggingface_hub.errors import RepositoryNotFoundError
 
 ROOT = Path(__file__).resolve().parents[1]
 OWNER = "krimits"
@@ -33,6 +36,19 @@ DATASET_ID = f"{OWNER}/hotelier-blind-eval-ratings"
 FILES = ["README.md", "app.py", "logic.py", "requirements.txt", "items.json", "display.json", "meta.json"]
 BUNDLE = ROOT / "runs" / "hotelier_blind_eval" / "space"
 PROTOCOL = ROOT / "docs" / "experiments" / "hotelier_blind_eval" / "PROTOCOL.md"
+
+
+def ensure_repo(api: HfApi, repo_id: str, repo_type: str, resume: bool, **create):
+    """Create the repo if it is missing. One that exists is used only with --resume, so an earlier run that stopped
+    halfway can be finished; its info is returned. Without --resume an existing repo stops the deployment."""
+    try:
+        info = api.repo_info(repo_id=repo_id, repo_type=repo_type)
+    except RepositoryNotFoundError:
+        api.create_repo(repo_id=repo_id, repo_type=repo_type, exist_ok=False, **create)
+        return None
+    if not resume:
+        raise RuntimeError(f"{repo_id} already exists. Rerun with --resume to use it. Nothing was uploaded.")
+    return info
 
 
 def deploy(api: HfApi, *, resume: bool = False, bundle: Path = BUNDLE, protocol: Path = PROTOCOL) -> dict[str, str]:
@@ -45,12 +61,10 @@ def deploy(api: HfApi, *, resume: bool = False, bundle: Path = BUNDLE, protocol:
     meta = json.loads((bundle / "meta.json").read_text(encoding="utf-8"))
     if meta["protocol_sha256"] != hashlib.sha256(protocol.read_bytes()).hexdigest():
         raise RuntimeError("The bundle was built for another version of the protocol. Nothing was uploaded.")
-    if resume:
-        api.repo_info(repo_id=SPACE_ID, repo_type="space")
-        api.repo_info(repo_id=DATASET_ID, repo_type="dataset")
-    else:
-        api.create_repo(repo_id=DATASET_ID, repo_type="dataset", private=True, exist_ok=False)
-        api.create_repo(repo_id=SPACE_ID, repo_type="space", space_sdk="gradio", private=False, exist_ok=False)
+    dataset = ensure_repo(api, DATASET_ID, "dataset", resume, private=True)
+    if dataset is not None and not dataset.private:
+        raise RuntimeError(f"{DATASET_ID} is public; the ratings must be private. Nothing was uploaded.")
+    ensure_repo(api, SPACE_ID, "space", resume, space_sdk="gradio", private=False)
     api.upload_folder(repo_id=SPACE_ID, repo_type="space", folder_path=str(bundle), allow_patterns=FILES,
                       delete_patterns=["*"], commit_message=f"Deploy the blind evaluation, bundle {meta['bundle']}")
     return {"space": f"https://huggingface.co/spaces/{SPACE_ID}",

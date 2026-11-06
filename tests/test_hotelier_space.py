@@ -169,11 +169,18 @@ def test_the_bundle_rebuilds_and_checks_the_texts_and_names_the_systems_neutrall
 
 
 class RecordingApi:
-    def __init__(self, name):
-        self.name, self.calls = name, []
+    """Records the writes; `existing` maps the repos that already exist to whether they are private."""
+
+    def __init__(self, name, existing=None):
+        self.name, self.calls, self.existing = name, [], dict(existing or {})
 
     def whoami(self):
         return {"name": self.name}
+
+    def repo_info(self, repo_id, repo_type):
+        if repo_id not in self.existing:
+            raise deploy.RepositoryNotFoundError(f"{repo_id} not found")
+        return type("Info", (), {"private": self.existing[repo_id]})()
 
     def create_repo(self, **kwargs):
         self.calls.append(("create", kwargs))
@@ -213,6 +220,26 @@ def test_publishing_makes_a_private_dataset_a_public_space_and_uploads_only_the_
                                        "space_sdk": "gradio", "private": False, "exist_ok": False})
     assert api.calls[2][1]["allow_patterns"] == deploy.FILES and api.calls[2][1]["delete_patterns"] == ["*"]
     assert result["space"] == "https://huggingface.co/spaces/krimits/hotelier-blind-eval"
+
+
+def test_a_run_that_stopped_after_the_dataset_is_finished_only_with_resume(bundle_dir):
+    # The owner's first run created the dataset and stopped before the Space (6 November 2026).
+    halfway = {"krimits/hotelier-blind-eval-ratings": True}
+    api = RecordingApi("krimits", halfway)
+    with pytest.raises(RuntimeError, match="Rerun with --resume"):
+        deploy.deploy(api, bundle=bundle_dir)
+    assert api.calls == []
+    api = RecordingApi("krimits", halfway)
+    deploy.deploy(api, bundle=bundle_dir, resume=True)
+    assert [call[0] for call in api.calls] == ["create", "upload"]
+    assert api.calls[0][1]["repo_id"] == "krimits/hotelier-blind-eval" and api.calls[0][1]["private"] is False
+
+
+def test_resume_refuses_a_public_ratings_dataset(bundle_dir):
+    api = RecordingApi("krimits", {"krimits/hotelier-blind-eval-ratings": False})
+    with pytest.raises(RuntimeError, match="must be private"):
+        deploy.deploy(api, bundle=bundle_dir, resume=True)
+    assert api.calls == []
 
 
 def test_codes_are_random_and_the_secret_holds_only_their_hashes():
