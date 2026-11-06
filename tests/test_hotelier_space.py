@@ -248,3 +248,57 @@ def test_codes_are_random_and_the_secret_holds_only_their_hashes():
     assert pairs == [("H01", "aaa"), ("H02", "bbb")]
     assert secret == {hashlib.sha256(b"aaa").hexdigest(): "H01", hashlib.sha256(b"bbb").hexdigest(): "H02"}
     assert logic.hotelier_for("bbb", secret) == "H02"
+
+
+class FailingStore(logic.MemoryStore):
+    """A store that cannot be reached, as when the token cannot read or write the dataset."""
+
+    def done(self, hotelier):
+        raise PermissionError("401 Unauthorized")
+
+    def save(self, rating):
+        raise PermissionError("403 Forbidden")
+
+
+def test_a_store_that_fails_shows_a_message_and_never_loses_or_skips_an_answer(capsys):
+    items = {1: {"item": 1, "text": "Disliked: dirty", "x": ["cleanliness"], "y": []}}
+    codes = {hashlib.sha256(b"abc").hexdigest(): "H01"}
+    store = logic.MemoryStore()
+    demo = app.build_app(items, DISPLAY, {}, store, codes, preview=False)
+    steps = {f.fn.__name__: f for f in demo.fns.values() if getattr(f.fn, "__name__", "") in ("on_start", "on_submit")}
+    state = steps["on_start"].fn("abc", {"hotelier": None, "queue": []})[0]
+    failing = app.build_app(items, DISPLAY, {}, FailingStore(), codes, preview=False)
+    broken = {f.fn.__name__: f for f in failing.fns.values()
+              if getattr(f.fn, "__name__", "") in ("on_start", "on_submit")}
+    refused = broken["on_start"].fn("abc", {"hotelier": None, "queue": []})
+    assert refused[-1] == app.STORAGE_DOWN and refused[0] == {"hotelier": None, "queue": []}
+    kept = broken["on_submit"].fn(*complete(), *complete(), "Το ίδιο", state)
+    assert kept[0] == state and kept[-1] == app.NOT_SAVED  # the same review stays, answers untouched
+    assert all(getattr(u, "get", lambda k: None)("value") is None for u in kept[1:-1] if isinstance(u, dict))
+    logs = capsys.readouterr().err
+    assert "reading progress failed: PermissionError: 401 Unauthorized" in logs and "saving item 1 failed" in logs
+    assert not app.check_store(FailingStore(), preview=False) and app.check_store(logic.MemoryStore(), preview=True)
+
+
+class FakeHub:
+    def __init__(self, files=()):
+        self.files, self.uploads = list(files), []
+
+    def list_repo_files(self, repo_id, repo_type):
+        assert repo_type == "dataset"
+        return list(self.files)
+
+    def upload_file(self, **kwargs):
+        self.uploads.append(kwargs)
+        self.files.append(kwargs["path_in_repo"])
+
+
+def test_the_hub_store_reads_progress_and_writes_each_answer_once():
+    store = logic.HubStore("krimits/hotelier-blind-eval-ratings", "not-a-real-token")
+    store.api = FakeHub([".gitattributes", "ratings/H01/item_03.json", "ratings/H02/item_05.json"])
+    assert store.done("H01") == {3} and store.done("H03") == set()
+    rating = {"hotelier": "H01", "item": 7, "by_system": {}}
+    assert store.save(rating) and not store.save(rating)
+    upload = store.api.uploads[0]
+    assert len(store.api.uploads) == 1 and upload["path_in_repo"] == "ratings/H01/item_07.json"
+    assert upload["repo_type"] == "dataset" and upload["repo_id"] == "krimits/hotelier-blind-eval-ratings"
