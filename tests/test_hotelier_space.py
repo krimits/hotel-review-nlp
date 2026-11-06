@@ -71,8 +71,11 @@ def test_both_outputs_render_alike_urgent_first():
     shown = logic.render(["wifi", "cleanliness", "price_value"], DISPLAY)
     assert shown == logic.render(["price_value", "cleanliness", "wifi"], DISPLAY)
     lines = shown.splitlines()
+    assert len(lines) == 3 and all(line.startswith("- ") for line in lines)  # one line per problem, no nesting
     assert "**ΕΠΕΙΓΟΝ**" in lines[0] and "Καθαριότητα" in lines[0] and "Υπηρεσία ορόφων" in lines[0]
-    assert "Wi-Fi" in lines[2] and "Τιμή και αξία" in lines[4]
+    assert "<br>Ενέργεια: Νέος καθαρισμός" in lines[0] and "(πριν την επόμενη άφιξη)" in lines[0]
+    assert "Wi-Fi" in lines[1] and "Τιμή και αξία" in lines[2]
+    assert len(logic.render(["wifi"], DISPLAY).splitlines()) == 1  # a single problem shows as one, not two
     assert logic.render([], DISPLAY) == logic.NO_PROBLEM
 
 

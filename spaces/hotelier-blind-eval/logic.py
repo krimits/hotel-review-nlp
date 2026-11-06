@@ -50,7 +50,10 @@ def remaining(hotelier: str, items: Iterable[int], done: set[int]) -> list[int]:
 
 
 def render(types: list[str], display: dict) -> str:
-    """One output in Greek: urgent problems first, each with its department, measure and deadline."""
+    """One output in Greek: urgent problems first, each with its department, measure and deadline.
+
+    One line per problem, the measure after a line break: Gradio's Markdown strips the common indentation of the
+    lines after the first, so a nested measure line would show as a second problem when there is only one."""
     if not types:
         return NO_PROBLEM
     entries = sorted(types, key=lambda t: (PRIORITY_ORDER[display["types"][t]["priority"]],
@@ -59,9 +62,9 @@ def render(types: list[str], display: dict) -> str:
     for t in entries:
         entry = display["types"][t]
         badge = f"**{entry['priority_el']}**" if entry["priority"] == "urgent" else entry["priority_el"]
-        lines.append(f"- {badge} · **{entry['label']}** → {entry['department_el']}")
         when = f" ({entry['deadline_el']})" if entry.get("deadline_el") else ""
-        lines.append(f"  - {entry['measure']}{when}")
+        lines.append(f"- {badge} · **{entry['label']}** → {entry['department_el']}<br>"
+                     f"Ενέργεια: {entry['measure']}{when}")
     return "\n".join(lines)
 
 
