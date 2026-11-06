@@ -1,7 +1,9 @@
-# Hoteliers' blind evaluation of the triage teacher and student: protocol — version 1, DRAFT
+# Hoteliers' blind evaluation of the triage teacher and student: protocol — version 1, locked
 
-**Status: draft, 5 November 2026, awaiting the owner's approval.** It is locked only by the commit that adds its
-lock test. Nothing in it has been drawn, shown to anyone or rated.
+**Status: approved by the owner on 6 November 2026, with a margin of 10 points, a floor of 80% and at least two
+complete hoteliers, and locked by the commit that adds its lock test,
+[`tests/test_hotelier_blind_eval_protocol.py`](../../../tests/test_hotelier_blind_eval_protocol.py).** At lock
+nothing had been drawn, shown to anyone or rated. Any change is a version 2 beside this one, not an edit.
 
 **Why.** The [triage student v2 protocol](../triage_student_v2/PROTOCOL.md) closed with **Not met**
 ([decision](../decision_triage_student_v2.md)): against ChatGPT's labels, the student (variant B) caught 0.842 of
@@ -96,12 +98,12 @@ For each review *i* in D and each **complete** hotelier *h* (one who rated all 6
 
 ## 4. Decision rule
 
-The run is decided only when **at least 3 hoteliers** are complete; otherwise it is "not decided". The rule is
+The run is decided only when **at least 2 hoteliers** are complete; otherwise it is "not decided". The rule is
 applied once, to the ratings exported when the owner closes the collection.
 
 | Condition, in order | Outcome |
 | :--- | :--- |
-| `p_teacher < 0.70` | **Neither ready.** The hoteliers judge even the teacher's urgent triage right on fewer than 70% of U. |
+| `p_teacher < 0.80` | **Neither ready.** The hoteliers judge even the teacher's urgent triage right on fewer than 80% of U. |
 | `lo_d >= -0.10` | **Student non-inferior.** Within 10 points of the teacher. |
 | `hi_d < -0.10` | **Student inferior.** More than 10 points behind. |
 | otherwise | **Not established.** The student is not shown to be within 10 points. |
@@ -126,8 +128,9 @@ What each outcome recommends for the product, as a recommendation the owner deci
 
 ## 5. Limits
 
-- **Few hoteliers, chosen by the owner,** not a sample of hoteliers. The intervals cover the sampling of reviews,
-  not of hoteliers.
+- **Few hoteliers, chosen by the owner,** not a sample of hoteliers. With the minimum of two, the result is the
+  judgement of those two people; their agreement is reported. The intervals cover the sampling of reviews, not
+  of hoteliers.
 - **Other hotels' reviews,** public, 2015–2017, English, written after checkout, judged by hoteliers who did not
   host those guests.
 - **The rated set is built where the systems differ.** Rates on D are not rates on all reviews; population
@@ -144,7 +147,7 @@ What each outcome recommends for the product, as a recommendation the owner deci
 
 | Step | What | Human gate |
 | :--- | :--- | :--- |
-| 1 | Lock with its lock test | the owner approves this draft and its owner fields |
+| 1 | Lock with its lock test | the owner's approval and fields (given 6 November 2026) |
 | 2 | Draw the 11; write the rated set's key, both outputs and the Greek label table; commit and hash them | — |
 | 3 | Build the Space: the blind display, codes, ratings to a private dataset; tests | — |
 | 4 | Publish the Space; set the dataset token as a Space secret; give each hotelier a code | publish, secret, recruiting |
@@ -158,7 +161,7 @@ What each outcome recommends for the product, as a recommendation the owner deci
 | Systems | teacher `claude-haiku-5.5` labels and student v2 variant B with its locked thresholds, on the v2 test reviews | owner (5 November 2026) |
 | Design | one Space, blind, side by side, ratings in the Space | owner (5 November 2026) |
 | Rated set | all 49 of D and 11 of C (H 8, N 3, seed 20261106) | builder |
-| Margin | 10 points (`-0.10`) | **owner field, proposed** |
-| Floor | `p_teacher >= 0.70` | **owner field, proposed** |
-| Minimum complete hoteliers | 3 | **owner field, proposed** |
+| Margin | 10 points (`-0.10`) | owner (6 November 2026) |
+| Floor | `p_teacher >= 0.80` | owner (6 November 2026) |
+| Minimum complete hoteliers | 2 | owner (6 November 2026) |
 | Bootstrap | 2,000 resamples, seed 0, reviews within strata | builder |
