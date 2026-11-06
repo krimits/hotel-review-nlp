@@ -62,16 +62,21 @@ def load(folder: Path) -> tuple[dict[int, dict], dict, dict]:
     return items, display, meta
 
 
+def secret(name: str) -> str:
+    """A Space secret without the spaces or line breaks a paste can add around it."""
+    return os.environ.get(name, "").strip()
+
+
 def store_from_env() -> tuple[logic.MemoryStore, bool]:
-    repo, token = os.environ.get("RATINGS_REPO"), os.environ.get("HF_TOKEN")
+    repo, token = secret("RATINGS_REPO"), secret("HF_TOKEN")
     if repo and token:
         return logic.HubStore(repo, token), False
     return logic.MemoryStore(), True
 
 
 def codes_from_env(preview: bool) -> dict[str, str]:
-    if os.environ.get("HOTELIER_CODES"):
-        return json.loads(os.environ["HOTELIER_CODES"])
+    if secret("HOTELIER_CODES"):
+        return json.loads(secret("HOTELIER_CODES"))
     return {hashlib.sha256(b"demo").hexdigest(): "DEMO"} if preview else {}
 
 

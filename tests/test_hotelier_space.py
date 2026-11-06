@@ -302,3 +302,15 @@ def test_the_hub_store_reads_progress_and_writes_each_answer_once():
     upload = store.api.uploads[0]
     assert len(store.api.uploads) == 1 and upload["path_in_repo"] == "ratings/H01/item_07.json"
     assert upload["repo_type"] == "dataset" and upload["repo_id"] == "krimits/hotelier-blind-eval-ratings"
+
+
+def test_secrets_pasted_with_spaces_or_line_breaks_still_work(monkeypatch):
+    # The owner's RATINGS_REPO secret began with a space (6 November 2026); the Hub refused it as a repo id.
+    monkeypatch.setenv("RATINGS_REPO", " krimits/hotelier-blind-eval-ratings\n")
+    monkeypatch.setenv("HF_TOKEN", "  hf_not_a_real_token \n")
+    monkeypatch.setenv("HOTELIER_CODES", '\n {"' + hashlib.sha256(b"abc").hexdigest() + '": "H01"} ')
+    store, preview = app.store_from_env()
+    assert not preview and store.repo_id == "krimits/hotelier-blind-eval-ratings"
+    assert logic.hotelier_for("abc", app.codes_from_env(preview)) == "H01"
+    monkeypatch.setenv("RATINGS_REPO", "   ")
+    assert app.store_from_env()[1]  # an empty secret is no secret: preview
