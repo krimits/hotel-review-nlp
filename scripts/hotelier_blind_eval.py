@@ -12,17 +12,27 @@ stratum sorted by raw_row, `DataFrame.sample(n, random_state=20261106)`), and nu
 samples/manifest.json (inputs by SHA-256, group sizes, the protocol's hash, the code commit).
 
 `bundle` rebuilds the 60 texts from the raw CSV by raw_row, stops unless each matches its key's SHA-256, and writes
-the Space's data file runs/hotelier_blind_eval/space/items.json (git-ignored: review text is never committed).
+the Space's folder runs/hotelier_blind_eval/space/ (git-ignored: review text is never committed): the app files
+from spaces/hotelier-blind-eval/, items.json (each item's text and both outputs), display.json (catalogue_v2 through
+labels_el.yaml) and meta.json (the protocol's hash, the code commit, and the hashes of what it was built from).
+scripts/deploy_hotelier_space.py publishes that folder.
+
+`analyse` applies §4 once to the exported ratings, after they are committed under ratings/ (one JSON file per
+hotelier and review, the systems named x and y as in the Space): `d` over U with its bootstrap interval,
+`p_teacher`, the outcome, and the reported items. It writes results/result.json once and never again.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -126,8 +136,36 @@ def build(out_dir: Path = SAMPLES, overwrite: bool = False) -> dict:
     return manifest
 
 
+def display_table(labels_path: Path = LABELS_EL) -> dict:
+    """What the Space shows for each type: catalogue_v2's priority, department and deadline, in the Greek table's
+    words. Stops unless the table covers every type, department and deadline the catalogue uses."""
+    data = v2score.catalogue()
+    labels = yaml.safe_load(labels_path.read_text(encoding="utf-8"))
+    if labels["catalogue"] != data["version"]:
+        raise SystemExit(f"{labels_path.name} is for {labels['catalogue']}, not {data['version']}")
+    table = {}
+    for entry in data["types"]:
+        t = entry["id"]
+        words = labels["types"].get(t)
+        if words is None or (entry["priority"] != "structural" and not words.get("measure")):
+            raise SystemExit(f"{labels_path.name} has no label or measure for {t}")
+        table[t] = {"label": words["label"], "priority": entry["priority"],
+                    "priority_el": labels["priorities"][entry["priority"]],
+                    "department_el": labels["departments"][entry["department"]],
+                    "measure": words.get("measure") or labels["structural_measure"],
+                    "deadline_el": labels["deadlines"][entry["deadline"]] if entry.get("deadline") else None}
+    return {"order": [entry["id"] for entry in data["types"]], "types": table}
+
+
+SPACE_FILES = ("README.md", "app.py", "logic.py", "requirements.txt")
+# The Space names the systems only x and y, so its public files cannot unblind a hotelier; the analysis maps them back.
+NEUTRAL = {"x": "teacher", "y": "student"}
+SPACE_SOURCE = ROOT / "spaces" / "hotelier-blind-eval"
+
+
 def bundle(csv: Path, samples: Path = SAMPLES, runs: Path = RUNS) -> Path:
-    """The Space's items.json: each item's text, rebuilt from the raw CSV and checked, and both outputs."""
+    """The Space's folder: the app, each item's text (rebuilt from the raw CSV and checked) with both outputs, the
+    Greek display table, and meta.json naming what it was built from."""
     rated = pd.read_csv(samples / "rated_key.csv")
     per_item = json.loads((samples / "outputs.json").read_text(encoding="utf-8"))
     raw = pd.read_csv(csv, usecols=["Negative_Review", "Positive_Review"]).fillna("").astype(str)
@@ -137,13 +175,204 @@ def bundle(csv: Path, samples: Path = SAMPLES, runs: Path = RUNS) -> Path:
              if sample.text_hash(text) != digest]
     if wrong:
         raise SystemExit(f"rebuilt texts differ from the key for items {wrong[:5]}; nothing written")
-    items = [{"item": int(item), "text": text, **per_item[str(int(item))]}
+    items = [{"item": int(item), "text": text,
+              **{neutral: per_item[str(int(item))][system] for neutral, system in NEUTRAL.items()}}
              for item, text in zip(rated["item"], texts, strict=True)]
     folder = runs / "space"
     folder.mkdir(parents=True, exist_ok=True)
-    path = folder / "items.json"
-    path.write_text(json.dumps(items, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
-    return path
+    for name in SPACE_FILES:
+        shutil.copyfile(SPACE_SOURCE / name, folder / name)
+    (folder / "items.json").write_text(json.dumps(items, ensure_ascii=False, indent=1) + "\n", encoding="utf-8",
+                                       newline="\n")
+    (folder / "display.json").write_text(json.dumps(display_table(), ensure_ascii=False, indent=1) + "\n",
+                                         encoding="utf-8", newline="\n")
+    data_hash = hashlib.sha256((folder / "items.json").read_bytes() + (folder / "display.json").read_bytes())
+    meta = {"protocol_sha256": sample.trends._sha256(PROTOCOL), "code_commit": sample.pilot.git_commit(),
+            "bundle": data_hash.hexdigest()[:12], "rated_key_sha256": sample.trends._sha256(samples / "rated_key.csv"),
+            "outputs_sha256": sample.trends._sha256(samples / "outputs.json"),
+            "labels_el_sha256": sample.trends._sha256(LABELS_EL), "items": len(items)}
+    (folder / "meta.json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8", newline="\n")
+    return folder
+
+
+RATINGS = FOLDER / "ratings"
+RESULT = FOLDER / "results" / "result.json"
+MARGIN, FLOOR, MIN_COMPLETE = -0.10, 0.80, 2  # PROTOCOL.md §4, the owner's fields of 6 November 2026
+BOOTSTRAP, BOOTSTRAP_SEED = 2000, 0
+RULE = [  # PROTOCOL.md §4, in order
+    ("p_teacher < 0.80", "Neither ready"),
+    ("lo_d >= -0.10", "Student non-inferior"),
+    ("hi_d < -0.10", "Student inferior"),
+    ("otherwise", "Not established"),
+]
+
+
+def outcome(p_teacher: float, lo_d: float, hi_d: float) -> str:
+    if p_teacher < FLOOR:
+        return RULE[0][1]
+    if lo_d >= MARGIN:
+        return RULE[1][1]
+    if hi_d < MARGIN:
+        return RULE[2][1]
+    return RULE[3][1]
+
+
+def read_ratings(folder: Path, protocol_sha256: str) -> pd.DataFrame:
+    """One row per (hotelier, item, system), with the systems named again: x the teacher, y the student."""
+    rows = []
+    for path in sorted(folder.glob("ratings/*/item_*.json")):
+        rating = json.loads(path.read_text(encoding="utf-8"))
+        if rating["protocol_sha256"] != protocol_sha256:
+            raise SystemExit(f"{path} was given under another version of the protocol")
+        for neutral, answers in rating["by_system"].items():
+            rows.append({"hotelier": rating["hotelier"], "item": int(rating["item"]), "system": NEUTRAL[neutral],
+                         "right": bool(answers["q1_urgent_right"]), "wrong": answers["q2_what_is_wrong"],
+                         "others": answers["q3_others"], "useful": int(answers["q4_useful"]),
+                         "preferred": NEUTRAL.get(rating["preferred_system"], "same")})
+    table = pd.DataFrame(rows)
+    if table.empty:
+        raise SystemExit(f"no ratings under {folder}")
+    if table.duplicated(["hotelier", "item", "system"]).any():
+        raise SystemExit("a (hotelier, item) was rated twice")
+    return table
+
+
+def fleiss_kappa(table: pd.DataFrame) -> float | None:
+    """Fleiss' kappa of the yes/no Q1 over every (item, system) the complete hoteliers rated."""
+    counts = table.groupby(["item", "system"])["right"].agg(["sum", "count"])
+    n = counts["count"].iloc[0]
+    if n < 2 or (counts["count"] != n).any():
+        return None
+    yes, no = counts["sum"], n - counts["sum"]
+    agreement = ((yes * (yes - 1) + no * (no - 1)) / (n * (n - 1))).mean()
+    p_yes = yes.sum() / (n * len(counts))
+    expected = p_yes ** 2 + (1 - p_yes) ** 2
+    return None if expected == 1 else round(float((agreement - expected) / (1 - expected)), 4)
+
+
+def primary(diff: pd.Series, union: pd.DataFrame) -> float:
+    """d: the weighted mean over U of the difference, 0 for every review outside D."""
+    weights = union["weight"]
+    return float((weights * diff.reindex(union.index).fillna(0.0)).sum() / weights.sum())
+
+
+def bootstrap(diff: pd.Series, union: pd.DataFrame, reps: int = BOOTSTRAP, seed: int = BOOTSTRAP_SEED
+              ) -> tuple[float, float]:
+    """2.5th and 97.5th percentiles of d over resamples of U's reviews within strata."""
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    values = diff.reindex(union.index).fillna(0.0).to_numpy()
+    weights = union["weight"].to_numpy()
+    positions = [np.flatnonzero(union["stratum"].to_numpy() == s) for s in sorted(union["stratum"].unique())]
+    draws = []
+    for _ in range(reps):
+        picked = np.concatenate([rng.choice(idx, size=len(idx), replace=True) for idx in positions])
+        draws.append((weights[picked] * values[picked]).sum() / weights[picked].sum())
+    return float(np.percentile(draws, 2.5)), float(np.percentile(draws, 97.5))
+
+
+def analyse(ratings: Path = RATINGS, samples: Path = SAMPLES, out: Path = RESULT, require_commits: bool = True) -> dict:
+    """The rule of §4, applied once to the exported ratings, with §4's reported items."""
+    if out.exists():
+        raise SystemExit(f"{out} exists; the rule is applied once")
+    files = sorted(ratings.glob("ratings/*/item_*.json"))
+    needed = [*files, samples / "rated_key.csv", samples / "outputs.json", PROTOCOL]
+    if require_commits:
+        missing = [p.name for p in needed if not v2score.first.committed(p)]
+        if missing:
+            raise SystemExit(f"not committed: {missing[:5]}; the ratings are committed before the rule is applied")
+    protocol_sha = sample.trends._sha256(PROTOCOL)
+    rated = pd.read_csv(samples / "rated_key.csv").set_index("item")
+    table = read_ratings(ratings, protocol_sha)
+    per_hotelier = table.groupby("hotelier")["item"].nunique()
+    complete = sorted(per_hotelier[per_hotelier == len(rated)].index)
+    partial = sorted(per_hotelier[per_hotelier < len(rated)].index)
+    result: dict = {"protocol_sha256": protocol_sha, "code_commit": sample.pilot.git_commit(),
+                    "hoteliers_complete": complete, "hoteliers_partial": partial,
+                    "rule": [condition for condition, _ in RULE],
+                    "inputs": {p.relative_to(ROOT).as_posix() if p.is_relative_to(ROOT) else p.as_posix():
+                               sample.trends._sha256(p) for p in needed}}
+    if len(complete) < MIN_COMPLETE:
+        result["decision"] = {"outcome": f"not decided: {len(complete)} complete hotelier(s), fewer than {MIN_COMPLETE}"}
+    else:
+        rows = table[table["hotelier"].isin(complete)]
+        right = rows.pivot_table(index="item", columns="system", values="right", aggfunc="mean")
+        right.index = rated.loc[right.index, "raw_row"].to_numpy()
+        test = test_reviews()
+        group = groups(outputs())
+        union = test[group.isin(["D", "C"])].assign(group=group)
+        d_rows = union.index[union["group"] == "D"]
+        diff = (right["student"] - right["teacher"]).reindex(d_rows)
+        if diff.isna().any():
+            raise SystemExit("a review of D has no rating from the complete hoteliers")
+        d = primary(diff, union)
+        lo_d, hi_d = bootstrap(diff, union)
+        rated_c = rated[rated["group"] == "C"].set_index("raw_row")
+        weight_d = union.loc[d_rows, "weight"]
+        weight_c = rated_c["test_weight"] * rated_c["sample_weight"]
+        p_teacher = float(((weight_d * right.loc[d_rows, "teacher"]).sum()
+                           + (weight_c * right.loc[rated_c.index, "teacher"]).sum())
+                          / (weight_d.sum() + weight_c.sum()))
+        result["decision"] = {"d": round(d, 6), "lo_d": round(lo_d, 6), "hi_d": round(hi_d, 6),
+                              "p_teacher": round(p_teacher, 6), "outcome": outcome(p_teacher, lo_d, hi_d),
+                              "bootstrap": {"resamples": BOOTSTRAP, "seed": BOOTSTRAP_SEED},
+                              "u_reviews": len(union), "d_reviews": len(d_rows)}
+        result["reported"] = reported(rows, rated, right, complete)
+        result["reported"]["hoteliers_vs_chatgpt"] = versus_reference(rows, rated, samples)
+        others = table[table["hotelier"].isin(partial)]
+        result["reported"]["partial_raters"] = {
+            "ratings": int(len(others) // 2),
+            "right": {s: round(float(others[others["system"] == s]["right"].mean()), 4) if len(others) else None
+                      for s in ("teacher", "student")}}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return result
+
+
+def versus_reference(rows: pd.DataFrame, rated: pd.DataFrame, samples: Path = SAMPLES) -> dict:
+    """How often a hotelier's Q1 agrees with whether that output's urgent departments are the ChatGPT reference's."""
+    data = v2score.catalogue()
+    urgent = metrics.urgent_departments(data["types"])
+    per_item = json.loads((samples / "outputs.json").read_text(encoding="utf-8"))
+    reference = v2score.first.load_indexed(V2_LABELS / "reference_chatgpt_v2.csv")
+
+    def departments(types) -> frozenset:
+        return frozenset(urgent[t] for t in types if t in urgent)
+    agree = []
+    for row in rows.itertuples():
+        raw_row = int(rated.loc[row.item, "raw_row"])
+        gold = departments([t for t in urgent if reference.loc[raw_row, t]])
+        agree.append(row.right == (departments(per_item[str(row.item)][row.system]) == gold))
+    return {"ratings": len(agree), "agreement": round(sum(agree) / len(agree), 4) if agree else None}
+
+
+def reported(rows: pd.DataFrame, rated: pd.DataFrame, right: pd.DataFrame, complete: list[str]) -> dict:
+    """§4, reported, not deciding."""
+    group_of = rated["group"]
+    rows = rows.assign(group=rows["item"].map(group_of))
+    by_group = {g: {s: round(float(rows[(rows["group"] == g) & (rows["system"] == s)]["right"].mean()), 4)
+                    for s in ("teacher", "student")} for g in ("D", "C")}
+    reasons = {s: pd.Series([r for wrong in rows[rows["system"] == s]["wrong"] for r in wrong]).value_counts().to_dict()
+               for s in ("teacher", "student")}
+    pref = rows.drop_duplicates(["hotelier", "item"])["preferred"].value_counts().to_dict()
+    c_items = rows[rows["group"] == "C"].pivot_table(index=["hotelier", "item"], columns="system", values="right")
+    leave_one_out = {}
+    for h in complete:
+        kept = rows[rows["hotelier"] != h]
+        if kept.empty:
+            continue
+        sub = kept.pivot_table(index="item", columns="system", values="right", aggfunc="mean")
+        d_items = rated.index[rated["group"] == "D"]
+        leave_one_out[h] = round(float((sub.loc[d_items, "student"] - sub.loc[d_items, "teacher"]).mean()), 4)
+    return {"right_by_group": by_group, "what_is_wrong": reasons,
+            "others": {s: rows[rows["system"] == s]["others"].value_counts().to_dict() for s in ("teacher", "student")},
+            "useful_mean": {s: round(float(rows[rows["system"] == s]["useful"].mean()), 3)
+                            for s in ("teacher", "student")},
+            "preference": pref, "fleiss_kappa_q1": fleiss_kappa(rows),
+            "identical_outputs_judged_differently": int((c_items["teacher"] != c_items["student"]).sum()),
+            "identical_outputs_rated": len(c_items),
+            "unweighted_mean_difference_on_d_without_each_hotelier": leave_one_out}
 
 
 def main() -> None:
@@ -153,10 +382,15 @@ def main() -> None:
     first.add_argument("--overwrite", action="store_true")
     second = steps.add_parser("bundle", help="write the Space's items.json with the texts (git-ignored)")
     second.add_argument("--csv", type=Path, default=ROOT / "data" / "raw" / "booking_reviews_515k.csv")
+    third = steps.add_parser("analyse", help="apply the rule once to the committed ratings")
+    third.add_argument("--ratings", type=Path, default=RATINGS)
     args = parser.parse_args()
     if args.step == "draw":
         manifest = build(overwrite=args.overwrite)
         print("groups:", {g: v["reviews"] for g, v in manifest["groups"].items()}, "| rated:", manifest["rated"])
+    elif args.step == "analyse":
+        decision = analyse(args.ratings)["decision"]
+        print(decision)
     else:
         if sample.trends._sha256(args.csv) != sample.RAW_SHA256:
             raise SystemExit(f"{args.csv} is not the Kaggle file the protocol fixes")

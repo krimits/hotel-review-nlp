@@ -27,6 +27,12 @@ INPUTS = {  # the v2 protocol's committed files this evaluation reads, as its lo
         "5c592af14016cba5f97a0ee021af0a54e2196d1f50ad1f01b938be3a384f966d",
 }
 RULE = ["p_teacher < 0.80", "lo_d >= -0.10", "hi_d < -0.10"]
+DRAWN = {  # step 2, drawn at ce4b0af: the rated set, both outputs, the manifest, and the Greek label table
+    FOLDER / "samples" / "rated_key.csv": "bdc98b58b340c383cf9c6ccaf184ff3737a4cb10ed92e77a4bb71cc9561a3315",
+    FOLDER / "samples" / "outputs.json": "7424b85b65de6542a37594b93b548e522e9c3195957d2cde76fc807ff3a323e4",
+    FOLDER / "samples" / "manifest.json": "1a5e3560e06c865ab8783ee09c0fa16612bf54a328d1edfe7143a0ea85ade1f7",
+    FOLDER / "labels_el.yaml": "d0f992b9fe9fc8251da5afd20dbb233785992a36de79361467befcb5b3698a47",
+}
 
 
 def _load(name: str):
@@ -83,6 +89,14 @@ def test_the_group_sizes_the_protocol_states_are_the_datas(prose):
     assert sum(counts["Z"].values()) == 354
     assert "| **D**, differ | the two urgent outputs differ | 49 (H 33, N 16) | **all 49** |" in prose
     assert "| **C**, same | the same urgent output, not empty | 97 (H 75, N 22) | **11** (H 8, N 3), seed **20261106** |" in prose
+
+
+def test_the_drawn_set_is_the_committed_one_and_the_rule_is_the_codes():
+    for path, digest in DRAWN.items():
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, path.name
+    assert [condition for condition, _ in evaluation.RULE][:3] == RULE
+    assert (evaluation.MARGIN, evaluation.FLOOR, evaluation.MIN_COMPLETE) == (-0.10, 0.80, 2)
+    assert (evaluation.BOOTSTRAP, evaluation.BOOTSTRAP_SEED) == (2000, 0)
 
 
 def test_the_draw_settings_are_the_codes(prose):

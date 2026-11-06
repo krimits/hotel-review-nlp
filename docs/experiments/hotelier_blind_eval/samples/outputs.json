@@ -1,0 +1,697 @@
+{
+ "1": {
+  "teacher": [
+   "safety_fault",
+   "bed_comfort",
+   "noise_external"
+  ],
+  "student": [
+   "bed_comfort",
+   "noise_external",
+   "location_view"
+  ]
+ },
+ "2": {
+  "teacher": [
+   "equipment_fault",
+   "room_and_facilities"
+  ],
+  "student": [
+   "hvac_failure",
+   "equipment_fault",
+   "room_and_facilities"
+  ]
+ },
+ "3": {
+  "teacher": [
+   "other_problem",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "hvac_failure",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "4": {
+  "teacher": [
+   "noise_external"
+  ],
+  "student": [
+   "security_fault",
+   "noise_external"
+  ]
+ },
+ "5": {
+  "teacher": [
+   "cleanliness",
+   "pests",
+   "hvac_failure",
+   "linen_amenities",
+   "other_problem",
+   "price_value"
+  ],
+  "student": [
+   "cleanliness",
+   "pests",
+   "noise_external",
+   "room_and_facilities",
+   "location_view",
+   "price_value"
+  ]
+ },
+ "6": {
+  "teacher": [
+   "room_and_facilities"
+  ],
+  "student": [
+   "hvac_failure",
+   "room_and_facilities"
+  ]
+ },
+ "7": {
+  "teacher": [
+   "hvac_failure"
+  ],
+  "student": [
+   "hvac_failure"
+  ]
+ },
+ "8": {
+  "teacher": [
+   "cleanliness",
+   "staff_service",
+   "price_value"
+  ],
+  "student": [
+   "cleanliness",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "9": {
+  "teacher": [
+   "safety_fault",
+   "hvac_failure",
+   "price_value"
+  ],
+  "student": [
+   "equipment_fault",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "10": {
+  "teacher": [
+   "safety_fault"
+  ],
+  "student": [
+   "room_and_facilities"
+  ]
+ },
+ "11": {
+  "teacher": [
+   "cleanliness",
+   "noise_internal",
+   "staff_service",
+   "other_problem"
+  ],
+  "student": [
+   "cleanliness",
+   "plumbing_major",
+   "food_beverage",
+   "staff_service"
+  ]
+ },
+ "12": {
+  "teacher": [
+   "plumbing_minor"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor"
+  ]
+ },
+ "13": {
+  "teacher": [
+   "plumbing_minor",
+   "price_value"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor",
+   "price_value"
+  ]
+ },
+ "14": {
+  "teacher": [
+   "cleanliness",
+   "noise_internal",
+   "staff_service",
+   "checkin_billing"
+  ],
+  "student": [
+   "cleanliness",
+   "noise_internal",
+   "staff_service",
+   "checkin_billing",
+   "noise_external",
+   "room_and_facilities"
+  ]
+ },
+ "15": {
+  "teacher": [
+   "plumbing_minor",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "16": {
+  "teacher": [
+   "security_fault",
+   "noise_internal",
+   "staff_service",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "staff_service",
+   "checkin_billing"
+  ]
+ },
+ "17": {
+  "teacher": [
+   "equipment_fault",
+   "room_and_facilities"
+  ],
+  "student": [
+   "safety_fault",
+   "equipment_fault",
+   "room_and_facilities"
+  ]
+ },
+ "18": {
+  "teacher": [
+   "safety_fault"
+  ],
+  "student": [
+   "hvac_failure",
+   "plumbing_major",
+   "plumbing_minor"
+  ]
+ },
+ "19": {
+  "teacher": [
+   "cleanliness",
+   "linen_amenities",
+   "bed_comfort",
+   "food_beverage",
+   "room_and_facilities"
+  ],
+  "student": [
+   "linen_amenities",
+   "bed_comfort",
+   "room_and_facilities"
+  ]
+ },
+ "20": {
+  "teacher": [
+   "safety_incident"
+  ],
+  "student": []
+ },
+ "21": {
+  "teacher": [
+   "safety_fault"
+  ],
+  "student": [
+   "security_fault"
+  ]
+ },
+ "22": {
+  "teacher": [
+   "hvac_failure",
+   "room_and_facilities"
+  ],
+  "student": [
+   "location_view"
+  ]
+ },
+ "23": {
+  "teacher": [
+   "food_beverage",
+   "other_problem"
+  ],
+  "student": [
+   "cleanliness",
+   "food_beverage"
+  ]
+ },
+ "24": {
+  "teacher": [
+   "cleanliness",
+   "hvac_failure",
+   "room_and_facilities"
+  ],
+  "student": [
+   "cleanliness",
+   "room_and_facilities"
+  ]
+ },
+ "25": {
+  "teacher": [
+   "hvac_failure"
+  ],
+  "student": [
+   "hvac_failure"
+  ]
+ },
+ "26": {
+  "teacher": [
+   "plumbing_minor"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor"
+  ]
+ },
+ "27": {
+  "teacher": [
+   "room_and_facilities"
+  ],
+  "student": [
+   "security_fault",
+   "bed_comfort",
+   "room_and_facilities"
+  ]
+ },
+ "28": {
+  "teacher": [
+   "linen_amenities",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "cleanliness",
+   "linen_amenities",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "29": {
+  "teacher": [
+   "hvac_failure",
+   "bed_comfort",
+   "food_beverage",
+   "room_and_facilities"
+  ],
+  "student": [
+   "bed_comfort",
+   "food_beverage",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "30": {
+  "teacher": [
+   "staff_service",
+   "checkin_billing"
+  ],
+  "student": [
+   "cleanliness",
+   "staff_service"
+  ]
+ },
+ "31": {
+  "teacher": [
+   "cleanliness",
+   "food_beverage"
+  ],
+  "student": [
+   "cleanliness",
+   "food_beverage"
+  ]
+ },
+ "32": {
+  "teacher": [
+   "staff_service",
+   "checkin_billing",
+   "other_problem",
+   "room_and_facilities"
+  ],
+  "student": [
+   "plumbing_major",
+   "noise_external",
+   "room_and_facilities",
+   "location_view",
+   "price_value"
+  ]
+ },
+ "33": {
+  "teacher": [
+   "safety_fault",
+   "plumbing_major",
+   "noise_external"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor",
+   "noise_internal",
+   "noise_external"
+  ]
+ },
+ "34": {
+  "teacher": [
+   "hvac_failure"
+  ],
+  "student": [
+   "hvac_failure",
+   "food_beverage"
+  ]
+ },
+ "35": {
+  "teacher": [
+   "hvac_failure",
+   "staff_service",
+   "checkin_billing",
+   "room_and_facilities"
+  ],
+  "student": [
+   "safety_fault",
+   "checkin_billing",
+   "other_problem",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "36": {
+  "teacher": [
+   "security_fault",
+   "noise_internal",
+   "noise_external"
+  ],
+  "student": [
+   "noise_internal",
+   "noise_external",
+   "location_view"
+  ]
+ },
+ "37": {
+  "teacher": [
+   "hvac_failure"
+  ],
+  "student": [
+   "hvac_failure"
+  ]
+ },
+ "38": {
+  "teacher": [
+   "security_fault",
+   "plumbing_minor"
+  ],
+  "student": [
+   "security_fault",
+   "safety_fault"
+  ]
+ },
+ "39": {
+  "teacher": [
+   "hvac_failure",
+   "room_and_facilities"
+  ],
+  "student": [
+   "hvac_failure",
+   "room_and_facilities"
+  ]
+ },
+ "40": {
+  "teacher": [
+   "cleanliness",
+   "linen_amenities",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "cleanliness",
+   "linen_amenities",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "41": {
+  "teacher": [
+   "cleanliness"
+  ],
+  "student": [
+   "cleanliness",
+   "hvac_failure"
+  ]
+ },
+ "42": {
+  "teacher": [
+   "hvac_failure",
+   "noise_internal",
+   "checkin_billing"
+  ],
+  "student": [
+   "noise_internal"
+  ]
+ },
+ "43": {
+  "teacher": [
+   "hvac_failure",
+   "equipment_fault",
+   "linen_amenities",
+   "room_and_facilities"
+  ],
+  "student": [
+   "security_fault",
+   "hvac_failure",
+   "equipment_fault",
+   "room_and_facilities"
+  ]
+ },
+ "44": {
+  "teacher": [
+   "cleanliness",
+   "room_and_facilities"
+  ],
+  "student": [
+   "room_and_facilities",
+   "location_view"
+  ]
+ },
+ "45": {
+  "teacher": [
+   "safety_fault",
+   "hvac_failure",
+   "plumbing_minor",
+   "checkin_billing",
+   "room_and_facilities",
+   "price_value"
+  ],
+  "student": [
+   "hvac_failure",
+   "plumbing_major",
+   "plumbing_minor",
+   "room_and_facilities",
+   "price_value"
+  ]
+ },
+ "46": {
+  "teacher": [
+   "hvac_failure",
+   "plumbing_major",
+   "linen_amenities"
+  ],
+  "student": [
+   "hvac_failure"
+  ]
+ },
+ "47": {
+  "teacher": [
+   "hvac_failure",
+   "plumbing_minor",
+   "noise_internal",
+   "bed_comfort"
+  ],
+  "student": [
+   "noise_internal",
+   "bed_comfort",
+   "noise_external"
+  ]
+ },
+ "48": {
+  "teacher": [
+   "cleanliness",
+   "staff_service",
+   "checkin_billing",
+   "room_and_facilities"
+  ],
+  "student": [
+   "cleanliness",
+   "checkin_billing",
+   "room_and_facilities"
+  ]
+ },
+ "49": {
+  "teacher": [
+   "hvac_failure",
+   "linen_amenities",
+   "food_beverage",
+   "staff_service",
+   "noise_external",
+   "room_and_facilities"
+  ],
+  "student": [
+   "noise_internal",
+   "linen_amenities",
+   "food_beverage",
+   "noise_external",
+   "room_and_facilities"
+  ]
+ },
+ "50": {
+  "teacher": [
+   "cleanliness",
+   "hvac_failure",
+   "plumbing_minor",
+   "room_and_facilities"
+  ],
+  "student": [
+   "hvac_failure",
+   "room_and_facilities"
+  ]
+ },
+ "51": {
+  "teacher": [
+   "security_fault",
+   "equipment_fault",
+   "wifi",
+   "room_and_facilities"
+  ],
+  "student": [
+   "equipment_fault",
+   "wifi",
+   "room_and_facilities"
+  ]
+ },
+ "52": {
+  "teacher": [
+   "plumbing_major",
+   "linen_amenities",
+   "bed_comfort",
+   "room_and_facilities"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor",
+   "linen_amenities",
+   "bed_comfort",
+   "room_and_facilities"
+  ]
+ },
+ "53": {
+  "teacher": [
+   "linen_amenities",
+   "room_and_facilities"
+  ],
+  "student": [
+   "security_fault",
+   "room_and_facilities"
+  ]
+ },
+ "54": {
+  "teacher": [
+   "cleanliness",
+   "safety_fault",
+   "linen_amenities"
+  ],
+  "student": [
+   "cleanliness",
+   "equipment_fault",
+   "linen_amenities",
+   "room_and_facilities"
+  ]
+ },
+ "55": {
+  "teacher": [
+   "plumbing_minor",
+   "room_and_facilities"
+  ],
+  "student": [
+   "plumbing_major",
+   "plumbing_minor",
+   "room_and_facilities"
+  ]
+ },
+ "56": {
+  "teacher": [
+   "noise_internal",
+   "other_problem"
+  ],
+  "student": [
+   "safety_fault",
+   "noise_internal",
+   "noise_external"
+  ]
+ },
+ "57": {
+  "teacher": [
+   "staff_service",
+   "other_problem"
+  ],
+  "student": [
+   "safety_fault",
+   "staff_service"
+  ]
+ },
+ "58": {
+  "teacher": [
+   "cleanliness",
+   "room_and_facilities"
+  ],
+  "student": [
+   "room_and_facilities"
+  ]
+ },
+ "59": {
+  "teacher": [
+   "security_fault",
+   "safety_fault",
+   "hvac_failure",
+   "equipment_fault",
+   "room_and_facilities"
+  ],
+  "student": [
+   "security_fault",
+   "safety_fault",
+   "equipment_fault",
+   "room_and_facilities",
+   "location_view"
+  ]
+ },
+ "60": {
+  "teacher": [
+   "bed_comfort",
+   "checkin_billing"
+  ],
+  "student": [
+   "security_fault",
+   "checkin_billing",
+   "room_and_facilities"
+  ]
+ }
+}

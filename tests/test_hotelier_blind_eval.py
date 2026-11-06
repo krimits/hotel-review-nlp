@@ -66,3 +66,73 @@ def test_build_on_the_committed_files_writes_60_items_without_text_and_never_red
         evaluation.build(tmp_path)
     evaluation.build(tmp_path, overwrite=True)
     assert (tmp_path / "rated_key.csv").read_bytes() == first
+
+
+def test_the_rule_and_its_boundaries():
+    assert evaluation.outcome(0.79, 0.0, 0.1) == "Neither ready"
+    assert evaluation.outcome(0.80, -0.10, 0.0) == "Student non-inferior"
+    assert evaluation.outcome(0.95, -0.25, -0.11) == "Student inferior"
+    assert evaluation.outcome(0.95, -0.15, -0.05) == "Not established"
+    assert [c for c, _ in evaluation.RULE] == ["p_teacher < 0.80", "lo_d >= -0.10", "hi_d < -0.10", "otherwise"]
+    assert (evaluation.MARGIN, evaluation.FLOOR, evaluation.MIN_COMPLETE) == (-0.10, 0.80, 2)
+
+
+def write_ratings(folder: Path, hoteliers, right, protocol_sha256: str, items=range(1, 61)):
+    """One file per (hotelier, item) as the Space writes them; right(hotelier, item, system) -> bool."""
+    for hotelier in hoteliers:
+        for item in items:
+            by_system = {neutral: {"q1_urgent_right": right(hotelier, item, system),
+                                   "q2_what_is_wrong": [] if right(hotelier, item, system) else ["missed_urgent"],
+                                   "q3_others": "yes", "q4_useful": 4}
+                         for neutral, system in evaluation.NEUTRAL.items()}
+            path = folder / "ratings" / hotelier / f"item_{item:02d}.json"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({"hotelier": hotelier, "item": item, "by_system": by_system,
+                                        "preferred_system": "x", "protocol_sha256": protocol_sha256}),
+                            encoding="utf-8")
+
+
+@pytest.fixture
+def protocol_sha():
+    return evaluation.sample.trends._sha256(evaluation.PROTOCOL)
+
+
+def run(tmp_path, right, protocol_sha, hoteliers=("H01", "H02"), **kwargs):
+    write_ratings(tmp_path / "export", hoteliers, right, protocol_sha, **kwargs)
+    return evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False)
+
+
+def test_equal_judgements_make_the_student_non_inferior(tmp_path, protocol_sha):
+    result = run(tmp_path, lambda h, i, s: True, protocol_sha)
+    decision = result["decision"]
+    assert decision["d"] == 0.0 and decision["lo_d"] == 0.0 and decision["p_teacher"] == 1.0
+    assert decision["outcome"] == "Student non-inferior" and decision["u_reviews"] == 146
+    assert decision["d_reviews"] == 49 and result["reported"]["identical_outputs_judged_differently"] == 0
+    assert result["reported"]["fleiss_kappa_q1"] is None  # every answer yes: no variation to agree on
+    with pytest.raises(SystemExit, match="applied once"):
+        evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False)
+
+
+def test_a_student_wrong_on_every_contested_review_is_inferior(tmp_path, protocol_sha):
+    rated = pd.read_csv(evaluation.SAMPLES / "rated_key.csv").set_index("item")
+    contested = set(rated.index[rated["group"] == "D"])
+    result = run(tmp_path, lambda h, i, s: not (s == "student" and i in contested), protocol_sha)
+    decision = result["decision"]
+    assert decision["d"] < -0.10 and decision["hi_d"] < -0.10 and decision["outcome"] == "Student inferior"
+    assert result["reported"]["right_by_group"]["D"] == {"teacher": 1.0, "student": 0.0}
+
+
+def test_a_teacher_judged_wrong_too_often_means_neither_is_ready(tmp_path, protocol_sha):
+    result = run(tmp_path, lambda h, i, s: i % 3 == 0, protocol_sha)
+    assert result["decision"]["p_teacher"] < 0.80 and result["decision"]["outcome"] == "Neither ready"
+
+
+def test_one_complete_hotelier_is_not_decided_and_the_partial_one_is_reported_apart(tmp_path, protocol_sha):
+    write_ratings(tmp_path / "export", ["H02"], lambda h, i, s: True, protocol_sha, items=range(1, 11))
+    result = run(tmp_path, lambda h, i, s: True, protocol_sha, hoteliers=("H01",))
+    assert result["decision"]["outcome"].startswith("not decided") and result["hoteliers_partial"] == ["H02"]
+
+
+def test_ratings_given_under_another_protocol_version_are_refused(tmp_path):
+    with pytest.raises(SystemExit, match="another version of the protocol"):
+        run(tmp_path, lambda h, i, s: True, "0" * 64)
