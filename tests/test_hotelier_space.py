@@ -169,11 +169,18 @@ def test_the_bundle_rebuilds_and_checks_the_texts_and_names_the_systems_neutrall
 
 
 class RecordingApi:
-    def __init__(self, name):
-        self.name, self.calls = name, []
+    """Records the writes; `existing` maps the repos that already exist to whether they are private."""
+
+    def __init__(self, name, existing=None):
+        self.name, self.calls, self.existing = name, [], dict(existing or {})
 
     def whoami(self):
         return {"name": self.name}
+
+    def repo_info(self, repo_id, repo_type):
+        if repo_id not in self.existing:
+            raise deploy.RepositoryNotFoundError(f"{repo_id} not found")
+        return type("Info", (), {"private": self.existing[repo_id]})()
 
     def create_repo(self, **kwargs):
         self.calls.append(("create", kwargs))
@@ -215,9 +222,95 @@ def test_publishing_makes_a_private_dataset_a_public_space_and_uploads_only_the_
     assert result["space"] == "https://huggingface.co/spaces/krimits/hotelier-blind-eval"
 
 
+def test_a_run_that_stopped_after_the_dataset_is_finished_only_with_resume(bundle_dir):
+    # The owner's first run created the dataset and stopped before the Space (6 November 2026).
+    halfway = {"krimits/hotelier-blind-eval-ratings": True}
+    api = RecordingApi("krimits", halfway)
+    with pytest.raises(RuntimeError, match="Rerun with --resume"):
+        deploy.deploy(api, bundle=bundle_dir)
+    assert api.calls == []
+    api = RecordingApi("krimits", halfway)
+    deploy.deploy(api, bundle=bundle_dir, resume=True)
+    assert [call[0] for call in api.calls] == ["create", "upload"]
+    assert api.calls[0][1]["repo_id"] == "krimits/hotelier-blind-eval" and api.calls[0][1]["private"] is False
+
+
+def test_resume_refuses_a_public_ratings_dataset(bundle_dir):
+    api = RecordingApi("krimits", {"krimits/hotelier-blind-eval-ratings": False})
+    with pytest.raises(RuntimeError, match="must be private"):
+        deploy.deploy(api, bundle=bundle_dir, resume=True)
+    assert api.calls == []
+
+
 def test_codes_are_random_and_the_secret_holds_only_their_hashes():
     tokens = iter(["aaa", "bbb"])
     pairs, secret = deploy.make_codes(2, token=lambda _: next(tokens))
     assert pairs == [("H01", "aaa"), ("H02", "bbb")]
     assert secret == {hashlib.sha256(b"aaa").hexdigest(): "H01", hashlib.sha256(b"bbb").hexdigest(): "H02"}
     assert logic.hotelier_for("bbb", secret) == "H02"
+
+
+class FailingStore(logic.MemoryStore):
+    """A store that cannot be reached, as when the token cannot read or write the dataset."""
+
+    def done(self, hotelier):
+        raise PermissionError("401 Unauthorized")
+
+    def save(self, rating):
+        raise PermissionError("403 Forbidden")
+
+
+def test_a_store_that_fails_shows_a_message_and_never_loses_or_skips_an_answer(capsys):
+    items = {1: {"item": 1, "text": "Disliked: dirty", "x": ["cleanliness"], "y": []}}
+    codes = {hashlib.sha256(b"abc").hexdigest(): "H01"}
+    store = logic.MemoryStore()
+    demo = app.build_app(items, DISPLAY, {}, store, codes, preview=False)
+    steps = {f.fn.__name__: f for f in demo.fns.values() if getattr(f.fn, "__name__", "") in ("on_start", "on_submit")}
+    state = steps["on_start"].fn("abc", {"hotelier": None, "queue": []})[0]
+    failing = app.build_app(items, DISPLAY, {}, FailingStore(), codes, preview=False)
+    broken = {f.fn.__name__: f for f in failing.fns.values()
+              if getattr(f.fn, "__name__", "") in ("on_start", "on_submit")}
+    refused = broken["on_start"].fn("abc", {"hotelier": None, "queue": []})
+    assert refused[-1] == app.STORAGE_DOWN and refused[0] == {"hotelier": None, "queue": []}
+    kept = broken["on_submit"].fn(*complete(), *complete(), "Το ίδιο", state)
+    assert kept[0] == state and kept[-1] == app.NOT_SAVED  # the same review stays, answers untouched
+    assert all(getattr(u, "get", lambda k: None)("value") is None for u in kept[1:-1] if isinstance(u, dict))
+    logs = capsys.readouterr().err
+    assert "reading progress failed: PermissionError: 401 Unauthorized" in logs and "saving item 1 failed" in logs
+    assert not app.check_store(FailingStore(), preview=False) and app.check_store(logic.MemoryStore(), preview=True)
+
+
+class FakeHub:
+    def __init__(self, files=()):
+        self.files, self.uploads = list(files), []
+
+    def list_repo_files(self, repo_id, repo_type):
+        assert repo_type == "dataset"
+        return list(self.files)
+
+    def upload_file(self, **kwargs):
+        self.uploads.append(kwargs)
+        self.files.append(kwargs["path_in_repo"])
+
+
+def test_the_hub_store_reads_progress_and_writes_each_answer_once():
+    store = logic.HubStore("krimits/hotelier-blind-eval-ratings", "not-a-real-token")
+    store.api = FakeHub([".gitattributes", "ratings/H01/item_03.json", "ratings/H02/item_05.json"])
+    assert store.done("H01") == {3} and store.done("H03") == set()
+    rating = {"hotelier": "H01", "item": 7, "by_system": {}}
+    assert store.save(rating) and not store.save(rating)
+    upload = store.api.uploads[0]
+    assert len(store.api.uploads) == 1 and upload["path_in_repo"] == "ratings/H01/item_07.json"
+    assert upload["repo_type"] == "dataset" and upload["repo_id"] == "krimits/hotelier-blind-eval-ratings"
+
+
+def test_secrets_pasted_with_spaces_or_line_breaks_still_work(monkeypatch):
+    # The owner's RATINGS_REPO secret began with a space (6 November 2026); the Hub refused it as a repo id.
+    monkeypatch.setenv("RATINGS_REPO", " krimits/hotelier-blind-eval-ratings\n")
+    monkeypatch.setenv("HF_TOKEN", "  hf_not_a_real_token \n")
+    monkeypatch.setenv("HOTELIER_CODES", '\n {"' + hashlib.sha256(b"abc").hexdigest() + '": "H01"} ')
+    store, preview = app.store_from_env()
+    assert not preview and store.repo_id == "krimits/hotelier-blind-eval-ratings"
+    assert logic.hotelier_for("abc", app.codes_from_env(preview)) == "H01"
+    monkeypatch.setenv("RATINGS_REPO", "   ")
+    assert app.store_from_env()[1]  # an empty secret is no secret: preview

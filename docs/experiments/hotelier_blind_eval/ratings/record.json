@@ -1,0 +1,28 @@
+{
+ "protocol": "docs/experiments/hotelier_blind_eval/PROTOCOL.md",
+ "protocol_sha256": "6aa74caf65f0f34e7410bcafea4c893b3c5a3edbb55a460a7299336df9495cae",
+ "code_commit": "5f38378698e99545170859b8c37d8527b047910c",
+ "dataset": "krimits/hotelier-blind-eval-ratings",
+ "source": "Two different hoteliers, one per access code (H01, H02); each gave all 60 of their answers themselves in the Space krimits/hotelier-blind-eval; none was given by the owner (the owner's own test used the code H03 and was deleted before the collection); no AI tool was used, as far as the owner knows. As the owner reported on 11 November 2026.",
+ "received_on": "2026-11-11",
+ "bundle": "4c1e63b9d2c3",
+ "items_in_the_rated_set": 60,
+ "hoteliers": {
+  "H01": {
+   "ratings": 60,
+   "complete": true,
+   "first_submission": "2026-11-06T12:48:11+00:00",
+   "last_submission": "2026-11-09T14:20:22+00:00"
+  },
+  "H02": {
+   "ratings": 60,
+   "complete": true,
+   "first_submission": "2026-11-09T14:25:14+00:00",
+   "last_submission": "2026-11-11T06:30:03+00:00"
+  }
+ },
+ "files": 120,
+ "ratings_sha256": "01f2ce303c8241d678a1454525d16d9926a170e6667124fcd56787edbb583129",
+ "digest": "SHA-256 of the lines `<path> <SHA-256 of the file>`, one per rating file, sorted by path",
+ "rating_files_kept": "in the private dataset and the owner's export, not in this repository: the hoteliers were told their answers are kept in a private dataset (owner's decision, 11 November 2026)"
+}

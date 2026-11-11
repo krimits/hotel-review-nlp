@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 
 import gradio as gr
@@ -30,6 +31,28 @@ INTRO = """# Αξιολόγηση: δύο αναλύσεις της ίδιας �
 """
 Q1_LABEL = ("Τα επείγοντα είναι σωστά; Σημειώνει ως επείγοντα ακριβώς όσα πρέπει να διορθωθούν πριν τον επόμενο "
             "επισκέπτη, στο σωστό τμήμα;")
+STORAGE_DOWN = "Η αποθήκευση δεν είναι διαθέσιμη αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγο ή ενημερώστε τον διοργανωτή."
+NOT_SAVED = ("- Η απάντηση **δεν αποθηκεύτηκε**. Οι επιλογές σας έμειναν στη θέση τους· δοκιμάστε ξανά «Υποβολή» σε "
+             "λίγο ή ενημερώστε τον διοργανωτή.")
+
+
+def log_storage_error(doing: str, error: Exception) -> None:
+    """For the owner, in the Space's logs: the kind of failure and its message (never a token)."""
+    print(f"[ratings store] {doing} failed: {type(error).__name__}: {error}", file=sys.stderr, flush=True)
+
+
+def check_store(store: logic.MemoryStore, preview: bool) -> bool:
+    """At start, one read of the ratings store, so the logs say at once whether the secrets work."""
+    if preview:
+        print("[ratings store] preview: nothing is saved", flush=True)
+        return True
+    try:
+        store.done("H00")
+    except Exception as error:  # noqa: BLE001
+        log_storage_error("the start-up check", error)
+        return False
+    print(f"[ratings store] OK: {getattr(store, 'repo_id', '?')} can be read", flush=True)
+    return True
 
 
 def load(folder: Path) -> tuple[dict[int, dict], dict, dict]:
@@ -39,16 +62,21 @@ def load(folder: Path) -> tuple[dict[int, dict], dict, dict]:
     return items, display, meta
 
 
+def secret(name: str) -> str:
+    """A Space secret without the spaces or line breaks a paste can add around it."""
+    return os.environ.get(name, "").strip()
+
+
 def store_from_env() -> tuple[logic.MemoryStore, bool]:
-    repo, token = os.environ.get("RATINGS_REPO"), os.environ.get("HF_TOKEN")
+    repo, token = secret("RATINGS_REPO"), secret("HF_TOKEN")
     if repo and token:
         return logic.HubStore(repo, token), False
     return logic.MemoryStore(), True
 
 
 def codes_from_env(preview: bool) -> dict[str, str]:
-    if os.environ.get("HOTELIER_CODES"):
-        return json.loads(os.environ["HOTELIER_CODES"])
+    if secret("HOTELIER_CODES"):
+        return json.loads(secret("HOTELIER_CODES"))
     return {hashlib.sha256(b"demo").hexdigest(): "DEMO"} if preview else {}
 
 
@@ -110,7 +138,12 @@ def build_app(items: dict[int, dict], display: dict, meta: dict, store: logic.Me
             hotelier = logic.hotelier_for(entered or "", codes)
             if hotelier is None:
                 return current, *[gr.update() for _ in shown], "Ο κωδικός δεν αναγνωρίστηκε."
-            new = {"hotelier": hotelier, "queue": logic.remaining(hotelier, items, store.done(hotelier))}
+            try:
+                done = store.done(hotelier)
+            except Exception as error:  # noqa: BLE001 - shown to the hotelier, logged for the owner
+                log_storage_error("reading progress", error)
+                return current, *[gr.update() for _ in shown], STORAGE_DOWN
+            new = {"hotelier": hotelier, "queue": logic.remaining(hotelier, items, done)}
             return new, *screen(new), ""
 
         def on_submit(a1, a2, a3, a4, b1, b2, b3, b4, chosen, current: dict):
@@ -119,8 +152,12 @@ def build_app(items: dict[int, dict], display: dict, meta: dict, store: logic.Me
             if found:
                 return current, *[gr.update() for _ in shown[:-1]], "\n".join(f"- {e}" for e in found)
             item = current["queue"][0]
-            store.save(logic.record(current["hotelier"], item, logic.answers(a1, a2, a3, a4),
-                                    logic.answers(b1, b2, b3, b4), chosen, meta))
+            try:
+                store.save(logic.record(current["hotelier"], item, logic.answers(a1, a2, a3, a4),
+                                        logic.answers(b1, b2, b3, b4), chosen, meta))
+            except Exception as error:  # noqa: BLE001 - the answers stay on screen; nothing moves on
+                log_storage_error(f"saving item {item}", error)
+                return current, *[gr.update() for _ in shown[:-1]], NOT_SAVED
             new = {"hotelier": current["hotelier"], "queue": current["queue"][1:]}
             return new, *screen(new)
 
@@ -132,6 +169,7 @@ def build_app(items: dict[int, dict], display: dict, meta: dict, store: logic.Me
 if (HERE / "items.json").exists():
     ITEMS, DISPLAY, META = load(HERE)
     STORE, PREVIEW = store_from_env()
+    check_store(STORE, PREVIEW)
     demo = build_app(ITEMS, DISPLAY, META, STORE, codes_from_env(PREVIEW), PREVIEW)
 
 if __name__ == "__main__":
