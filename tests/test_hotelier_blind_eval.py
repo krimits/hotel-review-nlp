@@ -136,3 +136,78 @@ def test_one_complete_hotelier_is_not_decided_and_the_partial_one_is_reported_ap
 def test_ratings_given_under_another_protocol_version_are_refused(tmp_path):
     with pytest.raises(SystemExit, match="another version of the protocol"):
         run(tmp_path, lambda h, i, s: True, "0" * 64)
+
+
+def make_export(folder: Path, protocol_sha256: str, hoteliers=("H01", "H02"), items=range(1, 61), bundle="b1"):
+    """An export as `hf download` leaves it: the Space's own records, plus the files a download adds beside them."""
+    logic = evaluation.space_logic()
+    right, wrong = logic.answers("Ναι", [], "Ναι", "4"), logic.answers("Όχι", ["Λείπει επείγον πρόβλημα"], "Όχι", "2")
+    for hotelier in hoteliers:
+        for item in items:
+            rating = logic.record(hotelier, item, right, wrong if item % 4 == 0 else right, "Το ίδιο",
+                                  {"protocol_sha256": protocol_sha256, "bundle": bundle})
+            path = folder / logic.path_of(hotelier, item)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(rating, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
+    (folder / ".gitattributes").write_text("*.json text\n", encoding="utf-8")
+    (folder / ".cache" / "huggingface").mkdir(parents=True)
+    return folder
+
+
+def edit(path: Path, **changes):
+    rating = json.loads(path.read_text(encoding="utf-8"))
+    path.write_text(json.dumps({**rating, **changes}, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
+
+
+def swap_sides(path: Path):
+    rating = json.loads(path.read_text(encoding="utf-8"))
+    edit(path, system_1=rating["system_2"], system_2=rating["system_1"])
+
+
+def test_a_clean_export_is_copied_byte_for_byte_with_a_record_that_holds_no_answer(tmp_path, protocol_sha):
+    export, out = make_export(tmp_path / "export", protocol_sha), tmp_path / "ratings"
+    with pytest.raises(SystemExit, match="--source is required"):
+        evaluation.record_ratings(" ", export, out)
+    record = evaluation.record_ratings("two hoteliers, themselves", export, out)
+    assert record["hoteliers"]["H01"]["ratings"] == 60 and record["hoteliers"]["H02"]["complete"]
+    assert len(record["files"]) == 120 and record["bundle"] == "b1" and record["source"] == "two hoteliers, themselves"
+    for name, digest in record["files"].items():
+        assert (out / name).read_bytes() == (export / name).read_bytes()
+        assert evaluation.sample.trends._sha256(out / name) == digest
+    assert {p.name for p in out.iterdir()} == {"ratings", "record.json"}  # nothing else of the download is kept
+    text = (out / "record.json").read_text(encoding="utf-8")
+    assert "q1_urgent_right" not in text and "preference" not in text
+    with pytest.raises(SystemExit, match="never replaced"):
+        evaluation.record_ratings("again", export, out)
+    # What was recorded is what the analysis reads.
+    result = evaluation.analyse(out, out=tmp_path / "result.json", require_commits=False)
+    assert result["hoteliers_complete"] == ["H01", "H02"] and "d" in result["decision"]
+
+
+@pytest.mark.parametrize("damage, message", [
+    (lambda e: swap_sides(e / "ratings/H01/item_07.json"), "the sides are not the ones"),
+    (lambda e: edit(e / "ratings/H01/item_07.json", protocol_sha256="0" * 64), "another version of the protocol"),
+    (lambda e: edit(e / "ratings/H01/item_07.json", hotelier="H02"), "differs from its path"),
+    (lambda e: edit(e / "ratings/H01/item_07.json", preferred_system="x", preference="same"), "the preference"),
+    (lambda e: edit(e / "ratings/H02/item_09.json", bundle="b2"), "more than one bundle"),
+    (lambda e: (e / "ratings/H01/item_07.json").rename(e / "ratings/H01/item_61.json"), "not an item of the rated set"),
+    (lambda e: (e / "ratings/DEMO").mkdir(), "not a hotelier's folder"),
+    (lambda e: (e / "ratings/H01/notes.txt").write_text("x"), "not a rating file"),
+])
+def test_one_problem_refuses_the_whole_export(tmp_path, protocol_sha, damage, message):
+    export = make_export(tmp_path / "export", protocol_sha)
+    damage(export)
+    with pytest.raises(SystemExit, match=message):
+        evaluation.record_ratings("two hoteliers", export, tmp_path / "ratings")
+    assert not (tmp_path / "ratings").exists()
+
+
+def test_an_inconsistent_answer_is_refused(tmp_path, protocol_sha):
+    export = make_export(tmp_path / "export", protocol_sha)
+    path = export / "ratings/H02/item_05.json"
+    rating = json.loads(path.read_text(encoding="utf-8"))
+    rating["shown"]["1"]["q2_what_is_wrong"] = ["missed_urgent"]  # says the urgent part is right, and what is wrong
+    rating["by_system"][rating["system_1"]] = rating["shown"]["1"]
+    path.write_text(json.dumps(rating), encoding="utf-8")
+    with pytest.raises(SystemExit, match="Q1 and Q2 are not a complete, consistent answer"):
+        evaluation.record_ratings("two hoteliers", export, tmp_path / "ratings")
