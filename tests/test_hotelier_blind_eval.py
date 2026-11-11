@@ -99,7 +99,7 @@ def protocol_sha():
 
 def run(tmp_path, right, protocol_sha, hoteliers=("H01", "H02"), **kwargs):
     write_ratings(tmp_path / "export", hoteliers, right, protocol_sha, **kwargs)
-    return evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False)
+    return evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False, record=None)
 
 
 def test_equal_judgements_make_the_student_non_inferior(tmp_path, protocol_sha):
@@ -110,7 +110,7 @@ def test_equal_judgements_make_the_student_non_inferior(tmp_path, protocol_sha):
     assert decision["d_reviews"] == 49 and result["reported"]["identical_outputs_judged_differently"] == 0
     assert result["reported"]["fleiss_kappa_q1"] is None  # every answer yes: no variation to agree on
     with pytest.raises(SystemExit, match="applied once"):
-        evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False)
+        evaluation.analyse(tmp_path / "export", out=tmp_path / "result.json", require_commits=False, record=None)
 
 
 def test_a_student_wrong_on_every_contested_review_is_inferior(tmp_path, protocol_sha):
@@ -164,24 +164,43 @@ def swap_sides(path: Path):
     edit(path, system_1=rating["system_2"], system_2=rating["system_1"])
 
 
-def test_a_clean_export_is_copied_byte_for_byte_with_a_record_that_holds_no_answer(tmp_path, protocol_sha):
+def test_a_clean_export_is_recorded_by_one_digest_and_no_rating_enters_the_repository(tmp_path, protocol_sha):
     export, out = make_export(tmp_path / "export", protocol_sha), tmp_path / "ratings"
     with pytest.raises(SystemExit, match="--source is required"):
         evaluation.record_ratings(" ", export, out)
     record = evaluation.record_ratings("two hoteliers, themselves", export, out)
     assert record["hoteliers"]["H01"]["ratings"] == 60 and record["hoteliers"]["H02"]["complete"]
-    assert len(record["files"]) == 120 and record["bundle"] == "b1" and record["source"] == "two hoteliers, themselves"
-    for name, digest in record["files"].items():
-        assert (out / name).read_bytes() == (export / name).read_bytes()
-        assert evaluation.sample.trends._sha256(out / name) == digest
-    assert {p.name for p in out.iterdir()} == {"ratings", "record.json"}  # nothing else of the download is kept
+    assert record["files"] == 120 and record["bundle"] == "b1" and record["source"] == "two hoteliers, themselves"
+    assert (record["ratings_sha256"], 120) == evaluation.ratings_digest(export)
+    assert [p.name for p in out.iterdir()] == ["record.json"]  # the rating files are not copied
     text = (out / "record.json").read_text(encoding="utf-8")
-    assert "q1_urgent_right" not in text and "preference" not in text
+    assert "q1_urgent_right" not in text and "preference" not in text and "item_07" not in text
     with pytest.raises(SystemExit, match="never replaced"):
         evaluation.record_ratings("again", export, out)
-    # What was recorded is what the analysis reads.
-    result = evaluation.analyse(out, out=tmp_path / "result.json", require_commits=False)
+    # The analysis reads the export, and only while it is the recorded one.
+    swap_sides(export / "ratings/H02/item_09.json")
+    with pytest.raises(SystemExit, match="does not hold the recorded ratings"):
+        evaluation.analyse(export, out=tmp_path / "result.json", require_commits=False, record=out / "record.json")
+    swap_sides(export / "ratings/H02/item_09.json")
+    (export / "ratings/H02/item_09.json").rename(tmp_path / "taken_out.json")
+    with pytest.raises(SystemExit, match="does not hold the recorded ratings"):
+        evaluation.analyse(export, out=tmp_path / "result.json", require_commits=False, record=out / "record.json")
+    (tmp_path / "taken_out.json").rename(export / "ratings/H02/item_09.json")
+    result = evaluation.analyse(export, out=tmp_path / "result.json", require_commits=False,
+                                record=out / "record.json")
     assert result["hoteliers_complete"] == ["H01", "H02"] and "d" in result["decision"]
+    assert result["ratings"] == {"files": 120, "sha256": record["ratings_sha256"], "kept": evaluation.RATINGS_KEPT}
+    written = (tmp_path / "result.json").read_text(encoding="utf-8")
+    assert "item_07" not in written and "q1_urgent_right" not in written  # aggregates only
+
+
+def test_the_digest_changes_with_any_file_and_not_with_what_a_download_adds(tmp_path, protocol_sha):
+    export = make_export(tmp_path / "export", protocol_sha, hoteliers=("H01",), items=range(1, 4))
+    digest, count = evaluation.ratings_digest(export)
+    (export / ".cache" / "huggingface" / "x.lock").write_text("", encoding="utf-8")
+    assert evaluation.ratings_digest(export) == (digest, 3) and count == 3
+    edit(export / "ratings/H01/item_02.json", submitted_at="2026-11-06T00:00:00+00:00")
+    assert evaluation.ratings_digest(export)[0] != digest
 
 
 @pytest.mark.parametrize("damage, message", [

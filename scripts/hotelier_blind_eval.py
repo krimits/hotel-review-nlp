@@ -5,7 +5,7 @@
     hf download krimits/hotelier-blind-eval-ratings --repo-type dataset \
         --local-dir runs/hotelier_blind_eval/ratings_export          # the owner, when the collection is closed
     python scripts/hotelier_blind_eval.py record --source "who rated, as the owner reports it"
-    git add ... && git commit ...                                    # the ratings are committed before the rule
+    git add ... && git commit ...                                    # the record is committed before the rule
     python scripts/hotelier_blind_eval.py analyse                    # once
 
 `draw` reads, from the triage student v2 protocol's committed files, both systems' outputs on its 500 test reviews:
@@ -22,14 +22,18 @@ from spaces/hotelier-blind-eval/, items.json (each item's text and both outputs)
 labels_el.yaml) and meta.json (the protocol's hash, the code commit, and the hashes of what it was built from).
 scripts/deploy_hotelier_space.py publishes that folder.
 
-`record` checks the owner's export of the ratings dataset and copies it, byte for byte, under ratings/: every file
-must be one the Space wrote for that hotelier and item under this protocol (the sides the Space shows them, complete
-and consistent answers, one bundle); one problem refuses the whole export. ratings/record.json holds who rated as
-the owner reports it, counts, times and each file's SHA-256, and summarises no answer.
+`record` checks the owner's export of the ratings dataset: every file must be one the Space wrote for that hotelier
+and item under this protocol (the sides the Space shows them, complete and consistent answers, one bundle); one
+problem refuses the whole export. It writes ratings/record.json: who rated as the owner reports it, counts, times
+and one SHA-256 over every rating file. The rating files themselves are not committed (the owner's decision of 11
+November 2026: the hoteliers were told their answers are kept in a private dataset); they stay in that dataset and
+in the owner's export. One digest, not one hash per file: a rating file is small enough for its own hash to be
+searched for its answers.
 
-`analyse` applies §4 once to the exported ratings, after they are committed under ratings/ (one JSON file per
-hotelier and review, the systems named x and y as in the Space): `d` over U with its bootstrap interval,
-`p_teacher`, the outcome, and the reported items. It writes results/result.json once and never again.
+`analyse` applies §4 once to the exported ratings (one JSON file per hotelier and review, the systems named x and y
+as in the Space), after the record is committed and only if the export still has the record's digest: `d` over U
+with its bootstrap interval, `p_teacher`, the outcome, and the reported items. It writes results/result.json once
+and never again; it holds aggregates, no single answer.
 """
 
 from __future__ import annotations
@@ -210,6 +214,12 @@ def bundle(csv: Path, samples: Path = SAMPLES, runs: Path = RUNS) -> Path:
 
 RATINGS = FOLDER / "ratings"
 RESULT = FOLDER / "results" / "result.json"
+EXPORT = RUNS / "ratings_export"
+RECORD = RATINGS / "record.json"
+DATASET = "krimits/hotelier-blind-eval-ratings"
+DIGEST = "SHA-256 of the lines `<path> <SHA-256 of the file>`, one per rating file, sorted by path"
+RATINGS_KEPT = ("in the private dataset and the owner's export, not in this repository: the hoteliers were told their "
+                "answers are kept in a private dataset (owner's decision, 11 November 2026)")
 MARGIN, FLOOR, MIN_COMPLETE = -0.10, 0.80, 2  # PROTOCOL.md §4, the owner's fields of 6 November 2026
 BOOTSTRAP, BOOTSTRAP_SEED = 2000, 0
 RULE = [  # PROTOCOL.md §4, in order
@@ -285,16 +295,24 @@ def bootstrap(diff: pd.Series, union: pd.DataFrame, reps: int = BOOTSTRAP, seed:
     return float(np.percentile(draws, 2.5)), float(np.percentile(draws, 97.5))
 
 
-def analyse(ratings: Path = RATINGS, samples: Path = SAMPLES, out: Path = RESULT, require_commits: bool = True) -> dict:
-    """The rule of §4, applied once to the exported ratings, with §4's reported items."""
+def analyse(ratings: Path = EXPORT, samples: Path = SAMPLES, out: Path = RESULT, require_commits: bool = True,
+            record: Path | None = RECORD) -> dict:
+    """The rule of §4, applied once to the exported ratings, with §4's reported items.
+
+    The ratings are read from the owner's export, never from the repository; with `record`, they must be the ones
+    recorded: the same number of files and the same digest."""
     if out.exists():
         raise SystemExit(f"{out} exists; the rule is applied once")
-    files = sorted(ratings.glob("ratings/*/item_*.json"))
-    needed = [*files, samples / "rated_key.csv", samples / "outputs.json", PROTOCOL]
+    needed = [samples / "rated_key.csv", samples / "outputs.json", PROTOCOL, *([record] if record else [])]
     if require_commits:
         missing = [p.name for p in needed if not v2score.first.committed(p)]
         if missing:
-            raise SystemExit(f"not committed: {missing[:5]}; the ratings are committed before the rule is applied")
+            raise SystemExit(f"not committed: {missing[:5]}; the record is committed before the rule is applied")
+    digest, count = ratings_digest(ratings)
+    if record:
+        recorded = json.loads(record.read_text(encoding="utf-8"))
+        if (recorded["ratings_sha256"], recorded["files"]) != (digest, count):
+            raise SystemExit(f"{ratings} does not hold the recorded ratings; nothing analysed")
     protocol_sha = sample.trends._sha256(PROTOCOL)
     rated = pd.read_csv(samples / "rated_key.csv").set_index("item")
     table = read_ratings(ratings, protocol_sha)
@@ -304,6 +322,7 @@ def analyse(ratings: Path = RATINGS, samples: Path = SAMPLES, out: Path = RESULT
     result: dict = {"protocol_sha256": protocol_sha, "code_commit": sample.pilot.git_commit(),
                     "hoteliers_complete": complete, "hoteliers_partial": partial,
                     "rule": [condition for condition, _ in RULE],
+                    "ratings": {"files": count, "sha256": digest, "kept": RATINGS_KEPT},
                     "inputs": {p.relative_to(ROOT).as_posix() if p.is_relative_to(ROOT) else p.as_posix():
                                sample.trends._sha256(p) for p in needed}}
     if len(complete) < MIN_COMPLETE:
@@ -388,8 +407,6 @@ def reported(rows: pd.DataFrame, rated: pd.DataFrame, right: pd.DataFrame, compl
             "unweighted_mean_difference_on_d_without_each_hotelier": leave_one_out}
 
 
-EXPORT = RUNS / "ratings_export"
-DATASET = "krimits/hotelier-blind-eval-ratings"
 HOTELIER_FOLDER = re.compile(r"H\d{2}")
 RATING_FILE = re.compile(r"item_(\d{2})\.json")
 
@@ -400,6 +417,13 @@ def space_logic():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def ratings_digest(folder: Path) -> tuple[str, int]:
+    """One SHA-256 over every rating file of an export, and how many there are (DIGEST says how)."""
+    lines = [f"{path.relative_to(folder).as_posix()} {sample.trends._sha256(path)}\n"
+             for path in sorted(folder.glob("ratings/*/item_*.json"), key=lambda p: p.relative_to(folder).as_posix())]
+    return hashlib.sha256("".join(lines).encode("utf-8")).hexdigest(), len(lines)
 
 
 def check_rating(rating: dict, hotelier: str, item: int, items: set[int], protocol_sha256: str, logic) -> list[str]:
@@ -441,12 +465,12 @@ def check_rating(rating: dict, hotelier: str, item: int, items: set[int], protoc
 
 def record_ratings(source: str, export: Path = EXPORT, out: Path = RATINGS, samples: Path = SAMPLES,
                    received_on: dt.date | None = None) -> dict:
-    """Check an export of the ratings dataset and copy it, byte for byte, under ratings/, with its record.
+    """Check an export of the ratings dataset and write its record; the rating files are not copied.
 
     Every file must be one the Space wrote: its hotelier and item as its path says, this protocol's hash, the sides
     the Space shows that hotelier for that item, complete and consistent answers, one bundle. One problem refuses
-    the whole export. The record holds who rated as the owner reports it, counts, times and each file's SHA-256;
-    it summarises no answer, so nothing about the outcome is read before the rule is applied."""
+    the whole export. The record holds who rated as the owner reports it, counts, times and one digest over every
+    file; it summarises no answer, so nothing about the outcome is read before the rule is applied."""
     if not source.strip():
         raise SystemExit("--source is required: who gave the ratings, as the owner reports it")
     if (out / "record.json").exists():
@@ -456,7 +480,7 @@ def record_ratings(source: str, export: Path = EXPORT, out: Path = RATINGS, samp
     logic = space_logic()
     protocol_sha = sample.trends._sha256(PROTOCOL)
     items = set(pd.read_csv(samples / "rated_key.csv")["item"].astype(int))
-    problems, files, bundles, times = [], {}, set(), {}
+    problems, files, bundles, times = [], 0, set(), {}
     for folder in sorted((export / "ratings").iterdir()):
         if not folder.is_dir() or not HOTELIER_FOLDER.fullmatch(folder.name):
             problems.append(f"ratings/{folder.name}: not a hotelier's folder")
@@ -473,7 +497,7 @@ def record_ratings(source: str, export: Path = EXPORT, out: Path = RATINGS, samp
                 continue
             found = check_rating(rating, folder.name, int(match.group(1)), items, protocol_sha, logic)
             problems += [f"{name}: {problem}" for problem in found]
-            files[name] = sample.trends._sha256(path)
+            files += 1
             bundles.add(rating.get("bundle"))
             times.setdefault(folder.name, []).append(rating.get("submitted_at") or "")
     if not files:
@@ -483,10 +507,8 @@ def record_ratings(source: str, export: Path = EXPORT, out: Path = RATINGS, samp
     if problems:
         raise SystemExit(f"the export is refused ({len(problems)} problem(s)); nothing recorded:\n"
                          + "\n".join(problems[:20]))
-    for name in files:
-        target = out / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(export / name, target)
+    digest, counted = ratings_digest(export)
+    assert counted == files, (counted, files)
     record = {
         "protocol": PROTOCOL.relative_to(ROOT).as_posix(), "protocol_sha256": protocol_sha,
         "code_commit": sample.pilot.git_commit(), "dataset": DATASET, "source": source,
@@ -495,8 +517,9 @@ def record_ratings(source: str, export: Path = EXPORT, out: Path = RATINGS, samp
         "hoteliers": {h: {"ratings": len(stamps), "complete": len(stamps) == len(items),
                           "first_submission": min(stamps), "last_submission": max(stamps)}
                       for h, stamps in sorted(times.items())},
-        "files": files,
+        "files": files, "ratings_sha256": digest, "digest": DIGEST, "rating_files_kept": RATINGS_KEPT,
     }
+    out.mkdir(parents=True, exist_ok=True)
     (out / "record.json").write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8",
                                      newline="\n")
     return record
@@ -510,8 +533,8 @@ def main() -> None:
     second = steps.add_parser("bundle", help="write the Space's items.json with the texts (git-ignored)")
     second.add_argument("--csv", type=Path, default=ROOT / "data" / "raw" / "booking_reviews_515k.csv")
     third = steps.add_parser("analyse", help="apply the rule once to the committed ratings")
-    third.add_argument("--ratings", type=Path, default=RATINGS)
-    fourth = steps.add_parser("record", help="check the exported ratings and copy them under ratings/")
+    third.add_argument("--ratings", type=Path, default=EXPORT)
+    fourth = steps.add_parser("record", help="check the exported ratings and write their record")
     fourth.add_argument("--source", required=True, help="who gave the ratings, as the owner reports it")
     fourth.add_argument("--export", type=Path, default=EXPORT)
     args = parser.parse_args()
@@ -521,7 +544,7 @@ def main() -> None:
     elif args.step == "record":
         record = record_ratings(args.source, args.export)
         print({h: (v["ratings"], "complete" if v["complete"] else "partial") for h, v in record["hoteliers"].items()},
-              "| bundle", record["bundle"], "|", len(record["files"]), "files")
+              "| bundle", record["bundle"], "|", record["files"], "files | digest", record["ratings_sha256"][:12])
     elif args.step == "analyse":
         decision = analyse(args.ratings)["decision"]
         print(decision)
