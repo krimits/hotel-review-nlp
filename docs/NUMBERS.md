@@ -79,6 +79,21 @@ The 500 new test reviews and 118 urgent (review, type) pairs the reference label
 | 4.39 | False urgent flags per 100, `fa` | 500 test reviews | IPW | [score.json](experiments/triage_student_v2/student/score.json) | `decision.fa` |
 | 0.9491 | Teacher (`claude-haiku-5.5`) urgent recall | 500 test reviews | agreement with `reference_chatgpt_v2`; baseline, not the product | [score.json](experiments/triage_student_v2/student/score.json) | `reported.baselines.teacher_claude_haiku_5_5.rec` |
 
+## Hoteliers' blind evaluation (two hoteliers' judgement, not accuracy)
+
+Two hoteliers judged the teacher's and the student's outputs blind on 60 of the v2 test reviews; the
+figures are over the 146 reviews where either system flags something urgent, with weights. The rule
+was locked before any rating; the verdict is **Neither ready** (see
+[the decision note](experiments/decision_hotelier_blind_eval.md)). The ratings themselves are private.
+
+| Value | Metric | Test set | Scope | Artifact | Key |
+| --- | --- | --- | --- | --- | --- |
+| 0.5873 | Teacher's urgent part judged right, `p_teacher` (IPW) | 146 reviews with an urgent flag | two hoteliers, blind; floor 0.80 | [result.json](experiments/hotelier_blind_eval/results/result.json) | `decision.p_teacher` |
+| 0.0130 | Student minus teacher, `d` (IPW) | 146 reviews with an urgent flag | two hoteliers, blind | [result.json](experiments/hotelier_blind_eval/results/result.json) | `decision.d` |
+| -0.0579 | Bootstrap 2.5th percentile of `d` | 146 reviews with an urgent flag | 2,000 resamples of reviews, seed 0; margin -0.10 | [result.json](experiments/hotelier_blind_eval/results/result.json) | `decision.lo_d` |
+| 0.0812 | Bootstrap 97.5th percentile of `d` | 146 reviews with an urgent flag | 2,000 resamples of reviews, seed 0 | [result.json](experiments/hotelier_blind_eval/results/result.json) | `decision.hi_d` |
+| 0.3333 | Fleiss' kappa between the two hoteliers, Q1 | 120 rated outputs | agreement of two raters | [result.json](experiments/hotelier_blind_eval/results/result.json) | `reported.fleiss_kappa_q1` |
+
 ## What is not in this table
 
 - Confidence intervals are in the artifacts and in
