@@ -73,3 +73,29 @@ def test_no_text_is_stored_and_the_records_stay_private(prose):
     assert "**What is never stored:** the review text, the hotel's name, the access code." in prose
     assert "**The records are not committed to this repository.**" in prose
     assert "each review's text is sent to OpenRouter and Anthropic for the analysis" in prose
+
+
+def _load(name: str, path: Path):
+    import importlib.util
+    import sys
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_code_runs_the_protocols_system_fields_and_rule(prose):
+    pilot = _load("hotel_pilot", ROOT / "scripts" / "hotel_pilot.py")
+    logic = pilot.space_logic()
+    assert f"`{logic.MODEL}` through OpenRouter" in prose and pilot.PROMPT.name == "teacher_prompt_v2.md"
+    assert f"at most {logic.BATCH} per call" in prose and f"| Cap per hotel | {logic.CAP} reviews analysed" in prose
+    assert [condition for condition, _ in pilot.RULE][:2] == RULE
+    assert (pilot.H, pilot.R, pilot.G) == (5, 30, 10)
+    assert (pilot.ACC, pilot.WORST, pilot.MISS, pilot.NOT_ACCEPTED_BELOW) == (0.80, 0.60, 0.10, 0.60)
+    # §2: the three verdicts on an urgent flag, and the seven urgent types a hotel switches on and off.
+    assert list(logic.VERDICTS.values()) == ["accepted", "not_urgent", "absent"]
+    assert "right and urgent / the problem is there but is not urgent / there is no such problem" in prose
+    assert len(logic.urgent_types(pilot.display_table())) == 7 and "seven urgent types" in prose
+    assert pilot.meta()["protocol_sha256"] == PROTOCOL_SHA256
