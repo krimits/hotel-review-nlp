@@ -1,7 +1,9 @@
-# Hotel pilot of the triage Space: protocol — version 1, DRAFT
+# Hotel pilot of the triage Space: protocol — version 1, locked
 
-**Status: draft, 11 November 2026, awaiting the owner's approval.** It is locked only by the commit that adds its
-lock test. Nothing in it has been built, published or rated.
+**Status: approved by the owner on 11 November 2026, with the fields of §7 as written, and locked by the commit
+that adds its lock test,
+[`tests/test_hotel_pilot_protocol.py`](../../../tests/test_hotel_pilot_protocol.py).** At lock nothing had been
+built, published or rated. Any change is a version 2 beside this one, not an edit.
 
 **Why.** The [hoteliers' blind evaluation](../hotelier_blind_eval/PROTOCOL.md) closed with **Neither ready**
 ([decision](../decision_hotelier_blind_eval.md)): two hoteliers judged the teacher's urgent triage right on 59% of
@@ -138,7 +140,7 @@ What each outcome recommends, for the owner to decide:
 
 | Step | What | Human gate |
 | :--- | :--- | :--- |
-| 1 | Lock with its lock test | the owner approves this draft and its owner fields |
+| 1 | Lock with its lock test | the owner's approval and fields (given 11 November 2026) |
 | 2 | Build the Space: codes, the urgent set, analysis through OpenRouter, the rating screen, records to a private dataset; tests with a fake API | — |
 | 3 | Publish the Space; set its secrets (OpenRouter key with a spending limit, dataset token, codes); recruit the hotels | publish, secrets, recruiting |
 | 4 | The hotels use and rate; the owner closes the collection and exports the records | the owner |
@@ -151,8 +153,8 @@ What each outcome recommends, for the owner to decide:
 | Model | `anthropic/claude-haiku-5.5-20261007`, `teacher_prompt_v2.md`, at most 25 reviews per call | owner (11 November 2026) |
 | Urgent set | per hotel, from `catalogue_v2`'s seven urgent types, all on at first | owner (11 November 2026) |
 | Stored | judgements without review texts, in a private dataset | owner (11 November 2026) |
-| `H`, hotels that must qualify | 5 | **owner field, proposed** |
-| `R`, rated reviews for a hotel to qualify | 30 | **owner field, proposed** |
-| `G`, rated urgent flags for a hotel to qualify | 10 | **owner field, proposed** |
-| Thresholds | `acc >= 0.80`, `worst >= 0.60`, `miss <= 0.10`; not accepted below `acc` 0.60 | **owner field, proposed** |
-| Cap per hotel | 300 reviews analysed (about $0.02 at the measured $0.07 per 1,000 reviews) | **owner field, proposed** |
+| `H`, hotels that must qualify | 5 | owner (11 November 2026) |
+| `R`, rated reviews for a hotel to qualify | 30 | owner (11 November 2026) |
+| `G`, rated urgent flags for a hotel to qualify | 10 | owner (11 November 2026) |
+| Thresholds | `acc >= 0.80`, `worst >= 0.60`, `miss <= 0.10`; not accepted below `acc` 0.60 | owner (11 November 2026) |
+| Cap per hotel | 300 reviews analysed (about $0.02 at the measured $0.07 per 1,000 reviews) | owner (11 November 2026) |
