@@ -38,6 +38,8 @@ DRAWN = {  # step 2, drawn at ce4b0af: the rated set, both outputs, the manifest
 # private (owner, 11 November 2026) and are never committed.
 RECORD_SHA256 = "443e70273737b54b0a2defd09dd1e48f880b1c52d2aa59fa6a0ed14f1fe8fc5a"
 RATINGS_SHA256 = "01f2ce303c8241d678a1454525d16d9926a170e6667124fcd56787edbb583129"
+# Step 6, at 9ca07b2: the rule applied once to the recorded ratings.
+RESULT_SHA256 = "045d03433d6f4b880efcd5f092958bfb9902572d6d2ac72d7f48041ff308442b"
 
 
 def _load(name: str):
@@ -115,6 +117,19 @@ def test_the_ratings_are_recorded_by_their_digest_and_never_committed():
     assert "Two different hoteliers" in record["source"] and "no AI tool" in record["source"]
     assert [p.name for p in ratings.iterdir()] == ["record.json"]
     assert not list(FOLDER.rglob("item_*.json")), "a hotelier's rating file is in the repository"
+
+
+def test_the_one_result_is_the_committed_one_and_applies_the_rule():
+    path = FOLDER / "results" / "result.json"
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == RESULT_SHA256
+    result = json.loads(path.read_text(encoding="utf-8"))
+    assert result["protocol_sha256"] == PROTOCOL_SHA256 and result["rule"][:3] == RULE
+    assert result["ratings"]["sha256"] == RATINGS_SHA256 and result["ratings"]["files"] == 120
+    assert result["hoteliers_complete"] == ["H01", "H02"] and result["hoteliers_partial"] == []
+    decision = result["decision"]
+    assert decision["outcome"] == evaluation.outcome(decision["p_teacher"], decision["lo_d"], decision["hi_d"])
+    assert (decision["u_reviews"], decision["d_reviews"]) == (146, 49)
+    assert "q1_urgent_right" not in path.read_text(encoding="utf-8")  # aggregates, no single answer
 
 
 def test_the_draw_settings_are_the_codes(prose):

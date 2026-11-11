@@ -1,0 +1,102 @@
+{
+ "protocol_sha256": "6aa74caf65f0f34e7410bcafea4c893b3c5a3edbb55a460a7299336df9495cae",
+ "code_commit": "9ca07b295095e14831d39f837022ea2d9090d6c7",
+ "hoteliers_complete": [
+  "H01",
+  "H02"
+ ],
+ "hoteliers_partial": [],
+ "rule": [
+  "p_teacher < 0.80",
+  "lo_d >= -0.10",
+  "hi_d < -0.10",
+  "otherwise"
+ ],
+ "ratings": {
+  "files": 120,
+  "sha256": "01f2ce303c8241d678a1454525d16d9926a170e6667124fcd56787edbb583129",
+  "kept": "in the private dataset and the owner's export, not in this repository: the hoteliers were told their answers are kept in a private dataset (owner's decision, 11 November 2026)"
+ },
+ "inputs": {
+  "docs/experiments/hotelier_blind_eval/samples/rated_key.csv": "bdc98b58b340c383cf9c6ccaf184ff3737a4cb10ed92e77a4bb71cc9561a3315",
+  "docs/experiments/hotelier_blind_eval/samples/outputs.json": "7424b85b65de6542a37594b93b548e522e9c3195957d2cde76fc807ff3a323e4",
+  "docs/experiments/hotelier_blind_eval/PROTOCOL.md": "6aa74caf65f0f34e7410bcafea4c893b3c5a3edbb55a460a7299336df9495cae",
+  "docs/experiments/hotelier_blind_eval/ratings/record.json": "443e70273737b54b0a2defd09dd1e48f880b1c52d2aa59fa6a0ed14f1fe8fc5a"
+ },
+ "decision": {
+  "d": 0.012966,
+  "lo_d": -0.057882,
+  "hi_d": 0.081221,
+  "p_teacher": 0.587284,
+  "outcome": "Neither ready",
+  "bootstrap": {
+   "resamples": 2000,
+   "seed": 0
+  },
+  "u_reviews": 146,
+  "d_reviews": 49
+ },
+ "reported": {
+  "right_by_group": {
+   "D": {
+    "teacher": 0.5204,
+    "student": 0.5714
+   },
+   "C": {
+    "teacher": 0.7273,
+    "student": 0.7273
+   }
+  },
+  "what_is_wrong": {
+   "teacher": {
+    "false_urgent": 35,
+    "missed_urgent": 16,
+    "wrong_department": 2
+   },
+   "student": {
+    "false_urgent": 35,
+    "missed_urgent": 9,
+    "wrong_department": 4
+   }
+  },
+  "others": {
+   "teacher": {
+    "partly": 63,
+    "yes": 45,
+    "no": 12
+   },
+   "student": {
+    "partly": 64,
+    "yes": 47,
+    "no": 9
+   }
+  },
+  "useful_mean": {
+   "teacher": 3.408,
+   "student": 3.492
+  },
+  "preference": {
+   "teacher": 45,
+   "student": 41,
+   "same": 34
+  },
+  "fleiss_kappa_q1": 0.3333,
+  "identical_outputs_judged_differently": 0,
+  "identical_outputs_rated": 22,
+  "unweighted_mean_difference_on_d_without_each_hotelier": {
+   "H01": -0.0204,
+   "H02": 0.1224
+  },
+  "hoteliers_vs_chatgpt": {
+   "ratings": 240,
+   "agreement": 0.5875
+  },
+  "partial_raters": {
+   "ratings": 0,
+   "right": {
+    "teacher": null,
+    "student": null
+   }
+  }
+ }
+}
