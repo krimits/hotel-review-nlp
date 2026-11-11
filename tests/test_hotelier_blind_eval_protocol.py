@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -33,6 +34,10 @@ DRAWN = {  # step 2, drawn at ce4b0af: the rated set, both outputs, the manifest
     FOLDER / "samples" / "manifest.json": "1a5e3560e06c865ab8783ee09c0fa16612bf54a328d1edfe7143a0ea85ade1f7",
     FOLDER / "labels_el.yaml": "d0f992b9fe9fc8251da5afd20dbb233785992a36de79361467befcb5b3698a47",
 }
+# Step 5, recorded at 5f38378: the owner's export of the ratings dataset, by one digest. The rating files stay
+# private (owner, 11 November 2026) and are never committed.
+RECORD_SHA256 = "443e70273737b54b0a2defd09dd1e48f880b1c52d2aa59fa6a0ed14f1fe8fc5a"
+RATINGS_SHA256 = "01f2ce303c8241d678a1454525d16d9926a170e6667124fcd56787edbb583129"
 
 
 def _load(name: str):
@@ -97,6 +102,19 @@ def test_the_drawn_set_is_the_committed_one_and_the_rule_is_the_codes():
     assert [condition for condition, _ in evaluation.RULE][:3] == RULE
     assert (evaluation.MARGIN, evaluation.FLOOR, evaluation.MIN_COMPLETE) == (-0.10, 0.80, 2)
     assert (evaluation.BOOTSTRAP, evaluation.BOOTSTRAP_SEED) == (2000, 0)
+
+
+def test_the_ratings_are_recorded_by_their_digest_and_never_committed():
+    ratings = FOLDER / "ratings"
+    assert hashlib.sha256((ratings / "record.json").read_bytes()).hexdigest() == RECORD_SHA256
+    record = json.loads((ratings / "record.json").read_text(encoding="utf-8"))
+    assert record["protocol_sha256"] == PROTOCOL_SHA256 and record["dataset"] == "krimits/hotelier-blind-eval-ratings"
+    assert (record["ratings_sha256"], record["files"]) == (RATINGS_SHA256, 120)
+    assert {h: (v["ratings"], v["complete"]) for h, v in record["hoteliers"].items()} == {
+        "H01": (60, True), "H02": (60, True)}
+    assert "Two different hoteliers" in record["source"] and "no AI tool" in record["source"]
+    assert [p.name for p in ratings.iterdir()] == ["record.json"]
+    assert not list(FOLDER.rglob("item_*.json")), "a hotelier's rating file is in the repository"
 
 
 def test_the_draw_settings_are_the_codes(prose):
