@@ -223,6 +223,108 @@ def test_the_hub_store_writes_json_under_the_datasets_paths():
     assert json.loads(store.api.files["records/P01/abc.json"]) == {"hotel": "P01", "key": "abc"}
 
 
+def dropped() -> OSError:
+    """What a connection to the Hub left idle while a hotelier reads a review raises on its next use."""
+    import requests
+
+    return requests.ConnectionError("('Connection aborted.', RemoteDisconnected('Remote end closed connection'))")
+
+
+def status(code: int) -> OSError:
+    import requests
+    from huggingface_hub.errors import HfHubHTTPError
+
+    response = requests.Response()
+    response.status_code = code
+    return HfHubHTTPError(f"{code} from the Hub", response=response)
+
+
+class FlakyHub(FakeHub):
+    """Fails its next listings and uploads as told. An upload failure is (error, took): `took` when the Hub wrote the
+    file and only its answer was lost on the way back."""
+
+    def __init__(self, listings=(), uploads=()):
+        super().__init__()
+        self.listing_failures, self.upload_failures, self.uploads = list(listings), list(uploads), 0
+
+    def list_repo_files(self, repo_id, repo_type):
+        if self.listing_failures:
+            raise self.listing_failures.pop(0)
+        return super().list_repo_files(repo_id, repo_type)
+
+    def upload_file(self, path_or_fileobj, path_in_repo, repo_id, repo_type, commit_message):
+        self.uploads += 1
+        if self.upload_failures:
+            error, took = self.upload_failures.pop(0)
+            if took:
+                super().upload_file(path_or_fileobj, path_in_repo, repo_id, repo_type, commit_message)
+            raise error
+        super().upload_file(path_or_fileobj, path_in_repo, repo_id, repo_type, commit_message)
+
+    def hf_hub_download(self, repo_id, filename, repo_type, force_download):
+        from huggingface_hub.errors import EntryNotFoundError
+
+        if filename not in self.files:
+            raise EntryNotFoundError(f"{filename} is not there")
+        raise AssertionError("no test reads a saved file back")
+
+
+def flaky_store(hub: FlakyHub):
+    waits, notes = [], []
+    store = logic.HubStore("krimits/hotel-triage-pilot-records", "not-a-real-token", note=notes.append,
+                           sleep=waits.append)
+    store.api = hub
+    return store, waits, notes
+
+
+def test_a_dropped_connection_to_the_hub_is_tried_again_and_the_record_saved_once():
+    hub = FlakyHub(listings=[dropped()], uploads=[(dropped(), False)])
+    store, waits, notes = flaky_store(hub)
+    assert store.save_record({"hotel": "P01", "key": "abc"})
+    assert list(hub.files) == ["records/P01/abc.json"] and hub.uploads == 2 and waits == list(logic.HUB_WAITS)
+    assert len(notes) == 2 and all("P01" in n and "ConnectionError" in n and "abc" not in n for n in notes)
+
+
+def test_a_write_the_hub_took_before_its_answer_was_lost_is_found_not_written_twice():
+    hub = FlakyHub(uploads=[(dropped(), True)])
+    store, waits, _ = flaky_store(hub)
+    assert not store.save_record({"hotel": "P01", "key": "abc"})  # found on the next look: the first one is kept
+    assert list(hub.files) == ["records/P01/abc.json"] and hub.uploads == 1 and waits == [logic.HUB_WAITS[0]]
+
+
+@pytest.mark.parametrize("code", [401, 403, 404])
+def test_a_wrong_token_or_a_missing_dataset_fails_at_once(code):
+    store, waits, notes = flaky_store(FlakyHub(uploads=[(status(code), False)]))
+    with pytest.raises(OSError):
+        store.save_record({"hotel": "P01", "key": "abc"})
+    assert waits == [] and notes == [] and store.api.files == {}
+
+
+def test_a_hub_that_stays_down_fails_after_the_last_wait_and_a_busy_one_is_waited_out():
+    store, waits, _ = flaky_store(FlakyHub(listings=[status(503)] * (len(logic.HUB_WAITS) + 1)))
+    with pytest.raises(OSError):
+        store.keys("P01", "records")
+    assert waits == list(logic.HUB_WAITS)
+    store, waits, _ = flaky_store(FlakyHub(listings=[status(429), status(502)]))
+    store.save_analysed([{"hotel": "P01", "key": "abc"}])
+    assert store.keys("P01", "analysed") == {"abc"} and waits == list(logic.HUB_WAITS)
+
+
+def test_the_hotel_never_sees_not_saved_for_a_connection_the_hub_dropped():
+    hub = FlakyHub()
+    store, _, notes = flaky_store(hub)
+    settings = {"preview": False, "store": store, "api_key": "sk-test",
+                "codes": {hashlib.sha256(b"abc").hexdigest(): "P01"}}
+    steps = steps_of(settings, FakeOpenRouter())
+    state = call(steps["on_start"], "abc", EMPTY)[0]
+    state = call(steps["on_analyse"], "Lovely stay", None, state)[0]
+    hub.upload_failures = [(dropped(), False)]
+    out = call(steps["on_submit"], *[None] * len(URGENT), "Όχι", None, "Ναι", "5", state)
+    assert out[0]["rated"] == 1 and out[0]["queue"] == [] and out[-1] != app.NOT_SAVED
+    assert [k for k in hub.files if k.startswith("records/")] == [f"records/P01/{state['queue'][0]['key']}.json"]
+    assert len(notes) == 1
+
+
 # --- the app ---------------------------------------------------------------------------------------------------------------
 
 def steps_of(settings, transport):
@@ -321,6 +423,7 @@ def test_the_preview_makes_up_analyses_and_never_calls_the_model(monkeypatch):
     live_settings = app.settings_from_env()
     assert not live_settings["preview"] and live_settings["api_key"] == "sk-x"
     assert live_settings["store"].repo_id == "krimits/hotel-triage-pilot-records"
+    assert live_settings["store"].note is app.log  # each retry of the Hub shows in the Space's logs
 
 
 # --- the bundle and the deployment -------------------------------------------------------------------------------------------

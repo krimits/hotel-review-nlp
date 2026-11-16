@@ -18,6 +18,7 @@ import unicodedata
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
+from typing import TypeVar
 
 MODEL = "anthropic/claude-haiku-5.5-20261007"
 URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -29,6 +30,8 @@ TRIES = 3  # the first call and at most two more when the answer cannot be used
 TRANSIENT = {408, 429, 500, 502, 503, 504}
 WAITS = (1.0, 3.0, 6.0)  # seconds between calls that gave no answer; then the batch fails
 TIMEOUT = 120.0
+HUB_PASSING = {408, 409, 412, 429, 500, 502, 503, 504}  # busy, a commit racing another, a gateway or a server down
+HUB_WAITS = (1.0, 3.0)  # seconds before each further try of a step on the records dataset; then it fails
 VERDICTS = {"Σωστό και επείγον": "accepted", "Υπάρχει, αλλά δεν είναι επείγον": "not_urgent",
             "Δεν υπάρχει τέτοιο πρόβλημα": "absent"}
 MISSING = {"Όχι": False, "Ναι": True}
@@ -36,6 +39,7 @@ OTHERS = {"Ναι": "yes", "Εν μέρει": "partly", "Όχι": "no"}
 USEFUL = ["1", "2", "3", "4", "5"]
 OTHER_TYPE = "Άλλο"
 Transport = Callable[[str, dict, str, float], tuple[int, dict, bytes]]
+T = TypeVar("T")
 
 
 class OutputError(ValueError):
@@ -356,14 +360,52 @@ class MemoryStore:
                     f"{hotel} set its urgent types")
 
 
-class HubStore(MemoryStore):
-    """Records in a private Hugging Face dataset."""
+def passing(error: BaseException) -> bool:
+    """A failure of the Hub worth another try: no answer at all (a connection dropped, reset or timed out, as happens
+    to one left idle while a hotelier reads a review), or a status that says busy, racing or down. A wrong token, a
+    missing dataset or a missing file is not: asking again does not change them."""
+    status = getattr(getattr(error, "response", None), "status_code", None)
+    return status in HUB_PASSING if status is not None else isinstance(error, OSError)
 
-    def __init__(self, repo_id: str, token: str) -> None:
+
+class HubStore(MemoryStore):
+    """Records in a private Hugging Face dataset.
+
+    Each step is tried again after HUB_WAITS when the Hub fails for a passing reason, and each try reads the dataset
+    afresh: a record the Hub took although its answer was lost is found on the next try, not written twice, and the
+    first judgement of a review stays the one kept. `note` tells the Space's logs about each retry."""
+
+    def __init__(self, repo_id: str, token: str, note: Callable[[str], None] = lambda message: None,
+                 sleep: Callable[[float], None] = time.sleep) -> None:
         from huggingface_hub import HfApi
 
         super().__init__()
         self.api, self.repo_id = HfApi(token=token), repo_id
+        self.note, self.sleep = note, sleep
+
+    def _again(self, what: str, step: Callable[[], T]) -> T:
+        for wait in (*HUB_WAITS, None):
+            try:
+                return step()
+            except Exception as error:
+                if wait is None or not passing(error):
+                    raise
+                self.note(f"{what}: the Hub failed ({type(error).__name__}); trying again in {wait:g} s")
+                self.sleep(wait)
+        raise AssertionError("unreachable")
+
+    def keys(self, hotel: str, kind: str) -> set[str]:
+        return self._again(f"reading {hotel}'s {kind}", lambda: MemoryStore.keys(self, hotel, kind))
+
+    def save_record(self, rating: dict) -> bool:
+        return self._again(f"saving a record of {rating['hotel']}", lambda: MemoryStore.save_record(self, rating))
+
+    def urgent_set(self, hotel: str) -> list[str] | None:
+        return self._again(f"reading {hotel}'s urgent set", lambda: MemoryStore.urgent_set(self, hotel))
+
+    def save_urgent_set(self, hotel: str, urgent_set: list[str], now: dt.datetime | None = None) -> None:
+        now = now or dt.datetime.now(dt.timezone.utc)  # one time for every try
+        self._again(f"saving {hotel}'s urgent set", lambda: MemoryStore.save_urgent_set(self, hotel, urgent_set, now))
 
     def _names(self) -> list[str]:
         return self.api.list_repo_files(self.repo_id, repo_type="dataset")
@@ -386,10 +428,14 @@ class HubStore(MemoryStore):
         """One commit for a whole submission, not one per review."""
         from huggingface_hub import CommitOperationAdd
 
-        known = set(self._names())
-        operations = [CommitOperationAdd(path_in_repo=f"analysed/{n['hotel']}/{n['key']}.json",
-                                         path_or_fileobj=json.dumps(n, ensure_ascii=False, indent=1).encode("utf-8"))
-                      for n in notes if f"analysed/{n['hotel']}/{n['key']}.json" not in known]
-        if operations:
-            self.api.create_commit(self.repo_id, operations, repo_type="dataset",
-                                   commit_message=f"{notes[0]['hotel']} analysed {len(operations)} review(s)")
+        def step() -> None:
+            known = set(self._names())
+            operations = [CommitOperationAdd(path_in_repo=f"analysed/{n['hotel']}/{n['key']}.json",
+                                             path_or_fileobj=json.dumps(n, ensure_ascii=False, indent=1).encode())
+                          for n in notes if f"analysed/{n['hotel']}/{n['key']}.json" not in known]
+            if operations:
+                self.api.create_commit(self.repo_id, operations, repo_type="dataset",
+                                       commit_message=f"{notes[0]['hotel']} analysed {len(operations)} review(s)")
+
+        if notes:
+            self._again(f"recording {notes[0]['hotel']}'s analysed reviews", step)

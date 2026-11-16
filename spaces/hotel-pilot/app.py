@@ -70,7 +70,7 @@ def settings_from_env() -> dict:
             log(f"preview, because these secrets are not set: {', '.join(missing)}")
         return {"preview": True, "store": logic.MemoryStore(), "api_key": "",
                 "codes": {hashlib.sha256(b"demo").hexdigest(): "DEMO"}}
-    return {"preview": False, "store": logic.HubStore(secret("RATINGS_REPO"), secret("HF_TOKEN")),
+    return {"preview": False, "store": logic.HubStore(secret("RATINGS_REPO"), secret("HF_TOKEN"), note=log),
             "api_key": secret("OPENROUTER_API_KEY"), "codes": json.loads(secret("HOTEL_CODES"))}
 
 
