@@ -1,0 +1,43 @@
+{
+ "protocol": "docs/experiments/hotel_pilot/PROTOCOL.md",
+ "model": "anthropic/claude-haiku-5.5-20261007",
+ "protocol_sha256": "66f7c72734a01f3982e03138004cee5d960a47dfb6660ddf40bf5988710a40be",
+ "prompt_sha256": "f731026f001ea8262444edc7c3847b6729d0414588369a409de8f5717c98245a",
+ "labels_el_sha256": "d0f992b9fe9fc8251da5afd20dbb233785992a36de79361467befcb5b3698a47",
+ "catalogue_sha256": "5c592af14016cba5f97a0ee021af0a54e2196d1f50ad1f01b938be3a384f966d",
+ "code_commit": "2530207b7d1a25c25abd30074af23ded5017b9b4",
+ "dataset": "krimits/hotel-triage-pilot-records",
+ "source": "Five hotels recruited by the owner, each with its own code (P01-P05); the owner reports that each hotel's own hotelier rated its own guests' reviews. Owner's statements and what the records show, per hotel. P01: whole batches only (23, 25, 16, 7); the last 7 were the next most recent reviews, in order (owner, 16 Nov); 5 of its reviews are identical in text to reviews the owner used in the owner's own test under code P06, which the owner states came from this hotel. P02: rated by its hotelier (owner, 16 Nov); after two batches of 25 and batches of 9 and 3, its last 4 reviews came as 4 single-review submissions, 3 of them with an urgent flag, and 6 analysed reviews were never rated; asked how the 4 were picked, the owner declared P02 complete without saying. P03: rated by a hotelier (owner, 17 Nov); 12 of its 52 reviews are identical in text to reviews of P01 and 1 to a review of the owner's P06 test, which the owner cannot explain; besides batches of 25, 13 and 5 it has 9 single-review submissions, 5 of them with an urgent flag. P04 and P05: whole batches only (18 and 13; 22 and 14), no shared texts. Removed before the collection: the owner's test code P06 (12 Nov, dataset commit 92eb4094) and one analysed, unrated test review under P01 (13 Nov, fc5bf784). The Space was redeployed on 16 Nov with retries towards the Hub only (commit 2530207); records, prompt and bundle unchanged. Collection closed and exported by the owner on 18 Nov 2026.",
+ "received_on": "2026-11-18",
+ "hotels": {
+  "P01": {
+   "rated_reviews": 71,
+   "rated_urgent_flags": 10,
+   "analysed_reviews": 71
+  },
+  "P02": {
+   "rated_reviews": 45,
+   "rated_urgent_flags": 10,
+   "analysed_reviews": 51
+  },
+  "P03": {
+   "rated_reviews": 52,
+   "rated_urgent_flags": 11,
+   "analysed_reviews": 52
+  },
+  "P04": {
+   "rated_reviews": 31,
+   "rated_urgent_flags": 15,
+   "analysed_reviews": 31
+  },
+  "P05": {
+   "rated_reviews": 36,
+   "rated_urgent_flags": 15,
+   "analysed_reviews": 36
+  }
+ },
+ "files": 479,
+ "export_sha256": "ca4f8274dcaaaa849028d5daecbb8029fd6e768aaada4e59800104fc2cdf8ea7",
+ "digest": "SHA-256 of the lines `<path> <SHA-256 of the file>`, one per exported file, sorted by path",
+ "records_kept": "in the private dataset and the owner's export, not in this repository, as in the blind evaluation"
+}
