@@ -94,6 +94,20 @@ was locked before any rating; the verdict is **Neither ready** (see
 | 0.0812 | Bootstrap 97.5th percentile of `d` | 146 reviews with an urgent flag | 2,000 resamples of reviews, seed 0 | [result.json](experiments/hotelier_blind_eval/results/result.json) | `decision.hi_d` |
 | 0.3333 | Fleiss' kappa between the two hoteliers, Q1 | 120 rated outputs | agreement of two raters | [result.json](experiments/hotelier_blind_eval/results/result.json) | `reported.fleiss_kappa_q1` |
 
+## Hotel pilot (five hotels' judgement on their own reviews, not accuracy, not blind)
+
+Five hotels the owner recruited used the live triage Space on their own guests' reviews and judged each urgent
+flag. The rule was locked before the Space was built; the verdict is **Accepted**, resting on flags that two hotels
+added one review at a time (see [the decision note](experiments/decision_hotel_pilot.md)). The records are private.
+
+| Value | Metric | Test set | Scope | Artifact | Key |
+| --- | --- | --- | --- | --- | --- |
+| 0.8867 | Urgent flags accepted, `acc` (mean over hotels) | 61 flags in 235 reviews, 5 hotels | hoteliers, own reviews, not blind; threshold 0.80 | [result.json](experiments/hotel_pilot/results/result.json) | `decision.acc` |
+| 0.70 | Lowest hotel's share accepted, `worst` | 5 hotels | threshold 0.60 | [result.json](experiments/hotel_pilot/results/result.json) | `decision.worst` |
+| 0.0262 | Reviews with a missing urgent problem reported, `miss` | 235 reviews, 5 hotels | a floor, not a recall; threshold 0.10 | [result.json](experiments/hotel_pilot/results/result.json) | `decision.miss` |
+| 0.118 | OpenRouter cost, USD per 1,000 reviews | 235 rated reviews | `claude-haiku-5.5`, up to 25 per call | [result.json](experiments/hotel_pilot/results/result.json) | `reported.cost_usd_per_1000_reviews` |
+| 9.81 | Median seconds per call | calls behind the 235 reviews | live Space through OpenRouter | [result.json](experiments/hotel_pilot/results/result.json) | `reported.median_seconds_per_call` |
+
 ## What is not in this table
 
 - Confidence intervals are in the artifacts and in

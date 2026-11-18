@@ -1,0 +1,213 @@
+{
+ "protocol_sha256": "66f7c72734a01f3982e03138004cee5d960a47dfb6660ddf40bf5988710a40be",
+ "code_commit": "6870e9c74eae8f138e1b628ce31db853df61dfc5",
+ "rule": [
+  "acc >= 0.80 and worst >= 0.60 and miss <= 0.10",
+  "acc < 0.60",
+  "otherwise"
+ ],
+ "fields": {
+  "H": 5,
+  "R": 30,
+  "G": 10
+ },
+ "export": {
+  "files": 479,
+  "sha256": "ca4f8274dcaaaa849028d5daecbb8029fd6e768aaada4e59800104fc2cdf8ea7",
+  "kept": "in the private dataset and the owner's export, not in this repository, as in the blind evaluation"
+ },
+ "hotels_qualifying": [
+  "P01",
+  "P02",
+  "P03",
+  "P04",
+  "P05"
+ ],
+ "decision": {
+  "acc": 0.886667,
+  "worst": 0.7,
+  "miss": 0.026225,
+  "outcome": "Accepted"
+ },
+ "reported": {
+  "hotels": {
+   "P01": {
+    "rated_reviews": 71,
+    "rated_urgent_flags": 10,
+    "accepted_urgent_flags": 7,
+    "reviews_with_a_missing_urgent_problem": 4,
+    "qualifies": true,
+    "acc": 0.7,
+    "miss": 0.056338,
+    "others": {
+     "yes": 69,
+     "partly": 2
+    },
+    "useful_mean": 4.915,
+    "analysed_never_rated": 0,
+    "urgent_set_at_last_rating": [
+     "cleanliness",
+     "pests",
+     "security_fault",
+     "safety_fault",
+     "safety_incident",
+     "hvac_failure",
+     "plumbing_major"
+    ]
+   },
+   "P02": {
+    "rated_reviews": 45,
+    "rated_urgent_flags": 10,
+    "accepted_urgent_flags": 10,
+    "reviews_with_a_missing_urgent_problem": 0,
+    "qualifies": true,
+    "acc": 1.0,
+    "miss": 0.0,
+    "others": {
+     "yes": 44,
+     "partly": 1
+    },
+    "useful_mean": 4.956,
+    "analysed_never_rated": 6,
+    "urgent_set_at_last_rating": [
+     "cleanliness",
+     "pests",
+     "security_fault",
+     "safety_fault",
+     "safety_incident",
+     "hvac_failure",
+     "plumbing_major"
+    ]
+   },
+   "P03": {
+    "rated_reviews": 52,
+    "rated_urgent_flags": 11,
+    "accepted_urgent_flags": 11,
+    "reviews_with_a_missing_urgent_problem": 1,
+    "qualifies": true,
+    "acc": 1.0,
+    "miss": 0.019231,
+    "others": {
+     "yes": 52
+    },
+    "useful_mean": 5.0,
+    "analysed_never_rated": 0,
+    "urgent_set_at_last_rating": [
+     "cleanliness",
+     "pests",
+     "security_fault",
+     "safety_fault",
+     "safety_incident",
+     "hvac_failure",
+     "plumbing_major"
+    ]
+   },
+   "P04": {
+    "rated_reviews": 31,
+    "rated_urgent_flags": 15,
+    "accepted_urgent_flags": 11,
+    "reviews_with_a_missing_urgent_problem": 0,
+    "qualifies": true,
+    "acc": 0.733333,
+    "miss": 0.0,
+    "others": {
+     "yes": 30,
+     "partly": 1
+    },
+    "useful_mean": 4.968,
+    "analysed_never_rated": 0,
+    "urgent_set_at_last_rating": [
+     "cleanliness",
+     "pests",
+     "security_fault",
+     "safety_fault",
+     "safety_incident",
+     "hvac_failure",
+     "plumbing_major"
+    ]
+   },
+   "P05": {
+    "rated_reviews": 36,
+    "rated_urgent_flags": 15,
+    "accepted_urgent_flags": 15,
+    "reviews_with_a_missing_urgent_problem": 2,
+    "qualifies": true,
+    "acc": 1.0,
+    "miss": 0.055556,
+    "others": {
+     "yes": 36
+    },
+    "useful_mean": 5.0,
+    "analysed_never_rated": 0,
+    "urgent_set_at_last_rating": [
+     "cleanliness",
+     "pests",
+     "security_fault",
+     "safety_fault",
+     "safety_incident",
+     "hvac_failure",
+     "plumbing_major"
+    ]
+   }
+  },
+  "verdicts_by_urgent_type": {
+   "cleanliness": {
+    "accepted": 23,
+    "not_urgent": 1
+   },
+   "pests": {
+    "accepted": 5
+   },
+   "security_fault": {
+    "absent": 1,
+    "accepted": 3
+   },
+   "safety_fault": {
+    "accepted": 1
+   },
+   "safety_incident": {
+    "absent": 1,
+    "accepted": 1
+   },
+   "hvac_failure": {
+    "accepted": 9,
+    "not_urgent": 1,
+    "absent": 3
+   },
+   "plumbing_major": {
+    "accepted": 12
+   }
+  },
+  "hotels_keeping_each_urgent_type_on": {
+   "cleanliness": 5,
+   "pests": 5,
+   "security_fault": 5,
+   "safety_fault": 5,
+   "safety_incident": 5,
+   "hvac_failure": 5,
+   "plumbing_major": 5
+  },
+  "acc_by_script": {
+   "greek": {
+    "rated_urgent_flags": 46,
+    "acc": 0.913
+   },
+   "latin": {
+    "rated_urgent_flags": 15,
+    "acc": 0.8
+   },
+   "other": {
+    "rated_urgent_flags": 0,
+    "acc": null
+   }
+  },
+  "missing_types": {
+   "cleanliness": 3,
+   "hvac_failure": 3,
+   "other": 1
+  },
+  "hotels_not_qualifying": [],
+  "cost_usd_per_1000_reviews": 0.118,
+  "median_seconds_per_call": 9.81
+ }
+}
