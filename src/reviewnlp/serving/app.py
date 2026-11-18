@@ -28,6 +28,7 @@ from reviewnlp.serving.absa_router import router as absa_router
 from reviewnlp.serving.analytics_router import router as analytics_router
 from reviewnlp.serving.greek_router import router as greek_router
 from reviewnlp.serving.model_wrapper import ModelWrapper, timed_predict
+from reviewnlp.serving.ops_router import router as ops_router
 from reviewnlp.serving.schemas import (
     BatchPredictRequest,
     BatchPredictResponse,
@@ -63,6 +64,7 @@ app.include_router(absa_router)
 app.include_router(analytics_router)
 app.include_router(greek_router)
 app.include_router(triage_router)
+app.include_router(ops_router)
 
 
 @app.get("/dashboard", include_in_schema=False)

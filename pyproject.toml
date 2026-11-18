@@ -64,6 +64,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "reviewnlp.serving" = ["dashboard.html"]
+"reviewnlp.ops" = ["catalogue_v2.yaml", "labels_el.yaml"]
 
 [tool.mypy]
 # Scoped on purpose: these three packages are where the served API and the evaluation
@@ -77,6 +78,7 @@ files = [
     "src/reviewnlp/analytics",
     "src/reviewnlp/absa",
     "src/reviewnlp/triage",
+    "src/reviewnlp/ops",
 ]
 mypy_path = "src"
 # The listed packages are the gate. Modules they import (greek, llm, utils) still get

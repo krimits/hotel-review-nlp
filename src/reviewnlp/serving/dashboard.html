@@ -40,6 +40,13 @@
     .positive { color: #08776b; font-weight: 700; }
     .pill { display: inline-block; border-radius: 20px; background: #eef3f5; padding: 4px 9px; margin: 4px 4px 0 0; }
     .notice { padding: 12px 15px; border-left: 4px solid #bb7e10; background: #fffaed; }
+    .finding { border: 1px solid #dce5e7; border-radius: 9px; padding: 14px; margin: 12px 0; }
+    .finding blockquote { margin: 8px 0; padding-left: 10px; border-left: 3px solid #a8bbbf; color: #2c4650; }
+    .finding .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-top: 10px; }
+    .finding .row > * { width: auto; }
+    .urgent { color: #aa333c; font-weight: 700; }
+    button.secondary { background: #e6eeef; color: #142735; }
+    button.secondary:hover, button.secondary:focus-visible { background: #cfdcde; }
     @media (max-width: 680px) { .fields, .fields.two, .summary { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -89,6 +96,29 @@
       <p id="review-status" class="status" role="status" aria-live="polite"></p>
       <div id="aspects" aria-live="polite"></div>
       <div id="triage-result" aria-live="polite"></div>
+    </section>
+    <section class="panel" aria-labelledby="ops-title">
+      <h2 id="ops-title">Κριτική → tickets → απάντηση</h2>
+      <p class="notice">Πειραματικό demo. Κάθε εύρημα δείχνει τα λόγια του επισκέπτη και αν το πρόβλημα εκκρεμεί. Ticket ανοίγει μόνο αφού το επιβεβαιώσετε, και μόνο όταν το πρόβλημα παραμένει. Η απάντηση είναι προσχέδιο: ελέγξτε την, εγκρίνετέ την και αντιγράψτε την στο κανάλι της κριτικής.</p>
+      <div class="fields two">
+        <div><label for="ops-review-id">ID κριτικής</label><input id="ops-review-id" autocomplete="off" placeholder="π.χ. booking-123"></div>
+        <div><label for="ops-source">Πηγή</label><input id="ops-source" value="booking" autocomplete="off"></div>
+      </div>
+      <p><label for="ops-text">Κείμενο κριτικής (οποιαδήποτε γλώσσα)</label><textarea id="ops-text" maxlength="8000"></textarea></p>
+      <button id="ops-submit" type="button">Ανάλυση κριτικής</button>
+      <p id="ops-status" class="status" role="status" aria-live="polite"></p>
+      <div id="ops-card" aria-live="polite"></div>
+      <h3>Απάντηση στον επισκέπτη</h3>
+      <button id="ops-draft" type="button" class="secondary">Προσχέδιο απάντησης</button>
+      <p><label for="ops-reply">Κείμενο απάντησης</label><textarea id="ops-reply" maxlength="4000"></textarea></p>
+      <button id="ops-approve" type="button">Έγκριση</button> <button id="ops-copy" type="button" class="secondary">Αντιγραφή</button>
+      <p id="ops-reply-status" class="status" role="status" aria-live="polite"></p>
+      <h3>Ουρά tickets</h3>
+      <div class="fields two">
+        <div><label for="ops-dept">Τμήμα</label><select id="ops-dept"><option value="">Όλα</option><option value="housekeeping">Υπηρεσία ορόφων</option><option value="maintenance">Συντήρηση</option><option value="reception">Υποδοχή</option><option value="food_and_beverage">Εστίαση</option><option value="management">Διοίκηση</option><option value="other">Άλλο τμήμα</option></select></div>
+        <div><label>&nbsp;</label><button id="ops-tickets-refresh" type="button" class="secondary">Ανανέωση ουράς</button> <button id="ops-deliver" type="button" class="secondary">Αποστολή εκκρεμών ειδοποιήσεων</button></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>#</th><th>Πρόβλημα</th><th>Τμήμα</th><th>Δωμάτιο</th><th>Κατάσταση</th><th>Ειδοποίηση</th><th></th></tr></thead><tbody id="ops-tickets"></tbody></table></div>
     </section>
   </main>
   <script>
@@ -230,6 +260,88 @@
       } catch(error) { status.className='status error'; status.textContent=error.message; }
       finally { $('analyze').disabled=false; }
     }
+    // --- Operations demo: review card -> confirmed findings -> tickets -> reply. Data is shown with textContent only.
+    const opsBase = () => `/ops/hotels/${encodeURIComponent(hotel())}`;
+    const opsKey = () => `${encodeURIComponent($('ops-source').value.trim()||'booking')}/${encodeURIComponent($('ops-review-id').value.trim())}`;
+    const post = (path, body) => request(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{})});
+    function el(tag, text, className) { const node=document.createElement(tag); if (text!==undefined) node.textContent=text; if (className) node.className=className; return node; }
+    function opsError(target, error) { $(target).className='status error'; $(target).textContent=error.message; }
+    function choice(options) { const select=el('select'); for (const [value,text] of options) { const option=el('option',text); option.value=value; select.append(option); } return select; }
+    function showCard(card) {
+      const box=$('ops-card'); box.replaceChildren();
+      if (!card.findings.length) box.append(el('p','Η κριτική δεν αναφέρει πρόβλημα.','hint'));
+      for (const f of card.findings) {
+        const item=el('div',undefined,'finding');
+        const head=el('p'); head.append(el('strong',f.label), ` · ${f.department_label} · `, el('span',f.priority_label,f.priority==='urgent'?'urgent':''), ` · ${f.status_label}`);
+        item.append(head, el('blockquote',`«${f.excerpt}»`), el('p',`Ενέργεια: ${f.measure}${f.deadline?` (προθεσμία: ${f.deadline})`:''}`,'hint'));
+        if (f.decision==='proposed') {
+          const row=el('div',undefined,'row'); let room=null, open=null;
+          if (f.opens_ticket && f.status==='unclear') { open=choice([['','Παραμένει το πρόβλημα;'],['yes','Ναι, παραμένει'],['no','Όχι, λύθηκε']]); row.append(open); }
+          if (f.opens_ticket && f.status==='resolved') { open=choice([['','Λύθηκε κατά τη διαμονή'],['yes','Εμφανίστηκε ξανά']]); row.append(open); }
+          if (f.needs_room && f.opens_ticket) { room=el('input'); room.placeholder='Δωμάτιο (από τη ρεσεψιόν)'; room.size=22; row.append(room); }
+          const yes=el('button','Επιβεβαίωση'), no=el('button','Απόρριψη','secondary'); yes.type='button'; no.type='button';
+          yes.addEventListener('click', ()=>opsAct(post(`${opsBase()}/findings/${f.id}/confirm`, {room: room ? (room.value.trim()||null) : null, still_open: open && open.value ? open.value==='yes' : null})));
+          no.addEventListener('click', ()=>opsAct(post(`${opsBase()}/findings/${f.id}/reject`)));
+          row.append(yes, no); item.append(row);
+        } else {
+          const done = f.decision==='rejected' ? 'Απορρίφθηκε'
+            : f.ticket_id ? `Ticket #${f.ticket_id} · ${f.ticket_state_label}${f.room?` · δωμάτιο ${f.room}`:''}`
+            : 'Επιβεβαιώθηκε· χωρίς ticket (δεν εκκρεμεί ή είναι ενημερωτικό)';
+          item.append(el('p',done,'pill'));
+        }
+        box.append(item);
+      }
+      if (card.reply) {
+        $('ops-reply').value = card.reply.approved_text || card.reply.draft;
+        $('ops-reply-status').className='status';
+        $('ops-reply-status').textContent = card.reply.state==='approved' ? 'Εγκεκριμένη απάντηση.' : 'Προσχέδιο: ελέγξτε το πριν το εγκρίνετε.';
+      }
+      $('ops-draft').disabled = !card.reply_ready;
+    }
+    async function opsAct(promise) {
+      const status=$('ops-status'); status.className='status';
+      try { showCard(await promise); status.textContent='Ενημερώθηκε.'; await opsTickets(); }
+      catch(error) { opsError('ops-status', error); }
+    }
+    async function opsTickets() {
+      const body=$('ops-tickets'); body.replaceChildren();
+      const dept=$('ops-dept').value;
+      const [tickets, outbox]=await Promise.all([request(`${opsBase()}/tickets${dept?`?department=${dept}`:''}`), request(`${opsBase()}/outbox`)]);
+      const notices=Object.fromEntries(outbox.map(o=>[o.ticket_id,o]));
+      const sent={sent:'Στάλθηκε',pending:'Σε αναμονή',failed:'Απέτυχε'};
+      if (!tickets.length) { const tr=body.insertRow(); cell(tr,'Δεν υπάρχουν tickets.'); tr.firstChild.colSpan=7; return; }
+      for (const t of tickets) {
+        const tr=body.insertRow();
+        cell(tr,`#${t.id}`); cell(tr,`${t.label} — «${t.excerpt}»`, t.priority==='urgent'?'urgent':''); cell(tr,t.department_label); cell(tr,t.room||'—'); cell(tr,t.state_label);
+        const n=notices[t.id];
+        cell(tr, n ? `${sent[n.state]||n.state}${n.attempts>1?` (${n.attempts} προσπάθειες)`:''}` : '—', n && n.state==='failed' ? 'negative' : '');
+        const actions=tr.insertCell();
+        for (const [state,label] of [['in_progress','Σε εξέλιξη'],['resolved','Επιλύθηκε']]) {
+          if (t.state==='resolved' || (state==='in_progress' && t.state!=='assigned')) continue;
+          const button=el('button',label,'secondary'); button.type='button';
+          button.addEventListener('click', async ()=>{ try { await post(`${opsBase()}/tickets/${t.id}/state`, {state}); await opsTickets(); } catch(error) { opsError('ops-status', error); } });
+          actions.append(button);
+        }
+      }
+    }
+    $('ops-submit').addEventListener('click', async ()=>{
+      const status=$('ops-status'); status.className='status'; status.textContent='Ανάλυση...'; $('ops-submit').disabled=true;
+      try {
+        if (!$('ops-review-id').value.trim()) throw Error('Συμπλήρωσε το ID της κριτικής, ώστε να καταγράφεται μία φορά.');
+        $('ops-reply').value=''; $('ops-reply-status').textContent='';
+        showCard(await post(`${opsBase()}/reviews`, {source:$('ops-source').value.trim()||'booking', review_id:$('ops-review-id').value.trim(), text:$('ops-text').value}));
+        status.textContent='Επιβεβαιώστε ή απορρίψτε κάθε εύρημα.'; await opsTickets();
+      } catch(error) { opsError('ops-status', error); }
+      finally { $('ops-submit').disabled=false; }
+    });
+    $('ops-draft').addEventListener('click', async ()=>{ try { showCard(await post(`${opsBase()}/reviews/${opsKey()}/reply/draft`)); } catch(error) { opsError('ops-reply-status', error); } });
+    $('ops-approve').addEventListener('click', async ()=>{ try { showCard(await post(`${opsBase()}/reviews/${opsKey()}/reply/approve`, {text:$('ops-reply').value})); } catch(error) { opsError('ops-reply-status', error); } });
+    $('ops-copy').addEventListener('click', async ()=>{ try { await navigator.clipboard.writeText($('ops-reply').value); $('ops-reply-status').textContent='Αντιγράφηκε.'; } catch(error) { $('ops-reply-status').textContent='Η αντιγραφή δεν επιτράπηκε· επιλέξτε το κείμενο και αντιγράψτε το.'; } });
+    $('ops-tickets-refresh').addEventListener('click', ()=>opsTickets().catch(error=>opsError('ops-status', error)));
+    $('ops-deliver').addEventListener('click', async ()=>{
+      try { const c=await post(`${opsBase()}/outbox/deliver`); $('ops-status').className='status'; $('ops-status').textContent=`Στάλθηκαν ${c.sent}, για αργότερα ${c.retry}, απέτυχαν ${c.failed}.`; await opsTickets(); }
+      catch(error) { opsError('ops-status', error); }
+    });
     $('refresh').addEventListener('click', refresh); $('analyze').addEventListener('click', analyze); $('triage').addEventListener('click', analyzeTriage);
   </script>
 </body>
