@@ -56,7 +56,7 @@ def main() -> None:
     print(f"Hotel id:   {args.hotel_id}")
     print(f"API key:    {key}   (local demo key, kept in runs/ops/)")
     print(f"Analysis:   {'the model through OpenRouter' if args.live else 'keyword stand-ins (nothing is sent out)'}", flush=True)
-    print(f"Test email: {FOLDER / 'mail'}")
+    print(f"Test email: {FOLDER / 'mail'}", flush=True)
     sys.path.insert(0, str(ROOT / "src"))
     import uvicorn
 
