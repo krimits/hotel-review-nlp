@@ -36,7 +36,7 @@ resolved does not open an urgent ticket.
 
 ## Run it
 
-The short way, the same in cmd and PowerShell: `.venv\Scripts\python.exe scriptsun_ops_demo.py` makes a local demo key for `hotel-demo` (kept in `runs/ops/`), sets everything below for that process only, prints the dashboard address and the key, and starts the app. Add `--live` to use the model once `OPENROUTER_API_KEY` is set. The long way:
+The short way, the same in cmd and PowerShell: `.venv\Scripts\python.exe scripts\run_ops_demo.py` makes a local demo key for `hotel-demo` (kept in `runs/ops/`), sets everything below for that process only, prints the dashboard address and the key, and starts the app. Add `--live` to use the model once `OPENROUTER_API_KEY` is set. The long way:
 
 ```bash
 python scripts/create_api_key.py --hotel-id hotel-demo        # the raw key once, and the JSON for the server
